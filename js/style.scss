@@ -1,0 +1,28 @@
+body {
+  font-family: 'Open Sans', sans-serif;
+}
+
+.video-row {
+  display: flex;
+  margin-bottom: 10px;
+
+  .note-label {
+    width: 25px;
+  }
+  .empty-video, video {
+    width: 100px;
+    height: 100px;
+  }
+  .empty-video {
+    border: 1px solid #eee;
+    color: #eee;
+    text-align: center;
+
+    svg { margin-top: 25px; }
+  }
+}
+
+.video-scroller {
+  height: 500px;
+  overflow-y: auto;
+}
