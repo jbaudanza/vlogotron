@@ -16,11 +16,7 @@ window.main = function(node) {
 const audioContext = new AudioContext();
 
 // TODO NEXT:
-// - Extract and display audio somehow
-//   Options:
-//      - Use scriptProcessor node.
-//      - Use decodeAudioData
-//      - Do something server side
+// - Add a tone during the countdown
 
 
 const notes = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
@@ -55,12 +51,16 @@ class Row extends React.Component {
 
     if (this.props.stream) {
       videoEl = <video key="recorder" muted ref={this.setVideoStream} />;
-      actionsEl = (
-        <div>
-          <Link onClick={this.props.onStop}>Stop recording</Link>
-          <div>{this.props.duration}</div>
-        </div>
-      );
+      if (this.props.countdown) {
+        actionsEl = <div>Recording in {this.props.countdown}</div>;
+      } else {
+        actionsEl = (
+          <div>
+            <Link onClick={this.props.onStop}>Stop recording</Link>
+            <div>{this.props.duration}</div>
+          </div>
+        );
+      }
     } else if (this.props.src) {
       videoEl = <video key="playback" src={this.props.src} />;
       actionsEl = (
@@ -97,9 +97,10 @@ class Row extends React.Component {
 }
 
 Row.propTypes = {
-  onRecord:  React.PropTypes.func.isRequired,
-  onStop:    React.PropTypes.func.isRequired,
-  recording: React.PropTypes.bool.isRequired
+  onRecord:   React.PropTypes.func.isRequired,
+  onStop:     React.PropTypes.func.isRequired,
+  recording:  React.PropTypes.bool.isRequired,
+  countdown:  React.PropTypes.number
 };
 
 
@@ -111,7 +112,7 @@ class DemoApp extends React.Component {
 
     bindAll(this,
       'onDataAvailable', 'onKeyDown', 'onKeyUp', 'onStopComplete',
-      'onAudioProcess', 'onStreamGranted', 'onClear');
+      'onAudioProcess', 'onStreamGranted', 'onClear', 'onTick');
 
     this.state = {
       recording: null,
@@ -204,16 +205,29 @@ class DemoApp extends React.Component {
     // event to fire.
     recorderNode.connect(audioContext.destination);
 
-    //
-    // Start Media Recorder
-    //
-    this.chunks = [];
-    this.recorder = new MediaRecorder(stream);
-    this.recorder.ondataavailable = this.onDataAvailable;
-    this.recorder.onstop = this.onStopComplete;
-    this.recorder.start();
+    this.setState({countdown: 3});
+
+    // TODO: Provide a way to cancel this
+    setTimeout(this.onTick, 1000);
 
     this.setState({stream: stream});
+  }
+
+  onTick() {
+    const next = this.state.countdown - 1;
+
+    if (next === 0) {
+      this.chunks = [];
+      this.recorder = new MediaRecorder(this.state.stream);
+      this.recorder.ondataavailable = this.onDataAvailable;
+      this.recorder.onstop = this.onStopComplete;
+      this.recorder.start();
+
+      this.setState({countdown: null});
+    } else {
+      this.setState({countdown: next});
+      setTimeout(this.onTick, 1000);
+    }
   }
 
   onRecord(note) {
@@ -242,7 +256,11 @@ class DemoApp extends React.Component {
     };
 
     if (this.state.recording === note) {
-      Object.assign(props, {stream: this.state.stream, duration: this.state.timeStamp});
+      Object.assign(props, {
+        stream: this.state.stream,
+        duration: this.state.timeStamp,
+        countdown: this.state.countdown
+      });
     }
 
     return props;
