@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import QwertyHancock from './qwerty-hancock';
 
+import {bindAll} from 'lodash';
+
 import SvgAssets from './SvgAssets';
 import Link from './Link';
 
@@ -49,10 +51,23 @@ class Row extends React.Component {
 
   render() {
     let videoEl;
+    let actionsEl;
+
     if (this.props.stream) {
       videoEl = <video key="recorder" muted ref={this.setVideoStream} />;
+      actionsEl = (
+        <div>
+          <Link onClick={this.props.onStop}>Stop recording</Link>
+          <div>{this.props.duration}</div>
+        </div>
+      );
     } else if (this.props.src) {
-      videoEl = <video key="playback" src={this.props.src} />
+      videoEl = <video key="playback" src={this.props.src} />;
+      actionsEl = (
+        <Link onClick={this.props.onClear}>
+          Clear
+        </Link>
+      );
     } else {
       videoEl = (
         <div className='empty-video'>
@@ -61,28 +76,30 @@ class Row extends React.Component {
           </svg>
         </div>
       );
-    }
-
-    let linkEl;
-    if (this.props.stream) {
-      linkEl = <Link onClick={this.props.onStop}>Stop recording</Link>;
-    } else {
-      linkEl = <Link onClick={this.props.onRecord}>Record</Link>;
+      actionsEl = (
+        <div>
+          <Link onClick={this.props.onRecord} enabled={!this.props.recording}>
+            Record
+          </Link>
+          <div>{this.props.duration}</div>
+        </div>
+      );
     }
 
     return (
       <div className='video-row'>
         <div className='note-label'>{this.props.note}</div>
         {videoEl}
-        {linkEl}
+        {actionsEl}
       </div>
     );
   }
 }
 
 Row.propTypes = {
-  onRecord: React.PropTypes.func.isRequired,
-  onStop:   React.PropTypes.func.isRequired
+  onRecord:  React.PropTypes.func.isRequired,
+  onStop:    React.PropTypes.func.isRequired,
+  recording: React.PropTypes.bool.isRequired
 };
 
 
@@ -92,12 +109,9 @@ class DemoApp extends React.Component {
   constructor() {
     super();
 
-    this.onDataAvailable = this.onDataAvailable.bind(this);
-    this.onKeyDown = this.onKeyDown.bind(this);
-    this.onKeyUp = this.onKeyUp.bind(this);
-    this.onStopComplete = this.onStopComplete.bind(this);
-    this.onAudioProcess = this.onAudioProcess.bind(this);
-    this.onStreamGranted = this.onStreamGranted.bind(this);
+    bindAll(this,
+      'onDataAvailable', 'onKeyDown', 'onKeyUp', 'onStopComplete',
+      'onAudioProcess', 'onStreamGranted', 'onClear');
 
     this.state = {
       recording: null,
@@ -130,15 +144,21 @@ class DemoApp extends React.Component {
     document.getElementById('recorded').currentTime = 0;
   }
 
+  onClear(note) {
+    if (note in this.state.videoData) {
+      const url = this.state.videoData[note];
+      delete this.state.videoData[note];
+      this.forceUpdate(() => URL.revokeObjectURL(url));
+    }
+  }
+
   onStopComplete() {
     if (this.chunks.length > 0) {
       console.log(this.chunks[0].type);
 
       const blob = new Blob(this.chunks, { type: this.chunks[0].type });
 
-      // TODO: call URL.revokeObjectURL() somewhere
       const videoURL = window.URL.createObjectURL(blob);
-      console.log(videoURL);
       this.state.videoData[this.state.recording] = videoURL;
 
       blobToArrayBuffer(blob).then(function(ab) {
@@ -211,26 +231,33 @@ class DemoApp extends React.Component {
     }
   }
 
+  propsForRow(note) {
+    const props = {
+      src: this.state.videoData[note],
+      note: note,
+      recording: !!this.state.recording,
+      onRecord: this.onRecord.bind(this, note),
+      onStop: this.onStop.bind(this, note),
+      onClear: this.onClear.bind(this, note)
+    };
+
+    if (this.state.recording === note) {
+      Object.assign(props, {stream: this.state.stream, duration: this.state.timeStamp});
+    }
+
+    return props;
+  }
+
   render() {
     return (
       <div>
         <SvgAssets />
         <div className='video-scroller'>
         {
-          notes.map((note) => (
-            <Row
-                note={note}
-                key={note}
-                src={this.state.videoData[note]}
-                recording={this.state.recording === note}
-                stream={this.state.recording === note ? this.state.stream : null}
-                onRecord={this.onRecord.bind(this, note)}
-                onStop={this.onStop.bind(this, note)} />
-          ))
+          notes.map((note) => <Row key={note} {...this.propsForRow(note)} />)
         }
         </div>
-        {this.state.timeStamp ? (<div>{this.state.timeStamp}</div>) : null}
-        <div id="keyboard"></div>
+        <div id="keyboard" />
       </div>
     );
   }
