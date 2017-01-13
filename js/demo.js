@@ -16,10 +16,27 @@ window.main = function(node) {
 const audioContext = new AudioContext();
 
 // TODO NEXT:
-// - Add a tone during the countdown
+// - Fix popping in oscillator.
 
 
-const notes = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+const notes = [
+  'A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'
+];
+
+const frequencies = {
+  "A":  440,
+  "A#": 466.16,
+  "B":  493.88,
+  "C":  523.25,
+  "C#": 554.37,
+  "D":  587.33,
+  "D#": 622.25,
+  "E":  659.25,
+  "F":  698.46,
+  "F#": 739.99,
+  "G":  783.99,
+  "G#": 830.6
+};
 
 function blobToArrayBuffer(blob) {
   return new Promise(function(resolve, reject) {
@@ -121,7 +138,7 @@ class DemoApp extends React.Component {
   }
 
   componentDidMount() {
-    var keyboard = new QwertyHancock({
+    const keyboard = new QwertyHancock({
                    id: 'keyboard',
                    width: 600,
                    height: 150,
@@ -155,8 +172,6 @@ class DemoApp extends React.Component {
 
   onStopComplete() {
     if (this.chunks.length > 0) {
-      console.log(this.chunks[0].type);
-
       const blob = new Blob(this.chunks, { type: this.chunks[0].type });
 
       const videoURL = window.URL.createObjectURL(blob);
@@ -208,6 +223,13 @@ class DemoApp extends React.Component {
     this.setState({countdown: 3});
 
     // TODO: Provide a way to cancel this
+    const frequency = frequencies[this.state.recording];
+    this.oscillator = audioContext.createOscillator();
+    this.oscillator.type = 'sine';
+    this.oscillator.frequency.value = frequency;
+    this.oscillator.connect(audioContext.destination);
+    this.oscillator.start();
+
     setTimeout(this.onTick, 1000);
 
     this.setState({stream: stream});
@@ -223,6 +245,7 @@ class DemoApp extends React.Component {
       this.recorder.onstop = this.onStopComplete;
       this.recorder.start();
 
+      this.oscillator.stop();
       this.setState({countdown: null});
     } else {
       this.setState({countdown: next});
