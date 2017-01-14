@@ -21,7 +21,6 @@ const audioContext = new AudioContext();
 // - Add a way to clear videos
 // - Display duration while recording
 // - Add audio visualizations
-// - Handle case where camera access is denied
 // - Persist videos somehow
 
 // TODO: sync this with css with some WebPack magic?
@@ -316,7 +315,8 @@ class DemoApp extends React.Component {
   onRecord(note) {
     const constraints = {audio: true, video: true};
     navigator.mediaDevices.getUserMedia(constraints)
-      .then(this.onStreamGranted);
+      .then(this.onStreamGranted)
+      .catch(() => this.setState({recording: null}));
 
     this.setState({recording: note});
   }
