@@ -2,8 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import QwertyHancock from './qwerty-hancock';
 
-import {bindAll} from 'lodash';
+import {bindAll, omit} from 'lodash';
 
+import classNames from 'classnames';
 import SvgAssets from './SvgAssets';
 import Link from './Link';
 
@@ -16,11 +17,12 @@ window.main = function(node) {
 const audioContext = new AudioContext();
 
 // TODO NEXT:
-// - Move frequencies an Octave down
-// - Improve UI
-// - Keyboard should trigger videos
+// - Display duration while recording
 // - Add audio visualizations
+// - Handle case where camera access is denied
 
+// TODO: sync this with css with some WebPack magic?
+const activeColor = '#18BC9C';
 
 const notes = [
   'A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'
@@ -70,7 +72,7 @@ function blobToArrayBuffer(blob) {
 }
 
 
-class Row extends React.Component {
+class Cell extends React.Component {
   constructor() {
     super();
     this.setVideoStream = this.setVideoStream.bind(this);
@@ -86,17 +88,22 @@ class Row extends React.Component {
   render() {
     let videoEl;
     let actionsEl;
+    let countdownEl;
+    let stopActionEl;
+
+    if (this.props.countdown) {
+      countdownEl = (
+        <div className='countdown-label'>{this.props.countdown}</div>
+      );
+    }
 
     if (this.props.stream) {
       videoEl = <video key="recorder" muted ref={this.setVideoStream} />;
-      if (this.props.countdown) {
-        actionsEl = <div>Recording in {this.props.countdown}</div>;
-      } else {
-        actionsEl = (
-          <div>
-            <Link onClick={this.props.onStop}>Stop recording</Link>
-            <div>{this.props.duration}</div>
-          </div>
+      if (!this.props.countdown) {
+        stopActionEl = (
+          <Link onClick={this.props.onStop} className='stop-action'>
+            Click to stop recording
+          </Link>
         );
       }
     } else if (this.props.src) {
@@ -107,37 +114,34 @@ class Row extends React.Component {
         </Link>
       );
     } else {
+      const fill = this.props.playing ? activeColor: '#eee';
       videoEl = (
-        <div className='empty-video'>
+        <Link className='empty-video' onClick={this.props.onRecord} enabled={!this.props.recording}>
           <svg version="1.1" width="50px" height="50px">
-            <use xlinkHref='#video-record' fill="#eee" />
+            <use xlinkHref='#video-record' fill={fill} />
           </svg>
-        </div>
-      );
-      actionsEl = (
-        <div>
-          <Link onClick={this.props.onRecord} enabled={!this.props.recording}>
-            Record
-          </Link>
-          <div>{this.props.duration}</div>
-        </div>
+        </Link>
       );
     }
 
     return (
-      <div className='video-row'>
-        <div className='note-label'>{this.props.note}</div>
+      <div className={classNames('video-cell', {playing: this.props.playing})}>
+        <div className='note-label'>
+          {this.props.note}
+        </div>
         {videoEl}
-        {actionsEl}
+        {countdownEl}
+        {stopActionEl}
       </div>
     );
   }
 }
 
-Row.propTypes = {
+Cell.propTypes = {
   onRecord:   React.PropTypes.func.isRequired,
   onStop:     React.PropTypes.func.isRequired,
   recording:  React.PropTypes.bool.isRequired,
+  playing:    React.PropTypes.bool.isRequired,
   countdown:  React.PropTypes.number
 };
 
@@ -174,7 +178,8 @@ class DemoApp extends React.Component {
 
     this.state = {
       recording: null,
-      videoData: {}
+      videoData: {},
+      playing: {}
     };
   }
 
@@ -187,7 +192,8 @@ class DemoApp extends React.Component {
                    startNote: 'A3',
                    whiteNotesColour: 'white',
                    blackNotesColour: 'black',
-                   hoverColour: '#f3e939'
+                   hoverColour: '#f3e939',
+                   activeColour: activeColor
     });
 
     keyboard.keyDown = this.onKeyDown;
@@ -201,6 +207,8 @@ class DemoApp extends React.Component {
       videoEl.pause();
       videoEl.currentTime = 0;
     }
+
+    this.setState({playing: omit(this.state.playing, note)});
   }
 
   onKeyDown(note, frequency) {
@@ -212,6 +220,9 @@ class DemoApp extends React.Component {
     } else {
       console.log('no video for note', note)
     }
+
+    this.state.playing[note] = true;
+    this.forceUpdate();
   }
 
   onClear(note) {
@@ -314,14 +325,15 @@ class DemoApp extends React.Component {
     }
   }
 
-  propsForRow(note) {
+  propsForCell(note) {
     const props = {
       src: this.state.videoData[note],
       note: note,
       recording: !!this.state.recording,
       onRecord: this.onRecord.bind(this, note),
       onStop: this.onStop.bind(this, note),
-      onClear: this.onClear.bind(this, note)
+      onClear: this.onClear.bind(this, note),
+      playing: !!this.state.playing[note]
     };
 
     if (this.state.recording === note) {
@@ -339,9 +351,9 @@ class DemoApp extends React.Component {
     return (
       <div>
         <SvgAssets />
-        <div className='video-scroller'>
+        <div className='video-container'>
         {
-          notes.map((note) => <Row key={note} {...this.propsForRow(note)} />)
+          notes.map((note) => <Cell key={note} {...this.propsForCell(note)} />)
         }
         </div>
         <div id="keyboard" />

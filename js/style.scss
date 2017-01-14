@@ -2,27 +2,88 @@ body {
   font-family: 'Open Sans', sans-serif;
 }
 
-.video-row {
-  display: flex;
-  margin-bottom: 10px;
+$cell-size: 150px;
+$cell-margin: 5px;
+
+$active-color: #18BC9C;
+
+.video-cell {
+  display: block;
+  float: left;
+  position: relative;
+
+  border: 1px solid #eee;
+  color: #eee;
+  padding: 1px;
+  box-sizing: border-box;
+  width: $cell-size;
+  height: $cell-size;
+
+  &.playing {
+    padding: 0;
+    border: 2px solid $active-color;
+    color: $active-color;
+    .note-label {
+      top: 4px;
+      left: 4px;
+    }
+  }
+
+  margin-bottom: $cell-margin;
+  margin-right: $cell-margin;
+
+  &:nth-child(4n+0) {
+    margin-right: 0;
+  }
 
   .note-label {
+    position: absolute;
+    top: 5px;
+    left: 5px;
     width: 25px;
+    text-align: center;
   }
-  .empty-video, video {
-    width: 100px;
-    height: 100px;
+  .countdown-label, .stop-action {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    text-align: center;
+    color: white;
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: #333;
+  }
+  .countdown-label {
+    line-height: $cell-size;
+    font-size: 400%;
+  }
+  .stop-action {
+    font-size: 200%;
+    line-height: $cell-size/3;
+    text-decoration: none;
   }
   .empty-video {
-    border: 1px solid #eee;
-    color: #eee;
     text-align: center;
-
-    svg { margin-top: 25px; }
+    display: block;
+    height: 100%;
+    width: 100%;
+    svg {
+      margin-top: $cell-size / 2 - 25px;
+    }
+  }
+  video {
+    width: 100%;
+    height: 100%;
   }
 }
 
-.video-scroller {
-  height: 500px;
-  overflow-y: auto;
+.video-container {
+  overflow: hidden;
+  width: $cell-size * 4 + $cell-margin * 5;
+  margin: 0 auto;
+}
+
+#keyboard {
+  margin: 0 auto;
 }

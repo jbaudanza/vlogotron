@@ -233,7 +233,7 @@
             el.style.padding = 0;
             el.style.position = 'relative';
             el.style.listStyle = 'none';
-            el.style.margin = 0;
+            el.style.margin = '0 auto'; // <- Jonb changed this
             el.style.width = settings.width + 'px';
             el.style['-webkit-user-select'] = 'none';
         };
