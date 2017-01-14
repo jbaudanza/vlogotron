@@ -14,9 +14,15 @@ window.main = function(node) {
   ReactDOM.render(<DemoApp />, node);
 };
 
-const audioContext = new AudioContext();
+let audioContext;
+if ('AudioContext' in window) {
+  audioContext = new AudioContext();
+} else if ('webkitAudioContext' in window) {
+  audioContext = new webkitAudioContext();
+}
 
 // TODO NEXT:
+// - Add a blinking red dot while recording
 // - Add support for WebMidi
 // - Display duration while recording
 // - Add audio visualizations
@@ -132,7 +138,7 @@ class Cell extends React.Component {
           </svg>
           <div className='record-prompt'>
             <svg version="1.1" width="20px" height="20px">
-              <circle cx="10" cy="10" r="10" fill="red"/>
+              <circle cx="10" cy="10" r="10" fill="red" />
             </svg>
             <div>
               Record a clip
