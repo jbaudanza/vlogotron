@@ -99,7 +99,10 @@ class Cell extends React.Component {
 
     if (this.props.countdown) {
       countdownEl = (
-        <div className='countdown-label'>{this.props.countdown}</div>
+        <div className='countdown-label'>
+          <div className='text'>Sing along with the tone. Recording in</div>
+          <div className='number'>{this.props.countdown}</div>
+        </div>
       );
     }
 
@@ -288,7 +291,7 @@ class DemoApp extends React.Component {
     // event to fire.
     recorderNode.connect(audioContext.destination);
 
-    this.setState({countdown: 3});
+    this.setState({countdown: 5});
 
     // TODO: Provide a way to cancel this
     this.stopTone = startTone(this.state.recording);

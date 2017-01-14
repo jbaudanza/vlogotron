@@ -56,8 +56,13 @@ $active-color: #18BC9C;
     -webkit-text-stroke-color: #333;
   }
   .countdown-label {
-    line-height: $cell-size;
-    font-size: 400%;
+    .text {
+      font-size: 125%;
+      line-height: 1.5;
+    }
+    .number {
+      font-size: 200%;
+    }
   }
   .stop-action {
     font-size: 200%;
