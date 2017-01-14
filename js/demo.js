@@ -248,11 +248,11 @@ class DemoApp extends React.Component {
       const videoURL = window.URL.createObjectURL(blob);
       this.state.videoData[this.state.recording] = videoURL;
 
-      blobToArrayBuffer(blob).then(function(ab) {
-        console.log(ab);
-        console.log(ab.byteLength);
-        return audioContext.decodeAudioData(ab);
-      }).then((x) => console.log)
+      // blobToArrayBuffer(blob).then(function(ab) {
+      //   console.log(ab);
+      //   console.log(ab.byteLength);
+      //   return audioContext.decodeAudioData(ab);
+      // }).then((x) => console.log)
     }
 
     if (this.state.stream) {
@@ -276,20 +276,20 @@ class DemoApp extends React.Component {
     //
     // Grab audio stream
     //
-    const audioSource = audioContext.createMediaStreamSource(stream);
+    // const audioSource = audioContext.createMediaStreamSource(stream);
 
-    const recorderNode = audioContext.createScriptProcessor(
-      BLOCK_SIZE,               // buffer size
-      audioSource.channelCount, // input channels
-      audioSource.channelCount  // output channels
-    );
+    // const recorderNode = audioContext.createScriptProcessor(
+    //   BLOCK_SIZE,               // buffer size
+    //   audioSource.channelCount, // input channels
+    //   audioSource.channelCount  // output channels
+    // );
  
-    audioSource.connect(recorderNode);
-    recorderNode.onaudioprocess = this.onAudioProcess;
+    // audioSource.connect(recorderNode);
+    // recorderNode.onaudioprocess = this.onAudioProcess;
 
-    // TODO: It seems like this has to be hooked up to get the onaudoprocess
-    // event to fire.
-    recorderNode.connect(audioContext.destination);
+    // // TODO: It seems like this has to be hooked up to get the onaudoprocess
+    // // event to fire.
+    // recorderNode.connect(audioContext.destination);
 
     this.setState({countdown: 5});
 
