@@ -30,6 +30,11 @@ $active-color: #18BC9C;
     }
   }
 
+  a {
+    text-decoration: none;
+    color: #333;
+  }
+
   margin-bottom: $cell-margin;
   margin-right: $cell-margin;
 
@@ -67,15 +72,30 @@ $active-color: #18BC9C;
   .stop-action {
     font-size: 200%;
     line-height: $cell-size/3;
-    text-decoration: none;
   }
   .empty-video {
     text-align: center;
     display: block;
     height: 100%;
     width: 100%;
-    svg {
-      margin-top: $cell-size / 2 - 25px;
+    .background {
+      display: inline-block;
+      margin-top: $cell-size / 2 - 35px;
+    }
+    .record-prompt {
+      display: none;
+      margin-top: $cell-size / 2 - 20px;
+      svg {
+        margin-bottom: 5px;
+      }
+    }
+    &:hover {
+      .background {
+        display: none;
+      }
+      .record-prompt {
+        display: inline-block;
+      }
     }
   }
   $crop: 25px;

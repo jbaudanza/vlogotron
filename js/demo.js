@@ -21,6 +21,7 @@ const audioContext = new AudioContext();
 // - Display duration while recording
 // - Add audio visualizations
 // - Persist videos somehow
+// - Use a piano note instead of a sine wav
 
 // TODO: sync this with css with some WebPack magic?
 const activeColor = '#18BC9C';
@@ -123,11 +124,20 @@ class Cell extends React.Component {
       );
     } else {
       const fill = this.props.playing ? activeColor: '#eee';
+
       videoEl = (
         <Link className='empty-video' onClick={this.props.onRecord} enabled={!this.props.recording}>
-          <svg version="1.1" width="50px" height="50px">
+          <svg version="1.1" width="75px" height="75px" className='background'>
             <use xlinkHref='#video-record' fill={fill} />
           </svg>
+          <div className='record-prompt'>
+            <svg version="1.1" width="20px" height="20px">
+              <circle cx="10" cy="10" r="10" fill="red"/>
+            </svg>
+            <div>
+              Record a clip
+            </div>
+          </div>
         </Link>
       );
     }
@@ -225,8 +235,6 @@ class DemoApp extends React.Component {
     if (videoEl) {
       videoEl.currentTime = 0;
       videoEl.play();
-    } else {
-      console.log('no video for note', note)
     }
 
     this.state.playing[note] = true;
