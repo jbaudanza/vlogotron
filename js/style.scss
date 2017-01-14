@@ -11,6 +11,7 @@ $active-color: #18BC9C;
   display: block;
   float: left;
   position: relative;
+  overflow: hidden;
 
   border: 1px solid #eee;
   color: #eee;
@@ -72,9 +73,21 @@ $active-color: #18BC9C;
       margin-top: $cell-size / 2 - 25px;
     }
   }
+  $crop: 25px;
   video {
-    width: 100%;
-    height: 100%;
+    position: absolute;
+    width: $cell-size + $crop * 2;
+    height: $cell-size + $crop * 2;
+    top: -$crop;
+    bottom: -$crop;
+    left: -$crop;
+    right: -$crop;
+  }
+  &.playing video {
+    top: -$crop - 1;
+    bottom: -$crop - 1;
+    left: -$crop - 1;
+    right: -$crop - 1;
   }
 }
 

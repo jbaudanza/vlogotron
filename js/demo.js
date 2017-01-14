@@ -17,9 +17,12 @@ window.main = function(node) {
 const audioContext = new AudioContext();
 
 // TODO NEXT:
+// - Add support for WebMidi
+// - Add a way to clear videos
 // - Display duration while recording
 // - Add audio visualizations
 // - Handle case where camera access is denied
+// - Persist videos somehow
 
 // TODO: sync this with css with some WebPack magic?
 const activeColor = '#18BC9C';
