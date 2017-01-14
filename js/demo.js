@@ -16,7 +16,10 @@ window.main = function(node) {
 const audioContext = new AudioContext();
 
 // TODO NEXT:
-// - Fix popping in oscillator.
+// - Move frequencies an Octave down
+// - Improve UI
+// - Keyboard should trigger videos
+// - Add audio visualizations
 
 
 const notes = [
@@ -38,6 +41,23 @@ const frequencies = {
   "G#": 830.6
 };
 
+// Lower octave
+// const frequencies = {
+//   "A":  220.00,
+//   "A#": 233.08,
+//   "B":  246.94,
+//   "C":  261.63,
+//   "C#": 277.18,
+//   "D":  293.66,
+//   "D#": 311.13,
+//   "E":  329.63,
+//   "F":  349.23,
+//   "F#": 369.99,
+//   "G":  392.00,
+//   "G#": 415.30
+// };
+
+
 function blobToArrayBuffer(blob) {
   return new Promise(function(resolve, reject) {
     const reader = new FileReader();
@@ -48,6 +68,7 @@ function blobToArrayBuffer(blob) {
     reader.readAsArrayBuffer(blob);
   });
 }
+
 
 class Row extends React.Component {
   constructor() {
@@ -79,7 +100,7 @@ class Row extends React.Component {
         );
       }
     } else if (this.props.src) {
-      videoEl = <video key="playback" src={this.props.src} />;
+      videoEl = <video id={'playback-' + this.props.note} key="playback" src={this.props.src} />;
       actionsEl = (
         <Link onClick={this.props.onClear}>
           Clear
@@ -174,12 +195,23 @@ class DemoApp extends React.Component {
   }
 
   onKeyUp(note, frequency) {
-    document.getElementById('recorded').pause();
+    note = note.substr(0, note.length-1);
+    const videoEl = document.getElementById('playback-' + note);
+    if (videoEl) {
+      videoEl.pause();
+      videoEl.currentTime = 0;
+    }
   }
 
   onKeyDown(note, frequency) {
-    document.getElementById('recorded').play();
-    document.getElementById('recorded').currentTime = 0;
+    note = note.substr(0, note.length-1);
+    const videoEl = document.getElementById('playback-' + note);
+    if (videoEl) {
+      videoEl.currentTime = 0;
+      videoEl.play();
+    } else {
+      console.log('no video for note', note)
+    }
   }
 
   onClear(note) {
