@@ -120,6 +120,26 @@ Row.propTypes = {
   countdown:  React.PropTypes.number
 };
 
+function startTone(note) {
+  const ramp = 0.1;
+
+  const gainNode = audioContext.createGain();
+  gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+  gainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime + ramp);
+  gainNode.connect(audioContext.destination);
+
+  const oscillator = audioContext.createOscillator();
+  oscillator.type = 'sine';
+  oscillator.frequency.value = frequencies[note];
+  oscillator.connect(gainNode);
+  oscillator.start();
+
+  return function() {
+    const stopTime = audioContext.currentTime + ramp;
+    gainNode.gain.linearRampToValueAtTime(0, stopTime);
+    oscillator.stop(stopTime);
+  }
+}
 
 const BLOCK_SIZE = 16384;
 
@@ -223,13 +243,7 @@ class DemoApp extends React.Component {
     this.setState({countdown: 3});
 
     // TODO: Provide a way to cancel this
-    const frequency = frequencies[this.state.recording];
-    this.oscillator = audioContext.createOscillator();
-    this.oscillator.type = 'sine';
-    this.oscillator.frequency.value = frequency;
-    this.oscillator.connect(audioContext.destination);
-    this.oscillator.start();
-
+    this.stopTone = startTone(this.state.recording);
     setTimeout(this.onTick, 1000);
 
     this.setState({stream: stream});
@@ -245,7 +259,7 @@ class DemoApp extends React.Component {
       this.recorder.onstop = this.onStopComplete;
       this.recorder.start();
 
-      this.oscillator.stop();
+      this.stopTone();
       this.setState({countdown: null});
     } else {
       this.setState({countdown: next});
