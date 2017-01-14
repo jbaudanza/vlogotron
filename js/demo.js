@@ -18,7 +18,6 @@ const audioContext = new AudioContext();
 
 // TODO NEXT:
 // - Add support for WebMidi
-// - Add a way to clear videos
 // - Display duration while recording
 // - Add audio visualizations
 // - Persist videos somehow
@@ -77,7 +76,7 @@ function blobToArrayBuffer(blob) {
 class Cell extends React.Component {
   constructor() {
     super();
-    this.setVideoStream = this.setVideoStream.bind(this);
+    bindAll(this, 'setVideoStream', 'onClear');
   }
 
   setVideoStream(videoEl) {
@@ -87,9 +86,14 @@ class Cell extends React.Component {
     }
   }
 
+  onClear() {
+    if (window.confirm('Do you want to remove this clip?')) {
+      this.props.onClear();
+    }
+  }
+
   render() {
     let videoEl;
-    let actionsEl;
     let countdownEl;
     let stopActionEl;
 
@@ -109,10 +113,9 @@ class Cell extends React.Component {
         );
       }
     } else if (this.props.src) {
-      videoEl = <video id={'playback-' + this.props.note} key="playback" src={this.props.src} />;
-      actionsEl = (
-        <Link onClick={this.props.onClear}>
-          Clear
+      videoEl = (
+        <Link onClick={this.onClear}>
+          <video id={'playback-' + this.props.note} key="playback" src={this.props.src} />
         </Link>
       );
     } else {
