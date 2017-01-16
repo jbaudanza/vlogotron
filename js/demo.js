@@ -12,8 +12,9 @@ import './style.scss'
 
 import {Observable} from 'rxjs/Observable';
 import {interval} from 'rxjs/Observable/interval';
-require('rxjs/add/operator/take');
-require('rxjs/add/operator/map');
+import {Subject} from 'rxjs/subject';
+import 'rxjs/add/operator/take';
+import 'rxjs/add/operator/map';
 
 import bindComponentToObservable from './bindComponentToObservable'
 
@@ -26,6 +27,38 @@ if ('AudioContext' in window) {
   audioContext = new AudioContext();
 } else if ('webkitAudioContext' in window) {
   audioContext = new webkitAudioContext();
+}
+
+
+function startRecording(stream, mimeType) {
+  const recorder = new MediaRecorder(stream, {mimeType: mimeType});
+  recorder.ondataavailable = onDataAvailable;
+  recorder.start();
+
+  const progress = new Subject();
+  const chunks = [];
+
+  function onDataAvailable(event) {
+    progress.next(event.timeStamp);
+    chunks.push(event.data);
+  }
+
+  const promise = new Promise(function(resolve, reject) {
+    recorder.onstop = function() {
+      if (chunks.length > 0) {
+        resolve(new Blob(chunks, { type: chunks[0].type }));
+      } else {
+        resolve(null);
+      }
+    };
+  });
+
+  function stop() {
+    recorder.stop();
+    return promise;
+  }
+
+  return [progress, stop];
 }
 
 // TODO: sync this with css with some WebPack magic?
@@ -209,8 +242,7 @@ class DemoApp extends React.Component {
     super();
 
     bindAll(this,
-      'onDataAvailable', 'onKeyDown', 'onKeyUp', 'onStopComplete',
-      'onAudioProcess', 'onStreamGranted', 'onClear');
+      'onKeyDown', 'onKeyUp', 'onAudioProcess', 'onStreamGranted', 'onClear');
 
     this.state = {
       recording: null,
@@ -267,35 +299,8 @@ class DemoApp extends React.Component {
     }
   }
 
-  onStopComplete() {
-    if (this.chunks.length > 0) {
-      const blob = new Blob(this.chunks, { type: this.chunks[0].type });
-
-      const videoURL = window.URL.createObjectURL(blob);
-      this.state.videoData[this.state.recording] = videoURL;
-
-      // blobToArrayBuffer(blob).then(function(ab) {
-      //   console.log(ab);
-      //   console.log(ab.byteLength);
-      //   return audioContext.decodeAudioData(ab);
-      // }).then((x) => console.log)
-    }
-
-    if (this.state.stream) {
-      const tracks = this.state.stream.getTracks();
-      tracks.forEach((t) => t.stop());
-    }
-
-    this.setState({recording: null, timeStamp: null, stream: null});
-  }
-
   onAudioProcess(event) {
     //console.log(event);
-  }
-
-  onDataAvailable(event) {
-    this.setState({timeStamp: event.timeStamp});
-    this.chunks.push(event.data);
   }
 
   onStreamGranted(stream) {
@@ -329,16 +334,12 @@ class DemoApp extends React.Component {
           (() => {
             this.setState({countdown: null});
 
-            this.recorder = new MediaRecorder(this.state.stream);
-            this.recorder.ondataavailable = this.onDataAvailable;
-            this.recorder.onstop = this.onStopComplete;
-            this.recorder.start();
+            const [progress, stopRecord] = startRecording(this.state.stream, 'video/webm');
+            this.stopRecord = stopRecord;
 
             stopTone();
           })
         )
-
-    this.setState({countdown: 5});
 
     this.setState({stream: stream});
   }
@@ -353,9 +354,22 @@ class DemoApp extends React.Component {
   }
 
   onStop() {
-    if (this.recorder) {
-      this.recorder.stop();
-      delete this.recorder;
+    if (this.stopRecord) {
+      this.stopRecord().then((blob) => {
+        if (blob) {
+          const videoURL = window.URL.createObjectURL(blob);
+          this.state.videoData[this.state.recording] = videoURL;
+        }
+
+        if (this.state.stream) {
+          const tracks = this.state.stream.getTracks();
+          tracks.forEach((t) => t.stop());
+        }
+
+        this.setState({recording: null, timeStamp: null, stream: null});
+      });
+
+      delete this.stopRecord;
     }
   }
 
