@@ -10,6 +10,13 @@ import Link from './Link';
 
 import './style.scss'
 
+import {Observable} from 'rxjs/Observable';
+import {interval} from 'rxjs/Observable/interval';
+require('rxjs/add/operator/take');
+require('rxjs/add/operator/map');
+
+import bindComponentToObservable from './bindComponentToObservable'
+
 window.main = function(node) {
   ReactDOM.render(<DemoApp />, node);
 };
@@ -20,15 +27,6 @@ if ('AudioContext' in window) {
 } else if ('webkitAudioContext' in window) {
   audioContext = new webkitAudioContext();
 }
-
-// TODO NEXT:
-// - Add a fade overlay to videos that aren't playing
-// - Add a blinking red dot while recording
-// - Add support for WebMidi
-// - Display duration while recording
-// - Add audio visualizations
-// - Persist videos somehow
-// - Use a piano note instead of a sine wav
 
 // TODO: sync this with css with some WebPack magic?
 const activeColor = '#18BC9C';
@@ -212,7 +210,7 @@ class DemoApp extends React.Component {
 
     bindAll(this,
       'onDataAvailable', 'onKeyDown', 'onKeyUp', 'onStopComplete',
-      'onAudioProcess', 'onStreamGranted', 'onClear', 'onTick');
+      'onAudioProcess', 'onStreamGranted', 'onClear');
 
     this.state = {
       recording: null,
@@ -319,31 +317,30 @@ class DemoApp extends React.Component {
     // // event to fire.
     // recorderNode.connect(audioContext.destination);
 
+    // TODO: Provide a way to cancel this
+    const stopTone = startTone(this.state.recording);
+
+    interval(1000)
+        .map(x => 5-x)
+        .take(5)
+        .subscribe(
+          (x) => this.setState({countdown: x}),
+          null,
+          (() => {
+            this.setState({countdown: null});
+
+            this.recorder = new MediaRecorder(this.state.stream);
+            this.recorder.ondataavailable = this.onDataAvailable;
+            this.recorder.onstop = this.onStopComplete;
+            this.recorder.start();
+
+            stopTone();
+          })
+        )
+
     this.setState({countdown: 5});
 
-    // TODO: Provide a way to cancel this
-    this.stopTone = startTone(this.state.recording);
-    setTimeout(this.onTick, 1000);
-
     this.setState({stream: stream});
-  }
-
-  onTick() {
-    const next = this.state.countdown - 1;
-
-    if (next === 0) {
-      this.chunks = [];
-      this.recorder = new MediaRecorder(this.state.stream);
-      this.recorder.ondataavailable = this.onDataAvailable;
-      this.recorder.onstop = this.onStopComplete;
-      this.recorder.start();
-
-      this.stopTone();
-      this.setState({countdown: null});
-    } else {
-      this.setState({countdown: next});
-      setTimeout(this.onTick, 1000);
-    }
   }
 
   onRecord(note) {
