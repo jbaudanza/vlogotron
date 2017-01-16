@@ -22,6 +22,7 @@ if ('AudioContext' in window) {
 }
 
 // TODO NEXT:
+// - Add a fade overlay to videos that aren't playing
 // - Add a blinking red dot while recording
 // - Add support for WebMidi
 // - Display duration while recording
@@ -380,6 +381,14 @@ class DemoApp extends React.Component {
         }
         </div>
         <div id="keyboard" />
+        <div className='credits'>
+          <span>Made with </span>
+          <svg version="1.1" width="15px" height="15px" className='background'>
+            <use xlinkHref='#golden-gate' />
+          </svg>
+          <span>in San Francisco by </span>
+          <a href="https://www.github.com/jbaudanza">Jon Baudanza</a>
+        </div>
       </div>
     );
   }
