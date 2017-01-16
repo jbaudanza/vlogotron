@@ -116,10 +116,23 @@ class Cell extends React.Component {
 
     if (this.props.stream) {
       videoEl = <video key="recorder" muted ref={this.setVideoStream} />;
+
       if (!this.props.countdown) {
         stopActionEl = (
           <Link onClick={this.props.onStop} className='stop-action'>
             Click to stop recording
+            <svg version="1.1" width="10px" height="10px" className='record-status'>
+              <circle cx="5" cy="5" r="5" fill="red">
+                <animate
+                        attributeType="XML"
+                        attributeName="opacity"
+                        calcMode="discrete"
+                        dur="0.75s"
+                        values="0;1"
+                        keyTimes="0;0.5"
+                        repeatCount="indefinite" />
+              </circle>
+            </svg>
           </Link>
         );
       }
@@ -383,8 +396,8 @@ class DemoApp extends React.Component {
         <div id="keyboard" />
         <div className='credits'>
           <span>Made with </span>
-          <svg version="1.1" width="15px" height="15px" className='background'>
-            <use xlinkHref='#golden-gate' />
+          <svg version="1.1" width="20px" height="20px" className='background'>
+            <use xlinkHref='#golden-gate' fill="#aaa" />
           </svg>
           <span>in San Francisco by </span>
           <a href="https://www.github.com/jbaudanza">Jon Baudanza</a>

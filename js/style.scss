@@ -30,6 +30,12 @@ $active-color: #18BC9C;
     }
   }
 
+  .record-status {
+    position: absolute;
+    left: 5px;
+    top: 5px;
+  }
+
   a {
     text-decoration: none;
     color: #333;
@@ -129,11 +135,15 @@ $active-color: #18BC9C;
 .credits {
   margin-top: 20px;
   text-align: center;
-  font-size: 50%;
+  font-size: 75%;
+  color: #aaa;
+  a {
+    color: #aaa;
+  }
 
   svg {
     position: relative;
-    top: 4px;
+    top: 6px;
     margin: 0px 1px;
   }
 }
