@@ -19,6 +19,6 @@
     "http-server": "^0.9.0"
   },
   "scripts": {
-    "start": "./node_modules/.bin/http-server -c-1"
+    "start": "./node_modules/.bin/http-server public -c-1"
   }
 }

@@ -1,7 +1,17 @@
 # install dependencies
 
-yarn
+    yarn
 
 # Bundle JS
 
-./node_modules/.bin/webpack --watch
+    ./node_modules/.bin/webpack --watch
+
+# Run locally
+
+    npm start
+
+# Deployment
+
+    npm install -g firebase-tools
+    firebase login
+    firebase deploy

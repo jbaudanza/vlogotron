@@ -1,0 +1,23 @@
+<html>
+  <head>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/3.6.2/firebase.js"></script>
+    <script>
+      var config = {
+        apiKey: "AIzaSyAcTTBS7Wt4JKn7_gsgXy3tck5arZamO6Y",
+        authDomain: "vlogotron-95daf.firebaseapp.com",
+        databaseURL: "https://vlogotron-95daf.firebaseio.com",
+        storageBucket: "vlogotron-95daf.appspot.com",
+        messagingSenderId: "533081791637"
+      };
+      firebase.initializeApp(config);
+    </script>
+    <script src="main.js"></script>
+  </head>
+  <body>
+    <div id="mount-node"></div>
+  </body>
+  <script type="text/javascript">
+    window.main(document.getElementById('mount-node'));
+  </script>
+</html>
