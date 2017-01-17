@@ -22,12 +22,8 @@ window.main = function(node) {
   ReactDOM.render(<DemoApp />, node);
 };
 
-let audioContext;
-if ('AudioContext' in window) {
-  audioContext = new AudioContext();
-} else if ('webkitAudioContext' in window) {
-  audioContext = new webkitAudioContext();
-}
+
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
 
 function startRecording(stream, mimeType) {
@@ -334,6 +330,7 @@ class DemoApp extends React.Component {
           (() => {
             this.setState({countdown: null});
 
+            // I think to grab the audio track, we need to do a script processor node
             const [progress, stopRecord] = startRecording(this.state.stream, 'video/webm');
             this.stopRecord = stopRecord;
 
