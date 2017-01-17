@@ -396,6 +396,21 @@ class DemoApp extends React.Component {
     return (
       <div>
         <SvgAssets />
+        <header className='page-header'>
+          <div className='content'>
+            <div className="logo">
+              <svg version="1.1" width="20px" height="20px" fill="white">
+                <use xlinkHref='#piano' />
+              </svg>
+              <span>
+                Vlogotron
+              </span>
+            </div>
+            <Link>
+              Create your own
+            </Link>
+          </div>
+        </header>
         <div className='video-container'>
         {
           notes.map((note) => <Cell key={note} {...this.propsForCell(note)} />)
