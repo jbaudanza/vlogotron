@@ -7,6 +7,7 @@ import {bindAll, omit} from 'lodash';
 import classNames from 'classnames';
 import SvgAssets from './SvgAssets';
 import Link from './Link';
+import LoginOverlay from './LoginOverlay';
 
 import './style.scss'
 
@@ -238,12 +239,15 @@ class DemoApp extends React.Component {
     super();
 
     bindAll(this,
-      'onKeyDown', 'onKeyUp', 'onAudioProcess', 'onStreamGranted', 'onClear');
+      'onKeyDown', 'onKeyUp', 'onAudioProcess', 'onStreamGranted', 'onClear',
+      'onLogin'
+    );
 
     this.state = {
       recording: null,
       videoData: {},
-      playing: {}
+      playing: {},
+      showLoginOverlay: false
     };
   }
 
@@ -392,10 +396,22 @@ class DemoApp extends React.Component {
     return props;
   }
 
+  onLogin(providerString) {
+    const provider = new firebase.auth[providerString + 'AuthProvider']();
+    firebase.auth().signInWithPopup(provider);
+  }
+
   render() {
     return (
       <div>
         <SvgAssets />
+        {
+          this.state.showLoginOverlay ? (
+            <LoginOverlay
+              onClose={() => this.setState({showLoginOverlay: false})}
+              onLogin={this.onLogin} />
+          ) : null
+        }
         <header className='page-header'>
           <div className='content'>
             <div className="logo">
@@ -406,7 +422,7 @@ class DemoApp extends React.Component {
                 Vlogotron
               </span>
             </div>
-            <Link>
+            <Link onClick={() => this.setState({showLoginOverlay: true})}>
               Create your own
             </Link>
           </div>

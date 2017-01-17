@@ -67,6 +67,17 @@ $active-color: #18BC9C;
   }
 }
 
+.login-overlay {
+  .content {
+    height: 250px;
+  }
+
+  .login-button {
+    display: block;
+    margin-bottom: 10px;
+  }
+}
+
 .video-cell {
   display: block;
   float: left;

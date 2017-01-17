@@ -1,0 +1,57 @@
+$shadow-index: 1;
+$black: #333;
+
+.overlay {
+  z-index: 999999;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .shadow {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: $black;
+    opacity: 0.8;
+    z-index: $shadow-index;
+  }
+
+  .content {
+    position: relative;
+    z-index: $shadow-index + 1;
+    font-size: 14px;
+    padding: 30px;
+    max-width: 650px;
+    opacity: 1;
+    background-color: white;
+    border-radius: 2px;
+
+    .scroll {
+      overflow-y: auto;
+      height: 100%;
+      width: 100%;
+    }
+  }
+
+  .close-link {
+    $size: 25px;
+    display: block;
+    width: $size;
+    height: $size;
+    line-height: 25px;
+    text-align: center;
+    color: #999;
+    position: absolute;
+    right: -$size;
+    top: -$size;
+    font-size: 150%;
+  }
+}
