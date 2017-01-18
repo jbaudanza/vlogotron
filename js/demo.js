@@ -9,11 +9,13 @@ import SvgAssets from './SvgAssets';
 import Link from './Link';
 import LoginOverlay from './LoginOverlay';
 
+import VideoClipStore from './VideoClipStore';
+
 import './style.scss'
 
 import {Observable} from 'rxjs/Observable';
 import {interval} from 'rxjs/Observable/interval';
-import {Subject} from 'rxjs/subject';
+import {Subject} from 'rxjs/Subject';
 import 'rxjs/add/operator/take';
 import 'rxjs/add/operator/map';
 
@@ -246,7 +248,6 @@ class DemoApp extends React.Component {
 
     this.state = {
       recording: null,
-      videoData: {},
       playing: {},
       showLoginOverlay: false
     };
@@ -280,6 +281,13 @@ class DemoApp extends React.Component {
     this.setState({playing: omit(this.state.playing, note)});
   }
 
+  componentWillMount() {
+    this.videoClipStore = new VideoClipStore();
+    this.videoClipStore.urls.subscribe((obj) => {
+      this.setState({videoClipUrls: obj})
+    });
+  }
+
   onKeyDown(note, frequency) {
     note = note.substr(0, note.length-1);
     const videoEl = document.getElementById('playback-' + note);
@@ -293,11 +301,7 @@ class DemoApp extends React.Component {
   }
 
   onClear(note) {
-    if (note in this.state.videoData) {
-      const url = this.state.videoData[note];
-      delete this.state.videoData[note];
-      this.forceUpdate(() => URL.revokeObjectURL(url));
-    }
+    this.videoClipStore.clearClip(note);
   }
 
   onAudioProcess(event) {
@@ -359,8 +363,7 @@ class DemoApp extends React.Component {
     if (this.stopRecord) {
       this.stopRecord().then((blob) => {
         if (blob) {
-          const videoURL = window.URL.createObjectURL(blob);
-          this.state.videoData[this.state.recording] = videoURL;
+          this.videoClipStore.addClip(this.state.recording, blob);
         }
 
         if (this.state.stream) {
@@ -377,7 +380,7 @@ class DemoApp extends React.Component {
 
   propsForCell(note) {
     const props = {
-      src: this.state.videoData[note],
+      src: this.state.videoClipUrls[note],
       note: note,
       recording: !!this.state.recording,
       onRecord: this.onRecord.bind(this, note),
