@@ -60,6 +60,7 @@ function startRecording(stream, mimeType) {
 
 // TODO: sync this with css with some WebPack magic?
 const activeColor = '#18BC9C';
+const redColor = '#bc1838';
 
 const notes = [
   'A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'
@@ -150,7 +151,7 @@ class Cell extends React.Component {
           <Link onClick={this.props.onStop} className='stop-action'>
             Click to stop recording
             <svg version="1.1" width="10px" height="10px" className='record-status'>
-              <circle cx="5" cy="5" r="5" fill="red">
+              <circle cx="5" cy="5" r="5" fill={redColor}>
                 <animate
                         attributeType="XML"
                         attributeName="opacity"
@@ -180,7 +181,7 @@ class Cell extends React.Component {
           </svg>
           <div className='record-prompt'>
             <svg version="1.1" width="20px" height="20px">
-              <circle cx="10" cy="10" r="10" fill="red" />
+              <circle cx="10" cy="10" r="10" fill={redColor} />
             </svg>
             <div>
               Record a clip
