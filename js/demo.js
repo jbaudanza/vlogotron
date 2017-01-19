@@ -14,7 +14,7 @@ import VideoClipStore from './VideoClipStore';
 import './style.scss'
 
 import {Observable} from 'rxjs/Observable';
-import {interval} from 'rxjs/Observable/interval';
+import {interval} from 'rxjs/observable/interval';
 import {Subject} from 'rxjs/Subject';
 import 'rxjs/add/operator/take';
 import 'rxjs/add/operator/map';
