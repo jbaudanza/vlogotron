@@ -8,6 +8,7 @@ import classNames from 'classnames';
 import SvgAssets from './SvgAssets';
 import Link from './Link';
 import LoginOverlay from './LoginOverlay';
+import SocialSection from './SocialSection';
 
 import VideoClipStore from './VideoClipStore';
 
@@ -237,6 +238,7 @@ function startTone(note) {
 
 const BLOCK_SIZE = 16384;
 
+
 class DemoApp extends React.Component {
   constructor() {
     super();
@@ -426,9 +428,6 @@ class DemoApp extends React.Component {
                 Vlogotron
               </span>
             </div>
-            <Link onClick={() => this.setState({showLoginOverlay: true})}>
-              Create your own
-            </Link>
           </div>
         </header>
         <div className='video-container'>
@@ -437,6 +436,13 @@ class DemoApp extends React.Component {
         }
         </div>
         <div id="keyboard" />
+
+        <SocialSection url={document.location.toString()} />
+
+        <Link className='create-button' onClick={() => this.setState({showLoginOverlay: true})}>
+          Create your own
+        </Link>
+
         <div className='credits'>
           <span>Made with </span>
           <svg version="1.1" width="20px" height="20px" className='background'>

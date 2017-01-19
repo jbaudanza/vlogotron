@@ -76,7 +76,6 @@ function mapToDownloadUrls(refs) {
 //  - make sure user is authenticated
 //  - track the tasks somehow
 //  - display upload progress to user
-//  - store references into the database
 //  - make sure permissions are configured right
 //  - URL.revokeObjectURL(url)    
 export default class VideoClipStore {
@@ -84,8 +83,7 @@ export default class VideoClipStore {
     const localBlobs = new Subject();
     const uploadTasks = new BehaviorSubject([]);
 
-    const remoteUrls = refs$.switchMap(mapToDownloadUrls);
-
+    const remoteUrls = refs$.switchMap(mapToDownloadUrls).startWith({});
 
     uploadTasks.subscribe(function(list) {
       console.log('list', list);
@@ -127,6 +125,6 @@ export default class VideoClipStore {
         localUrls,
         remoteUrls,
         (local, remote) => Object.assign({}, remote, local)
-    ).startWith({})
+    );
   }
 }

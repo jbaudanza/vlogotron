@@ -7,6 +7,8 @@ body {
 $cell-size: 150px;
 $cell-margin: 5px;
 
+$content-width: 625px;
+
 $active-color: #18BC9C;
 $red-color: #bc1838;
 
@@ -56,16 +58,45 @@ $red-color: #bc1838;
     font-family: 'BioRhyme', serif;
     font-size: 150%;
   }
-  a {
-    float: right;
-    @include buttonize($active-color);
-    margin-top: 17px;
-  }
 
   .content {
-    width: 625px;
+    width: $content-width;
     margin: 0 auto;
   }
+}
+
+.social-section {
+  width: $content-width;
+  margin: 50px auto;
+
+  label {
+    font-weight: bold;
+  }
+
+  form {
+    overflow: hidden;
+  }
+
+  input, a {
+    margin: 0;
+  }
+
+  input {
+    height: 40px;
+    float: left;
+  }
+
+  a {
+    @include buttonize(white);
+    border: 1px solid #eee;
+    border-radius: none;
+    margin-left: 5px;
+    float: left;
+  }
+}
+
+.create-button {
+  @include buttonize($active-color);
 }
 
 .login-overlay {
