@@ -134,18 +134,14 @@ export default class Instrument extends React.Component {
   }
 
   onKeyUp(note, frequency) {
-    note = note.substr(0, note.length-1);
-    const videoEl = document.getElementById('playback-' + note);
-    if (videoEl) {
-      videoEl.pause();
-      videoEl.currentTime = 0;
-    }
-
-    this.setState({playing: omit(this.state.playing, note)});
+    this.onStopPlayback(note.substr(0, note.length-1));
   }
 
   onKeyDown(note, frequency) {
-    note = note.substr(0, note.length-1);
+    this.onStartPlayback(note.substr(0, note.length-1));
+  }
+
+  onStartPlayback(note) {
     const videoEl = document.getElementById('playback-' + note);
     if (videoEl) {
       videoEl.currentTime = 0;
@@ -154,6 +150,16 @@ export default class Instrument extends React.Component {
 
     this.state.playing[note] = true;
     this.forceUpdate();
+  }
+
+  onStopPlayback(note) {
+    const videoEl = document.getElementById('playback-' + note);
+    if (videoEl) {
+      videoEl.pause();
+      videoEl.currentTime = 0;
+    }
+
+    this.setState({playing: omit(this.state.playing, note)});
   }
 
   componentWillMount() {
@@ -224,8 +230,10 @@ export default class Instrument extends React.Component {
       src: this.state.videoClipUrls[note],
       note: note,
       recording: !!this.state.recording,
-      onRecord: this.onRecord.bind(this, note),
-      onStop: this.onStop.bind(this, note),
+      onStartRecording: this.onRecord.bind(this, note),
+      onStopRecording: this.onStop.bind(this, note),
+      onStartPlayback: this.onStartPlayback.bind(this, note),
+      onStopPlayback: this.onStopPlayback.bind(this, note),
       onClear: this.onClear.bind(this, note),
       playing: !!this.state.playing[note]
     };
