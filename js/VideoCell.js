@@ -30,6 +30,7 @@ export default class VideoCell extends React.Component {
     let countdownEl;
     let stopActionEl;
     let shadeEl;
+    let clearEl;
 
     if (this.props.countdown) {
       countdownEl = (
@@ -64,13 +65,18 @@ export default class VideoCell extends React.Component {
       }
     } else if (this.props.src) {
       videoEl = (
-        <Link onClick={this.onClear}>
-          <video id={'playback-' + this.props.note} key="playback" src={this.props.src} />
-        </Link>
+        <video id={'playback-' + this.props.note} key="playback" src={this.props.src} />
       );
       if (!this.props.playing) {
         shadeEl = <div className='shade' />;
       }
+      clearEl = (
+        <Link onClick={this.onClear} className='clear-button'>
+          <svg version="1.1" width="25px" height="25px">
+            <use xlinkHref="#close" fill="white"/>
+          </svg>
+        </Link>
+      )
     } else {
       const fill = this.props.playing ? colors.active: '#eee';
 
@@ -100,6 +106,7 @@ export default class VideoCell extends React.Component {
         <div className='note-label'>
           {this.props.note}
         </div>
+        {clearEl}
       </div>
     );
   }
