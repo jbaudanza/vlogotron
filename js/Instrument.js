@@ -12,43 +12,42 @@ import VideoClipStore from './VideoClipStore';
 
 import VideoCell from './VideoCell';
 
-// TODO: sync this with css with some WebPack magic?
-const activeColor = '#18BC9C';
+import colors from './colors';
 
 const notes = [
   'A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'
 ];
 
-const frequencies = {
-  "A":  440,
-  "A#": 466.16,
-  "B":  493.88,
-  "C":  523.25,
-  "C#": 554.37,
-  "D":  587.33,
-  "D#": 622.25,
-  "E":  659.25,
-  "F":  698.46,
-  "F#": 739.99,
-  "G":  783.99,
-  "G#": 830.6
-};
+// const frequencies = {
+//   "A":  440,
+//   "A#": 466.16,
+//   "B":  493.88,
+//   "C":  523.25,
+//   "C#": 554.37,
+//   "D":  587.33,
+//   "D#": 622.25,
+//   "E":  659.25,
+//   "F":  698.46,
+//   "F#": 739.99,
+//   "G":  783.99,
+//   "G#": 830.6
+// };
 
 // Lower octave
-// const frequencies = {
-//   "A":  220.00,
-//   "A#": 233.08,
-//   "B":  246.94,
-//   "C":  261.63,
-//   "C#": 277.18,
-//   "D":  293.66,
-//   "D#": 311.13,
-//   "E":  329.63,
-//   "F":  349.23,
-//   "F#": 369.99,
-//   "G":  392.00,
-//   "G#": 415.30
-// };
+const frequencies = {
+  "A":  220.00,
+  "A#": 233.08,
+  "B":  246.94,
+  "C":  261.63,
+  "C#": 277.18,
+  "D":  293.66,
+  "D#": 311.13,
+  "E":  329.63,
+  "F":  349.23,
+  "F#": 369.99,
+  "G":  392.00,
+  "G#": 415.30
+};
 
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -127,7 +126,7 @@ export default class Instrument extends React.Component {
                    whiteNotesColour: 'white',
                    blackNotesColour: 'black',
                    hoverColour: '#f3e939',
-                   activeColour: activeColor
+                   activeColour: colors.active
     });
 
     keyboard.keyDown = this.onKeyDown;

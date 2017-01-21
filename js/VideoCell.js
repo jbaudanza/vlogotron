@@ -2,12 +2,9 @@ import React from 'react';
 
 import {bindAll} from 'lodash';
 import classNames from 'classnames';
-
+import colors from './colors'
 import Link from './Link';
 
-
-// TODO: sync this with css somehow?
-const redColor = '#bc1838';
 
 export default class VideoCell extends React.Component {
   constructor() {
@@ -32,6 +29,7 @@ export default class VideoCell extends React.Component {
     let videoEl;
     let countdownEl;
     let stopActionEl;
+    let shadeEl;
 
     if (this.props.countdown) {
       countdownEl = (
@@ -50,7 +48,7 @@ export default class VideoCell extends React.Component {
           <Link onClick={this.props.onStop} className='stop-action'>
             Click to stop recording
             <svg version="1.1" width="10px" height="10px" className='record-status'>
-              <circle cx="5" cy="5" r="5" fill={redColor}>
+              <circle cx="5" cy="5" r="5" fill={colors.red}>
                 <animate
                         attributeType="XML"
                         attributeName="opacity"
@@ -70,8 +68,11 @@ export default class VideoCell extends React.Component {
           <video id={'playback-' + this.props.note} key="playback" src={this.props.src} />
         </Link>
       );
+      if (!this.props.playing) {
+        shadeEl = <div className='shade' />;
+      }
     } else {
-      const fill = this.props.playing ? activeColor: '#eee';
+      const fill = this.props.playing ? colors.active: '#eee';
 
       videoEl = (
         <Link className='empty-video' onClick={this.props.onRecord} enabled={!this.props.recording}>
@@ -80,7 +81,7 @@ export default class VideoCell extends React.Component {
           </svg>
           <div className='record-prompt'>
             <svg version="1.1" width="20px" height="20px">
-              <circle cx="10" cy="10" r="10" fill={redColor} />
+              <circle cx="10" cy="10" r="10" fill={colors.red} />
             </svg>
             <div>
               Record a clip
@@ -92,12 +93,13 @@ export default class VideoCell extends React.Component {
 
     return (
       <div className={classNames('video-cell', {playing: this.props.playing})}>
-        <div className='note-label'>
-          {this.props.note}
-        </div>
         {videoEl}
         {countdownEl}
         {stopActionEl}
+        {shadeEl}
+        <div className='note-label'>
+          {this.props.note}
+        </div>
       </div>
     );
   }
