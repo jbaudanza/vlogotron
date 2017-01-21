@@ -121,7 +121,7 @@ export default class Instrument extends React.Component {
                    id: 'keyboard',
                    width: 600,
                    height: 150,
-                   octaves: 2,
+                   octaves: 1,
                    startNote: 'A3',
                    whiteNotesColour: 'white',
                    blackNotesColour: 'black',
