@@ -82,6 +82,7 @@ export default class VideoClipStore {
   constructor() {
     const localBlobs = new Subject();
     const uploadTasks = new BehaviorSubject([]);
+    const clearActions = new Subject();
 
     const remoteUrls = refs$.switchMap(mapToDownloadUrls).startWith({});
 
@@ -94,6 +95,7 @@ export default class VideoClipStore {
     };
 
     this.clearClip = function(note) {
+      clearActions.next(note);
       localBlobs.next({note, blob: null});
     };
 
@@ -118,6 +120,12 @@ export default class VideoClipStore {
         uploadTasks.next(without(uploadTasks._value, task))
       });
     });
+
+    Observable.combineLatest(refs$, clearActions)
+      .subscribe(function([refs, note]) {
+        refs.database.child(noteToPath(note)).remove();
+        refs.storage.child(noteToPath(note)).delete();
+      });
 
     const localUrls = localBlobs.scan(reduceToUrls, {}).startWith({});
 
