@@ -2,6 +2,9 @@ import React from 'react';
 
 import Page from './Page';
 import Instrument from './Instrument';
+import SocialSection from './SocialSection';
+import Link from './Link';
+
 
 // Find the wrapping anchor tag, if any
 function findWrappingLink(element) {
@@ -41,22 +44,39 @@ export default class Router extends React.Component {
   render() {
     let content;
 
-    if (this.props.location === '/') {
-      content = <Instrument />;
+    if (this.props.location.pathname === '/') {
+      content = (
+        <div>
+          <h3>
+            Click on the videos, click the piano, or mash on your keyboard.
+          </h3>
+
+          <Instrument />
+
+          <h3>Record your own vlogotron</h3>
+          <div className='button-wrapper'>
+            <Link className='create-button'>Record</Link>
+          </div>
+
+          <h3>
+            Share this link on social media
+          </h3>
+          <SocialSection url={this.props.location.pathname} />
+        </div>
+      );
     }
 
-    if (this.props.location === '/edit') {
+    if (this.props.location.pathname === '/edit') {
       // Edit the grid for the current user
     }
 
-    if (this.props.location === '[uid]') {
+    if (this.props.location.pathname === '[uid]') {
       // Load the grid in read-only mode for the uid
     }
 
     return (
       <Page onClick={this.onClick}>
         {content}
-        <Instrument />
       </Page>
     );
   }

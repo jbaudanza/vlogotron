@@ -65,17 +65,21 @@ $red-color: #bc1838;
   }
 }
 
-.social-section {
+h3, .share-buttons, .button-wrapper {
   width: $content-width;
-  margin: 50px auto;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+h3 {
+  margin-top: 18.720px * 2;
+  margin-bottom: 18.720px;
+  color: #333;
+  font-weight: normal;
+}
 
-  label {
-    font-weight: bold;
-  }
-
-  form {
-    overflow: hidden;
-  }
+.share-buttons {
+  overflow: hidden;
 
   input, a {
     margin: 0;

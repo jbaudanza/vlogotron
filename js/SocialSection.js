@@ -23,28 +23,25 @@ function openPopup(baseUrl, text) {
 export default class SocialSection extends React.Component {
   render() {
     return (
-      <div className='social-section'>
-        <label htmlFor="url-input">Share</label>
-        <form>
-          <input 
-              id="url-input" 
-              type="text"
-              size="50"
-              value={this.props.url}
-              readOnly
-              onClick={onInputClick} />
-          <Link onClick={openPopup.bind(null, twitterBase, this.props.url)}>
-            <svg version="1.1" width="35px" height="35px">
-              <use xlinkHref='#twitter' />
-            </svg>
-          </Link>
-          <Link onClick={openPopup.bind(null, facebookBase, this.props.url)}>
-            <svg version="1.1" width="35px" height="35px">
-              <use xlinkHref='#facebook' />
-            </svg>
-          </Link>
-        </form>
-      </div>
+      <form className='share-buttons'>
+        <input
+            id="url-input"
+            type="text"
+            size="50"
+            value={this.props.url}
+            readOnly
+            onClick={onInputClick} />
+        <Link onClick={openPopup.bind(null, twitterBase, this.props.url)}>
+          <svg version="1.1" width="35px" height="35px">
+            <use xlinkHref='#twitter' />
+          </svg>
+        </Link>
+        <Link onClick={openPopup.bind(null, facebookBase, this.props.url)}>
+          <svg version="1.1" width="35px" height="35px">
+            <use xlinkHref='#facebook' />
+          </svg>
+        </Link>
+      </form>
     )
   }
 }
