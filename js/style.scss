@@ -219,7 +219,8 @@ h3 {
         margin-bottom: 5px;
       }
     }
-    &:hover {
+
+    &.enabled:hover {
       .background {
         display: none;
       }
@@ -228,6 +229,7 @@ h3 {
       }
     }
   }
+
   $crop: 25px;
   video {
     position: absolute;

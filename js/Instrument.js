@@ -290,7 +290,8 @@ export default class Instrument extends React.Component {
       onStopRecording: this.onStop.bind(this, note),
       onMouseDown: this.onMouseDownOnVideo.bind(this, note),
       onClear: this.onClear.bind(this, note),
-      playing: !!this.state.playing[note]
+      playing: !!this.state.playing[note],
+      readonly: this.props.readonly
     };
 
     if (this.state.recording === note) {
@@ -314,6 +315,10 @@ export default class Instrument extends React.Component {
       </div>
         <div id='keyboard' />
       </div>
-    );s
+    );
   }
 }
+
+Instrument.propTypes = {
+  readonly: React.PropTypes.bool.isRequired
+};

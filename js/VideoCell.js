@@ -95,22 +95,24 @@ export default class VideoCell extends React.Component {
       );
       if (!this.props.playing) {
         shadeEl = <div className='shade' />;
-        clearEl = (
-          <Link onClick={this.onClear} className='clear-button'>
-            <svg version="1.1" width="25px" height="25px">
-              <use xlinkHref="#close" fill="white"/>
-            </svg>
-          </Link>
-        );
+
+        if (!this.props.readonly) {
+          clearEl = (
+            <Link onClick={this.onClear} className='clear-button'>
+              <svg version="1.1" width="25px" height="25px">
+                <use xlinkHref="#close" fill="white"/>
+              </svg>
+            </Link>
+          );
+        }
       }
     } else {
       const fill = this.props.playing ? colors.active: '#eee';
 
-      videoEl = (
-        <Link className='empty-video' onClick={this.props.onStartRecording} enabled={!this.props.recording}>
-          <svg version="1.1" width="75px" height="75px" className='background'>
-            <use xlinkHref='#video-record' fill={fill} />
-          </svg>
+      let recordPromptEl;
+
+      if (!this.props.readonly) {
+        recordPromptEl = (
           <div className='record-prompt'>
             <svg version="1.1" width="20px" height="20px">
               <circle cx="10" cy="10" r="10" fill={colors.red} />
@@ -119,6 +121,18 @@ export default class VideoCell extends React.Component {
               Record a clip
             </div>
           </div>
+        );
+      }
+
+      videoEl = (
+        <Link
+            className='empty-video'r
+            onClick={this.props.onStartRecording}
+            enabled={!this.props.recording && !this.props.readonly}>
+          <svg version="1.1" width="75px" height="75px" className='background'>
+            <use xlinkHref='#video-record' fill={fill} />
+          </svg>
+          {recordPromptEl}
         </Link>
       );
     }
@@ -147,6 +161,7 @@ VideoCell.propTypes = {
   onStopRecording:   React.PropTypes.func.isRequired,
   recording:         React.PropTypes.bool.isRequired,
   playing:           React.PropTypes.bool.isRequired,
+  readonly:          React.PropTypes.bool.isRequired,
   onMouseDown:       React.PropTypes.func,
   countdown:         React.PropTypes.number
 };
