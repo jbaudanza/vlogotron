@@ -5,21 +5,7 @@ import {bindAll} from 'lodash';
 import classNames from 'classnames';
 import colors from './colors'
 import Link from './Link';
-
-
-// Find the wrapping anchor tag, if any
-function findWrappingLink(startEl, stopEl) {
-  let iterEl = startEl;
-
-  while (iterEl && iterEl !== stopEl) {
-    if (iterEl instanceof HTMLAnchorElement)
-      return iterEl;
-    else
-      iterEl = iterEl.parentNode;
-  }
-
-  return null;
-}
+import {findWrappingLink} from './domutils';
 
 
 export default class VideoCell extends React.Component {

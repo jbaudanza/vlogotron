@@ -16,6 +16,7 @@ import VideoClipStore from './VideoClipStore';
 import VideoCell from './VideoCell';
 
 import colors from './colors';
+import {findParentNode} from './domutils';
 
 const notes = [
   'A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'
@@ -56,21 +57,6 @@ const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
 const documentMouseMove$ = fromEvent(document, 'mousemove');
 const documentMouseUp$ = fromEvent(document, 'mouseup');
-
-
-// TODO: This is duplicated a few places
-function findParentNode(startEl, testFn, stopEl) {
-  let iterEl = startEl;
-
-  while (iterEl && iterEl !== stopEl) {
-    if (testFn(iterEl))
-      return iterEl;
-    else
-      iterEl = iterEl.parentNode;
-  }
-
-  return null;
-}
 
 
 function startRecording(stream, mimeType) {

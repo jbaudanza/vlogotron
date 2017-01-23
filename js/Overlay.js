@@ -30,7 +30,7 @@ class Overlay extends React.Component {
         <div className='shadow'/>
         <div className='content'>
           <Link onClick={this.props.onClose} className="close-link">
-            <svg version="1.1">
+            <svg version="1.1" width="25px" height="25px">
               <use xlinkHref="#close" fill="white"/>
             </svg>
           </Link>

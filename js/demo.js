@@ -24,8 +24,7 @@ window.main = function(node) {
 class App extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'onLogin', 'onNavigate', 'onCloseOverlay');
-    this.state = {showLoginOverlay: false};
+    bindAll(this, 'onLogin', 'onNavigate');
   }
 
   componentWillMount() {
@@ -47,20 +46,10 @@ class App extends React.Component {
     firebase.auth().signInWithPopup(provider);
   }
 
-  onCloseOverlay() {
-    this.setState({showLoginOverlay: false})
-  }
-
   render() {
-    let overlay;
-    if (this.state.showLoginOverlay) {
-      overlay = <LoginOverlay onClose={this.onCloseOverlay} onLogin={this.onLogin} />;
-    }
-
     return (
       <div>
         <SvgAssets />
-        {overlay}
         <this.Router onNavigate={this.onNavigate} onLogin={this.onLogin} />
       </div>
     );

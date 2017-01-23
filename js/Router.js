@@ -4,21 +4,9 @@ import Page from './Page';
 import Instrument from './Instrument';
 import SocialSection from './SocialSection';
 import Link from './Link';
+import LoginOverlay from './LoginOverlay';
 
-
-// Find the wrapping anchor tag, if any
-function findWrappingLink(element) {
-  let clickable = element;
-
-  while (clickable) {
-    if (clickable instanceof HTMLAnchorElement)
-      return clickable;
-    else
-      clickable = clickable.parentNode;
-  }
-
-  return null;
-}
+import {findWrappingLink} from './domutils';
 
 
 export default class Router extends React.Component {
@@ -34,7 +22,7 @@ export default class Router extends React.Component {
       const clickable = findWrappingLink(node);
 
       if (clickable && clickable.host === document.location.host) {
-        this.props.onNavigate(clickable.href);
+        this.props.onNavigate(clickable.pathname);
         event.preventDefault();
         event.stopPropagation();
       }
@@ -51,11 +39,11 @@ export default class Router extends React.Component {
             Click on the videos, click the piano, or mash on your keyboard.
           </h3>
 
-          <Instrument />
+          <Instrument readonly />
 
           <h3>Record your own vlogotron</h3>
           <div className='button-wrapper'>
-            <Link className='create-button'>Record</Link>
+            <a href="/record" className='create-button'>Record</a>
           </div>
 
           <h3>
@@ -66,8 +54,15 @@ export default class Router extends React.Component {
       );
     }
 
-    if (this.props.location.pathname === '/edit') {
-      // Edit the grid for the current user
+    if (this.props.location.pathname === '/record') {
+      content = (
+        <div>
+          <LoginOverlay
+              onClose={this.props.onNavigate.bind(null, '/')}
+              onLogin={this.props.onLogin} />;
+          <Instrument />
+        </div>
+      );
     }
 
     if (this.props.location.pathname === '[uid]') {
@@ -84,5 +79,6 @@ export default class Router extends React.Component {
 
 Router.propTypes = {
   location:   React.PropTypes.object.isRequired,
-  onNavigate: React.PropTypes.func.isRequired
+  onNavigate: React.PropTypes.func.isRequired,
+  onLogin:    React.PropTypes.func.isRequired
 };
