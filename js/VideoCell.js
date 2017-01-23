@@ -6,8 +6,6 @@ import classNames from 'classnames';
 import colors from './colors'
 import Link from './Link';
 
-import {fromEvent} from 'rxjs/observable/fromEvent';
-
 
 // Find the wrapping anchor tag, if any
 function findWrappingLink(startEl, stopEl) {
@@ -48,11 +46,9 @@ export default class VideoCell extends React.Component {
     if (findWrappingLink(event.target, ReactDOM.findDOMNode(this)))
       return;
 
-    this.props.onStartPlayback();
-
-    fromEvent(document, 'mouseup')
-      .take(1)
-      .subscribe(() => this.props.onStopPlayback());
+    if (this.props.onMouseDown) {
+      this.props.onMouseDown(event);
+    }
   }
 
   render() {
@@ -129,7 +125,9 @@ export default class VideoCell extends React.Component {
 
     return (
       <div onMouseDown={this.onMouseDown}
-        className={classNames('video-cell', {playing: this.props.playing})}>
+        className={classNames('video-cell', {playing: this.props.playing})}
+        data-note={this.props.note}
+        >
         {videoEl}
         {countdownEl}
         {stopActionEl}
@@ -144,11 +142,11 @@ export default class VideoCell extends React.Component {
 }
 
 VideoCell.propTypes = {
+  note:              React.PropTypes.string.isRequired,
   onStartRecording:  React.PropTypes.func.isRequired,
   onStopRecording:   React.PropTypes.func.isRequired,
-  onStartPlayback:   React.PropTypes.func.isRequired,
-  onStopPlayback:    React.PropTypes.func.isRequired,
   recording:         React.PropTypes.bool.isRequired,
   playing:           React.PropTypes.bool.isRequired,
+  onMouseDown:       React.PropTypes.func,
   countdown:         React.PropTypes.number
 };

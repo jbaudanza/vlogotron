@@ -2,11 +2,14 @@ import React from 'react';
 
 import {interval} from 'rxjs/observable/interval';
 import {Subject} from 'rxjs/Subject';
+import {fromEvent} from 'rxjs/observable/fromEvent';
 import 'rxjs/add/operator/take';
+import 'rxjs/add/operator/takeUntil';
+import 'rxjs/add/operator/distinctUntilChanged';
 import 'rxjs/add/operator/map';
 
 import QwertyHancock from './qwerty-hancock';
-import {bindAll, omit} from 'lodash';
+import {bindAll, omit, includes} from 'lodash';
 
 import VideoClipStore from './VideoClipStore';
 
@@ -50,6 +53,24 @@ const frequencies = {
 };
 
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+const documentMouseMove$ = fromEvent(document, 'mousemove');
+const documentMouseUp$ = fromEvent(document, 'mouseup');
+
+
+// TODO: This is duplicated a few places
+function findParentNode(startEl, testFn, stopEl) {
+  let iterEl = startEl;
+
+  while (iterEl && iterEl !== stopEl) {
+    if (testFn(iterEl))
+      return iterEl;
+    else
+      iterEl = iterEl.parentNode;
+  }
+
+  return null;
+}
 
 
 function startRecording(stream, mimeType) {
@@ -152,6 +173,41 @@ export default class Instrument extends React.Component {
     this.forceUpdate();
   }
 
+  onMouseDownOnVideo(note) {
+    const playStart$ = new Subject();
+
+    const playUntil$ = documentMouseUp$.take(1)
+    playUntil$.map(() => null).subscribe(playStart$);
+
+    documentMouseMove$.takeUntil(playUntil$).subscribe(function(event) {
+      const el = findParentNode(
+        event.target,
+        (node) => includes(node.classList, 'video-cell')
+      );
+      if (el) {
+        playStart$.next(el.dataset.note);
+      } else {
+        playStart$.next(null);
+      }
+    });
+
+    playStart$
+      .distinctUntilChanged()
+      .scan(
+        (obj, note) => ({previous: obj.current, current: note}),
+        {current: null, previous: null}
+      ).subscribe((obj) => {
+      if (obj.previous) {
+        this.onStopPlayback(obj.previous);
+      }
+      if (obj.current) {
+        this.onStartPlayback(obj.current);
+      }
+    });
+
+    playStart$.next(note);
+  }
+
   onStopPlayback(note) {
     const videoEl = document.getElementById('playback-' + note);
     if (videoEl) {
@@ -232,8 +288,7 @@ export default class Instrument extends React.Component {
       recording: !!this.state.recording,
       onStartRecording: this.onRecord.bind(this, note),
       onStopRecording: this.onStop.bind(this, note),
-      onStartPlayback: this.onStartPlayback.bind(this, note),
-      onStopPlayback: this.onStopPlayback.bind(this, note),
+      onMouseDown: this.onMouseDownOnVideo.bind(this, note),
       onClear: this.onClear.bind(this, note),
       playing: !!this.state.playing[note]
     };
