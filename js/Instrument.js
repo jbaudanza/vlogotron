@@ -160,6 +160,9 @@ export default class Instrument extends React.Component {
   }
 
   onMouseDownOnVideo(note) {
+    if (!this.state.videoClipUrls[note])
+      return;
+
     const playStart$ = new Subject();
 
     const playUntil$ = documentMouseUp$.take(1)
@@ -306,5 +309,5 @@ export default class Instrument extends React.Component {
 }
 
 Instrument.propTypes = {
-  readonly: React.PropTypes.bool.isRequired
+  readonly: React.PropTypes.bool
 };
