@@ -19,7 +19,7 @@ import colors from './colors';
 import {findParentNode} from './domutils';
 
 const notes = [
-  'A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'
+  'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
 ];
 
 // const frequencies = {
@@ -39,9 +39,9 @@ const notes = [
 
 // Lower octave
 const frequencies = {
-  "A":  220.00,
-  "A#": 233.08,
-  "B":  246.94,
+  // "A":  220.00,
+  // "A#": 233.08,
+  // "B":  246.94,
   "C":  261.63,
   "C#": 277.18,
   "D":  293.66,
@@ -50,7 +50,10 @@ const frequencies = {
   "F":  349.23,
   "F#": 369.99,
   "G":  392.00,
-  "G#": 415.30
+  "G#": 415.30,
+  "A":  440,
+  "A#": 466.16,
+  "B":  493.88
 };
 
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -129,7 +132,7 @@ export default class Instrument extends React.Component {
                    width: 600,
                    height: 150,
                    octaves: 1,
-                   startNote: 'A3',
+                   startNote: 'C3',
                    whiteNotesColour: 'white',
                    blackNotesColour: 'black',
                    hoverColour: '#f3e939',

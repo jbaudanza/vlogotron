@@ -150,23 +150,22 @@ export default class VideoClipStore {
       localBlobs.next({note, blob: null});
     };
 
-    localBlobs.subscribe(function(obj) {
-      if (!obj.blob)
+    const localBlobChanges$ = Observable.combineLatest(
+      localBlobs,
+      currentUser$.map((user) => user ? refsForUids(user.uid) : null)
+    )
+
+    localBlobChanges$.subscribe(function([change, refs]) {
+      if (!(change.blob && refs))
         return;
 
-      // TODO: use currentUser$ stream
-      const storageRef = firebase.storage().ref()
-          .child('video-clips')
-          .child(firebase.auth().currentUser.uid)
-          .child(noteToPath(obj.note));
+      const storageRef = refs.storage.child(noteToPath(change.note));
 
-      const task = storageRef.put(obj.blob);
+      const task = storageRef.put(change.blob);
       uploadTasks.next(uploadTasks._value.concat(task));
 
       task.then(function() {
-        firebase.database().ref('video-clips')
-            .child(firebase.auth().currentUser.uid)
-            .child(noteToPath(obj.note)).set(true);
+        refs.database.child(noteToPath(change.note)).set(true);
 
         uploadTasks.next(without(uploadTasks._value, task))
       });
