@@ -212,6 +212,10 @@ export default class Instrument extends React.Component {
 
   componentWillMount() {
     this.videoClipStore = new VideoClipStore();
+
+    // XXX: Left off here. We aren't unsubscribing anywhere. Options:
+    // - unsubscribe in componentWillUnmount
+    // - have the parent pass in the videoClipUrls
     this.videoClipStore.urls.subscribe((obj) => {
       this.setState({videoClipUrls: obj})
     });

@@ -50,11 +50,19 @@ class App extends React.Component {
     firebase.auth().signInWithPopup(provider);
   }
 
+  onLogout() {
+    firebase.auth().signOut();
+    navigate('/');
+  }
+
   render() {
     return (
       <div>
         <SvgAssets />
-        <this.Router onNavigate={this.onNavigate} onLogin={this.onLogin} />
+        <this.Router
+            onNavigate={this.onNavigate}
+            onLogin={this.onLogin}
+            onLogout={this.onLogout} />
       </div>
     );
   }

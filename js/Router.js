@@ -58,6 +58,11 @@ export default class Router extends React.Component {
     if (this.props.route.mode === 'record') {
       content = (
         <div>
+          <h3>
+            Hello {this.props.route.displayName}, you can record videos by clicking
+            on the squares below. If you are someone else, you can <Link onClick={this.props.onLogout}>sign out</Link>.
+          </h3>
+
           <Instrument />
         </div>
       );
@@ -79,7 +84,8 @@ export default class Router extends React.Component {
 }
 
 Router.propTypes = {
-  route:   React.PropTypes.object.isRequired,
+  route:      React.PropTypes.object.isRequired,
   onNavigate: React.PropTypes.func.isRequired,
-  onLogin:    React.PropTypes.func.isRequired
+  onLogin:    React.PropTypes.func.isRequired,
+  onLogout:   React.PropTypes.func.isRequired
 };

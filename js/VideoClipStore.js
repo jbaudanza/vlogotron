@@ -72,6 +72,7 @@ function mapToRoute(location, user) {
     if (user) {
       obj.uid = user.uid;
       obj.shareUrl = urlForUid(user.uid);
+      obj.displayName = user.displayName;
     } else {
       obj.uid = null;
       obj.overlay = 'login';
