@@ -147,7 +147,7 @@ VideoCell.propTypes = {
   onStopRecording:   React.PropTypes.func.isRequired,
   recording:         React.PropTypes.bool.isRequired,
   playing:           React.PropTypes.bool.isRequired,
-  readonly:          React.PropTypes.bool.isRequired,
+  readonly:          React.PropTypes.bool,
   onMouseDown:       React.PropTypes.func,
   countdown:         React.PropTypes.number
 };

@@ -31,8 +31,9 @@ export default class Router extends React.Component {
 
   render() {
     let content;
+    let overlay;
 
-    if (this.props.location.pathname === '/') {
+    if (this.props.route.mode === 'playback') {
       content = (
         <div>
           <h3>
@@ -49,28 +50,28 @@ export default class Router extends React.Component {
           <h3>
             Share this link on social media
           </h3>
-          <SocialSection url={this.props.location.pathname} />
+          <SocialSection url={'http://www.example.com'} />
         </div>
       );
     }
 
-    if (this.props.location.pathname === '/record') {
+    if (this.props.route.mode === 'record') {
       content = (
         <div>
-          <LoginOverlay
-              onClose={this.props.onNavigate.bind(null, '/')}
-              onLogin={this.props.onLogin} />;
           <Instrument />
         </div>
       );
     }
 
-    if (this.props.location.pathname === '[uid]') {
-      // Load the grid in read-only mode for the uid
+    if (this.props.route.overlay === 'login') {
+      overlay = <LoginOverlay
+                  onClose={this.props.onNavigate.bind(null, '/')}
+                  onLogin={this.props.onLogin} />;
     }
 
     return (
       <Page onClick={this.onClick}>
+        {overlay}
         {content}
       </Page>
     );
@@ -78,7 +79,7 @@ export default class Router extends React.Component {
 }
 
 Router.propTypes = {
-  location:   React.PropTypes.object.isRequired,
+  route:   React.PropTypes.object.isRequired,
   onNavigate: React.PropTypes.func.isRequired,
   onLogin:    React.PropTypes.func.isRequired
 };

@@ -7,6 +7,9 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/startWith';
 import 'rxjs/add/operator/switchMap';
 
+import createHistory from 'history/createBrowserHistory';
+
+
 Object.assign(
     Observable,
     require('rxjs/observable/fromEvent'),
@@ -24,16 +27,64 @@ function reduceToUrls(acc, obj) {
   }
 }
 
+export function navigate(href) {
+  urlHistory.push(href);
+}
+
+const urlHistory = createHistory();
+
 const currentUser$ = Observable.create(function(observer) {
   firebase.auth().onAuthStateChanged((user) => observer.next(user));
 });
 
-const refs$ = currentUser$
-  .filter((x) => x)
-  .map((user) => ({
-    database: firebase.database().ref('video-clips').child(user.uid),
-    storage:  firebase.storage().ref('video-clips').child(user.uid)
-  }));
+const currentLocation$ = Observable.create((observer) => {
+  observer.next(urlHistory.location);
+  return urlHistory.listen(observer.next.bind(observer));
+});
+
+export const currentRoute$ = Observable.combineLatest(
+  currentLocation$, currentUser$, mapToRoute
+).startWith({mode: 'loading'});
+
+function mapToRoute(location, user) {
+  let match;
+
+  if (location.pathname === '/') {
+    // TODO: Magic uid
+    return {mode: 'playback', uid: 'b7Z6g5LFN7SiyJpAnxByRmuSHuV2'};
+  } else if (location.pathname === '/record') {
+    const obj = {mode: 'record'};
+    if (user) {
+      obj.uid = user.uid;
+    } else {
+      obj.uid = null;
+      obj.overlay = 'login';
+    }
+    return obj;
+  } else if (match = location.pathname.match(/\/u\/([\w-]+)/)) {
+    return {mode: 'playback', uid: match[1]};
+  } else {
+    return {mode: 'not-found'};
+  }
+}
+
+
+// XXX: Left off here. This should pull the uid out of the url
+const refs$ = currentRoute$
+  .map((route) => {
+    if (route.uid)
+      return refsForUids(route.uid)
+    else
+      return null;
+  });
+
+
+function refsForUids(uid) {
+  return {
+    database: firebase.database().ref('video-clips').child(uid),
+    storage:  firebase.storage().ref('video-clips').child(uid)
+  };
+}
 
 function noteToPath(note) {
   return note.replace('#', '-sharp')
@@ -61,16 +112,19 @@ function promiseFromTemplate(template) {
 }
 
 function mapToDownloadUrls(refs) {
-  return Observable.fromEvent(refs.database, 'value')
-    .switchMap((snapshot) => (
-      promiseFromTemplate(
-        mapValues(snapshot.val(), (value, key) => (
-          refs.storage.child(key).getDownloadURL()
-        ))
-      )
-    ));
+  if (refs) {
+    return Observable.fromEvent(refs.database, 'value')
+      .switchMap((snapshot) => (
+        promiseFromTemplate(
+          mapValues(snapshot.val(), (value, key) => (
+            refs.storage.child(key).getDownloadURL()
+          ))
+        )
+      ));
+  } else {
+    return Promise.resolve({});
+  }
 }
-
 
 // TODO:
 //  - make sure user is authenticated
@@ -86,10 +140,6 @@ export default class VideoClipStore {
 
     const remoteUrls = refs$.switchMap(mapToDownloadUrls).startWith({});
 
-    uploadTasks.subscribe(function(list) {
-      console.log('list', list);
-    });
-
     this.addClip = function(note, blob) {
       localBlobs.next({note, blob});
     };
@@ -99,6 +149,9 @@ export default class VideoClipStore {
       localBlobs.next({note, blob: null});
     };
 
+    // XXX: Left off here. Refactor localBlobs:
+    //  - Use the $refs stream.
+    //  - Reset whenever a user logs navigate to /remote with a uid
     localBlobs.subscribe(function(obj) {
       if (!obj.blob)
         return;
@@ -121,7 +174,7 @@ export default class VideoClipStore {
       });
     });
 
-    Observable.combineLatest(refs$, clearActions)
+    Observable.combineLatest(refs$.filter((x) => x), clearActions)
       .subscribe(function([refs, note]) {
         refs.database.child(noteToPath(note)).remove();
         refs.storage.child(noteToPath(note)).delete();

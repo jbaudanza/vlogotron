@@ -12,6 +12,8 @@ import {bindAll, omit} from 'lodash';
 import Router from './Router';
 import SvgAssets from './SvgAssets';
 
+import {navigate, currentRoute$} from './VideoClipStore';
+
 import './style.scss'
 
 import bindComponentToObservable from './bindComponentToObservable';
@@ -24,21 +26,23 @@ window.main = function(node) {
 class App extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'onLogin', 'onNavigate');
+    bindAll(this, 'onLogin', 'onNavigate', );
   }
 
   componentWillMount() {
     this.urlHistory = createHistory();
-    const url$ = Observable.create((observer) => {
+
+    // XXX: duplicated. this is probably going away
+    const currentLocation$ = Observable.create((observer) => {
       observer.next(this.urlHistory.location);
       return this.urlHistory.listen(observer.next.bind(observer));
     });
 
-    this.Router = bindComponentToObservable(Router, {location: url$});
+    this.Router = bindComponentToObservable(Router, {route: currentRoute$});
   }
 
   onNavigate(href) {
-    this.urlHistory.push(href);
+    navigate(href);
   }
 
   onLogin(providerString) {
