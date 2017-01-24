@@ -13,7 +13,8 @@ import createHistory from 'history/createBrowserHistory';
 Object.assign(
     Observable,
     require('rxjs/observable/fromEvent'),
-    require('rxjs/observable/combineLatest')
+    require('rxjs/observable/combineLatest'),
+    require('rxjs/observable/of')
 );
 
 
@@ -149,9 +150,6 @@ export default class VideoClipStore {
       localBlobs.next({note, blob: null});
     };
 
-    // XXX: Left off here. Refactor localBlobs:
-    //  - Use the $refs stream.
-    //  - Reset whenever a user logs navigate to /remote with a uid
     localBlobs.subscribe(function(obj) {
       if (!obj.blob)
         return;
@@ -180,7 +178,13 @@ export default class VideoClipStore {
         refs.storage.child(noteToPath(note)).delete();
       });
 
-    const localUrls = localBlobs.scan(reduceToUrls, {}).startWith({});
+    const localUrls = currentRoute$.switchMap(function(route) {
+      if (route.mode === 'record' && route.uid) {
+        return localBlobs.scan(reduceToUrls, {}).startWith({});
+      } else {
+        return Observable.of({});
+      }
+    });
 
     this.urls = Observable.combineLatest(
         localUrls,
