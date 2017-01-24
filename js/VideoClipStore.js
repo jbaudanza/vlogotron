@@ -47,30 +47,44 @@ export const currentRoute$ = Observable.combineLatest(
   currentLocation$, currentUser$, mapToRoute
 ).startWith({mode: 'loading'});
 
+
+// This is the UID that is loaded on the root URL. (It's me, Jon B!)
+const DEFAULT_UID = 'b7Z6g5LFN7SiyJpAnxByRmuSHuV2';
+
+
+function urlForUid(uid) {
+  const baseUrl = document.location.protocol + '//' + document.location.host;
+
+  if (uid === DEFAULT_UID) {
+    return baseUrl + '/';
+  } else {
+    return baseUrl + '/u' + uid;
+  }
+}
+
 function mapToRoute(location, user) {
   let match;
 
   if (location.pathname === '/') {
-    // TODO: Magic uid
-    return {mode: 'playback', uid: 'b7Z6g5LFN7SiyJpAnxByRmuSHuV2'};
+    return {mode: 'playback', uid: DEFAULT_UID, shareUrl: urlForUid(DEFAULT_UID)};
   } else if (location.pathname === '/record') {
     const obj = {mode: 'record'};
     if (user) {
       obj.uid = user.uid;
+      obj.shareUrl = urlForUid(user.uid);
     } else {
       obj.uid = null;
       obj.overlay = 'login';
     }
     return obj;
   } else if (match = location.pathname.match(/\/u\/([\w-]+)/)) {
-    return {mode: 'playback', uid: match[1]};
+    return {mode: 'playback', uid: match[1], shareUrl: urlForUid(match[1])};
   } else {
     return {mode: 'not-found'};
   }
 }
 
 
-// XXX: Left off here. This should pull the uid out of the url
 const refs$ = currentRoute$
   .map((route) => {
     if (route.uid)
@@ -128,7 +142,6 @@ function mapToDownloadUrls(refs) {
 }
 
 // TODO:
-//  - make sure user is authenticated
 //  - track the tasks somehow
 //  - display upload progress to user
 //  - make sure permissions are configured right

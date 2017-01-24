@@ -50,7 +50,7 @@ export default class Router extends React.Component {
           <h3>
             Share this link on social media
           </h3>
-          <SocialSection url={'http://www.example.com'} />
+          <SocialSection url={this.props.route.shareUrl} />
         </div>
       );
     }
