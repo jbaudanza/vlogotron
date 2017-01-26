@@ -108,7 +108,8 @@ function refsForUids(uid) {
   return {
     database: firebase.database().ref('video-clips').child(uid),
     videos:   firebase.storage().ref('video-clips').child(uid),
-    uploads:  firebase.storage().ref('uploads').child(uid)
+    uploads:  firebase.storage().ref('uploads').child(uid),
+    uid:      uid
   };
 }
 
@@ -183,7 +184,10 @@ export default class VideoClipStore {
       if (!(change.blob && refs))
         return;
 
-      const uploadRef = refs.uploads.child(createRandomString(6));
+      // The clipId only needs to be unique per each user
+      const clipId = createRandomString(6);
+
+      const uploadRef = refs.uploads.child(clipId);
 
       const task = uploadRef.put(change.blob);
       uploadTasks.next(uploadTasks._value.concat(task));
@@ -193,8 +197,9 @@ export default class VideoClipStore {
         //refs.database.child(noteToPath(change.note)).set(true);
 
         queue.push({
-          name: uploadRef.fullPath,
-          note: change.note
+          note:   change.note,
+          clipId: clipId,
+          uid:    refs.uid
         });
 
         // XXX Trigger a transcoder task

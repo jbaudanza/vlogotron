@@ -1,8 +1,8 @@
 // TODO:
 //   - lower video quality
-//   - Upload back to google storage
 //   - Update real time db somehow
 //   - How best to reencode all videos, if we decide to
+//   - Cleanup tmp files
 
 const os = require('os');
 const path = require('path');
@@ -53,12 +53,25 @@ const queue = new Queue(ref, function(data, progress, resolve, reject) {
   logger.debug("Input file " + inputFilename)
   logger.debug("Output file " + outputFilename)
 
+  const inputStorageName =  'uploads/' + data.uid + '/' + data.clipId;
+  const outputStorageName = 'video-clips/' + data.uid + '/' + data.clipId;
+
   try {
-  bucket.file(data.name)
+  bucket.file(inputStorageName)
       .download({destination: inputFilename})
       .then(() => transcode(inputFilename, outputFilename))
       .then(function() {
-        logger.info('Finished')
+        logger.info('Transcoding finished')
+        return Promise.all(['.webm', '.mp4', '.ogv'].map(function(fmt) {
+          // TODO: Should we include a mime-type here?
+          return bucket.upload(outputFilename + fmt, {
+              destination: outputStorageName + fmt,
+              predefinedAcl: 'publicRead'
+          });
+        }));
+      })
+      .then(function() {
+        logger.info('Upload finished')
         resolve();
       }, function(err) {
         logger.error(err);
