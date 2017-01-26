@@ -1,7 +1,6 @@
 // TODO:
+//   - Update real time db somehow  <-- Do this next
 //   - lower video quality
-//   - Update real time db somehow
-//   - How best to reencode all videos, if we decide to
 //   - Cleanup tmp files
 
 const os = require('os');
@@ -69,6 +68,11 @@ const queue = new Queue(ref, function(data, progress, resolve, reject) {
               predefinedAcl: 'publicRead'
           });
         }));
+      })
+      .then(function() {
+        admin.database().ref('video-clip-events')
+          .child(data.uid)
+          .push({type: 'transcoded', clipId: data.clipId});
       })
       .then(function() {
         logger.info('Upload finished')

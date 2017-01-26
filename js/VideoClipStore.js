@@ -107,6 +107,7 @@ const queue = firebase.database().ref('queue/tasks');
 function refsForUids(uid) {
   return {
     database: firebase.database().ref('video-clips').child(uid),
+    events:   firebase.database().ref('video-clip-events').child(uid),
     videos:   firebase.storage().ref('video-clips').child(uid),
     uploads:  firebase.storage().ref('uploads').child(uid),
     uid:      uid
@@ -193,8 +194,7 @@ export default class VideoClipStore {
       uploadTasks.next(uploadTasks._value.concat(task));
 
       task.then(function() {
-        // XXX: This should be done by the transcoder
-        //refs.database.child(noteToPath(change.note)).set(true);
+        refs.events.push({type: 'uploaded', clipId: clipId, note: change.note});
 
         queue.push({
           note:   change.note,

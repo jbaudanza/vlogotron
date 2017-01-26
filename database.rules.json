@@ -6,6 +6,12 @@
         ".write": "$uid === auth.uid"
       }
     },
+    "video-clip-events": {
+      "$uid": {
+        ".read": true,
+        ".write": "$uid === auth.uid"
+      }
+    },
     "queue": {
       "tasks": {
         ".read": true,
