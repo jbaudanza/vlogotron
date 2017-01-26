@@ -6,7 +6,6 @@ import {Subject} from 'rxjs/Subject';
 
 
 import QwertyHancock from './qwerty-hancock';
-import createHistory from 'history/createBrowserHistory';
 import {bindAll, omit} from 'lodash';
 
 import Router from './Router';
@@ -26,18 +25,10 @@ window.main = function(node) {
 class App extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'onLogin', 'onNavigate', );
+    bindAll(this, 'onLogin', 'onNavigate', 'onLogout');
   }
 
   componentWillMount() {
-    this.urlHistory = createHistory();
-
-    // XXX: duplicated. this is probably going away
-    const currentLocation$ = Observable.create((observer) => {
-      observer.next(this.urlHistory.location);
-      return this.urlHistory.listen(observer.next.bind(observer));
-    });
-
     this.Router = bindComponentToObservable(Router, {route: currentRoute$});
   }
 

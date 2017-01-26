@@ -58,6 +58,7 @@ const frequencies = {
 
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
+// TODO: Support touchstart and touchend on iOS
 const documentMouseMove$ = fromEvent(document, 'mousemove');
 const documentMouseUp$ = fromEvent(document, 'mouseup');
 

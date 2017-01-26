@@ -1,3 +1,5 @@
+import {sample, times} from 'lodash';
+
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
@@ -19,6 +21,12 @@ Object.assign(
 
 
 import {omit, without, mapValues} from 'lodash';
+
+
+function createRandomString(length) {
+  const chars = "abcdefghijklmnopqrstufwxyzABCDEFGHIJKLMNOPQRSTUFWXYZ1234567890";
+  return times(length, () => sample(chars)).join('');
+}
 
 function reduceToUrls(acc, obj) {
   if (obj.blob) {
@@ -94,11 +102,13 @@ const refs$ = currentRoute$
       return null;
   });
 
+const queue = firebase.database().ref('queue/tasks');
 
 function refsForUids(uid) {
   return {
     database: firebase.database().ref('video-clips').child(uid),
-    storage:  firebase.storage().ref('video-clips').child(uid)
+    videos:   firebase.storage().ref('video-clips').child(uid),
+    uploads:  firebase.storage().ref('uploads').child(uid)
   };
 }
 
@@ -133,7 +143,7 @@ function mapToDownloadUrls(refs) {
       .switchMap((snapshot) => (
         promiseFromTemplate(
           mapValues(snapshot.val(), (value, key) => (
-            refs.storage.child(key).getDownloadURL()
+            refs.videos.child(key).getDownloadURL()
           ))
         )
       ));
@@ -173,22 +183,31 @@ export default class VideoClipStore {
       if (!(change.blob && refs))
         return;
 
-      const storageRef = refs.storage.child(noteToPath(change.note));
+      const uploadRef = refs.uploads.child(createRandomString(6));
 
-      const task = storageRef.put(change.blob);
+      const task = uploadRef.put(change.blob);
       uploadTasks.next(uploadTasks._value.concat(task));
 
       task.then(function() {
-        refs.database.child(noteToPath(change.note)).set(true);
+        // XXX: This should be done by the transcoder
+        //refs.database.child(noteToPath(change.note)).set(true);
+
+        queue.push({
+          name: uploadRef.fullPath,
+          note: change.note
+        });
+
+        // XXX Trigger a transcoder task
 
         uploadTasks.next(without(uploadTasks._value, task))
       });
     });
 
+    // TODO: This delete won't work
     Observable.combineLatest(refs$.filter((x) => x), clearActions)
       .subscribe(function([refs, note]) {
         refs.database.child(noteToPath(note)).remove();
-        refs.storage.child(noteToPath(note)).delete();
+        refs.videos.child(noteToPath(note)).delete();
       });
 
     const localUrls = currentRoute$.switchMap(function(route) {

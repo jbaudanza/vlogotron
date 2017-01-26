@@ -1,6 +1,17 @@
 {
   "rules": {
-    ".read": "auth != null",
-    ".write": "auth != null"
+    "video-clips": {
+      "$uid": {
+        ".read": true,
+        ".write": "$uid === auth.uid"
+      }
+    },
+    "queue": {
+      "tasks": {
+        ".read": true,
+        ".write": true,
+        ".indexOn": "_state"
+      }
+    }
   }
 }
