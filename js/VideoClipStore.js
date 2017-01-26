@@ -1,4 +1,4 @@
-import {sample, times} from 'lodash';
+import {sample, times, pickBy, includes, identity} from 'lodash';
 
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
@@ -11,6 +11,7 @@ import 'rxjs/add/operator/switchMap';
 
 import createHistory from 'history/createBrowserHistory';
 
+import promiseFromTemplate from './promiseFromTemplate';
 
 Object.assign(
     Observable,
@@ -28,9 +29,12 @@ function createRandomString(length) {
   return times(length, () => sample(chars)).join('');
 }
 
-function reduceToUrls(acc, obj) {
+function reduceToLocalUrls(acc, obj) {
   if (obj.blob) {
-    return Object.assign({}, acc, {[obj.note]: URL.createObjectURL(obj.blob)});
+    return Object.assign({}, acc, {[obj.note]: [{
+      src: URL.createObjectURL(obj.blob),
+      type: obj.blob.type
+    }]});
   } else {
     return omit(acc, obj.note);
   }
@@ -102,41 +106,67 @@ const refs$ = currentRoute$
       return null;
   });
 
+
+function reduceEventSnapshotToActiveClipIds(snapshot) {
+  const uploadedNotes = {};
+  const transcodedClips = [];
+
+  snapshot.forEach(function(child) {
+    const event = child.val();
+    if (event.type === 'uploaded') {
+      uploadedNotes[event.note] = event.clipId;
+    }
+
+    if (event.type === 'cleared') {
+      delete uploadedNotes[event.note];
+    }
+
+    if (event.type === 'transcoded') {
+      transcodedClips.push(event.clipId);
+    }
+  });
+
+  return pickBy(uploadedNotes, (v) => includes(transcodedClips, v));
+}
+
+
+const formats = ['webm', 'mp4', 'ogv'];
+
+
+function reduceToRemoteUrls(refs) {
+  if (refs) {
+    return Observable
+        .fromEvent(refs.events.orderByKey(), 'value')
+        .map(reduceEventSnapshotToActiveClipIds)
+        .switchMap((activeClipIds) => (
+          promiseFromTemplate(
+            mapValues(activeClipIds, (clipId) => (
+              formats.map((format) => ({
+                src: refs.videos.child(clipId + '.' + format).getDownloadURL(),
+                type: "video/" + format
+              }))
+            ))
+          )
+        ));
+  } else {
+    return Promise.resolve({});
+  }
+}
+
+const remoteUrls$ = refs$.switchMap(reduceToRemoteUrls).startWith({});
+
+
 const queue = firebase.database().ref('queue/tasks');
 
 function refsForUids(uid) {
   return {
+    // XXX: I think we can remove the database entry here
     database: firebase.database().ref('video-clips').child(uid),
     events:   firebase.database().ref('video-clip-events').child(uid),
     videos:   firebase.storage().ref('video-clips').child(uid),
     uploads:  firebase.storage().ref('uploads').child(uid),
     uid:      uid
   };
-}
-
-function noteToPath(note) {
-  return note.replace('#', '-sharp')
-}
-
-function promiseFromTemplate(template) {
-  return new Promise(function(resolve, reject) {
-    const result = {};
-    const keys = Object.keys(template);
-    let count = keys.length;
-
-    function callback(key, value) {
-      result[key] = value;
-      count--;
-      if (count === 0) {
-        resolve(result);
-      }
-    }
-
-    keys.forEach(function(key) {
-      const value = template[key];
-      value.then(callback.bind(null, key), reject);
-    });
-  });
 }
 
 function mapToDownloadUrls(refs) {
@@ -164,8 +194,6 @@ export default class VideoClipStore {
     const localBlobs = new Subject();
     const uploadTasks = new BehaviorSubject([]);
     const clearActions = new Subject();
-
-    const remoteUrls = refs$.switchMap(mapToDownloadUrls).startWith({});
 
     this.addClip = function(note, blob) {
       localBlobs.next({note, blob});
@@ -202,22 +230,19 @@ export default class VideoClipStore {
           uid:    refs.uid
         });
 
-        // XXX Trigger a transcoder task
-
         uploadTasks.next(without(uploadTasks._value, task))
       });
     });
 
-    // TODO: This delete won't work
-    Observable.combineLatest(refs$.filter((x) => x), clearActions)
+    Observable.combineLatest(refs$.filter(identity), clearActions)
       .subscribe(function([refs, note]) {
-        refs.database.child(noteToPath(note)).remove();
-        refs.videos.child(noteToPath(note)).delete();
+        refs.events.push({type: 'cleared', note: note});
       });
 
+    // XXX: Local Urls don't seem to be going away when you navigate away from /record
     const localUrls = currentRoute$.switchMap(function(route) {
       if (route.mode === 'record' && route.uid) {
-        return localBlobs.scan(reduceToUrls, {}).startWith({});
+        return localBlobs.scan(reduceToLocalUrls, {}).startWith({});
       } else {
         return Observable.of({});
       }
@@ -225,7 +250,7 @@ export default class VideoClipStore {
 
     this.urls = Observable.combineLatest(
         localUrls,
-        remoteUrls,
+        remoteUrls$,
         (local, remote) => Object.assign({}, remote, local)
     );
   }

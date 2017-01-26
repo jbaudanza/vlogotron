@@ -16,8 +16,23 @@
     "style-loader": "^0.13.1",
     "webpack": "beta"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "ava": "^0.17.0"
+  },
   "scripts": {
-    "start": "firebase serve"
+    "start": "firebase serve",
+    "test": "ava"
+  },
+  "ava": {
+    "files": "tests/*.js",
+    "require": [
+      "babel-register"
+    ]
+  },
+  "babel": {
+    "presets": [
+      "es2015",
+      "react"
+    ]
   }
 }

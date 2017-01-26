@@ -164,7 +164,7 @@ export default class Instrument extends React.Component {
   }
 
   onMouseDownOnVideo(note) {
-    if (!this.state.videoClipUrls[note])
+    if (!this.state.videoClipSources[note])
       return;
 
     const playStart$ = new Subject();
@@ -216,9 +216,9 @@ export default class Instrument extends React.Component {
 
     // XXX: Left off here. We aren't unsubscribing anywhere. Options:
     // - unsubscribe in componentWillUnmount
-    // - have the parent pass in the videoClipUrls
+    // - have the parent pass in the videoClipSources
     this.videoClipStore.urls.subscribe((obj) => {
-      this.setState({videoClipUrls: obj})
+      this.setState({videoClipSources: obj})
     });
   }
 
@@ -280,7 +280,7 @@ export default class Instrument extends React.Component {
 
   propsForCell(note) {
     const props = {
-      src: this.state.videoClipUrls[note],
+      sources: this.state.videoClipSources[note],
       note: note,
       recording: !!this.state.recording,
       onStartRecording: this.onRecord.bind(this, note),

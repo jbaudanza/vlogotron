@@ -1,5 +1,4 @@
 // TODO:
-//   - Update real time db somehow  <-- Do this next
 //   - lower video quality
 //   - Cleanup tmp files
 
@@ -63,9 +62,10 @@ const queue = new Queue(ref, function(data, progress, resolve, reject) {
         logger.info('Transcoding finished')
         return Promise.all(['.webm', '.mp4', '.ogv'].map(function(fmt) {
           // TODO: Should we include a mime-type here?
+          // Note that we don't want to specify any ACL here. Let it inherit
+          // the default bucket ACL that is set by firebase
           return bucket.upload(outputFilename + fmt, {
-              destination: outputStorageName + fmt,
-              predefinedAcl: 'publicRead'
+              destination: outputStorageName + fmt
           });
         }));
       })
@@ -102,6 +102,7 @@ function transcodeHelper(inputFilename, outputFilename, format, audioCodec, vide
 function transcode(inputFilename, outputFilename) {
   // TODO: We could theoretically do a ffmpeg command with multiple outputs,
   // but when I do this the audio comes out glitchy.
+  // Maybe that's because you're using a nightly snapshot of ffmpeg on your macbook?
   return transcodeHelper(inputFilename, outputFilename, 'mp4', 'aac', 'libx264')
     .then(() => transcodeHelper(inputFilename, outputFilename, 'webm', 'libvorbis', 'libvpx'))
     .then(() => transcodeHelper(inputFilename, outputFilename, 'ogv', 'libvorbis', 'libtheora'));
