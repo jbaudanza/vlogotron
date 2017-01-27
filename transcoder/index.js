@@ -84,28 +84,29 @@ const queue = new Queue(ref, function(data, progress, resolve, reject) {
   } catch(e) { console.log(e); }
 });
 
-
-function transcodeHelper(inputFilename, outputFilename, format, audioCodec, videoCodec) {
+function transcode(inputFilename, outputFilename) {
   return new Promise((resolve, reject) => {
     ffmpeg(inputFilename)
-      .output(outputFilename + "." + format)
-      .audioCodec(audioCodec)
-      .videoCodec(videoCodec)
       .size('?x150')
-      .format(format)
+      .output(outputFilename + '.mp4')
+      .audioCodec('aac')
+      .videoCodec('libx264')
+      .format('mp4')
+
+      .output(outputFilename +'.webm')
+      .audioCodec('libvorbis')
+      .videoCodec('libvpx')
+      .format('webm')
+
+      .output(outputFilename + '.ogv')
+      .audioCodec('libvorbis')
+      .videoCodec('libtheora')
+      .format('ogv')
+
       .on('end', resolve)
       .on('error', reject)
       .run();
   });
-}
-
-function transcode(inputFilename, outputFilename) {
-  // TODO: We could theoretically do a ffmpeg command with multiple outputs,
-  // but when I do this the audio comes out glitchy.
-  // Maybe that's because you're using a nightly snapshot of ffmpeg on your macbook?
-  return transcodeHelper(inputFilename, outputFilename, 'mp4', 'aac', 'libx264')
-    .then(() => transcodeHelper(inputFilename, outputFilename, 'webm', 'libvorbis', 'libvpx'))
-    .then(() => transcodeHelper(inputFilename, outputFilename, 'ogv', 'libvorbis', 'libtheora'));
 }
 
 process.on('SIGINT', function() {

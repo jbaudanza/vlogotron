@@ -43,7 +43,6 @@ class App extends React.Component {
 
   onLogout() {
     firebase.auth().signOut();
-    navigate('/');
   }
 
   render() {
