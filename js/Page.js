@@ -8,7 +8,7 @@ export default class Page extends React.Component {
       <div {...this.props}>
         <SvgAssets />
         <header className='page-header'>
-          <div className='content'>
+          <div className='page-content'>
             <div className="logo">
               <svg version="1.1" width="20px" height="20px" fill="white">
                 <use xlinkHref='#piano' />
@@ -20,7 +20,9 @@ export default class Page extends React.Component {
           </div>
         </header>
 
-        {this.props.children}
+        <div className='page-content'>
+          {this.props.children}
+        </div>
 
         <div className='credits'>
           <span>Made with </span>

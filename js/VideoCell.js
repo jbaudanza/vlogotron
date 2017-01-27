@@ -121,7 +121,7 @@ export default class VideoCell extends React.Component {
             className='empty-video'r
             onClick={this.props.onStartRecording}
             enabled={!this.props.recording && !this.props.readonly}>
-          <svg version="1.1" width="75px" height="75px" className='background'>
+          <svg version="1.1" className='background'>
             <use xlinkHref='#video-record' fill={fill} />
           </svg>
           {recordPromptEl}

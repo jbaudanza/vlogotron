@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 
 import {interval} from 'rxjs/observable/interval';
 import {Subject} from 'rxjs/Subject';
@@ -128,10 +129,12 @@ export default class Instrument extends React.Component {
   }
 
   componentDidMount() {
+    const width = ReactDOM.findDOMNode(this).getBoundingClientRect().width;
+
     const keyboard = new QwertyHancock({
                    id: 'keyboard',
-                   width: 600,
-                   height: 150,
+                   width: width,
+                   height: width/3,
                    octaves: 1,
                    startNote: 'C3',
                    whiteNotesColour: 'white',
