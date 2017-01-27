@@ -135,7 +135,8 @@ function transcode(inputFilename, outputDirectory, baseFilename) {
         count: 1,
         filename: baseFilename + '.png',
         folder: outputDirectory,
-        timemarks: [0]
+        timemarks: [0],
+        size: '?x150'
       })
 
       .on('end', resolve)

@@ -77,9 +77,13 @@ export default class VideoCell extends React.Component {
       }
     } else if (this.props.sources) {
       videoEl = (
-        <video id={'playback-' + this.props.note} key="playback" playsInline>
+        <video
+          id={'playback-' + this.props.note}
+          key="playback"
+          playsInline
+          poster={this.props.sources.find(s => s.type.startsWith('image/')).src}>
           {
-            this.props.sources.map((props) => (
+            this.props.sources.filter(s => !s.type.startsWith('image/')).map((props) => (
               <source {...props} key={props.type} />)
             )
           }

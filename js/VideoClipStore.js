@@ -144,7 +144,10 @@ function reduceToRemoteUrls(refs) {
               formats.map((format) => ({
                 src: refs.videos.child(clipId + '.' + format).getDownloadURL(),
                 type: "video/" + format
-              }))
+              })).concat({
+                src: refs.videos.child(clipId + '.png').getDownloadURL(),
+                type: "image/png"
+              })
             ))
           )
         ));
