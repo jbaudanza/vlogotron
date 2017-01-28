@@ -30,15 +30,12 @@ export default class TouchableArea extends React.Component {
     const el = this.findTouchableElement(event.target);
 
     if (el) {
-      const subject = new Subject();
-      this.props.onTouchStart(subject.asObservable());
-
-      documentMouseMove$
+      const stream$ = documentMouseMove$
         .map(event => this.findTouchableElement(event.target))
         .takeUntil(documentMouseUp$)
-        .subscribe(subject);
+        .startWith(el);
 
-      subject.next(el);
+      this.props.onTouchStart(stream$);
 
       event.preventDefault();
       event.stopPropagation();
@@ -62,9 +59,6 @@ export default class TouchableArea extends React.Component {
       if (el) {
         const identifier = touch.identifier;
 
-        const subject = new Subject();
-        this.props.onTouchStart(subject.asObservable());
-
         function filterTouches(stream$) {
           return stream$
               .map(e => find(e.changedTouches, t => t.identifier === identifier))
@@ -76,15 +70,15 @@ export default class TouchableArea extends React.Component {
             filterTouches(this.touchCancel$),
         );
 
-        filterTouches(this.touchMove$)
+        const stream$ = filterTouches(this.touchMove$)
             .map(t => this.findTouchableElement(
               // TODO: This might not work http://stackoverflow.com/a/33464547/667069
               document.elementFromPoint(t.clientX, t.clientY)
             ))
             .takeUntil(end$)
-            .subscribe(subject);
+            .startWith(el);
 
-        subject.next(el);
+        this.props.onTouchStart(stream$);
       }
     });
 
