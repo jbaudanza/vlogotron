@@ -59,6 +59,8 @@ export default class TouchableArea extends React.Component {
       if (el) {
         const identifier = touch.identifier;
 
+        anyHandled = true;
+
         function filterTouches(stream$) {
           return stream$
               .map(e => find(e.changedTouches, t => t.identifier === identifier))

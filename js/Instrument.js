@@ -3,14 +3,21 @@ import ReactDOM from 'react-dom';
 
 import {interval} from 'rxjs/observable/interval';
 import {Subject} from 'rxjs/Subject';
+import {Subscription} from 'rxjs/Subscription';
 import {fromEvent} from 'rxjs/observable/fromEvent';
-import 'rxjs/add/operator/take';
-import 'rxjs/add/operator/takeUntil';
+import {of} from 'rxjs/observable/of';
+import 'rxjs/add/operator/concat';
 import 'rxjs/add/operator/distinctUntilChanged';
 import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/mergeAll';
+import 'rxjs/add/operator/do';
+import 'rxjs/add/operator/scan';
+import 'rxjs/add/operator/take';
+import 'rxjs/add/operator/takeUntil';
 
+import TouchableArea from './TouchableArea';
 import QwertyHancock from './qwerty-hancock';
-import {bindAll, omit, includes} from 'lodash';
+import {bindAll, omit, includes, identity} from 'lodash';
 
 import VideoClipStore from './VideoClipStore';
 
@@ -117,10 +124,46 @@ function startTone(note) {
 }
 
 
+function adjustRefCount(countObject, key, change) {
+  return Object.assign(
+      {},
+      countObject,
+      {[key]: (countObject[key] || 0) + change}
+  );
+}
+
+
+function reduceMultipleCommandStreams(last, command) {
+  const nextCommand = {};
+
+  if (command.play && !last.refCounts[command.play]) {
+    nextCommand.play = command.play;
+  }
+
+  if (command.pause && last.refCounts[command.pause] === 1) {
+    nextCommand.pause = command.pause;
+  }
+
+  let refCounts = last.refCounts;
+  if (command.play) {
+    refCounts = adjustRefCount(refCounts, command.play, +1);
+  }
+
+  if (command.pause) {
+    refCounts = adjustRefCount(refCounts, command.pause, -1);
+  }
+
+  return {
+    refCounts: refCounts,
+    command: nextCommand
+  };
+}
+
+
 export default class Instrument extends React.Component {
   constructor() {
     super();
-    bindAll(this,'onKeyDown', 'onKeyUp', 'onStreamGranted', 'onClear');
+    bindAll(this, 'onStreamGranted', 'onClear', 'onTouchStart');
 
     this.state = {
       recording: null,
@@ -143,16 +186,16 @@ export default class Instrument extends React.Component {
                    activeColour: colors.active
     });
 
-    keyboard.keyDown = this.onKeyDown;
-    keyboard.keyUp = this.onKeyUp;
+    const pianoSubject$ = new Subject();
+    const stripOctave = (note) => note.substr(0, note.length-1);
+    keyboard.keyUp =   (note) => pianoSubject$.next({pause: stripOctave(note)});
+    keyboard.keyDown = (note) => pianoSubject$.next({play: stripOctave(note)});
+
+    this.playCommands$.next(pianoSubject$)
   }
 
-  onKeyUp(note, frequency) {
-    this.onStopPlayback(note.substr(0, note.length-1));
-  }
-
-  onKeyDown(note, frequency) {
-    this.onStartPlayback(note.substr(0, note.length-1));
+  componentWillUnmount() {
+    this.subscription.unsubscribe();
   }
 
   onStartPlayback(note) {
@@ -215,14 +258,32 @@ export default class Instrument extends React.Component {
   }
 
   componentWillMount() {
+    this.subscription = new Subscription()
+
+    // This is a higher-order stream of stream of play/pause commands
+    this.playCommands$ = new Subject();
+
+    // Use a reference counting scheme to merge multiple command streams into
+    // one unified stream to control playback.
+    const mergedCommands$ = this.playCommands$
+        .mergeAll()
+        .scan(reduceMultipleCommandStreams, {refCounts: {}})
+        .map(x => x.command);
+
+    this.subscription.add(mergedCommands$.subscribe((command) => {
+      if (command.play) {
+        this.onStartPlayback(command.play);
+      }
+      if (command.pause) {
+        this.onStopPlayback(command.pause);
+      }
+    }));
+
     this.videoClipStore = new VideoClipStore();
 
-    // XXX: Left off here. We aren't unsubscribing anywhere. Options:
-    // - unsubscribe in componentWillUnmount
-    // - have the parent pass in the videoClipSources
-    this.videoClipStore.urls.subscribe((obj) => {
+    this.subscription.add(this.videoClipStore.urls.subscribe((obj) => {
       this.setState({videoClipSources: obj})
-    });
+    }));
   }
 
   onClear(note) {
@@ -288,7 +349,6 @@ export default class Instrument extends React.Component {
       recording: !!this.state.recording,
       onStartRecording: this.onRecord.bind(this, note),
       onStopRecording: this.onStop.bind(this, note),
-      onMouseDown: this.onMouseDownOnVideo.bind(this, note),
       onClear: this.onClear.bind(this, note),
       playing: !!this.state.playing[note],
       readonly: this.props.readonly
@@ -305,14 +365,40 @@ export default class Instrument extends React.Component {
     return props;
   }
 
+  onTouchStart(stream$) {
+
+    // Reduces into onto something like: {'play': 'C', 'pause': 'A'}
+    function reduceToCommands(lastCommand, note) {
+      const nextCommand = {};
+
+      if (note != null) {
+        nextCommand.play = note;
+      }
+
+      if (lastCommand.play) {
+        nextCommand.pause = lastCommand.play;
+      }
+
+      return nextCommand;
+    }
+
+    this.playCommands$.next(
+        stream$
+          .concat(of(null))
+          .map(x => x ? x.dataset.note : null) // Map to current note
+          .distinctUntilChanged()
+          .scan(reduceToCommands, {})
+    );
+  }
+
   render() {
     return (
       <div>
-        <div className='video-container'>
+        <TouchableArea className='video-container' onTouchStart={this.onTouchStart}>
         {
           notes.map((note) => <VideoCell key={note} {...this.propsForCell(note)} />)
         }
-      </div>
+        </TouchableArea>
         <div id='keyboard' />
       </div>
     );

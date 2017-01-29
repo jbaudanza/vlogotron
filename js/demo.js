@@ -5,7 +5,6 @@ import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 
 
-import QwertyHancock from './qwerty-hancock';
 import {bindAll, omit} from 'lodash';
 
 import Router from './Router';

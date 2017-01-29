@@ -14,7 +14,9 @@
     /* In <script> context, `this` is the window.
      * In node context (browserify), `this` is the node global.
      */
-    var globalWindow = typeof global === 'undefined' ? root : root.window;
+     // This isn't working so I'm hacking it. - JonB Jan 27, 2017
+     var globalWindow = window;
+    //var globalWindow = typeof global === 'undefined' ? root : root.window;
     var version = '0.5.1',
         settings = {},
         mouse_is_down = false,
@@ -61,7 +63,7 @@
     var init = function (us) {
         var container;
 
-        user_settings = us || {};
+        var user_settings = us || {};
 
         settings = {
             id:             user_settings.id || 'keyboard',
@@ -318,7 +320,7 @@
                 note_counter = 0;
             }
 
-            bizarre_note_counter = this.whiteNotes[note_counter];
+            var bizarre_note_counter = this.whiteNotes[note_counter];
 
             if ((bizarre_note_counter === 'C') && (i !== 0)) {
                 octave_counter++;

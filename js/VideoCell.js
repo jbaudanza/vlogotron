@@ -11,7 +11,7 @@ import {findWrappingLink} from './domutils';
 export default class VideoCell extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'setVideoStream', 'onClear', 'onMouseDown');
+    bindAll(this, 'setVideoStream', 'onClear');
   }
 
   setVideoStream(videoEl) {
@@ -24,16 +24,6 @@ export default class VideoCell extends React.Component {
   onClear() {
     if (window.confirm('Do you want to remove this clip?')) {
       this.props.onClear();
-    }
-  }
-
-  onMouseDown(event) {
-    // Ignore mouse clicks on links
-    if (findWrappingLink(event.target, ReactDOM.findDOMNode(this)))
-      return;
-
-    if (this.props.onMouseDown) {
-      this.props.onMouseDown(event);
     }
   }
 
@@ -134,8 +124,8 @@ export default class VideoCell extends React.Component {
     }
 
     return (
-      <div onMouseDown={this.onMouseDown}
-        className={classNames('video-cell', {playing: this.props.playing})}
+      <div
+        className={classNames('video-cell touchable', {playing: this.props.playing})}
         data-note={this.props.note}
         >
         {videoEl}
@@ -159,6 +149,5 @@ VideoCell.propTypes = {
   playing:           React.PropTypes.bool.isRequired,
   sources:           React.PropTypes.array,
   readonly:          React.PropTypes.bool,
-  onMouseDown:       React.PropTypes.func,
   countdown:         React.PropTypes.number
 };
