@@ -33,6 +33,7 @@ class App extends React.Component {
 
   onNavigate(href) {
     navigate(href);
+    document.body.scrollTop = 0;
   }
 
   onLogin(providerString) {
