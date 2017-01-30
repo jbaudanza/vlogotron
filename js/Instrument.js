@@ -66,7 +66,6 @@ const frequencies = {
 
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-// TODO: Support touchstart and touchend on iOS
 const documentMouseMove$ = fromEvent(document, 'mousemove');
 const documentMouseUp$ = fromEvent(document, 'mouseup');
 
@@ -366,7 +365,6 @@ export default class Instrument extends React.Component {
   }
 
   onTouchStart(stream$) {
-
     // Reduces into onto something like: {'play': 'C', 'pause': 'A'}
     function reduceToCommands(lastCommand, note) {
       const nextCommand = {};

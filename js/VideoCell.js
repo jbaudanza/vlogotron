@@ -79,9 +79,13 @@ export default class VideoCell extends React.Component {
           }
         </video>
       );
-      if (!this.props.playing) {
-        shadeEl = <div className='shade' />;
 
+      shadeEl = (<div
+        className='shade'
+        style={{display: (this.props.playing ? 'none' : 'block')}} />
+      );
+
+      if (!this.props.playing) {
         if (!this.props.readonly) {
           clearEl = (
             <Link onClick={this.onClear} className='clear-button'>
