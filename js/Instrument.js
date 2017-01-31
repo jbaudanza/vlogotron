@@ -201,49 +201,14 @@ export default class Instrument extends React.Component {
     const videoEl = document.getElementById('playback-' + note);
     if (videoEl) {
       videoEl.currentTime = 0;
+
+      // TODO: This returns a promise, and technically we shouldn't issue a
+      // pause until the promise resolves.
       videoEl.play();
     }
 
     this.state.playing[note] = true;
     this.forceUpdate();
-  }
-
-  onMouseDownOnVideo(note) {
-    if (!this.state.videoClipSources[note])
-      return;
-
-    const playStart$ = new Subject();
-
-    const playUntil$ = documentMouseUp$.take(1)
-    playUntil$.map(() => null).subscribe(playStart$);
-
-    documentMouseMove$.takeUntil(playUntil$).subscribe(function(event) {
-      const el = findParentNode(
-        event.target,
-        (node) => includes(node.classList, 'video-cell')
-      );
-      if (el) {
-        playStart$.next(el.dataset.note);
-      } else {
-        playStart$.next(null);
-      }
-    });
-
-    playStart$
-      .distinctUntilChanged()
-      .scan(
-        (obj, note) => ({previous: obj.current, current: note}),
-        {current: null, previous: null}
-      ).subscribe((obj) => {
-      if (obj.previous) {
-        this.onStopPlayback(obj.previous);
-      }
-      if (obj.current) {
-        this.onStartPlayback(obj.current);
-      }
-    });
-
-    playStart$.next(note);
   }
 
   onStopPlayback(note) {
@@ -280,8 +245,8 @@ export default class Instrument extends React.Component {
 
     this.videoClipStore = new VideoClipStore();
 
-    this.subscription.add(this.videoClipStore.urls.subscribe((obj) => {
-      this.setState({videoClipSources: obj})
+    this.subscription.add(this.videoClipStore.videoClips$.subscribe((obj) => {
+      this.setState({videoClips: obj})
     }));
   }
 
@@ -343,7 +308,7 @@ export default class Instrument extends React.Component {
 
   propsForCell(note) {
     const props = {
-      sources: this.state.videoClipSources[note],
+      videoClip: this.state.videoClips[note],
       note: note,
       recording: !!this.state.recording,
       onStartRecording: this.onRecord.bind(this, note),

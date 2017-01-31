@@ -31,10 +31,13 @@ function createRandomString(length) {
 
 function reduceToLocalUrls(acc, obj) {
   if (obj.blob) {
-    return Object.assign({}, acc, {[obj.note]: [{
-      src: URL.createObjectURL(obj.blob),
-      type: obj.blob.type
-    }]});
+    return Object.assign({}, acc, {[obj.note]: {
+      clipId: obj.clipId,
+      sources: [{
+        src: URL.createObjectURL(obj.blob),
+        type: obj.blob.type
+      }]}}
+    );
   } else {
     return omit(acc, obj.note);
   }
@@ -133,6 +136,8 @@ function reduceEventSnapshotToActiveClipIds(snapshot) {
 const formats = ['webm', 'mp4', 'ogv'];
 
 
+// TODO: There is some lag-time between when the route changes and the new urls
+// are ready. We should emit nulls during this lagtime.
 function reduceToRemoteUrls(refs) {
   if (refs) {
     return Observable
@@ -140,15 +145,14 @@ function reduceToRemoteUrls(refs) {
         .map(reduceEventSnapshotToActiveClipIds)
         .switchMap((activeClipIds) => (
           promiseFromTemplate(
-            mapValues(activeClipIds, (clipId) => (
-              formats.map((format) => ({
+            mapValues(activeClipIds, (clipId) => ({
+              clipId: clipId,
+              sources: formats.map((format) => ({
                 src: refs.videos.child(clipId + '.' + format).getDownloadURL(),
                 type: "video/" + format
-              })).concat({
-                src: refs.videos.child(clipId + '.png').getDownloadURL(),
-                type: "image/png"
-              })
-            ))
+              })),
+              poster: refs.videos.child(clipId + '.png').getDownloadURL()
+            }))
           )
         ));
   } else {
@@ -156,6 +160,16 @@ function reduceToRemoteUrls(refs) {
   }
 }
 
+/*
+  Emits objects that look like:
+  {
+    [note]: {
+      clipId: 'abcd',
+      sources: [...],
+      poster: 'http://asdfadf'
+    }
+  }
+*/
 const remoteUrls$ = refs$.switchMap(reduceToRemoteUrls).startWith({});
 
 
@@ -163,28 +177,11 @@ const queue = firebase.database().ref('queue/tasks');
 
 function refsForUids(uid) {
   return {
-    // XXX: I think we can remove the database entry here
-    database: firebase.database().ref('video-clips').child(uid),
     events:   firebase.database().ref('video-clip-events').child(uid),
     videos:   firebase.storage().ref('video-clips').child(uid),
     uploads:  firebase.storage().ref('uploads').child(uid),
     uid:      uid
   };
-}
-
-function mapToDownloadUrls(refs) {
-  if (refs) {
-    return Observable.fromEvent(refs.database, 'value')
-      .switchMap((snapshot) => (
-        promiseFromTemplate(
-          mapValues(snapshot.val(), (value, key) => (
-            refs.videos.child(key).getDownloadURL()
-          ))
-        )
-      ));
-  } else {
-    return Promise.resolve({});
-  }
 }
 
 // TODO:
@@ -199,7 +196,10 @@ export default class VideoClipStore {
     const clearActions = new Subject();
 
     this.addClip = function(note, blob) {
-      localBlobs.next({note, blob});
+      // The clipId only needs to be unique per each user
+      const clipId = createRandomString(6);
+
+      localBlobs.next({note, blob, clipId});
     };
 
     this.clearClip = function(note) {
@@ -216,20 +216,17 @@ export default class VideoClipStore {
       if (!(change.blob && refs))
         return;
 
-      // The clipId only needs to be unique per each user
-      const clipId = createRandomString(6);
-
-      const uploadRef = refs.uploads.child(clipId);
+      const uploadRef = refs.uploads.child(change.clipId);
 
       const task = uploadRef.put(change.blob);
       uploadTasks.next(uploadTasks._value.concat(task));
 
       task.then(function() {
-        refs.events.push({type: 'uploaded', clipId: clipId, note: change.note});
+        refs.events.push({type: 'uploaded', clipId: change.clipId, note: change.note});
 
         queue.push({
           note:   change.note,
-          clipId: clipId,
+          clipId: change.clipId,
           uid:    refs.uid
         });
 
@@ -242,7 +239,6 @@ export default class VideoClipStore {
         refs.events.push({type: 'cleared', note: note});
       });
 
-    // XXX: Local Urls don't seem to be going away when you navigate away from /record
     const localUrls = currentRoute$.switchMap(function(route) {
       if (route.mode === 'record' && route.uid) {
         return localBlobs.scan(reduceToLocalUrls, {}).startWith({});
@@ -251,7 +247,7 @@ export default class VideoClipStore {
       }
     });
 
-    this.urls = Observable.combineLatest(
+    this.videoClips$ = Observable.combineLatest(
         localUrls,
         remoteUrls$,
         (local, remote) => Object.assign({}, remote, local)

@@ -65,15 +65,15 @@ export default class VideoCell extends React.Component {
           </Link>
         );
       }
-    } else if (this.props.sources) {
+    } else if (this.props.videoClip) {
       videoEl = (
         <video
           id={'playback-' + this.props.note}
-          key="playback"
+          key={"playback-" + this.props.videoClip.clipId}
           playsInline
-          poster={this.props.sources.find(s => s.type.startsWith('image/')).src}>
+          poster={this.props.videoClip.poster}>
           {
-            this.props.sources.filter(s => !s.type.startsWith('image/')).map((props) => (
+            this.props.videoClip.sources.map((props) => (
               <source {...props} key={props.type} />)
             )
           }
@@ -151,7 +151,7 @@ VideoCell.propTypes = {
   onStopRecording:   React.PropTypes.func.isRequired,
   recording:         React.PropTypes.bool.isRequired,
   playing:           React.PropTypes.bool.isRequired,
-  sources:           React.PropTypes.array,
+  videoClip:         React.PropTypes.object,
   readonly:          React.PropTypes.bool,
   countdown:         React.PropTypes.number
 };

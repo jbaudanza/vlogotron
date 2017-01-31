@@ -41,10 +41,10 @@ export default function promiseFromTemplate(template) {
           promise.then(callback.bind(null, key), reject);
           count += 1;
       }
-
-      if (count === 0) {
-        resolve(result);
-      }
     });
+
+    if (count === 0) {
+      resolve(result);
+    }
   });
 }

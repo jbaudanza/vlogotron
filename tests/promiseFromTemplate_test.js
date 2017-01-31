@@ -1,21 +1,33 @@
 import test from 'ava';
 import promiseFromTemplate from '../js/promiseFromTemplate';
 
+function resolveLater(value) {
+  return new Promise(function(resolve, reject) {
+    setTimeout(() => resolve(value), 10);
+  })
+}
+
 test('promiseFromTemplate - happy path', t => {
   t.plan(1);
 
   return promiseFromTemplate({
-    foo: Promise.resolve('bar'),
     string: "hello",
+    foo: resolveLater('bar'),
     number: 123,
-    list: [1,2,Promise.resolve(3)]
+    listOfObjects: [{
+      hello: resolveLater('world')
+    }],
+   list: [1,2,resolveLater(3)]
   }).then(function(result) {
 
     const expected = {
       foo: 'bar',
       string: "hello",
       number: 123,
-      list: [1,2,3]
+      list: [1,2,3],
+      listOfObjects: [{
+        hello: 'world'
+      }]
     };
     t.deepEqual(result, expected);
   });
@@ -26,7 +38,7 @@ test('promiseFromTemplate - errors', t => {
 
   return promiseFromTemplate({
     nest1: {
-      success: Promise.resolve('ok'),
+      success: resolveLater('ok'),
     },
     nest2: [Promise.reject('oh no!')]
   }).catch(function(e) {
