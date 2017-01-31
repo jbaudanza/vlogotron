@@ -14,7 +14,7 @@ import 'rxjs/add/operator/map';
 
 import {bindAll, forEach, identity, find} from 'lodash';
 
-import {findParentNode} from './domutils'
+import {findParentNode, findWrappingLink} from './domutils'
 
 const documentMouseMove$ = Observable.fromEvent(document, 'mousemove');
 const documentMouseUp$ = Observable.fromEvent(document, 'mouseup');
@@ -28,6 +28,11 @@ export default class TouchableArea extends React.Component {
 
   onMouseDown(event) {
     const el = this.findTouchableElement(event.target);
+
+    // Make sure we don't trap an event that was supposed to go to a link
+    const link = findWrappingLink(event.target);
+    if (link && link !== el)
+      return;
 
     if (el) {
       const stream$ = documentMouseMove$
