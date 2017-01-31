@@ -17,7 +17,8 @@ Object.assign(
     Observable,
     require('rxjs/observable/fromEvent'),
     require('rxjs/observable/combineLatest'),
-    require('rxjs/observable/of')
+    require('rxjs/observable/of'),
+    require('rxjs/observable/fromPromise')
 );
 
 
@@ -136,24 +137,24 @@ function reduceEventSnapshotToActiveClipIds(snapshot) {
 const formats = ['webm', 'mp4', 'ogv'];
 
 
-// TODO: There is some lag-time between when the route changes and the new urls
-// are ready. We should emit nulls during this lagtime.
 function reduceToRemoteUrls(refs) {
   if (refs) {
     return Observable
         .fromEvent(refs.events.orderByKey(), 'value')
         .map(reduceEventSnapshotToActiveClipIds)
         .switchMap((activeClipIds) => (
-          promiseFromTemplate(
-            mapValues(activeClipIds, (clipId) => ({
-              clipId: clipId,
-              sources: formats.map((format) => ({
-                src: refs.videos.child(clipId + '.' + format).getDownloadURL(),
-                type: "video/" + format
-              })),
-              poster: refs.videos.child(clipId + '.png').getDownloadURL()
-            }))
-          )
+          Observable.fromPromise(
+            promiseFromTemplate(
+              mapValues(activeClipIds, (clipId) => ({
+                clipId: clipId,
+                sources: formats.map((format) => ({
+                  src: refs.videos.child(clipId + '.' + format).getDownloadURL(),
+                  type: "video/" + format
+                })),
+                poster: refs.videos.child(clipId + '.png').getDownloadURL()
+              }))
+            )
+          ).startWith({}) // Empty set during a URL change.
         ));
   } else {
     return Promise.resolve({});
