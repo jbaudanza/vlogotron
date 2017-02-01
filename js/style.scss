@@ -289,10 +289,11 @@ ul.piano-keys {
   padding: 0;
   overflow: hidden;
   position: relative;
-  $height: 225px;
+  $height: 30vw;
 
   > li {
-    width: 14%;
+    box-sizing: border-box;
+    width: 14.2%;
     float: left;
     border: 1px solid #333;
     height: $height;
