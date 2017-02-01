@@ -16,7 +16,7 @@ import 'rxjs/add/operator/take';
 import 'rxjs/add/operator/takeUntil';
 
 import TouchableArea from './TouchableArea';
-import QwertyHancock from './qwerty-hancock';
+import PianoKeys from './PianoKeys';
 import {bindAll, omit, includes, identity} from 'lodash';
 
 import VideoClipStore from './VideoClipStore';
@@ -168,29 +168,6 @@ export default class Instrument extends React.Component {
       recording: null,
       playing: {}
     };
-  }
-
-  componentDidMount() {
-    const width = ReactDOM.findDOMNode(this).getBoundingClientRect().width;
-
-    const keyboard = new QwertyHancock({
-                   id: 'keyboard',
-                   width: width,
-                   height: width/3,
-                   octaves: 1,
-                   startNote: 'C3',
-                   whiteNotesColour: 'white',
-                   blackNotesColour: 'black',
-                   hoverColour: '#f3e939',
-                   activeColour: colors.active
-    });
-
-    const pianoSubject$ = new Subject();
-    const stripOctave = (note) => note.substr(0, note.length-1);
-    keyboard.keyUp =   (note) => pianoSubject$.next({pause: stripOctave(note)});
-    keyboard.keyDown = (note) => pianoSubject$.next({play: stripOctave(note)});
-
-    this.playCommands$.next(pianoSubject$)
   }
 
   componentWillUnmount() {
@@ -363,6 +340,7 @@ export default class Instrument extends React.Component {
         }
         </TouchableArea>
         <div id='keyboard' />
+        <PianoKeys playing={this.state.playing} onTouchStart={this.onTouchStart} />
       </div>
     );
   }

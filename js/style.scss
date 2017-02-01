@@ -283,3 +283,39 @@ h3 {
     margin: 0px 1px;
   }
 }
+
+ul.piano-keys {
+  list-style-type: none;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+  $height: 225px;
+
+  > li {
+    width: 14%;
+    float: left;
+    border: 1px solid #333;
+    height: $height;
+    margin-left: -1px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    cursor: pointer;
+
+    &:first-child {
+      margin-left: 0;
+    }
+  }
+  .white-key {
+    background-color: white;
+  }
+  .black-key {
+    background-color: black;
+    position: absolute;
+    top: 0;
+    height: $height * 0.60;
+    width: 7%;
+  }
+  .playing {
+    background-color: $active-color;
+  }
+}

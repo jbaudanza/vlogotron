@@ -154,7 +154,7 @@ function reduceToRemoteUrls(refs) {
                 poster: refs.videos.child(clipId + '.png').getDownloadURL()
               }))
             )
-          ).startWith({}) // Empty set during a URL change.
+          ).startWith({}) // Empty set while resolving URLs.
         ));
   } else {
     return Promise.resolve({});
@@ -188,7 +188,6 @@ function refsForUids(uid) {
 // TODO:
 //  - track the tasks somehow
 //  - display upload progress to user
-//  - make sure permissions are configured right
 //  - URL.revokeObjectURL(url)    
 export default class VideoClipStore {
   constructor() {
