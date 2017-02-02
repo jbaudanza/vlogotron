@@ -84,8 +84,8 @@ const queue = new Queue(ref, function(data, progress, resolve, reject) {
       // poll to make sure it's ready before uploading.
       .then(() => waitForFileToExist(outputFilename + ".png"))
       .then(function() {
-        logger.info('Transcoding finished')
-        return Promise.all(['.webm', '.mp4', '.ogv', '.png'].map(function(fmt) {
+        logger.info('Transcoding finished');
+        return Promise.all(['.webm', '.mp4', '.ogv', '.png', '-audio.mp4'].map(function(fmt) {
           // TODO: Should we include a mime-type here?
           // Note that we don't want to specify any ACL here. Let it inherit
           // the default bucket ACL that is set by firebase
@@ -113,8 +113,14 @@ function transcode(inputFilename, outputDirectory, baseFilename) {
 
   const fullPath = path.join(outputDirectory, baseFilename);
 
+  // TODO: Eventually the video clips shouldn't contain audio
   return new Promise((resolve, reject) => {
     ffmpeg(inputFilename)
+      .output(fullPath + '-audio.mp4')
+      .audioCodec('aac')
+      .noVideo()
+      .format('mp4')
+
       .size('?x150')
       .output(fullPath + '.mp4')
       .audioCodec('aac')
