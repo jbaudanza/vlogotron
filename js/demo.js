@@ -16,8 +16,6 @@ import './style.scss'
 
 import bindComponentToObservable from './bindComponentToObservable';
 
-require('./midi.js');
-
 window.main = function(node) {
   ReactDOM.render(<App />, node);
 };

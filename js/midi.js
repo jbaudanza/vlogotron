@@ -6,6 +6,8 @@ Object.assign(Observable,
   require('rxjs/observable/merge')
 );
 
+import {identity} from 'lodash';
+
 
 const midiAccess$ = Observable.create(function(observer) {
   if (navigator.requestMIDIAccess) {
@@ -46,9 +48,13 @@ export const playCommands$ = midiMessages$.map(function(message) {
       pause: MIDI_NOTES[note % 12]
     }
   // Detect a note on
+  // TODO: Investigate if it's possible to get multiple NOTE_ON messages for
+  // the same key press. For example, perhaps multiple note ons are generated
+  // with different velocities. If this is the case, we might need to track
+  // some state around this.
   } else if (type === MIDI_NOTE_ON && velocity > 0) {
     return {
       play: MIDI_NOTES[note % 12]
     }
   }
-});
+}).filter(identity);
