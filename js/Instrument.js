@@ -25,6 +25,7 @@ import VideoCell from './VideoCell';
 
 import colors from './colors';
 import {findParentNode} from './domutils';
+import {playCommands$ as midiPlayCommands$} from './midi';
 
 const notes = [
   'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
@@ -219,6 +220,8 @@ export default class Instrument extends React.Component {
         this.onStopPlayback(command.pause);
       }
     }));
+
+    this.playCommands$.next(midiPlayCommands$);
 
     this.videoClipStore = new VideoClipStore();
 
