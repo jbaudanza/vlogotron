@@ -175,7 +175,11 @@ h3 {
     top: 0;
     bottom: 0;
     background-color: #333;
-    opacity: 0.5;
+    opacity: 0.9;
+    transition: opacity .1s ease-in-out;
+  }
+  &.playing .shade {
+    opacity: 0;
   }
 
   .clear-button {

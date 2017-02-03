@@ -80,10 +80,7 @@ export default class VideoCell extends React.Component {
         </video>
       );
 
-      shadeEl = (<div
-        className='shade'
-        style={{display: (this.props.playing ? 'none' : 'block')}} />
-      );
+      shadeEl = (<div className='shade' />);
 
       if (!this.props.playing) {
         if (!this.props.readonly) {
