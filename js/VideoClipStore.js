@@ -316,13 +316,18 @@ export default class VideoClipStore {
 export function subscribeToAudioPlayback(playCommands$) {
   const activeNodes = {};
 
+  const gainNode = audioContext.createGain();
+  gainNode.gain.value = 0.9;
+  gainNode.connect(audioContext.destination);
+
   return playCommands$
     .withLatestFrom(audioBuffers$)
     .subscribe(([cmd, audioBuffers]) => {
       if (cmd.play && audioBuffers[cmd.play]) {
+
         const source = audioContext.createBufferSource();
         source.buffer = audioBuffers[cmd.play];
-        source.connect(audioContext.destination);
+        source.connect(gainNode);
 
         activeNodes[cmd.play] = source;
 
