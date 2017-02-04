@@ -33,6 +33,13 @@ test('promiseFromTemplate - happy path', t => {
   });
 });
 
+test('promiseFromTemplate - empty', t => {
+  t.plan(1);
+
+  return promiseFromTemplate({})
+    .then(v => { t.deepEqual(v, {}) });
+});
+
 test('promiseFromTemplate - errors', t => {
   t.plan(1);
 

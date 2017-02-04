@@ -1,28 +1,33 @@
-import {sample, times, pickBy, includes, identity} from 'lodash';
+import {
+  sample, times, pickBy, includes, identity, omit, without, mapValues
+} from 'lodash';
 
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+
 import 'rxjs/add/operator/scan';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/startWith';
 import 'rxjs/add/operator/switchMap';
+import 'rxjs/add/operator/toPromise';
+import 'rxjs/add/operator/withLatestFrom';
+
+import 'rxjs/add/observable/never';
+import 'rxjs/add/observable/fromEvent';
+import 'rxjs/add/observable/combineLatest';
+import 'rxjs/add/observable/of';
+import 'rxjs/add/observable/fromPromise';
+
+
+// TODO: This is duplicated in Instrument.js
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
 
 import createHistory from 'history/createBrowserHistory';
 
 import promiseFromTemplate from './promiseFromTemplate';
-
-Object.assign(
-    Observable,
-    require('rxjs/observable/fromEvent'),
-    require('rxjs/observable/combineLatest'),
-    require('rxjs/observable/of'),
-    require('rxjs/observable/fromPromise')
-);
-
-
-import {omit, without, mapValues} from 'lodash';
 
 
 function createRandomString(length) {
@@ -137,24 +142,33 @@ function reduceEventSnapshotToActiveClipIds(snapshot) {
 const formats = ['webm', 'mp4', 'ogv'];
 
 
+function mapClipIdsToRemoteUrls(clipIds, ref) {
+  function urlFor(clipId, suffix) {
+    return ref.child(clipId + suffix).getDownloadURL()
+  }
+  return Observable.fromPromise(
+    promiseFromTemplate(
+      mapValues(clipIds, clipId => ({
+        clipId: clipId,
+        sources: formats.map(format => ({
+          src: urlFor(clipId, '.' + format),
+          type: "video/" + format
+        })),
+        poster: urlFor(clipId, '.png'),
+        audioUrl: urlFor(clipId, '-audio.mp4')
+      }))
+    )
+  ).startWith({}); // Empty set while resolving URLs.
+}
+
+
 function reduceToRemoteUrls(refs) {
   if (refs) {
     return Observable
         .fromEvent(refs.events.orderByKey(), 'value')
         .map(reduceEventSnapshotToActiveClipIds)
-        .switchMap((activeClipIds) => (
-          Observable.fromPromise(
-            promiseFromTemplate(
-              mapValues(activeClipIds, (clipId) => ({
-                clipId: clipId,
-                sources: formats.map((format) => ({
-                  src: refs.videos.child(clipId + '.' + format).getDownloadURL(),
-                  type: "video/" + format
-                })),
-                poster: refs.videos.child(clipId + '.png').getDownloadURL()
-              }))
-            )
-          ).startWith({}) // Empty set while resolving URLs.
+        .switchMap(activeClipIds => (
+          mapClipIdsToRemoteUrls(activeClipIds, refs.videos)
         ));
   } else {
     return Promise.resolve({});
@@ -173,6 +187,44 @@ function reduceToRemoteUrls(refs) {
 */
 const remoteUrls$ = refs$.switchMap(reduceToRemoteUrls).startWith({});
 
+const progress = new Subject();
+progress.subscribe(x => console.log('progress', x));
+
+
+// XXX: left off here. Come up with a data structure to expose to the UI that
+// communicates loading progress
+// Loading states
+//  - Nothing loaded - waiting for database
+//  - Database returned - calling getDownloadURLs
+//  - Got download URLS - waiting for HTTP
+//  - HTTP started, progress events
+//  - Finished
+function getArrayBuffer(url) {
+  const xhr = new XMLHttpRequest();
+  xhr.open("GET", url, true);
+  xhr.responseType = "arraybuffer";
+
+  xhr.onprogress = (e) => console.log('progress', e)
+  xhr.send(null);
+
+  return new Promise(function(resolve, reject) {
+    xhr.onload = function(event) { resolve(xhr.response); }
+    xhr.onerror = reject;
+  });
+}
+
+
+function getAudioBuffer(url, progressSubscriber) {
+  return getArrayBuffer(url).then(x => audioContext.decodeAudioData(x));
+}
+
+const audioBuffers$ = remoteUrls$
+  .map(o => mapValues(o, v => v.audioUrl))
+  .switchMap(function(o) {
+    return promiseFromTemplate(
+      mapValues(o, (url) => getAudioBuffer(url, progress))
+    )
+  });
 
 const queue = firebase.database().ref('queue/tasks');
 
@@ -253,4 +305,26 @@ export default class VideoClipStore {
         (local, remote) => Object.assign({}, remote, local)
     );
   }
+}
+
+export function subscribeToAudioPlayback(playCommands$) {
+  const activeNodes = {};
+
+  return playCommands$
+    .withLatestFrom(audioBuffers$)
+    .subscribe(([cmd, audioBuffers]) => {
+      if (cmd.play && audioBuffers[cmd.play]) {
+        const source = audioContext.createBufferSource();
+        source.buffer = audioBuffers[cmd.play];
+        source.connect(audioContext.destination);
+
+        activeNodes[cmd.play] = source;
+
+        source.start();
+      }
+
+      if (cmd.pause && activeNodes[cmd.pause]) {
+        activeNodes[cmd.pause].stop();
+      }
+  });
 }

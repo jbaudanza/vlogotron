@@ -1,11 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import {interval} from 'rxjs/observable/interval';
+
+import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {Subscription} from 'rxjs/Subscription';
-import {fromEvent} from 'rxjs/observable/fromEvent';
-import {of} from 'rxjs/observable/of';
+
+import 'rxjs/add/observable/interval';
+import 'rxjs/add/observable/fromEvent';
+import 'rxjs/add/observable/of';
+import 'rxjs/add/observable/merge';
+
 import 'rxjs/add/operator/concat';
 import 'rxjs/add/operator/distinctUntilChanged';
 import 'rxjs/add/operator/map';
@@ -20,6 +25,7 @@ import PianoKeys from './PianoKeys';
 import {bindAll, omit, includes, identity} from 'lodash';
 
 import VideoClipStore from './VideoClipStore';
+import {subscribeToAudioPlayback} from './VideoClipStore';
 
 import VideoCell from './VideoCell';
 
@@ -69,8 +75,8 @@ const frequencies = {
 
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-const documentMouseMove$ = fromEvent(document, 'mousemove');
-const documentMouseUp$ = fromEvent(document, 'mouseup');
+const documentMouseMove$ = Observable.fromEvent(document, 'mousemove');
+const documentMouseUp$ = Observable.fromEvent(document, 'mouseup');
 
 
 function startRecording(stream, mimeType) {
@@ -202,14 +208,17 @@ export default class Instrument extends React.Component {
   }
 
   componentWillMount() {
-    this.subscription = new Subscription()
+    this.subscription = new Subscription();
 
     // This is a higher-order stream of stream of play/pause commands
     this.playCommands$ = new Subject();
 
     // Use a reference counting scheme to merge multiple command streams into
     // one unified stream to control playback.
-    const mergedCommands$ = this.playCommands$
+    const mergedCommands$ = Observable.merge(
+          this.playCommands$,
+          Observable.of(midiPlayCommands$, keyboardPlayCommands$)
+        )
         .mergeAll()
         .scan(reduceMultipleCommandStreams, {refCounts: {}})
         .map(x => x.command);
@@ -223,10 +232,9 @@ export default class Instrument extends React.Component {
       }
     }));
 
-    this.playCommands$.next(midiPlayCommands$);
-    this.playCommands$.next(keyboardPlayCommands$);
-
     this.videoClipStore = new VideoClipStore();
+
+    subscribeToAudioPlayback(mergedCommands$);
 
     this.subscription.add(this.videoClipStore.videoClips$.subscribe((obj) => {
       this.setState({videoClips: obj})
@@ -241,7 +249,7 @@ export default class Instrument extends React.Component {
     // TODO: Provide a way to cancel this
     const stopTone = startTone(this.state.recording);
 
-    interval(1000)
+    Observable.interval(1000)
         .map(x => 5-x)
         .take(5)
         .subscribe(
@@ -330,7 +338,7 @@ export default class Instrument extends React.Component {
 
     this.playCommands$.next(
         stream$
-          .concat(of(null))
+          .concat(Observable.of(null))
           .map(x => x ? x.dataset.note : null) // Map to current note
           .distinctUntilChanged()
           .scan(reduceToCommands, {})

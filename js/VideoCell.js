@@ -71,6 +71,7 @@ export default class VideoCell extends React.Component {
           id={'playback-' + this.props.note}
           key={"playback-" + this.props.videoClip.clipId}
           playsInline
+          muted
           poster={this.props.videoClip.poster}>
           {
             this.props.videoClip.sources.map((props) => (

@@ -87,6 +87,7 @@ const queue = new Queue(ref, function(data, progress, resolve, reject) {
         logger.info('Transcoding finished');
         return Promise.all(['.webm', '.mp4', '.ogv', '.png', '-audio.mp4'].map(function(fmt) {
           // TODO: Should we include a mime-type here?
+          // XXX: This is setting the wrong mime type (video/mp4) for the audio file
           // Note that we don't want to specify any ACL here. Let it inherit
           // the default bucket ACL that is set by firebase
           return bucket.upload(outputFilename + fmt, {
