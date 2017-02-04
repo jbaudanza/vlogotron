@@ -214,8 +214,14 @@ function getArrayBuffer(url) {
 }
 
 
+function decodeAudioData(arraybuffer) {
+  // Safari doesn't support the Promise syntax for decodeAudioData, so we need
+  // to make the promise ourselves.
+  return new Promise(audioContext.decodeAudioData.bind(audioContext, arraybuffer));
+}
+
 function getAudioBuffer(url, progressSubscriber) {
-  return getArrayBuffer(url).then(x => audioContext.decodeAudioData(x));
+  return getArrayBuffer(url).then(decodeAudioData);
 }
 
 const audioBuffers$ = remoteUrls$
