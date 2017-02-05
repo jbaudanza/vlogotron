@@ -1,11 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import {Observable} from 'rxjs/Observable';
-import {Subject} from 'rxjs/Subject';
 
-
-import {bindAll, omit} from 'lodash';
+import {bindAll} from 'lodash';
 
 import Router from './Router';
 import SvgAssets from './SvgAssets';

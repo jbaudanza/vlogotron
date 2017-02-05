@@ -7,7 +7,6 @@ import {Subject} from 'rxjs/Subject';
 import {Subscription} from 'rxjs/Subscription';
 
 import 'rxjs/add/observable/interval';
-import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/observable/merge';
 
@@ -25,6 +24,7 @@ import PianoKeys from './PianoKeys';
 import {bindAll, omit, includes, identity} from 'lodash';
 
 import VideoClipStore from './VideoClipStore';
+import RecordingStore from './RecordingStore';
 import {subscribeToAudioPlayback} from './VideoClipStore';
 
 import VideoCell from './VideoCell';
@@ -38,98 +38,6 @@ import {playCommands$ as keyboardPlayCommands$} from './keyboard';
 const notes = [
   'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
 ];
-
-// const frequencies = {
-//   "A":  440,
-//   "A#": 466.16,
-//   "B":  493.88,
-//   "C":  523.25,
-//   "C#": 554.37,
-//   "D":  587.33,
-//   "D#": 622.25,
-//   "E":  659.25,
-//   "F":  698.46,
-//   "F#": 739.99,
-//   "G":  783.99,
-//   "G#": 830.6
-// };
-
-// Lower octave
-const frequencies = {
-  // "A":  220.00,
-  // "A#": 233.08,
-  // "B":  246.94,
-  "C":  261.63,
-  "C#": 277.18,
-  "D":  293.66,
-  "D#": 311.13,
-  "E":  329.63,
-  "F":  349.23,
-  "F#": 369.99,
-  "G":  392.00,
-  "G#": 415.30,
-  "A":  440,
-  "A#": 466.16,
-  "B":  493.88
-};
-
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-const documentMouseMove$ = Observable.fromEvent(document, 'mousemove');
-const documentMouseUp$ = Observable.fromEvent(document, 'mouseup');
-
-
-function startRecording(stream, mimeType) {
-  const recorder = new MediaRecorder(stream, {mimeType: mimeType});
-  recorder.ondataavailable = onDataAvailable;
-  recorder.start();
-
-  const progress = new Subject();
-  const chunks = [];
-
-  function onDataAvailable(event) {
-    progress.next(event.timeStamp);
-    chunks.push(event.data);
-  }
-
-  const promise = new Promise(function(resolve, reject) {
-    recorder.onstop = function() {
-      if (chunks.length > 0) {
-        resolve(new Blob(chunks, { type: chunks[0].type }));
-      } else {
-        resolve(null);
-      }
-    };
-  });
-
-  function stop() {
-    recorder.stop();
-    return promise;
-  }
-
-  return [progress, stop];
-}
-
-function startTone(note) {
-  const ramp = 0.1;
-
-  const gainNode = audioContext.createGain();
-  gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-  gainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime + ramp);
-  gainNode.connect(audioContext.destination);
-
-  const oscillator = audioContext.createOscillator();
-  oscillator.type = 'sine';
-  oscillator.frequency.value = frequencies[note];
-  oscillator.connect(gainNode);
-  oscillator.start();
-
-  return function() {
-    const stopTime = audioContext.currentTime + ramp;
-    gainNode.gain.linearRampToValueAtTime(0, stopTime);
-    oscillator.stop(stopTime);
-  }
-}
 
 
 function adjustRefCount(countObject, key, change) {
@@ -171,7 +79,7 @@ function reduceMultipleCommandStreams(last, command) {
 export default class Instrument extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'onStreamGranted', 'onClear', 'onTouchStart');
+    bindAll(this, 'onClear', 'onTouchStart');
 
     this.state = {
       recording: null,
@@ -208,6 +116,7 @@ export default class Instrument extends React.Component {
   }
 
   componentWillMount() {
+    this.actions$ = new Subject();
     this.subscription = new Subscription();
 
     // This is a higher-order stream of stream of play/pause commands
@@ -232,7 +141,23 @@ export default class Instrument extends React.Component {
       }
     }));
 
-    this.videoClipStore = new VideoClipStore();
+    // TODO: Only instantiate this during a record session
+    this.recordingStore = new RecordingStore(this.actions$);
+
+    this.videoClipStore = new VideoClipStore(this.recordingStore.addedClips$);
+
+    // TODO: This subscription stuff is kinda gross
+    this.subscription.add(
+      this.recordingStore.activeNote$.subscribe(note => this.setState({recording: note}))
+    );
+
+    this.subscription.add(
+      this.recordingStore.mediaStream$.subscribe(stream => this.setState({stream}))
+    );
+
+    this.subscription.add(
+      this.recordingStore.countdown$.subscribe(countdown => this.setState({countdown}))
+    );
 
     subscribeToAudioPlayback(mergedCommands$);
 
@@ -245,56 +170,12 @@ export default class Instrument extends React.Component {
     this.videoClipStore.clearClip(note);
   }
 
-  onStreamGranted(stream) {
-    // TODO: Provide a way to cancel this
-    const stopTone = startTone(this.state.recording);
-
-    Observable.interval(1000)
-        .map(x => 5-x)
-        .take(5)
-        .subscribe(
-          (x) => this.setState({countdown: x}),
-          null,
-          (() => {
-            this.setState({countdown: null});
-
-            // I think to grab the audio track, we need to do a script processor node
-            const [progress, stopRecord] = startRecording(this.state.stream, 'video/webm');
-            this.stopRecord = stopRecord;
-
-            stopTone();
-          })
-        )
-
-    this.setState({stream: stream});
-  }
-
   onRecord(note) {
-    const constraints = {audio: true, video: true};
-    navigator.mediaDevices.getUserMedia(constraints)
-      .then(this.onStreamGranted)
-      .catch(() => this.setState({recording: null}));
-
-    this.setState({recording: note});
+    this.actions$.next({note, type: 'record'});
   }
 
   onStop() {
-    if (this.stopRecord) {
-      this.stopRecord().then((blob) => {
-        if (blob) {
-          this.videoClipStore.addClip(this.state.recording, blob);
-        }
-
-        if (this.state.stream) {
-          const tracks = this.state.stream.getTracks();
-          tracks.forEach((t) => t.stop());
-        }
-
-        this.setState({recording: null, timeStamp: null, stream: null});
-      });
-
-      delete this.stopRecord;
-    }
+    this.actions$.next({type: 'stop'});
   }
 
   propsForCell(note) {
@@ -321,7 +202,7 @@ export default class Instrument extends React.Component {
   }
 
   onTouchStart(stream$) {
-    // Reduces into onto something like: {'play': 'C', 'pause': 'A'}
+    // Reduces into something like: {'play': 'C', 'pause': 'A'}
     function reduceToCommands(lastCommand, note) {
       const nextCommand = {};
 

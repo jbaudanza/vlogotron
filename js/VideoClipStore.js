@@ -1,5 +1,5 @@
 import {
-  sample, times, pickBy, includes, identity, omit, without, mapValues
+  pickBy, includes, identity, omit, without, mapValues
 } from 'lodash';
 
 import {Observable} from 'rxjs/Observable';
@@ -29,11 +29,6 @@ import createHistory from 'history/createBrowserHistory';
 
 import promiseFromTemplate from './promiseFromTemplate';
 
-
-function createRandomString(length) {
-  const chars = "abcdefghijklmnopqrstufwxyzABCDEFGHIJKLMNOPQRSTUFWXYZ1234567890";
-  return times(length, () => sample(chars)).join('');
-}
 
 function reduceToLocalUrls(acc, obj) {
   if (obj.blob) {
@@ -188,8 +183,6 @@ function reduceToRemoteUrls(refs) {
 const remoteUrls$ = refs$.switchMap(reduceToRemoteUrls).startWith({});
 
 const progress = new Subject();
-progress.subscribe(x => console.log('progress', x));
-
 
 // XXX: left off here. Come up with a data structure to expose to the UI that
 // communicates loading progress
@@ -204,7 +197,7 @@ function getArrayBuffer(url) {
   xhr.open("GET", url, true);
   xhr.responseType = "arraybuffer";
 
-  xhr.onprogress = (e) => console.log('progress', e)
+  //xhr.onprogress = (e) => console.log('progress', e)
   xhr.send(null);
 
   return new Promise(function(resolve, reject) {
@@ -248,17 +241,12 @@ function refsForUids(uid) {
 //  - display upload progress to user
 //  - URL.revokeObjectURL(url)    
 export default class VideoClipStore {
-  constructor() {
+  constructor(addedClips$) {
     const localBlobs = new Subject();
     const uploadTasks = new BehaviorSubject([]);
     const clearActions = new Subject();
 
-    this.addClip = function(note, blob) {
-      // The clipId only needs to be unique per each user
-      const clipId = createRandomString(6);
-
-      localBlobs.next({note, blob, clipId});
-    };
+    addedClips$.subscribe(localBlobs);
 
     this.clearClip = function(note) {
       clearActions.next(note);
