@@ -7,10 +7,13 @@ import 'rxjs/add/observable/merge';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/mapTo';
+import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/toArray';
 import 'rxjs/add/operator/publish';
 
 import {times, sample} from 'lodash';
+
+import encodeWavSync from './encodeWavSync';
 
 
 // TODO: This is duplicated in VideoClipStore
@@ -61,16 +64,18 @@ export default class RecordingStore {
             countdownSubject$.next(null);
             stopTone();
 
-            const recorder = new MediaRecorder(action.stream);
-            recorder.start();
+            const videoRecorder = new MediaRecorder(action.stream);
+            videoRecorder.start();
 
             stopActions$.take(1).subscribe(() => {
-              recorder.stop();
+              videoRecorder.stop();
               const tracks = action.stream.getTracks();
               tracks.forEach((t) => t.stop());
             });
 
-            const streams = mediaRecorderStreams(recorder);
+            const streams = mediaRecorderStreams(videoRecorder);
+
+            audioRecorderStreams(action.stream, stopActions$.take(1)).subscribe(console.log)
 
             streams.blob$.subscribe((blob) => {
               // The clipId only needs to be unique per each user
@@ -182,6 +187,48 @@ function mediaRecorderStreams(mediaRecorder) {
       .map(combineBlobs);
 
   return {progress$, blob$};
+}
+
+function buffersFromAudioProcessEvent(event) {
+  const list = [];
+  for (let i=0; i<event.inputBuffer.numberOfChannels; i++) {
+    list.push(
+      new Float32Array(event.inputBuffer.getChannelData(i))
+    );
+  }
+  return list;
+}
+
+// TODO: duplicated in VideoClipStore
+function decodeAudioData(arraybuffer) {
+  // Safari doesn't support the Promise syntax for decodeAudioData, so we need
+  // to make the promise ourselves.
+  return new Promise(audioContext.decodeAudioData.bind(audioContext, arraybuffer));
+}
+
+function audioRecorderStreams(mediaStream, takeUntil$) {
+  const blockSize = 16384;
+  const audioSource = audioContext.createMediaStreamSource(mediaStream);
+
+  const recorderNode = audioContext.createScriptProcessor(
+    blockSize,                // buffer size
+    audioSource.channelCount, // input channels
+    audioSource.channelCount  // output channels
+  );
+
+  audioSource.connect(recorderNode);
+  // TODO: It seems like this has to be hooked up to get the onaudoprocess
+  // event to fire.
+  recorderNode.connect(audioContext.destination);
+
+  const audioProcessEvent$ = Observable.fromEvent(recorderNode, 'audioprocess');
+
+  return audioProcessEvent$
+    .takeUntil(takeUntil$)
+    .map(buffersFromAudioProcessEvent)
+    .toArray()
+    .map((batches) => encodeWavSync(batches, audioContext.sampleRate))
+    .mergeMap(decodeAudioData)
 }
 
 function createRandomString(length) {
