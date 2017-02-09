@@ -24,7 +24,7 @@ import PianoKeys from './PianoKeys';
 import {bindAll, omit, includes, identity} from 'lodash';
 
 import VideoClipStore from './VideoClipStore';
-import RecordingStore from './RecordingStore';
+import {startRecording} from './RecordingStore';
 import {subscribeToAudioPlayback} from './VideoClipStore';
 
 import VideoCell from './VideoCell';
@@ -116,7 +116,7 @@ export default class Instrument extends React.Component {
   }
 
   componentWillMount() {
-    this.actions$ = new Subject();
+    this.stopRecording$ = new Subject();
     this.subscription = new Subscription();
 
     // This is a higher-order stream of stream of play/pause commands
@@ -141,23 +141,7 @@ export default class Instrument extends React.Component {
       }
     }));
 
-    // TODO: Only instantiate this during a record session
-    this.recordingStore = new RecordingStore(this.actions$);
-
-    this.videoClipStore = new VideoClipStore(this.recordingStore.addedClips$);
-
-    // TODO: This subscription stuff is kinda gross
-    this.subscription.add(
-      this.recordingStore.activeNote$.subscribe(note => this.setState({recording: note}))
-    );
-
-    this.subscription.add(
-      this.recordingStore.mediaStream$.subscribe(stream => this.setState({stream}))
-    );
-
-    this.subscription.add(
-      this.recordingStore.countdown$.subscribe(countdown => this.setState({countdown}))
-    );
+    this.videoClipStore = new VideoClipStore();
 
     subscribeToAudioPlayback(mergedCommands$);
 
@@ -171,11 +155,30 @@ export default class Instrument extends React.Component {
   }
 
   onRecord(note) {
-    this.actions$.next({note, type: 'record'});
+    // TODO: What happens if the component is unmounted during a recording process
+    const stopSignal$ = this.stopRecording$.take(1);
+
+    const result = startRecording(note, stopSignal$);
+
+    this.setState({recording: note});
+    stopSignal$.subscribe({complete: () => this.setState({recording: null}) })
+
+    result.stream.then((stream) => this.setState({stream}));
+
+    result.countdown$
+        .takeUntil(stopSignal$)
+        .subscribe({
+          next: (countdown) => this.setState({countdown}),
+          complete: () => this.setState({countdown: null})
+        });
+
+    result.media.then(([videoBlob, audioBuffer]) => {
+      this.videoClipStore.addMedia(note, result.clipId, videoBlob, audioBuffer)
+    })
   }
 
-  onStop() {
-    this.actions$.next({type: 'stop'});
+  onStop(note) {
+    this.stopRecording$.next(note);
   }
 
   propsForCell(note) {

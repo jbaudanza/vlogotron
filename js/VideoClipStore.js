@@ -217,13 +217,37 @@ function getAudioBuffer(url, progressSubscriber) {
   return getArrayBuffer(url).then(decodeAudioData);
 }
 
-const audioBuffers$ = remoteUrls$
+// Audio buffers will be pushed here as they are recorded.
+// {note: 'A', clipId: 'xasdf', buffer: AudioBuffer}
+const newAudioBuffers$ = new Subject();
+
+function reduceToLocalAudioBuffers(acc, obj) {
+  if (obj.buffer) {
+    return Object.assign({}, acc, {[obj.note]: obj.buffer});
+  } else {
+    return omit(acc, obj.note);
+  }
+}
+
+const localAudioBuffers$ = currentRoute$.switchMap(function(route) {
+  if (route.mode === 'record' && route.uid) {
+    return newAudioBuffers$.scan(reduceToLocalAudioBuffers, {}).startWith({});
+  } else {
+    return Observable.of({});
+  }
+});
+
+const remoteAudioBuffers$ = remoteUrls$
   .map(o => mapValues(o, v => v.audioUrl))
-  .switchMap(function(o) {
-    return promiseFromTemplate(
-      mapValues(o, (url) => getAudioBuffer(url, progress))
-    )
-  });
+  .switchMap((o) => (
+    promiseFromTemplate(mapValues(o, (url) => getAudioBuffer(url, progress)))
+  ));
+
+const audioBuffers$ = Observable.combineLatest(
+  localAudioBuffers$,
+  remoteAudioBuffers$,
+  (local, remote) => Object.assign({}, local, remote)
+);
 
 const queue = firebase.database().ref('queue/tasks');
 
@@ -241,17 +265,20 @@ function refsForUids(uid) {
 //  - display upload progress to user
 //  - URL.revokeObjectURL(url)    
 export default class VideoClipStore {
-  constructor(addedClips$) {
+  constructor() {
     const localBlobs = new Subject();
     const uploadTasks = new BehaviorSubject([]);
     const clearActions = new Subject();
-
-    addedClips$.subscribe(localBlobs);
 
     this.clearClip = function(note) {
       clearActions.next(note);
       localBlobs.next({note, blob: null});
     };
+
+    this.addMedia = function(note, clipId, videoBlob, audioBuffer) {
+      localBlobs.next({note, clipId, blob: videoBlob});
+      newAudioBuffers$.next({note, clipId, buffer: audioBuffer});
+    }
 
     const localBlobChanges$ = Observable.combineLatest(
       localBlobs,
