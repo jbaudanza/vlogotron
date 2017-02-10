@@ -6,7 +6,10 @@ import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 
+import {playbackSchedule} from './playbackSchedule';
+
 import 'rxjs/add/operator/scan';
+import 'rxjs/add/operator/publishReplay';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/startWith';
@@ -247,7 +250,7 @@ const audioBuffers$ = Observable.combineLatest(
   localAudioBuffers$,
   remoteAudioBuffers$,
   (local, remote) => Object.assign({}, local, remote)
-);
+).publishReplay().refCount();
 
 const queue = firebase.database().ref('queue/tasks');
 
@@ -328,29 +331,112 @@ export default class VideoClipStore {
   }
 }
 
+
+const gainNode = audioContext.createGain();
+gainNode.gain.value = 0.9;
+gainNode.connect(audioContext.destination);
+
+function makeNode(audioBuffer, startTime) {
+  const source = audioContext.createBufferSource();
+  source.buffer = audioBuffer;
+  source.connect(gainNode);
+  return source;
+}
+
+
 export function subscribeToAudioPlayback(playCommands$) {
   const activeNodes = {};
-
-  const gainNode = audioContext.createGain();
-  gainNode.gain.value = 0.9;
-  gainNode.connect(audioContext.destination);
 
   return playCommands$
     .withLatestFrom(audioBuffers$)
     .subscribe(([cmd, audioBuffers]) => {
       if (cmd.play && audioBuffers[cmd.play]) {
-
-        const source = audioContext.createBufferSource();
-        source.buffer = audioBuffers[cmd.play];
-        source.connect(gainNode);
-
-        activeNodes[cmd.play] = source;
-
-        source.start();
+        activeNodes[cmd.play] = makeNode(audioBuffers[cmd.play]);
+        activeNodes[cmd.play].start();
       }
 
       if (cmd.pause && activeNodes[cmd.pause]) {
         activeNodes[cmd.pause].stop();
       }
-  });
+    });
 }
+
+
+const song = [
+  ['A', 0.00, 0.25], // Ma-
+  ['G', 0.25, 0.25], // ry
+  ['F', 0.50, 0.25], // had
+  ['G', 0.75, 0.25], // a
+
+  ['A', 1.00, 0.25], // lit-
+  ['A', 1.25, 0.25], // tle
+  ['A', 1.50, 0.50], // lamb
+
+  ['G', 2.00, 0.25], // lit-
+  ['G', 2.25, 0.25], // tle
+  ['G', 2.50, 0.50], // lamb
+
+  ['A', 3.00, 0.25], // lit-
+  ['C', 3.25, 0.25], // tle    TODO: This should be one octave up
+  ['C', 3.50, 0.50], // lamb
+
+  ['A', 4.00, 0.25], // Ma-
+  ['G', 4.25, 0.25], // ry
+  ['F', 4.50, 0.25], // had
+  ['G', 4.75, 0.25], // a
+
+  ['A', 5.00, 0.25], // lit-
+  ['A', 5.25, 0.25], // tle
+  ['A', 5.50, 0.25], // lamb
+  ['A', 5.75, 0.25], // its
+
+  ['G', 6.00, 0.25], // fleece
+  ['G', 6.25, 0.25], // was
+  ['A', 6.50, 0.25], // white
+  ['G', 6.75, 0.25], // as
+
+  ['F', 7.00, 0.50]  // snow
+];
+
+function timestampToBeats(timestamp, bpm) {
+  return (timestamp / 60.0) * bpm;
+}
+
+function beatsToTimestamp(beats, bpm) {
+  return (beats / bpm) * 60;
+}
+
+window.playback = function() {
+  const bpm = 90;
+
+  const playbackStartedAt = audioContext.currentTime + 0.125;
+
+  // TODO: Is there some fancier way to store this state?
+  let scheduledUntil = 0;
+
+  console.log('playbackStartedAt', playbackStartedAt)
+
+  function mapToNotes(playbackUntilTimestamp) {
+    const playbackUntilBeats = timestampToBeats(playbackUntilTimestamp - playbackStartedAt, bpm);
+
+    const notes = song.filter((note) => note[1] >= scheduledUntil && note[1] < playbackUntilBeats)
+    scheduledUntil = playbackUntilBeats;
+    return notes;
+  }
+
+  playbackSchedule(audioContext)
+      .map(mapToNotes)
+      .withLatestFrom(audioBuffers$)
+      .subscribe(function([commands, audioBuffers]) {
+        commands.forEach((command) => {
+          const audioBuffer = audioBuffers[command[0]];
+          if (audioBuffer) {
+            const startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
+            const node = makeNode(audioBuffer, startAt);
+            node.start(startAt, 0, beatsToTimestamp(command[2], bpm));
+          } else {
+            console.warn('missing audiobuffer for', command[0])
+          }
+        })
+      });
+};
