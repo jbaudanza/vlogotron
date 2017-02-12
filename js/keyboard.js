@@ -15,26 +15,28 @@ const keys$ = Observable.merge(
     Observable.fromEvent(document, 'keydown')
 );
 
+// This map keys off of event.code, and NOT event.key. For an explanation of
+// the difference, see here: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code
 const keyMap = {
-  'a': 'C',
-  'w': 'C#',
-  's': 'D',
-  'e': 'D#',
-  'd': 'E',
-  'f': 'F',
-  't': 'F#',
-  'g': 'G',
-  'y': 'G#',
-  'h': 'A',
-  'u': 'A#',
-  'j': 'B'
+  'KeyA': 'C',
+  'KeyW': 'C#',
+  'KeyS': 'D',
+  'KeyE': 'D#',
+  'KeyD': 'E',
+  'KeyF': 'F',
+  'KeyT': 'F#',
+  'KeyG': 'G',
+  'KeyY': 'G#',
+  'KeyH': 'A',
+  'KeyU': 'A#',
+  'KeyJ': 'B'
 };
 
 export const playCommands$ = keys$.map(function(event) {
   if (event.repeat)
     return;
 
-  const note = keyMap[event.key];
+  const note = keyMap[event.code];
 
   if (note) {
     const type = (event.type === 'keydown' ? 'play' : 'pause');
