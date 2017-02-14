@@ -1,13 +1,11 @@
 import React from 'react';
 
 import {Observable} from 'rxjs/Observable';
-
-Object.assign(Observable,
-  require('rxjs/observable/fromEvent'),
-  require('rxjs/observable/merge')
-);
-
 import {Subject} from 'rxjs/Subject';
+
+import 'rxjs/add/observable/fromEvent';
+import 'rxjs/add/observable/merge';
+
 import 'rxjs/add/operator/takeUntil';
 import 'rxjs/add/operator/map';
 
@@ -117,4 +115,4 @@ export default class TouchableArea extends React.Component {
 
 TouchableArea.propTypes = {
   onTouchStart: React.PropTypes.func.isRequired
-}
+};

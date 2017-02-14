@@ -324,3 +324,57 @@ ul.piano-keys {
     background-color: $active-color;
   }
 }
+
+.piano-roll {
+  overflow-x: auto;
+  position: relative;
+
+  .timeline, .row {
+    white-space: nowrap;
+  }
+
+  .time-marker {
+    display: inline-block;
+    width: 120px;
+    color: #eee;
+  }
+
+  .black .cell {
+    background-color: #eee;
+  }
+
+  .cell:nth-child(4n+0) {
+    border-right: 2px solid #ccc;
+  }
+
+  .cell:first-child {
+    border-left: 2px solid #ccc;
+  }
+
+  .row:first-child .cell {
+    border-top: 1px solid #ccc;
+  }
+
+  .cell {
+    box-sizing: border-box;
+    height: 15px;
+    width: 30px;
+    border: 1px solid #ccc;
+    border-left: none;
+    border-top: none;
+    display: inline-block;
+  }
+
+  .note {
+    position: absolute;
+    box-sizing: border-box;
+    height: 15px;
+    width: 15px;
+    background-color: red;
+    border: 1px solid #333;
+  }
+
+  .note-wrapper {
+    position: relative;
+  }
+}

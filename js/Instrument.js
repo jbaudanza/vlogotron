@@ -21,6 +21,7 @@ import 'rxjs/add/operator/takeUntil';
 
 import TouchableArea from './TouchableArea';
 import PianoKeys from './PianoKeys';
+import PianoRoll from './PianoRoll';
 import {bindAll, omit, includes, identity} from 'lodash';
 
 import VideoClipStore from './VideoClipStore';
@@ -33,6 +34,7 @@ import colors from './colors';
 import {findParentNode} from './domutils';
 import {playCommands$ as midiPlayCommands$} from './midi';
 import {playCommands$ as keyboardPlayCommands$} from './keyboard';
+import {song} from './song';
 
 
 const notes = [
@@ -237,8 +239,8 @@ export default class Instrument extends React.Component {
           notes.map((note) => <VideoCell key={note} {...this.propsForCell(note)} />)
         }
         </TouchableArea>
-        <div id='keyboard' />
         <PianoKeys playing={this.state.playing} onTouchStart={this.onTouchStart} />
+        <PianoRoll notes={song} />
       </div>
     );
   }
