@@ -27,6 +27,7 @@ import {bindAll, omit, includes, identity} from 'lodash';
 import VideoClipStore from './VideoClipStore';
 import {startRecording} from './RecordingStore';
 import {subscribeToAudioPlayback} from './VideoClipStore';
+import {playCommands$ as scriptedPlayCommands$} from './VideoClipStore';
 
 import VideoCell from './VideoCell';
 
@@ -134,7 +135,7 @@ export default class Instrument extends React.Component {
         .scan(reduceMultipleCommandStreams, {refCounts: {}})
         .map(x => x.command);
 
-    this.subscription.add(mergedCommands$.subscribe((command) => {
+    this.subscription.add(Observable.merge(mergedCommands$, scriptedPlayCommands$).subscribe((command) => {
       if (command.play) {
         this.onStartPlayback(command.play);
       }

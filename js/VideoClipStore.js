@@ -1,5 +1,5 @@
 import {
-  pickBy, includes, identity, omit, without, mapValues
+  pickBy, includes, identity, omit, without, mapValues, flatten
 } from 'lodash';
 
 import {Observable} from 'rxjs/Observable';
@@ -13,6 +13,7 @@ import 'rxjs/add/operator/scan';
 import 'rxjs/add/operator/publishReplay';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/delay';
 import 'rxjs/add/operator/startWith';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/toPromise';
@@ -22,6 +23,7 @@ import 'rxjs/add/observable/never';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/combineLatest';
 import 'rxjs/add/observable/of';
+import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/fromPromise';
 
 
@@ -371,6 +373,8 @@ function beatsToTimestamp(beats, bpm) {
   return (beats / bpm) * 60;
 }
 
+export const playCommands$ = new Subject();
+
 window.playback = function() {
   const bpm = 90;
 
@@ -388,6 +392,18 @@ window.playback = function() {
     scheduledUntil = playbackUntilBeats;
     return notes;
   }
+
+  const commands$ = Observable.from(flatten(song.map(function(note) {
+    const startAt = playbackStartedAt + beatsToTimestamp(note[1], bpm);
+    const stopAt =  startAt + beatsToTimestamp(note[2], bpm);
+
+    return [
+      Observable.of({play: note[0]}).delay((startAt - audioContext.currentTime) * 1000),
+      Observable.of({pause: note[0]}).delay((stopAt - audioContext.currentTime) * 1000)
+    ]
+  }))).mergeAll();
+
+  commands$.subscribe((cmd) => playCommands$.next(cmd));
 
   playbackSchedule(audioContext)
       .map(mapToNotes)
