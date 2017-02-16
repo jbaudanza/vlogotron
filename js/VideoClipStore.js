@@ -375,7 +375,8 @@ function beatsToTimestamp(beats, bpm) {
 
 export const playCommands$ = new Subject();
 
-window.playback = function() {
+
+function startPlayback(playUntil$) {
   const bpm = 90;
 
   const playbackStartedAt = audioContext.currentTime + 0.125;
@@ -401,23 +402,51 @@ window.playback = function() {
       Observable.of({play: note[0]}).delay((startAt - audioContext.currentTime) * 1000),
       Observable.of({pause: note[0]}).delay((stopAt - audioContext.currentTime) * 1000)
     ]
-  }))).mergeAll();
+  }))).mergeAll().takeUntil(playUntil$);
 
   commands$.subscribe((cmd) => playCommands$.next(cmd));
 
+  const gainNode = audioContext.createGain();
+  gainNode.gain.value = 0.9;
+  gainNode.connect(audioContext.destination);
+
   playbackSchedule(audioContext)
+      .takeUntil(playUntil$)
       .map(mapToNotes)
       .withLatestFrom(audioBuffers$)
-      .subscribe(function([commands, audioBuffers]) {
-        commands.forEach((command) => {
-          const audioBuffer = audioBuffers[command[0]];
-          if (audioBuffer) {
-            const startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
-            const node = makeNode(audioBuffer, startAt);
-            node.start(startAt, 0, beatsToTimestamp(command[2], bpm));
-          } else {
-            console.warn('missing audiobuffer for', command[0])
-          }
-        })
+      .subscribe({
+        next([commands, audioBuffers]) {
+          commands.forEach((command) => {
+            const audioBuffer = audioBuffers[command[0]];
+            if (audioBuffer) {
+              const startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
+              const source = audioContext.createBufferSource();
+              source.buffer = audioBuffer;
+              source.connect(gainNode);
+              source.start(startAt, 0, beatsToTimestamp(command[2], bpm));
+            } else {
+              console.warn('missing audiobuffer for', command[0])
+            }
+          })
+        },
+        complete() {
+          gainNode.gain.value = 0;
+        }
       });
 };
+
+
+export class PlaybackStore {
+  constructor(bpm$, playActions$, pauseActions$, previewCommands$) {
+    this.playbackPosition$;
+    this.activeNotes$;
+
+    this.isPlaying$ = Observable.merge(
+        playActions$.mapTo(true), pauseActions$.mapTo(false)
+    ).startWith(false).publishReplay().refCount();
+
+    playActions$.subscribe(function() {
+      startPlayback(pauseActions$.take(1));
+    });
+  }
+}

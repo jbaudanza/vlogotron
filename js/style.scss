@@ -293,7 +293,7 @@ ul.piano-keys {
   padding: 0;
   overflow: hidden;
   position: relative;
-  $height: 30vw;
+  $height: 10vw;
 
   > li {
     box-sizing: border-box;
@@ -377,4 +377,19 @@ ul.piano-keys {
   .note-wrapper {
     position: relative;
   }
+
+  .playhead {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background-color: blue;
+    opacity: 0.5;
+  }
+}
+
+.play-button {
+  @include buttonize(white);
+  border: 1px solid #333;
 }

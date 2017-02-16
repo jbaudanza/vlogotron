@@ -103,6 +103,7 @@ export default class PianoRoll extends React.Component {
             ))
           }
           </div>
+          <div className='playhead' />
         </div>
       </div>
     );

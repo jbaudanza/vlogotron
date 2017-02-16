@@ -22,12 +22,14 @@ import 'rxjs/add/operator/takeUntil';
 import TouchableArea from './TouchableArea';
 import PianoKeys from './PianoKeys';
 import PianoRoll from './PianoRoll';
+import Link from './Link';
 import {bindAll, omit, includes, identity} from 'lodash';
 
 import VideoClipStore from './VideoClipStore';
 import {startRecording} from './RecordingStore';
 import {subscribeToAudioPlayback} from './VideoClipStore';
 import {playCommands$ as scriptedPlayCommands$} from './VideoClipStore';
+import {PlaybackStore} from './VideoClipStore';
 
 import VideoCell from './VideoCell';
 
@@ -82,7 +84,7 @@ function reduceMultipleCommandStreams(last, command) {
 export default class Instrument extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'onClear', 'onTouchStart');
+    bindAll(this, 'onClear', 'onTouchStart', 'onClickPlay');
 
     this.state = {
       recording: null,
@@ -143,6 +145,16 @@ export default class Instrument extends React.Component {
         this.onStopPlayback(command.pause);
       }
     }));
+
+    this.playActions$ = new Subject();
+    this.pauseActions$ = new Subject();
+    this.bpmChanges$ = new Subject();
+
+    const playbackStore = new PlaybackStore(
+        this.bpmChanges$, this.playActions$, this.pauseActions$
+    );
+
+    playbackStore.isPlaying$.subscribe((v) => this.setState({isPlaying: v}));
 
     this.videoClipStore = new VideoClipStore();
 
@@ -232,6 +244,14 @@ export default class Instrument extends React.Component {
     );
   }
 
+  onClickPlay() {
+    if (this.state.isPlaying) {
+      this.pauseActions$.next(1);
+    } else {
+      this.playActions$.next(1);
+    }
+  }
+
   render() {
     return (
       <div>
@@ -241,6 +261,12 @@ export default class Instrument extends React.Component {
         }
         </TouchableArea>
         <PianoKeys playing={this.state.playing} onTouchStart={this.onTouchStart} />
+        <Link className='play-button' onClick={this.onClickPlay}>
+          <svg version="1.1" width="40px" height="40px">
+            <use xlinkHref={this.state.isPlaying ? '#pause-marks' : '#play-arrow'} />
+          </svg>
+        </Link>
+
         <PianoRoll notes={song} />
       </div>
     );
