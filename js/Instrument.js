@@ -154,11 +154,10 @@ export default class Instrument extends React.Component {
         this.bpmChanges$, this.playActions$, this.pauseActions$
     );
 
+    this.playbackPosition$ = playbackStore.playbackPosition$;
+
     this.subscription.add(
       playbackStore.isPlaying$.subscribe((v) => this.setState({isPlaying: v}))
-    )
-    this.subscription.add(
-      playbackStore.playbackPosition$.subscribe((v) => this.setState({playbackPosition: v}))
     )
 
     this.videoClipStore = new VideoClipStore();
@@ -272,7 +271,7 @@ export default class Instrument extends React.Component {
           </svg>
         </Link>
 
-        <PianoRoll notes={song} playbackPosition={this.state.playbackPosition} />
+        <PianoRoll notes={song} playbackPosition$={this.playbackPosition$} />
       </div>
     );
   }

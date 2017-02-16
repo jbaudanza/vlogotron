@@ -60,14 +60,29 @@ function stylesForNote(note) {
 }
 
 export default class PianoRoll extends React.Component {
-  render() {
-    let playheadStyle;
-    if (this.props.playbackPosition == null) {
-      playheadStyle = {display: 'none'};
-    } else {
-      playheadStyle = {left: cellWidth * 4 * this.props.playbackPosition};
-    }
+  constructor() {
+    super();
+    this.bindPlayhead = this.bindPlayhead.bind(this);
+  }
 
+  bindPlayhead(el) {
+    this.subscription = this.props.playbackPosition$.subscribe((position) => {
+      if (position == null) {
+        el.style.display = 'none';
+      } else {
+        el.style.left = (cellWidth * 4 * position) + 'px';
+        el.style.display = 'block';
+      }
+    });
+  }
+
+  componentWillUnmount() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+  }
+
+  render() {
     return (
       <div className='piano-roll'>
         <div className='timeline'>
@@ -110,7 +125,7 @@ export default class PianoRoll extends React.Component {
             ))
           }
           </div>
-          <div className='playhead' style={playheadStyle} />
+          <div className='playhead' ref={this.bindPlayhead} />
         </div>
       </div>
     );
@@ -118,5 +133,5 @@ export default class PianoRoll extends React.Component {
 }
 
 PianoRoll.propTypes = {
-  playbackPosition: React.PropTypes.number
+  playbackPosition$: React.PropTypes.object.isRequired
 }
