@@ -174,9 +174,12 @@ h3 {
     right: 0;
     top: 0;
     bottom: 0;
-    background-color: #333;
-    opacity: 0.9;
+    background-color: #aaa;
+    opacity: 0.75;
     transition: opacity .1s ease-in-out;
+  }
+  &.sharp .shade {
+    background-color: #444;
   }
   &.playing .shade {
     opacity: 0;

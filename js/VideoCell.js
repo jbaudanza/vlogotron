@@ -127,7 +127,12 @@ export default class VideoCell extends React.Component {
 
     return (
       <div
-        className={classNames('video-cell touchable', {playing: this.props.playing})}
+        className={
+          classNames('video-cell touchable', {
+            playing: this.props.playing,
+            sharp: this.props.note.includes('#')
+          })
+        }
         data-note={this.props.note}
         >
         {videoEl}
