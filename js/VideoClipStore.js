@@ -6,7 +6,7 @@ import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 
-window.Observable = Observable;
+import {animationFrame} from 'rxjs/scheduler/animationFrame';
 
 import {playbackSchedule} from './playbackSchedule';
 import {song} from './song';
@@ -16,6 +16,7 @@ import 'rxjs/add/operator/concat';
 import 'rxjs/add/operator/publishReplay';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/repeat';
 import 'rxjs/add/operator/delay';
 import 'rxjs/add/operator/startWith';
 import 'rxjs/add/operator/switchMap';
@@ -445,9 +446,9 @@ function startPlayback(playUntil$) {
         }
       });
 
-  // TODO: Perhaps use the requestAnimationFrame scheduler for this.
   return Observable
-      .interval(25)
+      .of(0, animationFrame)
+      .repeat()
       .map(() => timestampToBeats(audioContext.currentTime - playbackStartedAt, bpm))
       .takeWhile(beat => beat < songLengthInBeats)
       .takeUntil(playUntil$);
