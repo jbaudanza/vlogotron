@@ -12,7 +12,7 @@ const keys = [
   ['G', true],
   ['A', true],
   ['B', false]
-].reverse();
+];
 
 function PianoKey(props) {
   return (
@@ -25,12 +25,26 @@ function PianoKey(props) {
 
 export default class PianoKeys extends React.Component {
   render() {
+    let positionAttr;
+    let orderedKeys;
+    let blackOffset;
+
+    if (this.props.orientation === 'vertical') {
+      positionAttr = 'top';
+      orderedKeys = keys.slice().reverse();
+      blackOffset = -5;
+    }  else {
+      positionAttr = 'left';
+      orderedKeys = keys;
+      blackOffset = +8;
+    }
+
     return (
       <TouchableArea onTouchStart={this.props.onTouchStart}>
-        <ul className='piano-keys'>
+        <ul className={`piano-keys ${this.props.orientation}-orientation`}>
           {
             flatten(
-              keys.map(([note, sharp], i) => {
+              orderedKeys.map(([note, sharp], i) => {
                 const keys = [
                   <PianoKey
                     color="white"
@@ -41,8 +55,8 @@ export default class PianoKeys extends React.Component {
 
                 if (sharp) {
                   const style = {
-                    top: (i * (100.0 / 7) - 5) + '%'
-                  }
+                    [positionAttr]: (i * (100.0 / 7) + blackOffset) + '%'
+                  };
                   return keys.concat(
                     <PianoKey
                       color='black'
@@ -66,5 +80,10 @@ export default class PianoKeys extends React.Component {
 
 PianoKeys.propTypes = {
   playing:      React.PropTypes.object.isRequired,
+  orientation:  React.PropTypes.oneOf(['horizontal', 'vertical']).isRequired,
   onTouchStart: React.PropTypes.func.isRequired
 }
+
+PianoKeys.defaultProps = {
+  orientation: 'horizontal'
+};

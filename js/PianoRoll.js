@@ -97,22 +97,24 @@ export default class PianoRoll extends React.Component {
             {
               flatten(
                 keys.map(([note, sharp], i) => {
-                  const rows = [
+                  const white = (
                     <Row
                       color="white"
                       key={note}
                       note={note} />
-                  ];
+                  );
 
                   if (sharp) {
-                    return rows.concat(
+                    const black = (
                       <Row
                         color='black'
                         key={note + '#'}
                         note={note + '#'}  />
                     );
+
+                    return [black, white];
                   } else {
-                    return rows;
+                    return [white];
                   }
                 })
               )

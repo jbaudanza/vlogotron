@@ -20,8 +20,8 @@ import 'rxjs/add/operator/take';
 import 'rxjs/add/operator/takeUntil';
 
 import TouchableArea from './TouchableArea';
-import PianoKeys from './PianoKeys';
 import PianoRoll from './PianoRoll';
+import PianoKeys from './PianoKeys';
 import Link from './Link';
 import {bindAll, omit, includes, identity} from 'lodash';
 
@@ -264,14 +264,18 @@ export default class Instrument extends React.Component {
           notes.map((note) => <VideoCell key={note} {...this.propsForCell(note)} />)
         }
         </TouchableArea>
-        <PianoKeys playing={this.state.playing} onTouchStart={this.onTouchStart} />
         <Link className='play-button' onClick={this.onClickPlay}>
           <svg version="1.1" width="40px" height="40px">
             <use xlinkHref={this.state.isPlaying ? '#pause-marks' : '#play-arrow'} />
           </svg>
         </Link>
 
-        <PianoRoll notes={song} playbackPosition$={this.playbackPosition$} />
+        <div className='piano-roll-wrapper'>
+          <PianoKeys orientation='vertical' playing={this.state.playing} onTouchStart={this.onTouchStart} />
+          <PianoRoll notes={song} playbackPosition$={this.playbackPosition$} />
+        </div>
+
+        <PianoKeys orientation='horizontal' playing={this.state.playing} onTouchStart={this.onTouchStart} />
       </div>
     );
   }

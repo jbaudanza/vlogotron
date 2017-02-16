@@ -294,22 +294,14 @@ h3 {
 ul.piano-keys {
   list-style-type: none;
   padding: 0;
+  margin: 0;
   position: relative;
-  $height: 180px;
-  width: 75px;
+  $border-radius: 3px;
 
   > li {
     box-sizing: border-box;
     border: 1px solid #333;
-    height: $height / 7;
-    margin-top: -1px;
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
     cursor: pointer;
-
-    &:first-child {
-      margin-top: 0;
-    }
   }
   .white-key {
     background-color: white;
@@ -317,12 +309,54 @@ ul.piano-keys {
   .black-key {
     background-color: black;
     position: absolute;
-    left: 0;
-    height: ($height / 7) - 8px;
-    width: 50%;
   }
   .playing {
     background-color: $active-color;
+  }
+
+  &.horizontal-orientation {
+    overflow: hidden;
+
+    > li {
+      border-left: none;
+      float: left;
+      border-bottom-right-radius: $border-radius;
+      border-bottom-left-radius: $border-radius;
+      height: 100px;
+      width: #{(100/7.0) + '%'};
+
+      &:first-child {
+        border-left: 1px solid #333;
+      }
+    }
+
+    .black-key {
+      width: #{(100/7.0 - 4) + '%'};
+      height: 50%;
+      top: 0;
+    }
+  }
+
+  &.vertical-orientation {
+    width: 75px;
+    $height: 210px;
+
+    > li {
+      border-top: none;
+      border-top-right-radius: $border-radius;
+      border-bottom-right-radius: $border-radius;
+      height: $height / 7;
+
+      &:first-child {
+        border-top: 1px solid #333;
+      }
+    }
+
+    .black-key {
+      height: ($height / 7) - 8px;
+      width: 50%;
+      left: 0;
+    }
   }
 }
 
@@ -388,6 +422,15 @@ ul.piano-keys {
     background-color: blue;
     opacity: 0.5;
   }
+}
+
+.piano-roll-wrapper {
+  .piano-keys {
+    margin-top: 18px;
+    margin-right: 2px;
+  }
+
+  display: flex;
 }
 
 .play-button {
