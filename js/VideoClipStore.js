@@ -6,10 +6,13 @@ import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 
+window.Observable = Observable;
+
 import {playbackSchedule} from './playbackSchedule';
 import {song} from './song';
 
 import 'rxjs/add/operator/scan';
+import 'rxjs/add/operator/concat';
 import 'rxjs/add/operator/publishReplay';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
@@ -442,25 +445,28 @@ function startPlayback(playUntil$) {
         }
       });
 
-  // End playback when the song ends or the pause button is hit.
-  return Observable.merge(
-    Observable.of(1).delay(beatsToTimestamp(songLengthInBeats, bpm) * 1000),
-    playUntil$
-  )
+  // TODO: Perhaps use the requestAnimationFrame scheduler for this.
+  return Observable
+      .interval(25)
+      .map(() => timestampToBeats(audioContext.currentTime - playbackStartedAt, bpm))
+      .takeWhile(beat => beat < songLengthInBeats)
+      .takeUntil(playUntil$);
 };
 
 
 export class PlaybackStore {
   constructor(bpm$, playActions$, pauseActions$, previewCommands$) {
-    this.playbackPosition$;
+    // playbackPostion is a stream of beat markers, or null if the song isn't
+    // currently playing
+    this.playbackPosition$ = playActions$.flatMap(() => (
+      startPlayback(pauseActions$.take(1)).concat(Observable.of(null))
+    )).startWith(null).publishReplay().refCount();
+
+    this.isPlaying$ = this.playbackPosition$
+        .map(pos => pos != null)
+        .distinctUntilChanged();
+
+    // TODO: do this
     this.activeNotes$;
-
-    this.isPlaying$ = new BehaviorSubject();
-
-    playActions$.subscribe(() => {
-      this.isPlaying$.next(true);
-      startPlayback(pauseActions$.take(1))
-          .subscribe(() => this.isPlaying$.next(false));
-    });
   }
 }
