@@ -318,13 +318,15 @@ ul.piano-keys {
     overflow: hidden;
 
     > li {
-      border-left: none;
-      float: left;
       border-bottom-right-radius: $border-radius;
       border-bottom-left-radius: $border-radius;
-      height: 100px;
+      float: left;
+      height: 200px;
       width: #{(100/7.0) + '%'};
+    }
 
+    .white-key {
+      border-left: none;
       &:first-child {
         border-left: 1px solid #333;
       }
@@ -342,10 +344,13 @@ ul.piano-keys {
     $height: 210px;
 
     > li {
-      border-top: none;
       border-top-right-radius: $border-radius;
       border-bottom-right-radius: $border-radius;
       height: $height / 7;
+    }
+
+    .white-key {
+      border-top: none;
 
       &:first-child {
         border-top: 1px solid #333;
@@ -422,15 +427,6 @@ ul.piano-keys {
     background-color: blue;
     opacity: 0.5;
   }
-}
-
-.piano-roll-wrapper {
-  .piano-keys {
-    margin-top: 18px;
-    margin-right: 2px;
-  }
-
-  display: flex;
 }
 
 .play-button {

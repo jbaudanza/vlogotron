@@ -270,11 +270,7 @@ export default class Instrument extends React.Component {
           </svg>
         </Link>
 
-        <div className='piano-roll-wrapper'>
-          <PianoKeys orientation='vertical' playing={this.state.playing} onTouchStart={this.onTouchStart} />
-          <PianoRoll notes={song} playbackPosition$={this.playbackPosition$} />
-        </div>
-
+        <PianoRoll notes={song} playbackPosition$={this.playbackPosition$} />
         <PianoKeys orientation='horizontal' playing={this.state.playing} onTouchStart={this.onTouchStart} />
       </div>
     );
