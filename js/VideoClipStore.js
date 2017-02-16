@@ -459,6 +459,8 @@ export class PlaybackStore {
   constructor(bpm$, playActions$, pauseActions$, previewCommands$) {
     // playbackPostion is a stream of beat markers, or null if the song isn't
     // currently playing
+    // TODO: it seems excessive to publish all the playback animation stuff.
+    //       it's probably enough to just republish the null/non-nullness
     this.playbackPosition$ = playActions$.flatMap(() => (
       startPlayback(pauseActions$.take(1)).concat(Observable.of(null))
     )).startWith(null).publishReplay().refCount();

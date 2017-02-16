@@ -12,7 +12,7 @@ const keys = [
   ['G', true],
   ['A', true],
   ['B', false]
-];
+].reverse();
 
 function PianoKey(props) {
   return (
@@ -41,7 +41,7 @@ export default class PianoKeys extends React.Component {
 
                 if (sharp) {
                   const style = {
-                    left: i * (100.0 / 7) + 10 + '%'
+                    top: (i * (100.0 / 7) - 5) + '%'
                   }
                   return keys.concat(
                     <PianoKey
