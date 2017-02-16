@@ -1,5 +1,5 @@
 import {
-  pickBy, includes, identity, omit, without, mapValues, flatten
+  pickBy, includes, identity, omit, without, mapValues, flatten, max
 } from 'lodash';
 
 import {Observable} from 'rxjs/Observable';
@@ -17,6 +17,7 @@ import 'rxjs/add/operator/delay';
 import 'rxjs/add/operator/startWith';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/toPromise';
+import 'rxjs/add/operator/takeWhile';
 import 'rxjs/add/operator/withLatestFrom';
 
 import 'rxjs/add/observable/never';
@@ -381,18 +382,14 @@ function startPlayback(playUntil$) {
 
   const playbackStartedAt = audioContext.currentTime + 0.125;
 
-  // TODO: Is there some fancier way to store this state?
-  let scheduledUntil = 0;
-
   console.log('playbackStartedAt', playbackStartedAt)
 
-  function mapToNotes(playbackUntilTimestamp) {
-    const playbackUntilBeats = timestampToBeats(playbackUntilTimestamp - playbackStartedAt, bpm);
-
-    const notes = song.filter((note) => note[1] >= scheduledUntil && note[1] < playbackUntilBeats)
-    scheduledUntil = playbackUntilBeats;
-    return notes;
+  function mapToNotes(beatWindow) {
+    const [beatFrom, beatTo] = beatWindow;
+    return song.filter((note) => note[1] >= beatFrom && note[1] < beatTo);
   }
+
+  const songLengthInBeats = max(song.map(note => note[1] + note[2]));
 
   const commands$ = Observable.from(flatten(song.map(function(note) {
     const startAt = playbackStartedAt + beatsToTimestamp(note[1], bpm);
@@ -406,12 +403,26 @@ function startPlayback(playUntil$) {
 
   commands$.subscribe((cmd) => playCommands$.next(cmd));
 
+  // Returns the time window (in beats) that need to be scheduled
+  function makeBeatWindow(lastWindow, playbackUntilTimestamp) {
+    return [
+      lastWindow[1],
+      timestampToBeats(playbackUntilTimestamp - playbackStartedAt, bpm)
+    ];
+  }
+
   const gainNode = audioContext.createGain();
   gainNode.gain.value = 0.9;
   gainNode.connect(audioContext.destination);
+  // Silence all audio when the pause button is hit
+  playUntil$.subscribe(x => gainNode.gain.value = 0)
 
   playbackSchedule(audioContext)
       .takeUntil(playUntil$)
+      .scan(makeBeatWindow, [null, 0])
+      // TODO: This really should be takeUntil with a predicate function, but
+      // that doesn't exist. Right now we're emitting one more than we need to.
+      .takeWhile(beatWindow => beatWindow[0] < songLengthInBeats)
       .map(mapToNotes)
       .withLatestFrom(audioBuffers$)
       .subscribe({
@@ -428,11 +439,14 @@ function startPlayback(playUntil$) {
               console.warn('missing audiobuffer for', command[0])
             }
           })
-        },
-        complete() {
-          gainNode.gain.value = 0;
         }
       });
+
+  // End playback when the song ends or the pause button is hit.
+  return Observable.merge(
+    Observable.of(1).delay(beatsToTimestamp(songLengthInBeats, bpm) * 1000),
+    playUntil$
+  )
 };
 
 
@@ -441,12 +455,12 @@ export class PlaybackStore {
     this.playbackPosition$;
     this.activeNotes$;
 
-    this.isPlaying$ = Observable.merge(
-        playActions$.mapTo(true), pauseActions$.mapTo(false)
-    ).startWith(false).publishReplay().refCount();
+    this.isPlaying$ = new BehaviorSubject();
 
-    playActions$.subscribe(function() {
-      startPlayback(pauseActions$.take(1));
+    playActions$.subscribe(() => {
+      this.isPlaying$.next(true);
+      startPlayback(pauseActions$.take(1))
+          .subscribe(() => this.isPlaying$.next(false));
     });
   }
 }
