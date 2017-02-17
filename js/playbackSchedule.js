@@ -22,7 +22,9 @@ const schedule$ = Observable.merge(
 export function playbackSchedule(audioContext) {
   return schedule$
       .map(() => (
-        audioContext.currentTime + (document.hasFocus() ? 1.0 : 2.0)
+        //audioContext.currentTime + (document.hasFocus() ? 1.0 : 2.0)
+        // Let's make this really long, until we need to support shorter windows
+        audioContext.currentTime + 10.0
       ))
       .scan(Math.max, audioContext.currentTime)
       .distinctUntilChanged();
