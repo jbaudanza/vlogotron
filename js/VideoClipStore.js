@@ -386,8 +386,6 @@ function startPlayback(playUntil$) {
 
   const playbackStartedAt = audioContext.currentTime + 0.125;
 
-  console.log('playbackStartedAt', playbackStartedAt)
-
   function mapToNotes(beatWindow) {
     const [beatFrom, beatTo] = beatWindow;
     return song.filter((note) => note[1] >= beatFrom && note[1] < beatTo);
@@ -438,7 +436,15 @@ function startPlayback(playUntil$) {
               const source = audioContext.createBufferSource();
               source.buffer = audioBuffer;
               source.connect(gainNode);
-              source.start(startAt, 0, beatsToTimestamp(command[2], bpm));
+
+              let offset;
+              if (audioContext.currentTime > startAt) {
+                offset = audioContext.currentTime - startAt;
+                console.warn('scheduling playback late.', offset);
+              } else {
+                offset = 0;
+              }
+              source.start(startAt, offset, beatsToTimestamp(command[2], bpm));
             } else {
               console.warn('missing audiobuffer for', command[0])
             }

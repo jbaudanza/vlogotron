@@ -23,6 +23,7 @@ function PianoKey(props) {
   );
 }
 
+// TODO: Layout black keys according to this: http://www.quadibloc.com/other/cnv05.htm
 export default class PianoKeys extends React.Component {
   render() {
     let positionAttr;
