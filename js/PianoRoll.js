@@ -53,12 +53,18 @@ const cellHeight = 15;
 const cellWidth = 30;
 
 function stylesForNote(note) {
-  const row = rowMap[note[0]];
-  return {
-    top: row * cellHeight,
-    width: note[2] * cellWidth * 4,
-    left: note[1] * cellWidth * 4
-  };
+  const match = note[0].match(/([A-Z]#?)(\d)/);
+  if (match) {
+    const row = rowMap[match[1]] + (5 - match[2]) * 12;
+
+    return {
+      top: row * cellHeight,
+      width: note[2] * cellWidth * 4,
+      left: note[1] * cellWidth * 4
+    };
+  } else {
+    return {};
+  }
 }
 
 export default class PianoRoll extends React.Component {
@@ -98,27 +104,33 @@ export default class PianoRoll extends React.Component {
           <div>
             {
               flatten(
-                keys.map(([note, sharp], i) => {
-                  const white = (
-                    <Row
-                      color="white"
-                      key={note}
-                      note={note} />
-                  );
+                range(5, 2, -1).map(octave => (
+                  flatten(
+                    keys.map(([note, sharp], i) => {
+                      const white = (
+                        <Row
+                          color="white"
+                          key={note + octave}
+                          octave={octave}
+                          note={note + octave} />
+                      );
 
-                  if (sharp) {
-                    const black = (
-                      <Row
-                        color='black'
-                        key={note + '#'}
-                        note={note + '#'}  />
-                    );
+                      if (sharp) {
+                        const black = (
+                          <Row
+                            color='black'
+                            octave={octave}
+                            key={note + '#' + octave}
+                            note={note + '#' + octave}  />
+                        );
 
-                    return [black, white];
-                  } else {
-                    return [white];
-                  }
-                })
+                        return [black, white];
+                      } else {
+                        return [white];
+                      }
+                    })
+                  ))
+                )
               )
             }
           </div>

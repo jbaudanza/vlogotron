@@ -398,8 +398,8 @@ function startPlayback(playUntil$) {
     const stopAt =  startAt + beatsToTimestamp(note[2], bpm);
 
     return [
-      Observable.of({play: note[0]}).delay((startAt - audioContext.currentTime) * 1000),
-      Observable.of({pause: note[0]}).delay((stopAt - audioContext.currentTime) * 1000)
+      Observable.of({play: note[0].slice(0, -1)}).delay((startAt - audioContext.currentTime) * 1000),
+      Observable.of({pause: note[0].slice(0, -1)}).delay((stopAt - audioContext.currentTime) * 1000)
     ]
   }))).mergeAll().takeUntil(playUntil$);
 
@@ -430,11 +430,19 @@ function startPlayback(playUntil$) {
       .subscribe({
         next([commands, audioBuffers]) {
           commands.forEach((command) => {
-            const audioBuffer = audioBuffers[command[0]];
+
+            const match = command[0].match(/([A-Z]#?)(\d)/);
+            const note = match[1];
+            const octave = parseInt(match[2]);
+
+            const audioBuffer = audioBuffers[note];
             if (audioBuffer) {
               const startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
               const source = audioContext.createBufferSource();
+
               source.buffer = audioBuffer;
+              // TODO: The video playback also needs these values
+              source.playbackRate.value = Math.pow(2, (octave-4))
               source.connect(gainNode);
 
               let offset;
@@ -446,7 +454,7 @@ function startPlayback(playUntil$) {
               }
               source.start(startAt, offset, beatsToTimestamp(command[2], bpm));
             } else {
-              console.warn('missing audiobuffer for', command[0])
+              console.warn('missing audiobuffer for', note)
             }
           })
         }
