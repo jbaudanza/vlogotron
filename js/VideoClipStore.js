@@ -382,7 +382,7 @@ export const playCommands$ = new Subject();
 
 
 function startPlayback(playUntil$) {
-  const bpm = 90;
+  const bpm = 120;
 
   const playbackStartedAt = audioContext.currentTime + 0.125;
 

@@ -30,6 +30,8 @@ const rowMap = {
 };
 
 
+const TOTAL_BEATS=30;
+
 function Row(props) {
   const className = classNames('row', {
     white: (props.color === 'white'),
@@ -39,7 +41,7 @@ function Row(props) {
   return (
     <div className={className}>
     {
-      range(0, 100).map(i => (
+      range(0, TOTAL_BEATS*4).map(i => (
         <div className='cell' key={i} />
       ))
     }
@@ -86,7 +88,7 @@ export default class PianoRoll extends React.Component {
     return (
       <div className='piano-roll'>
         <div className='timeline'>
-          {range(0, 25).map(i => (
+          {range(0, TOTAL_BEATS).map(i => (
             <div className='time-marker' key={i}>
               {i}
             </div>
