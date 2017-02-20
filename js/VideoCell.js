@@ -8,6 +8,22 @@ import Link from './Link';
 import {findWrappingLink} from './domutils';
 
 
+function NoteLabel(props) {
+  const match = props.note.match(/([A-Z])([#b])?(\d)/)
+  if (match) {
+    return (
+      <div className='note-label'>
+        {match[1]}
+        {match[2] ? (<sup>{match[2]}</sup>) : null}
+        <sub>{match[3]}</sub>
+      </div>
+    );
+  } else {
+    return null;
+  }
+}
+
+
 export default class VideoCell extends React.Component {
   constructor() {
     super();
@@ -139,9 +155,7 @@ export default class VideoCell extends React.Component {
         {countdownEl}
         {stopActionEl}
         {shadeEl}
-        <div className='note-label'>
-          {this.props.note}
-        </div>
+        <NoteLabel note={this.props.note} />
         {clearEl}
       </div>
     );
