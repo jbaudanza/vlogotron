@@ -49,9 +49,9 @@ export default class PianoKeys extends React.Component {
                 const keys = [
                   <PianoKey
                     color="white"
-                    playing={this.props.playing[note]}
-                    key={note}
-                    note={note} />
+                    playing={this.props.playing[note + '4']}
+                    key={note + '4'}
+                    note={note + '4'} />
                 ];
 
                 if (sharp) {
@@ -61,9 +61,9 @@ export default class PianoKeys extends React.Component {
                   return keys.concat(
                     <PianoKey
                       color='black'
-                      playing={this.props.playing[note + '#']}
-                      key={note + '#'}
-                      note={note + '#'} 
+                      playing={this.props.playing[note + '#4']}
+                      key={note + '#4'}
+                      note={note + '#4'}
                       style={style} />
                   );
                 } else {

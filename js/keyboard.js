@@ -15,34 +15,40 @@ const keys$ = Observable.merge(
 );
 
 const codeMap = {
-  'KeyA': 'C',
-  'KeyW': 'C#',
-  'KeyS': 'D',
-  'KeyE': 'D#',
-  'KeyD': 'E',
-  'KeyF': 'F',
-  'KeyT': 'F#',
-  'KeyG': 'G',
-  'KeyY': 'G#',
-  'KeyH': 'A',
-  'KeyU': 'A#',
-  'KeyJ': 'B'
+  'KeyA': 'C4',
+  'KeyW': 'C#4',
+  'KeyS': 'D4',
+  'KeyE': 'D#4',
+  'KeyD': 'E4',
+  'KeyF': 'F4',
+  'KeyT': 'F#4',
+  'KeyG': 'G4',
+  'KeyY': 'G#4',
+  'KeyH': 'A4',
+  'KeyU': 'A#4',
+  'KeyJ': 'B4',
+  'KeyK': 'C5',
+  'KeyO': 'C#5',
+  'KeyL': 'D5',
 };
 
 // Based off of the table in: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode
 const keyCodeMap = {
-  0x41: 'C',  // KeyA
-  0x57: 'C#', // KeyW
-  0x53: 'D',  // KeyS
-  0x45: 'D#', // KeyE
-  0x44: 'E',  // KeyD
-  0x46: 'F',  // KeyF
-  0x54: 'F#', // KeyT
-  0x47: 'G',  // KeyG
-  0x59: 'G#', // KeyY
-  0x48: 'A',  // KeyH
-  0x55: 'A#', // KeyU
-  0x4A: 'B'   // KeyJ
+  0x41: 'C4',  // KeyA
+  0x57: 'C#4', // KeyW
+  0x53: 'D4',  // KeyS
+  0x45: 'D#4', // KeyE
+  0x44: 'E4',  // KeyD
+  0x46: 'F4',  // KeyF
+  0x54: 'F#4', // KeyT
+  0x47: 'G4',  // KeyG
+  0x59: 'G#4', // KeyY
+  0x48: 'A4',  // KeyH
+  0x55: 'A#4', // KeyU
+  0x4A: 'B4',  // KeyJ,
+  0x4B: 'C5',  // KeyK,
+  0x4F: 'C#5', // KeyO,
+  0x4C: 'D5'   // KeyL
 };
 
 

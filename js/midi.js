@@ -41,11 +41,14 @@ export const playCommands$ = midiMessages$.map(function(message) {
   const note = message.data[1];
   const velocity = message.data[2];
 
+  // Add the octave to the note
+  const noteString = MIDI_NOTES[note % 12] + Math.floor(note / 12);
+
   // Detect a note ending. See http://stackoverflow.com/a/21636112/667069
   if ( type === MIDI_NOTE_OFF || type === MIDI_ALL_NOTES_OFF ||
       (type === MIDI_NOTE_ON && velocity === 0)) {
     return {
-      pause: MIDI_NOTES[note % 12]
+      pause: noteString
     }
   // Detect a note on
   // TODO: Investigate if it's possible to get multiple NOTE_ON messages for
@@ -54,7 +57,7 @@ export const playCommands$ = midiMessages$.map(function(message) {
   // some state around this.
   } else if (type === MIDI_NOTE_ON && velocity > 0) {
     return {
-      play: MIDI_NOTES[note % 12]
+      play: noteString
     }
   }
 }).filter(identity);

@@ -128,12 +128,17 @@ function reduceEventSnapshotToActiveClipIds(snapshot) {
 
   snapshot.forEach(function(child) {
     const event = child.val();
+    let note = event.note;
+    if (event.note && !note.match(/\d$/)) {
+      note += '4';
+    }
+
     if (event.type === 'uploaded') {
-      uploadedNotes[event.note] = event.clipId;
+      uploadedNotes[note] = event.clipId;
     }
 
     if (event.type === 'cleared') {
-      delete uploadedNotes[event.note];
+      delete uploadedNotes[note];
     }
 
     if (event.type === 'transcoded') {
@@ -398,8 +403,8 @@ function startPlayback(playUntil$) {
     const stopAt =  startAt + beatsToTimestamp(note[2], bpm);
 
     return [
-      Observable.of({play: note[0].slice(0, -1)}).delay((startAt - audioContext.currentTime) * 1000),
-      Observable.of({pause: note[0].slice(0, -1)}).delay((stopAt - audioContext.currentTime) * 1000)
+      Observable.of({play: note[0]}).delay((startAt - audioContext.currentTime) * 1000),
+      Observable.of({pause: note[0]}).delay((stopAt - audioContext.currentTime) * 1000)
     ]
   }))).mergeAll().takeUntil(playUntil$);
 
@@ -430,19 +435,11 @@ function startPlayback(playUntil$) {
       .subscribe({
         next([commands, audioBuffers]) {
           commands.forEach((command) => {
-
-            const match = command[0].match(/([A-Z]#?)(\d)/);
-            const note = match[1];
-            const octave = parseInt(match[2]);
-
-            const audioBuffer = audioBuffers[note];
+            const audioBuffer = audioBuffers[command[0]];
             if (audioBuffer) {
               const startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
               const source = audioContext.createBufferSource();
-
               source.buffer = audioBuffer;
-              // TODO: The video playback also needs these values
-              source.playbackRate.value = Math.pow(2, (octave-4))
               source.connect(gainNode);
 
               let offset;
@@ -454,7 +451,7 @@ function startPlayback(playUntil$) {
               }
               source.start(startAt, offset, beatsToTimestamp(command[2], bpm));
             } else {
-              console.warn('missing audiobuffer for', note)
+              console.warn('missing audiobuffer for', command[0])
             }
           })
         }

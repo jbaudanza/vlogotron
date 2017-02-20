@@ -42,7 +42,7 @@ import {song} from './song';
 
 const notes = [
   'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
-];
+].map(note => note + '4')
 
 
 function adjustRefCount(countObject, key, change) {
