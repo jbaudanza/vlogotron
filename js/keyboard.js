@@ -30,6 +30,7 @@ const codeMap = {
   'KeyK': 'C5',
   'KeyO': 'C#5',
   'KeyL': 'D5',
+  'Semicolon': 'D#5'
 };
 
 // Based off of the table in: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode
@@ -48,7 +49,8 @@ const keyCodeMap = {
   0x4A: 'B4',  // KeyJ,
   0x4B: 'C5',  // KeyK,
   0x4F: 'C#5', // KeyO,
-  0x4C: 'D5'   // KeyL
+  0x4C: 'D5',  // KeyL,
+  0xBA: 'D#5'  // Semicolon
 };
 
 
