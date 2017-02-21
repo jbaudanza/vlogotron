@@ -72,5 +72,7 @@ const happyBirthday = [
   ['G4', 25, 1]        // you
 ];
 
-//export const song = happyBirthday;
-export const song = maryHadALittleLamb;
+export const songs = {
+  'marry-had-a-little-lamb': maryHadALittleLamb,
+  'happy-birthday': happyBirthday
+};

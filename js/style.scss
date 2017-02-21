@@ -432,4 +432,16 @@ ul.piano-keys {
 .play-button {
   @include buttonize(white);
   border: 1px solid #333;
+  padding-left: 5px;
+
+  svg {
+    margin-top: 3px;
+  }
+
+  .song-title {
+    color: #333;
+    float: right;
+    height: 40px;
+    display: block;
+  }
 }

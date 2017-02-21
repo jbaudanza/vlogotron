@@ -29,7 +29,7 @@ import VideoClipStore from './VideoClipStore';
 import {startRecording} from './RecordingStore';
 import {subscribeToAudioPlayback} from './VideoClipStore';
 import {playCommands$ as scriptedPlayCommands$} from './VideoClipStore';
-import {PlaybackStore} from './VideoClipStore';
+import {startPlayback} from './VideoClipStore';
 
 import VideoCell from './VideoCell';
 
@@ -37,7 +37,6 @@ import colors from './colors';
 import {findParentNode} from './domutils';
 import {playCommands$ as midiPlayCommands$} from './midi';
 import {playCommands$ as keyboardPlayCommands$} from './keyboard';
-import {song} from './song';
 
 
 const notes = [
@@ -78,6 +77,20 @@ function reduceMultipleCommandStreams(last, command) {
     refCounts: refCounts,
     command: nextCommand
   };
+}
+
+
+function SongPlaybackButton(props) {
+  return (
+    <Link className='play-button' onClick={props.onClick}>
+      <svg version="1.1" width="40px" height="40px">
+        <use xlinkHref={props.isPlaying ? '#pause-marks' : '#play-arrow'} />
+      </svg>
+      <span className='song-title'>
+        {props.title}
+      </span>
+    </Link>
+  );
 }
 
 
@@ -146,19 +159,7 @@ export default class Instrument extends React.Component {
       }
     }));
 
-    this.playActions$ = new Subject();
     this.pauseActions$ = new Subject();
-    this.bpmChanges$ = new Subject();
-
-    const playbackStore = new PlaybackStore(
-        this.bpmChanges$, this.playActions$, this.pauseActions$
-    );
-
-    this.playbackPosition$ = playbackStore.playbackPosition$;
-
-    this.subscription.add(
-      playbackStore.isPlaying$.subscribe((v) => this.setState({isPlaying: v}))
-    )
 
     this.videoClipStore = new VideoClipStore();
 
@@ -248,11 +249,15 @@ export default class Instrument extends React.Component {
     );
   }
 
-  onClickPlay() {
-    if (this.state.isPlaying) {
-      this.pauseActions$.next(1);
-    } else {
-      this.playActions$.next(1);
+  onClickPlay(songId) {
+    if (this.state.songId) {
+      this.pauseActions$.next(songId);
+    }
+
+    if (this.state.songId !== songId) {
+      const playback = startPlayback(songId, this.pauseActions$.take(1));
+      this.setState({songId: songId});
+      playback.finished.then(() => this.setState({songId: null}));
     }
   }
 
@@ -264,15 +269,21 @@ export default class Instrument extends React.Component {
           notes.map((note) => <VideoCell key={note} {...this.propsForCell(note)} />)
         }
         </TouchableArea>
-        <Link className='play-button' onClick={this.onClickPlay}>
-          <svg version="1.1" width="40px" height="40px">
-            <use xlinkHref={this.state.isPlaying ? '#pause-marks' : '#play-arrow'} />
-          </svg>
-        </Link>
 
         {
           //<PianoRoll notes={song} playbackPosition$={this.playbackPosition$} />
         }
+
+        <SongPlaybackButton
+            isPlaying={this.state.songId === 'happy-birthday'}
+            onClick={this.onClickPlay.bind(this, 'happy-birthday')}
+            title="Happy birthday" />
+
+        <SongPlaybackButton
+            isPlaying={this.state.songId === 'marry-had-a-little-lamb'}
+            onClick={this.onClickPlay.bind(this, 'marry-had-a-little-lamb')}
+            title="Mary had a little lamb" />
+
         <PianoKeys orientation='horizontal' playing={this.state.playing} onTouchStart={this.onTouchStart} />
       </div>
     );

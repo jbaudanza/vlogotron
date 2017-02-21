@@ -9,7 +9,7 @@ import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {animationFrame} from 'rxjs/scheduler/animationFrame';
 
 import {playbackSchedule} from './playbackSchedule';
-import {song} from './song';
+import {songs} from './song';
 
 import 'rxjs/add/operator/scan';
 import 'rxjs/add/operator/concat';
@@ -18,6 +18,7 @@ import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/repeat';
 import 'rxjs/add/operator/delay';
+import 'rxjs/add/operator/first';
 import 'rxjs/add/operator/startWith';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/toPromise';
@@ -386,8 +387,9 @@ function beatsToTimestamp(beats, bpm) {
 export const playCommands$ = new Subject();
 
 
-function startPlayback(playUntil$) {
+export function startPlayback(songId, playUntil$) {
   const bpm = 120;
+  const song = songs[songId];
 
   const playbackStartedAt = audioContext.currentTime + 0.125;
 
@@ -457,30 +459,18 @@ function startPlayback(playUntil$) {
         }
       });
 
-  return Observable
+  const progress$ = Observable
       .of(0, animationFrame)
       .repeat()
       .map(() => timestampToBeats(audioContext.currentTime - playbackStartedAt, bpm))
       .takeWhile(beat => beat < songLengthInBeats)
       .takeUntil(playUntil$);
-};
 
-
-export class PlaybackStore {
-  constructor(bpm$, playActions$, pauseActions$, previewCommands$) {
-    // playbackPostion is a stream of beat markers, or null if the song isn't
-    // currently playing
-    // TODO: it seems excessive to publish all the playback animation stuff.
-    //       it's probably enough to just republish the null/non-nullness
-    this.playbackPosition$ = playActions$.flatMap(() => (
-      startPlayback(pauseActions$.take(1)).concat(Observable.of(null))
-    )).startWith(null).publishReplay().refCount();
-
-    this.isPlaying$ = this.playbackPosition$
-        .map(pos => pos != null)
-        .distinctUntilChanged();
-
-    // TODO: do this
-    this.activeNotes$;
+  return {
+    progress: progress$,
+    finished: Observable.merge(
+        playUntil$,
+        Observable.of(1).delay(beatsToTimestamp(songLengthInBeats, bpm) * 1000
+    )).first().toPromise()
   }
-}
+};
