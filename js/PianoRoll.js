@@ -12,7 +12,6 @@ import 'rxjs/add/operator/mapTo';
 import 'rxjs/add/operator/map';
 
 
-
 const keys = [
   ['C', true],
   ['D', true],
@@ -78,23 +77,19 @@ function stylesForNote(note) {
   }
 }
 
-function mapCellElementToBeat(el) {
-  return {
-    beat: el.dataset.beat,
-    note: el.parentNode.dataset.note
-  };
-}
+function mapElementToBeat(el) {
+  if (isEmptyCell(el)) {
+    return {
+      beat: el.dataset.beat,
+      note: el.parentNode.dataset.note
+    };
+  }
 
-function mapNoteElementToBeat(el) {
-  return {
-    beat: el.dataset.beat,
-    note: el.dataset.note
-  };
-}
-
-function butts(el) {
-  if (el.classList.contains('note')) {
-
+  if (isNoteCell(el)) {
+    return {
+      beat: el.dataset.beat,
+      note: el.dataset.note
+    };
   }
 }
 
@@ -116,32 +111,33 @@ export default class PianoRoll extends React.Component {
     this.edits$ = component
       .touches$$
       .flatMap(function(event) {
-        if (isEmptyCell(event.firstEl)) {
-          // User touches and empty cell. We only care about the first element
-          return Observable.of(
-            Object.assign({action: 'create'}, mapCellElementToBeat(event.firstEl))
-          );
-        } else if (isNoteCell(event.firstEl)) {
-
-          const moves$ = event.movements$
-              .filter(isEmptyCell)
-              .distinctUntilChanged(isEqual)
-              .scan(
-                (last, el) => ({
-                  action: 'move',
-                  to: mapCellElementToBeat(el),
-                  from: last.to
-                }),
-                {to: mapNoteElementToBeat(event.firstEl)}
-              );
-
-          const deletes$ = event.movements$
-            .isEmpty()
-            .filter(identity)
-            .mapTo(Object.assign(
-              {action: 'delete'},
-              mapNoteElementToBeat(event.firstEl))
+        const firstBeat = mapElementToBeat(event.firstEl);
+        const moves$ = event.movements$
+            .filter(isEmptyCell)
+            .distinctUntilChanged(isEqual)
+            .scan(
+              (last, el) => ({
+                action: 'move',
+                to: mapElementToBeat(el),
+                from: last.to
+              }),
+              {to: firstBeat}
             );
+
+        if (isEmptyCell(event.firstEl)) {
+          const create$ = Observable.of(
+            Object.assign({action: 'create'}, firstBeat)
+          );
+
+          return Observable.merge(create$, moves$);
+        } else if (isNoteCell(event.firstEl)) {
+          const deletes$ = event.movements$
+              .isEmpty()
+              .filter(identity)
+              .mapTo(Object.assign(
+                {action: 'delete'},
+                mapElementToBeat(event.firstEl))
+              );
 
           return Observable.merge(moves$, deletes$);
         } else {
