@@ -23,7 +23,7 @@ import TouchableArea from './TouchableArea';
 import PianoRoll from './PianoRoll';
 import PianoKeys from './PianoKeys';
 import Link from './Link';
-import {bindAll, omit, includes, identity} from 'lodash';
+import {bindAll, omit, includes, identity, remove, findIndex} from 'lodash';
 
 import VideoClipStore from './VideoClipStore';
 import {startRecording} from './RecordingStore';
@@ -126,7 +126,28 @@ export default class Instrument extends React.Component {
 
   bindPianoRoll(component) {
     component.edits$.subscribe((editCommand) => {
-      this.state.currentSong.push([editCommand.note, editCommand.beat, 0.25]);
+      function matcher(cmd, note) {
+        return note[0] === cmd.note && note[1] === cmd.beat;
+      }
+
+      if (editCommand.action === 'create') {
+        this.state.currentSong.push([editCommand.note, editCommand.beat, 0.25]);
+      }
+
+      if (editCommand.action === 'delete') {
+        remove(this.state.currentSong, matcher.bind(null, editCommand));
+      }
+
+      if (editCommand.action === 'move') {
+        const index = findIndex(this.state.currentSong, matcher.bind(null, editCommand.from));
+        if (index !== -1) {
+          const oldDuration = this.state.currentSong[index][2];
+          this.state.currentSong.splice(index, 1,
+            [editCommand.to.note, editCommand.to.beat, oldDuration]
+          );
+        }
+      }
+
       this.forceUpdate();
     });
   }

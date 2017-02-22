@@ -3,7 +3,14 @@ import classNames from 'classnames';
 
 import TouchableArea from './TouchableArea';
 
-import {range, flatten, bindAll} from 'lodash';
+import {range, flatten, bindAll, identity, isEqual} from 'lodash';
+
+import {Observable} from 'rxjs/Observable';
+
+import 'rxjs/add/operator/isEmpty';
+import 'rxjs/add/operator/mapTo';
+import 'rxjs/add/operator/map';
+
 
 
 const keys = [
@@ -71,13 +78,33 @@ function stylesForNote(note) {
   }
 }
 
-function mapElementToBeat(el) {
+function mapCellElementToBeat(el) {
   return {
     beat: el.dataset.beat,
     note: el.parentNode.dataset.note
   };
 }
 
+function mapNoteElementToBeat(el) {
+  return {
+    beat: el.dataset.beat,
+    note: el.dataset.note
+  };
+}
+
+function butts(el) {
+  if (el.classList.contains('note')) {
+
+  }
+}
+
+function isEmptyCell(el) {
+  return el && el.classList.contains('cell')
+}
+
+function isNoteCell(el) {
+  return el && el.classList.contains('note')
+}
 
 export default class PianoRoll extends React.Component {
   constructor() {
@@ -88,8 +115,38 @@ export default class PianoRoll extends React.Component {
   bindTouchableArea(component) {
     this.edits$ = component
       .touches$$
-      .flatMap(function(touches$) {
-        return touches$.map(mapElementToBeat).first();
+      .flatMap(function(event) {
+        if (isEmptyCell(event.firstEl)) {
+          // User touches and empty cell. We only care about the first element
+          return Observable.of(
+            Object.assign({action: 'create'}, mapCellElementToBeat(event.firstEl))
+          );
+        } else if (isNoteCell(event.firstEl)) {
+
+          const moves$ = event.movements$
+              .filter(isEmptyCell)
+              .distinctUntilChanged(isEqual)
+              .scan(
+                (last, el) => ({
+                  action: 'move',
+                  to: mapCellElementToBeat(el),
+                  from: last.to
+                }),
+                {to: mapNoteElementToBeat(event.firstEl)}
+              );
+
+          const deletes$ = event.movements$
+            .isEmpty()
+            .filter(identity)
+            .mapTo(Object.assign(
+              {action: 'delete'},
+              mapNoteElementToBeat(event.firstEl))
+            );
+
+          return Observable.merge(moves$, deletes$);
+        } else {
+          return Observable.never();
+        }
       });
   }
 
@@ -157,7 +214,11 @@ export default class PianoRoll extends React.Component {
           <div>
           {
             this.props.notes.map((note, i) => (
-              <div className='note' key={i} style={stylesForNote(note)} />
+              <div className='note touchable'
+                  key={i}
+                  data-note={note[0]}
+                  data-beat={note[1]}
+                  style={stylesForNote(note)} />
             ))
           }
           </div>

@@ -29,11 +29,14 @@ export default class TouchableArea extends React.Component {
     this.touches$$.complete();
   }
 
-  start(stream$) {
+  start(firstEl, movements$) {
     if (this.props.onTouchStart)
-      this.props.onTouchStart(stream$);
+      this.props.onTouchStart(movements$.startWith(firstEl));
 
-    this.touches$$.next(stream$);
+    this.touches$$.next({
+      firstEl: firstEl,
+      movements$: movements$
+    });
   }
 
   onMouseDown(event) {
@@ -47,10 +50,9 @@ export default class TouchableArea extends React.Component {
     if (el) {
       const stream$ = documentMouseMove$
         .map(event => this.findTouchableElement(event.target))
-        .takeUntil(documentMouseUp$)
-        .startWith(el);
+        .takeUntil(documentMouseUp$);
 
-      this.start(stream$);
+      this.start(el, stream$);
 
       event.preventDefault();
       event.stopPropagation();
@@ -92,10 +94,9 @@ export default class TouchableArea extends React.Component {
               // TODO: This might not work http://stackoverflow.com/a/33464547/667069
               document.elementFromPoint(t.clientX, t.clientY)
             ))
-            .takeUntil(end$)
-            .startWith(el);
+            .takeUntil(end$);
 
-        this.start(stream$);
+        this.start(el, stream$);
       }
     });
 
