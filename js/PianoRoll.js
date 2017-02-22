@@ -1,7 +1,10 @@
 import React from 'react';
 import classNames from 'classnames';
 
-import {range, flatten} from 'lodash';
+import TouchableArea from './TouchableArea';
+
+import {range, flatten, bindAll} from 'lodash';
+
 
 const keys = [
   ['C', true],
@@ -38,11 +41,12 @@ function Row(props) {
     black: (props.color === 'black')
   });
 
+  const perBeat = 4;
   return (
-    <div className={className}>
+    <div className={className} data-note={props.note}>
     {
-      range(0, TOTAL_BEATS*4).map(i => (
-        <div className='cell' key={i} />
+      range(0, TOTAL_BEATS*perBeat).map(i => (
+        <div className='cell touchable' key={i} data-beat={i/perBeat} />
       ))
     }
     </div>
@@ -67,10 +71,26 @@ function stylesForNote(note) {
   }
 }
 
+function mapElementToBeat(el) {
+  return {
+    beat: el.dataset.beat,
+    note: el.parentNode.dataset.note
+  };
+}
+
+
 export default class PianoRoll extends React.Component {
   constructor() {
     super();
-    this.bindPlayhead = this.bindPlayhead.bind(this);
+    bindAll(this, 'bindPlayhead', 'bindTouchableArea');
+  }
+
+  bindTouchableArea(component) {
+    this.edits$ = component
+      .touches$$
+      .flatMap(function(touches$) {
+        return touches$.map(mapElementToBeat).first();
+      });
   }
 
   bindPlayhead(el) {
@@ -100,7 +120,7 @@ export default class PianoRoll extends React.Component {
             </div>
           ))}
         </div>
-        <div className='note-wrapper'>
+        <TouchableArea className='note-wrapper' ref={this.bindTouchableArea}>
           <div>
             {
               flatten(
@@ -142,7 +162,7 @@ export default class PianoRoll extends React.Component {
           }
           </div>
           <div className='playhead' ref={this.bindPlayhead} />
-        </div>
+        </TouchableArea>
       </div>
     );
   }

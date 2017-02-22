@@ -97,11 +97,12 @@ function SongPlaybackButton(props) {
 export default class Instrument extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'onClear', 'onTouchStart', 'onClickPlay');
+    bindAll(this, 'onClear', 'onTouchStart', 'onClickPlay', 'bindPianoRoll');
 
     this.state = {
       recording: null,
-      playing: {}
+      playing: {},
+      currentSong: []
     };
   }
 
@@ -121,6 +122,13 @@ export default class Instrument extends React.Component {
 
     this.state.playing[note] = true;
     this.forceUpdate();
+  }
+
+  bindPianoRoll(component) {
+    component.edits$.subscribe((editCommand) => {
+      this.state.currentSong.push([editCommand.note, editCommand.beat, 0.25]);
+      this.forceUpdate();
+    });
   }
 
   onStopPlayback(note) {
@@ -270,9 +278,10 @@ export default class Instrument extends React.Component {
         }
         </TouchableArea>
 
-        {
-          //<PianoRoll notes={song} playbackPosition$={this.playbackPosition$} />
-        }
+        <PianoRoll
+            notes={this.state.currentSong}
+            playbackPosition$={Observable.never()}
+            ref={this.bindPianoRoll} />
 
         <SongPlaybackButton
             isPlaying={this.state.songId === 'happy-birthday'}
@@ -284,7 +293,9 @@ export default class Instrument extends React.Component {
             onClick={this.onClickPlay.bind(this, 'marry-had-a-little-lamb')}
             title="Mary had a little lamb" />
 
-        <PianoKeys orientation='horizontal' playing={this.state.playing} onTouchStart={this.onTouchStart} />
+        {
+          // <PianoKeys orientation='horizontal' playing={this.state.playing} onTouchStart={this.onTouchStart} />
+        }
       </div>
     );
   }

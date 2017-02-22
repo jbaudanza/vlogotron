@@ -22,6 +22,18 @@ export default class TouchableArea extends React.Component {
   constructor() {
     super();
     bindAll(this, 'onMouseDown', 'setRootElement', 'onTouchStart');
+    this.touches$$ = new Subject();
+  }
+
+  componentWillUnmount() {
+    this.touches$$.complete();
+  }
+
+  start(stream$) {
+    if (this.props.onTouchStart)
+      this.props.onTouchStart(stream$);
+
+    this.touches$$.next(stream$);
   }
 
   onMouseDown(event) {
@@ -38,7 +50,7 @@ export default class TouchableArea extends React.Component {
         .takeUntil(documentMouseUp$)
         .startWith(el);
 
-      this.props.onTouchStart(stream$);
+      this.start(stream$);
 
       event.preventDefault();
       event.stopPropagation();
@@ -83,7 +95,7 @@ export default class TouchableArea extends React.Component {
             .takeUntil(end$)
             .startWith(el);
 
-        this.props.onTouchStart(stream$);
+        this.start(stream$);
       }
     });
 
@@ -114,5 +126,5 @@ export default class TouchableArea extends React.Component {
 }
 
 TouchableArea.propTypes = {
-  onTouchStart: React.PropTypes.func.isRequired
+  onTouchStart: React.PropTypes.func
 };
