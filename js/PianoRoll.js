@@ -109,11 +109,9 @@ export default class PianoRoll extends React.Component {
   }
 
   bindTouchableArea(component) {
-    const cellsPerBeat = this.props.cellsPerBeat;
-
     this.edits$ = component
       .touches$$
-      .flatMap(function(event) {
+      .flatMap((event) => {
         const firstBeat = mapElementToBeat(event.firstEl);
         const moves$ = event.movements$
             .filter(isEmptyCell)
@@ -130,7 +128,7 @@ export default class PianoRoll extends React.Component {
         if (isEmptyCell(event.firstEl)) {
           const create$ = Observable.of(
             Object.assign({action: 'create'},
-                firstBeat, {duration: 1.0/cellsPerBeat}
+                firstBeat, {duration: 1.0/this.props.cellsPerBeat}
             )
           );
 

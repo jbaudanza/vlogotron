@@ -20,10 +20,10 @@ import 'rxjs/add/operator/take';
 import 'rxjs/add/operator/takeUntil';
 
 import TouchableArea from './TouchableArea';
-import PianoRoll from './PianoRoll';
+import PianoRollWrapper from './PianoRollWrapper';
 import PianoKeys from './PianoKeys';
 import Link from './Link';
-import {bindAll, omit, includes, identity, remove, findIndex} from 'lodash';
+import {bindAll, omit, includes, identity, remove} from 'lodash';
 
 import VideoClipStore from './VideoClipStore';
 import {startRecording} from './RecordingStore';
@@ -97,12 +97,11 @@ function SongPlaybackButton(props) {
 export default class Instrument extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'onClear', 'onTouchStart', 'onClickPlay', 'bindPianoRoll');
+    bindAll(this, 'onClear', 'onTouchStart', 'onClickPlay');
 
     this.state = {
       recording: null,
-      playing: {},
-      currentSong: []
+      playing: {}
     };
   }
 
@@ -122,34 +121,6 @@ export default class Instrument extends React.Component {
 
     this.state.playing[note] = true;
     this.forceUpdate();
-  }
-
-  bindPianoRoll(component) {
-    component.edits$.subscribe((editCommand) => {
-      function matcher(cmd, note) {
-        return note[0] === cmd.note && note[1] === cmd.beat;
-      }
-
-      if (editCommand.action === 'create') {
-        this.state.currentSong.push([editCommand.note, editCommand.beat, editCommand.duration]);
-      }
-
-      if (editCommand.action === 'delete') {
-        remove(this.state.currentSong, matcher.bind(null, editCommand));
-      }
-
-      if (editCommand.action === 'move') {
-        const index = findIndex(this.state.currentSong, matcher.bind(null, editCommand.from));
-        if (index !== -1) {
-          const oldDuration = this.state.currentSong[index][2];
-          this.state.currentSong.splice(index, 1,
-            [editCommand.to.note, editCommand.to.beat, oldDuration]
-          );
-        }
-      }
-
-      this.forceUpdate();
-    });
   }
 
   onStopPlayback(note) {
@@ -299,11 +270,7 @@ export default class Instrument extends React.Component {
         }
         </TouchableArea>
 
-        <PianoRoll
-            notes={this.state.currentSong}
-            playbackPosition$={Observable.never()}
-            cellsPerBeat={2}
-            ref={this.bindPianoRoll} />
+        <PianoRollWrapper />
 
         <SongPlaybackButton
             isPlaying={this.state.songId === 'happy-birthday'}

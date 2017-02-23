@@ -1,3 +1,17 @@
+// Consider encoding this like:
+/*
+{
+  signature: [4,4],
+  start: {
+    measure: 0,
+    beat: 0
+  }
+  notes: [
+    [ 'A4', 0, 0, 4 ] // note, measure, beat, note type
+  ]
+}
+*/
+
 const maryHadALittleLamb = [
   [ 'A4', 0, 1 ],  // Ma-
   [ 'G4', 1, 1 ],  // ry
