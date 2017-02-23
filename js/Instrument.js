@@ -131,7 +131,7 @@ export default class Instrument extends React.Component {
       }
 
       if (editCommand.action === 'create') {
-        this.state.currentSong.push([editCommand.note, editCommand.beat, 0.25]);
+        this.state.currentSong.push([editCommand.note, editCommand.beat, editCommand.duration]);
       }
 
       if (editCommand.action === 'delete') {
@@ -302,6 +302,7 @@ export default class Instrument extends React.Component {
         <PianoRoll
             notes={this.state.currentSong}
             playbackPosition$={Observable.never()}
+            cellsPerBeat={2}
             ref={this.bindPianoRoll} />
 
         <SongPlaybackButton

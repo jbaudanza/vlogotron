@@ -42,17 +42,18 @@ const rowMap = {
 const TOTAL_BEATS=30;
 
 function Row(props) {
-  const className = classNames('row', {
+  const cellsPerBeat = props.cellsPerBeat;
+
+  const className = classNames(`row cell-width-${cellsPerBeat}`, {
     white: (props.color === 'white'),
     black: (props.color === 'black')
   });
 
-  const perBeat = 4;
   return (
     <div className={className} data-note={props.note}>
     {
-      range(0, TOTAL_BEATS*perBeat).map(i => (
-        <div className='cell touchable' key={i} data-beat={i/perBeat} />
+      range(0, TOTAL_BEATS*cellsPerBeat).map(i => (
+        <div className='cell touchable' key={i} data-beat={i/cellsPerBeat} />
       ))
     }
     </div>
@@ -108,6 +109,8 @@ export default class PianoRoll extends React.Component {
   }
 
   bindTouchableArea(component) {
+    const cellsPerBeat = this.props.cellsPerBeat;
+
     this.edits$ = component
       .touches$$
       .flatMap(function(event) {
@@ -126,7 +129,9 @@ export default class PianoRoll extends React.Component {
 
         if (isEmptyCell(event.firstEl)) {
           const create$ = Observable.of(
-            Object.assign({action: 'create'}, firstBeat)
+            Object.assign({action: 'create'},
+                firstBeat, {duration: 1.0/cellsPerBeat}
+            )
           );
 
           return Observable.merge(create$, moves$);
@@ -180,11 +185,16 @@ export default class PianoRoll extends React.Component {
                 range(5, 2, -1).map(octave => (
                   flatten(
                     keys.map(([note, sharp], i) => {
+                      const rowProps = {
+                        cellsPerBeat: this.props.cellsPerBeat,
+                        octave: octave
+                      };
+
                       const white = (
                         <Row
                           color="white"
+                          {...rowProps}
                           key={note + octave}
-                          octave={octave}
                           note={note + octave} />
                       );
 
@@ -192,9 +202,9 @@ export default class PianoRoll extends React.Component {
                         const black = (
                           <Row
                             color='black'
-                            octave={octave}
+                            {...rowProps}
                             key={note + '#' + octave}
-                            note={note + '#' + octave}  />
+                            note={note + '#' + octave} />
                         );
 
                         return [black, white];
@@ -226,5 +236,6 @@ export default class PianoRoll extends React.Component {
 }
 
 PianoRoll.propTypes = {
-  playbackPosition$: React.PropTypes.object.isRequired
+  playbackPosition$: React.PropTypes.object.isRequired,
+  cellsPerBeat:      React.PropTypes.number.isRequired
 }
