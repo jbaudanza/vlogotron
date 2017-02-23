@@ -2,7 +2,7 @@ import React from 'react';
 
 import {Observable} from 'rxjs/Observable';
 
-import {findIndex, remove} from 'lodash';
+import {findIndex, filter, concat} from 'lodash';
 
 import Button from 'antd/lib/button';
 import Select from 'antd/lib/select';
@@ -35,6 +35,34 @@ import PianoRoll from './PianoRoll';
 //    grid-selector: note-type
 //  beat-unit: quarter-node, eighth-note, etc..
 
+
+function reduceEditsToSong(song, edit) {
+  function matcher(edit, note) {
+    return note[0] === edit.note && note[1] === edit.beat;
+  }
+
+  switch(edit.action) {
+    case 'create':
+      return concat(song, [[edit.note, edit.beat, edit.duration]]);
+    case 'delete':
+      return filter(song, (note) => !matcher(edit, note));
+    case 'move':
+      const index = findIndex(song, matcher.bind(null, edit.from));
+      if (index !== -1) {
+        const oldDuration = song[index][2];
+        return concat(
+          filter(song, (v, i) => i !== index), // remove old note
+          [[edit.to.note, edit.to.beat, oldDuration]] // add new note
+        );
+      } else {
+        return song;
+      }
+    default:
+      return song;
+  }
+}
+
+
 export default class PianoRollWrapper extends React.Component {
   constructor() {
     super();
@@ -46,32 +74,9 @@ export default class PianoRollWrapper extends React.Component {
   }
 
   bindPianoRoll(component) {
-    component.edits$.subscribe((editCommand) => {
-      function matcher(cmd, note) {
-        return note[0] === cmd.note && note[1] === cmd.beat; 
-      }
-
-      if (editCommand.action === 'create') {
-        console.log(editCommand)
-        this.state.currentSong.push([editCommand.note, editCommand.beat, editCommand.duration]);  
-      }
-
-      if (editCommand.action === 'delete') {
-        remove(this.state.currentSong, matcher.bind(null, editCommand));
-      }
-
-      if (editCommand.action === 'move') {        
-        const index = findIndex(this.state.currentSong, matcher.bind(null, editCommand.from));
-        if (index !== -1) {
-          const oldDuration = this.state.currentSong[index][2];
-          this.state.currentSong.splice(index, 1, 
-            [editCommand.to.note, editCommand.to.beat, oldDuration]
-          );
-        }
-      }
-
-      this.forceUpdate();
-    });
+    component.edits$
+      .scan(reduceEditsToSong, [])
+      .subscribe((v) => this.setState({currentSong: v}));
   }
 
   render() {
