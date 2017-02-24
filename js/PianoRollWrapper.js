@@ -51,10 +51,13 @@ export default class PianoRollWrapper extends React.Component {
 
   render() {
     let playIcon;
+    let playText;
     if (this.props.playbackPosition$) {
       playIcon = 'pause-circle';
+      playText = 'pause';
     } else {
       playIcon = 'play-circle';
+      playText = 'play';
     }
 
     return (
@@ -64,7 +67,7 @@ export default class PianoRollWrapper extends React.Component {
               onClick={this.props.onClickPlay}
               disabled={this.props.notes.length === 0}
               icon={playIcon}>
-            play
+            {playText}
           </Button>
           <InputNumber prefix={<Icon type='clock-circle-o' />} defaultValue={120} />
           <Select

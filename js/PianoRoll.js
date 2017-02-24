@@ -65,7 +65,7 @@ function stylesForNote(note) {
     const row = rowMap[match[1]] + (5 - match[2]) * 12;
 
     return {
-      top: row * cellHeight,
+      top: (row - 8) * cellHeight,
       width: note[2] * cellWidth * 4,
       left: note[1] * cellWidth * 4
     };
@@ -99,46 +99,49 @@ function isNoteCell(el) {
 }
 
 
+function RowSet(cellsPerBeat, octave, keys) {
+  return flatten(
+    keys.map(([note, sharp], i) => {
+      const rowProps = {
+        cellsPerBeat: cellsPerBeat, octave: octave
+      };
+
+      const white = (
+        <Row
+          color="white"
+          {...rowProps}
+          key={note + octave}
+          note={note + octave} />
+      );
+
+      if (sharp) {
+        const black = (
+          <Row
+            color='black'
+            {...rowProps}
+            key={note + '#' + octave}
+            note={note + '#' + octave} />
+        );
+
+        return [black, white];
+      } else {
+        return [white];
+      }
+    })
+  );
+}
+
+
 class Grid extends React.PureComponent {
   render() {
     return (
       <div>
-        {
-          flatten(
-            range(5, 3, -1).map(octave => (
-              flatten(
-                keys.map(([note, sharp], i) => {
-                  const rowProps = {
-                    cellsPerBeat: this.props.cellsPerBeat,
-                    octave: octave
-                  };
-
-                  const white = (
-                    <Row
-                      color="white"
-                      {...rowProps}
-                      key={note + octave}
-                      note={note + octave} />
-                  );
-
-                  if (sharp) {
-                    const black = (
-                      <Row
-                        color='black'
-                        {...rowProps}
-                        key={note + '#' + octave}
-                        note={note + '#' + octave} />
-                    );
-
-                    return [black, white];
-                  } else {
-                    return [white];
-                  }
-                })
-              ))
-            )
-          )
-        }
+      {
+        flatten([
+          RowSet(this.props.cellsPerBeat, 5, keys.slice(-2)),
+          RowSet(this.props.cellsPerBeat, 4, keys)
+        ])
+      }
       </div>
     );
   }
