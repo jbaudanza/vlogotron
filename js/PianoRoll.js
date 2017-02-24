@@ -3,7 +3,7 @@ import classNames from 'classnames';
 
 import TouchableArea from './TouchableArea';
 
-import {range, flatten, bindAll, identity, isEqual} from 'lodash';
+import {range, flatten, bindAll, identity, isEqual, max} from 'lodash';
 
 import {Observable} from 'rxjs/Observable';
 
@@ -35,8 +35,6 @@ const rowMap = {
 };
 
 
-const TOTAL_BEATS=30;
-
 function Row(props) {
   const cellsPerBeat = props.cellsPerBeat;
 
@@ -48,7 +46,7 @@ function Row(props) {
   return (
     <div className={className} data-note={props.note}>
     {
-      range(0, TOTAL_BEATS*cellsPerBeat).map(i => (
+      range(0, props.totalBeats*cellsPerBeat).map(i => (
         <div className='cell touchable' key={i} data-beat={i/cellsPerBeat} />
       ))
     }
@@ -99,13 +97,13 @@ function isNoteCell(el) {
 }
 
 
-function RowSet(cellsPerBeat, octave, keys) {
+function RowSet(cellsPerBeat, totalBeats, octave, keys) {
+  const rowProps = {
+      cellsPerBeat: cellsPerBeat, octave: octave, totalBeats: totalBeats
+  };
+
   return flatten(
     keys.map(([note, sharp], i) => {
-      const rowProps = {
-        cellsPerBeat: cellsPerBeat, octave: octave
-      };
-
       const white = (
         <Row
           color="white"
@@ -138,8 +136,8 @@ class Grid extends React.PureComponent {
       <div>
       {
         flatten([
-          RowSet(this.props.cellsPerBeat, 5, keys.slice(-2)),
-          RowSet(this.props.cellsPerBeat, 4, keys)
+          RowSet(this.props.cellsPerBeat, this.props.totalBeats, 5, keys.slice(-2)),
+          RowSet(this.props.cellsPerBeat, this.props.totalBeats, 4, keys)
         ])
       }
       </div>
@@ -147,6 +145,9 @@ class Grid extends React.PureComponent {
   }
 }
 
+function songLength(song) {
+  return max(song.map(note => note[1] + note[2])) || 0;
+}
 
 export default class PianoRoll extends React.PureComponent {
   constructor() {
@@ -216,17 +217,21 @@ export default class PianoRoll extends React.PureComponent {
   }
 
   render() {
+    const totalBeats = Math.floor(songLength(this.props.notes) + 8);
+    console.log('notes', this.props.notes);
+    console.log(totalBeats);
+
     return (
       <div className='piano-roll'>
         <div className='timeline'>
-          {range(0, TOTAL_BEATS).map(i => (
+          {range(0, totalBeats).map(i => (
             <div className='time-marker' key={i}>
               {i}
             </div>
           ))}
         </div>
         <TouchableArea className='note-wrapper' ref={this.bindTouchableArea}>
-          <Grid cellsPerBeat={this.props.cellsPerBeat} />
+          <Grid cellsPerBeat={this.props.cellsPerBeat} totalBeats={totalBeats} />
           <div>
           {
             this.props.notes.map((note, i) => (
