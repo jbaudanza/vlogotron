@@ -1,8 +1,5 @@
 import {Observable} from 'rxjs/Observable';
 
-import 'rxjs/add/observable/fromEvent';
-import 'rxjs/add/observable/merge';
-
 import {identity} from 'lodash';
 
 

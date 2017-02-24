@@ -3,12 +3,6 @@ import React from 'react';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 
-import 'rxjs/add/observable/fromEvent';
-import 'rxjs/add/observable/merge';
-
-import 'rxjs/add/operator/takeUntil';
-import 'rxjs/add/operator/map';
-
 
 import {bindAll, forEach, identity, find} from 'lodash';
 

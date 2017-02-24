@@ -7,10 +7,6 @@ import {range, flatten, bindAll, identity, isEqual} from 'lodash';
 
 import {Observable} from 'rxjs/Observable';
 
-import 'rxjs/add/operator/isEmpty';
-import 'rxjs/add/operator/mapTo';
-import 'rxjs/add/operator/map';
-
 
 const keys = [
   ['C', true],

@@ -1,17 +1,6 @@
 import {Subject} from 'rxjs/Subject';
 import {Observable} from 'rxjs/Observable';
 
-import 'rxjs/add/observable/fromEvent';
-import 'rxjs/add/observable/merge';
-
-import 'rxjs/add/operator/switchMap';
-import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/mapTo';
-import 'rxjs/add/operator/mergeMap';
-import 'rxjs/add/operator/share';
-import 'rxjs/add/operator/toArray';
-import 'rxjs/add/operator/publish';
-
 import {times, sample} from 'lodash';
 
 import encodeWavSync from './encodeWavSync';

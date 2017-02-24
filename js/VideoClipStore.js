@@ -10,27 +10,6 @@ import {animationFrame} from 'rxjs/scheduler/animationFrame';
 
 import {playbackSchedule} from './playbackSchedule';
 
-import 'rxjs/add/operator/scan';
-import 'rxjs/add/operator/concat';
-import 'rxjs/add/operator/publishReplay';
-import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/repeat';
-import 'rxjs/add/operator/delay';
-import 'rxjs/add/operator/first';
-import 'rxjs/add/operator/startWith';
-import 'rxjs/add/operator/switchMap';
-import 'rxjs/add/operator/toPromise';
-import 'rxjs/add/operator/takeWhile';
-import 'rxjs/add/operator/withLatestFrom';
-
-import 'rxjs/add/observable/never';
-import 'rxjs/add/observable/fromEvent';
-import 'rxjs/add/observable/combineLatest';
-import 'rxjs/add/observable/of';
-import 'rxjs/add/observable/from';
-import 'rxjs/add/observable/fromPromise';
-
 
 // TODO: This is duplicated in Instrument.js
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();

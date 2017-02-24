@@ -1,10 +1,5 @@
 import {Observable} from 'rxjs/Observable';
 
-import 'rxjs/add/observable/fromEvent';
-import 'rxjs/add/observable/interval';
-import 'rxjs/add/observable/of';
-import 'rxjs/add/observable/merge';
-
 
 const schedule$ = Observable.merge(
   // Run the scheduler once on startup

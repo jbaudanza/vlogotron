@@ -1,6 +1,7 @@
+import './rxjs-additions';
+
 import React from 'react';
 import ReactDOM from 'react-dom';
-
 
 import {bindAll} from 'lodash';
 
@@ -9,7 +10,7 @@ import SvgAssets from './SvgAssets';
 
 import {navigate, currentRoute$} from './VideoClipStore';
 
-import './style.scss'
+import './style.scss';
 
 import bindComponentToObservable from './bindComponentToObservable';
 
