@@ -24,6 +24,7 @@ import PianoRollWrapper from './PianoRollWrapper';
 import PianoKeys from './PianoKeys';
 import Link from './Link';
 import {bindAll, omit, includes, identity, remove} from 'lodash';
+import {findIndex, filter, concat} from 'lodash';
 
 import VideoClipStore from './VideoClipStore';
 import {startRecording} from './RecordingStore';
@@ -37,6 +38,8 @@ import colors from './colors';
 import {findParentNode} from './domutils';
 import {playCommands$ as midiPlayCommands$} from './midi';
 import {playCommands$ as keyboardPlayCommands$} from './keyboard';
+
+import {songs} from './song';
 
 
 const notes = [
@@ -94,19 +97,53 @@ function SongPlaybackButton(props) {
 }
 
 
+function reduceEditsToSong(song, edit) {
+  function matcher(edit, note) {
+    return note[0] === edit.note && note[1] === edit.beat;
+  }
+
+  switch(edit.action) {
+    case 'create':
+      return concat(song, [[edit.note, edit.beat, edit.duration]]);
+    case 'delete':
+      return filter(song, (note) => !matcher(edit, note));
+    case 'move':
+      const index = findIndex(song, matcher.bind(null, edit.from));
+      if (index !== -1) {
+        const oldDuration = song[index][2];
+        return concat(
+          filter(song, (v, i) => i !== index), // remove old note
+          [[edit.to.note, edit.to.beat, oldDuration]] // add new note
+        );
+      } else {
+        return song;
+      }
+    default:
+      return song;
+  }
+}
+
+
 export default class Instrument extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'onClear', 'onTouchStart', 'onClickPlay');
+    bindAll(this, 'onClear', 'onTouchStart', 'onClickPlay', 'bindPianoRoll');
 
     this.state = {
       recording: null,
-      playing: {}
+      playing: {},
+      currentSong: [],
     };
   }
 
   componentWillUnmount() {
     this.subscription.unsubscribe();
+  }
+
+  bindPianoRoll(component) {
+    component.edits$
+      .scan(reduceEditsToSong, [])
+      .subscribe((v) => this.setState({currentSong: v}));
   }
 
   onStartPlayback(note) {
@@ -255,9 +292,15 @@ export default class Instrument extends React.Component {
     }
 
     if (this.state.songId !== songId) {
-      const playback = startPlayback(songId, this.pauseActions$.take(1));
-      this.setState({songId: songId});
-      playback.finished.then(() => this.setState({songId: null}));
+      const song = (songId === 'current' ? this.state.currentSong : songs[songId]);
+      const playback = startPlayback(song, this.pauseActions$.take(1));
+
+      this.setState({
+        songId: songId,
+        playbackPosition$: playback.position
+      });
+
+      playback.finished.then(() => this.setState({songId: null, playbackPosition$: null}));
     }
   }
 
@@ -270,7 +313,11 @@ export default class Instrument extends React.Component {
         }
         </TouchableArea>
 
-        <PianoRollWrapper />
+        <PianoRollWrapper
+          notes={this.state.currentSong}
+          ref={this.bindPianoRoll}
+          playbackPosition$={this.state.playbackPosition$}
+          onClickPlay={this.onClickPlay.bind(this, 'current')} />
 
         <SongPlaybackButton
             isPlaying={this.state.songId === 'happy-birthday'}

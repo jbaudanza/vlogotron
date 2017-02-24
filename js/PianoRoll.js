@@ -150,14 +150,17 @@ export default class PianoRoll extends React.Component {
   }
 
   bindPlayhead(el) {
-    this.subscription = this.props.playbackPosition$.subscribe((position) => {
-      if (position == null) {
-        el.style.display = 'none';
-      } else {
+    if (el) {
+      this.subscription = this.props.playbackPosition$.subscribe((position) => {
         el.style.left = (cellWidth * 4 * position) + 'px';
         el.style.display = 'block';
+      });
+    } else {
+      if (this.subscription) {
+        this.subscription.unsubscribe();
+        delete this.subscription;
       }
-    });
+    }
   }
 
   componentWillUnmount() {
@@ -226,7 +229,9 @@ export default class PianoRoll extends React.Component {
             ))
           }
           </div>
-          <div className='playhead' ref={this.bindPlayhead} />
+          {
+            this.props.playbackPosition$ ? (<div className='playhead' ref={this.bindPlayhead} />) : null
+          }
         </TouchableArea>
       </div>
     );
@@ -234,6 +239,6 @@ export default class PianoRoll extends React.Component {
 }
 
 PianoRoll.propTypes = {
-  playbackPosition$: React.PropTypes.object.isRequired,
-  cellsPerBeat:      React.PropTypes.number.isRequired
+  cellsPerBeat:      React.PropTypes.number.isRequired,
+  playbackPosition$: React.PropTypes.object
 }

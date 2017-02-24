@@ -9,7 +9,6 @@ import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {animationFrame} from 'rxjs/scheduler/animationFrame';
 
 import {playbackSchedule} from './playbackSchedule';
-import {songs} from './song';
 
 import 'rxjs/add/operator/scan';
 import 'rxjs/add/operator/concat';
@@ -387,9 +386,8 @@ function beatsToTimestamp(beats, bpm) {
 export const playCommands$ = new Subject();
 
 
-export function startPlayback(songId, playUntil$) {
+export function startPlayback(song, playUntil$) {
   const bpm = 120;
-  const song = songs[songId];
 
   const playbackStartedAt = audioContext.currentTime + 0.125;
 
@@ -459,7 +457,7 @@ export function startPlayback(songId, playUntil$) {
         }
       });
 
-  const progress$ = Observable
+  const position$ = Observable
       .of(0, animationFrame)
       .repeat()
       .map(() => timestampToBeats(audioContext.currentTime - playbackStartedAt, bpm))
@@ -467,7 +465,7 @@ export function startPlayback(songId, playUntil$) {
       .takeUntil(playUntil$);
 
   return {
-    progress: progress$,
+    position: position$,
     finished: Observable.merge(
         playUntil$,
         Observable.of(1).delay(beatsToTimestamp(songLengthInBeats, bpm) * 1000
