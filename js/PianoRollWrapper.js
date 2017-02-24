@@ -60,7 +60,12 @@ export default class PianoRollWrapper extends React.Component {
     return (
       <div>
         <div>
-          <Button onClick={this.props.onClickPlay} icon={playIcon}>play</Button>
+          <Button
+              onClick={this.props.onClickPlay}
+              disabled={this.props.notes.length === 0}
+              icon={playIcon}>
+            play
+          </Button>
           <InputNumber prefix={<Icon type='clock-circle-o' />} defaultValue={120} />
           <Select
               value={String(this.state.cellsPerBeat)}

@@ -81,14 +81,14 @@ function stylesForNote(note) {
 function mapElementToBeat(el) {
   if (isEmptyCell(el)) {
     return {
-      beat: el.dataset.beat,
+      beat: parseFloat(el.dataset.beat),
       note: el.parentNode.dataset.note
     };
   }
 
   if (isNoteCell(el)) {
     return {
-      beat: el.dataset.beat,
+      beat: parseFloat(el.dataset.beat),
       note: el.dataset.note
     };
   }
@@ -105,12 +105,11 @@ function isNoteCell(el) {
 
 class Grid extends React.PureComponent {
   render() {
-    console.log('render grid');
     return (
       <div>
         {
           flatten(
-            range(5, 2, -1).map(octave => (
+            range(5, 3, -1).map(octave => (
               flatten(
                 keys.map(([note, sharp], i) => {
                   const rowProps = {
