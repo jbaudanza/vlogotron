@@ -102,7 +102,55 @@ function isNoteCell(el) {
   return el && el.classList.contains('note')
 }
 
-export default class PianoRoll extends React.Component {
+
+class Grid extends React.PureComponent {
+  render() {
+    console.log('render grid');
+    return (
+      <div>
+        {
+          flatten(
+            range(5, 2, -1).map(octave => (
+              flatten(
+                keys.map(([note, sharp], i) => {
+                  const rowProps = {
+                    cellsPerBeat: this.props.cellsPerBeat,
+                    octave: octave
+                  };
+
+                  const white = (
+                    <Row
+                      color="white"
+                      {...rowProps}
+                      key={note + octave}
+                      note={note + octave} />
+                  );
+
+                  if (sharp) {
+                    const black = (
+                      <Row
+                        color='black'
+                        {...rowProps}
+                        key={note + '#' + octave}
+                        note={note + '#' + octave} />
+                    );
+
+                    return [black, white];
+                  } else {
+                    return [white];
+                  }
+                })
+              ))
+            )
+          )
+        }
+      </div>
+    );
+  }
+}
+
+
+export default class PianoRoll extends React.PureComponent {
   constructor() {
     super();
     bindAll(this, 'bindPlayhead', 'bindTouchableArea');
@@ -180,44 +228,7 @@ export default class PianoRoll extends React.Component {
           ))}
         </div>
         <TouchableArea className='note-wrapper' ref={this.bindTouchableArea}>
-          <div>
-            {
-              flatten(
-                range(5, 2, -1).map(octave => (
-                  flatten(
-                    keys.map(([note, sharp], i) => {
-                      const rowProps = {
-                        cellsPerBeat: this.props.cellsPerBeat,
-                        octave: octave
-                      };
-
-                      const white = (
-                        <Row
-                          color="white"
-                          {...rowProps}
-                          key={note + octave}
-                          note={note + octave} />
-                      );
-
-                      if (sharp) {
-                        const black = (
-                          <Row
-                            color='black'
-                            {...rowProps}
-                            key={note + '#' + octave}
-                            note={note + '#' + octave} />
-                        );
-
-                        return [black, white];
-                      } else {
-                        return [white];
-                      }
-                    })
-                  ))
-                )
-              )
-            }
-          </div>
+          <Grid cellsPerBeat={this.props.cellsPerBeat} />
           <div>
           {
             this.props.notes.map((note, i) => (
@@ -239,6 +250,7 @@ export default class PianoRoll extends React.Component {
 }
 
 PianoRoll.propTypes = {
+  notes:             React.PropTypes.array.isRequired,
   cellsPerBeat:      React.PropTypes.number.isRequired,
   playbackPosition$: React.PropTypes.object
 }
