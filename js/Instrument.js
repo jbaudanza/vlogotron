@@ -304,6 +304,7 @@ export default class Instrument extends React.Component {
         <PianoRollWrapper
           notes={this.state.currentSong}
           ref={this.bindPianoRoll}
+          playing={this.state.playing}
           playbackPosition$={this.state.playbackPosition$}
           onClickPlay={this.onClickPlay.bind(this, 'current')} />
 

@@ -425,6 +425,11 @@ ul.piano-keys {
       height: 15px;
   }
 
+  .note-label.playing {
+    color: $active-color;
+    font-weight: bold;
+  }
+
   .cell {
     display: inline-block;
     box-sizing: border-box;

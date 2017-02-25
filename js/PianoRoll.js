@@ -188,7 +188,7 @@ function songLength(song) {
   return max(song.map(note => note[1] + note[2])) || 0;
 }
 
-export default class PianoRoll extends React.PureComponent {
+export default class PianoRoll extends React.Component {
   constructor() {
     super();
     bindAll(this, 'bindPlayhead', 'bindTouchableArea');
@@ -263,7 +263,10 @@ export default class PianoRoll extends React.PureComponent {
         <div className='row-labels'>
         {
           mapAllKeys((props) => (
-            <NoteLabel note={noteToString(props)} key={noteToString(props)} />
+            <NoteLabel
+              className={this.props.playing[noteToString(props)] ? 'playing' : null}
+              note={noteToString(props)}
+              key={noteToString(props)} />
           ))
         }
         </div>
@@ -301,5 +304,6 @@ export default class PianoRoll extends React.PureComponent {
 PianoRoll.propTypes = {
   notes:             React.PropTypes.array.isRequired,
   cellsPerBeat:      React.PropTypes.number.isRequired,
+  playing:           React.PropTypes.object.isRequired,
   playbackPosition$: React.PropTypes.object
 }
