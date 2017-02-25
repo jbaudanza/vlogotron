@@ -2,6 +2,7 @@ import React from 'react';
 import classNames from 'classnames';
 
 import TouchableArea from './TouchableArea';
+import NoteLabel from './NoteLabel';
 
 import {range, flatten, bindAll, identity, isEqual, max} from 'lodash';
 
@@ -45,13 +46,24 @@ function Row(props) {
 
   return (
     <div className={className} data-note={props.note}>
-    {
-      range(0, props.totalBeats*cellsPerBeat).map(i => (
-        <div className='cell touchable' key={i} data-beat={i/cellsPerBeat} />
-      ))
-    }
+      {
+        range(0, props.totalBeats*cellsPerBeat).map(i => (
+          <div className='cell touchable' key={i} data-beat={i/cellsPerBeat} />
+        ))
+      }
     </div>
   );
+}
+
+function noteToString(props) {
+  let str = props.note;
+  if (props.sharp) {
+    str += '#';
+  }
+  if (props.octave) {
+    str += props.octave;
+  }
+  return str;
 }
 
 const cellHeight = 15;
@@ -97,36 +109,60 @@ function isNoteCell(el) {
 }
 
 
+function mapKeys(octave, keys, fn) {
+  return flatten(
+    keys.map(([note, sharp], i) => fn(note, sharp, octave, i)
+  ));
+}
+
+function mapAllKeys(iter) {
+
+  function fn(note, sharp, octave) {
+    let list = [
+      iter(noteToString({note, octave, sharp: false}), false)
+    ];
+
+    if (sharp) {
+      return list.concat(iter(noteToString({note, octave, sharp: true}), true));
+    } else {
+      return list;
+    }
+  }
+
+  return flatten([
+    flatten(mapKeys(5, keys.slice(-2), fn)),
+    flatten(mapKeys(4, keys, fn))
+  ]);
+}
+
 function RowSet(cellsPerBeat, totalBeats, octave, keys) {
   const rowProps = {
       cellsPerBeat: cellsPerBeat, octave: octave, totalBeats: totalBeats
   };
 
-  return flatten(
-    keys.map(([note, sharp], i) => {
-      const white = (
+  return mapKeys(octave, keys, (note, sharp, octave) => {
+    const white = (
+      <Row
+        color="white"
+        {...rowProps}
+        key={note + octave}
+        note={note + octave} />
+    );
+
+    if (sharp) {
+      const black = (
         <Row
-          color="white"
+          color='black'
           {...rowProps}
-          key={note + octave}
-          note={note + octave} />
+          key={note + '#' + octave}
+          note={note + '#' + octave} />
       );
 
-      if (sharp) {
-        const black = (
-          <Row
-            color='black'
-            {...rowProps}
-            key={note + '#' + octave}
-            note={note + '#' + octave} />
-        );
-
-        return [black, white];
-      } else {
-        return [white];
-      }
-    })
-  );
+      return [black, white];
+    } else {
+      return [white];
+    }
+  });
 }
 
 
@@ -218,35 +254,42 @@ export default class PianoRoll extends React.PureComponent {
 
   render() {
     const totalBeats = Math.floor(songLength(this.props.notes) + 8);
-    console.log('notes', this.props.notes);
-    console.log(totalBeats);
 
     return (
       <div className='piano-roll'>
-        <div className='timeline'>
-          {range(0, totalBeats).map(i => (
-            <div className='time-marker' key={i}>
-              {i}
-            </div>
-          ))}
+        <div className='row-labels'>
+        {
+          mapAllKeys((note) => (
+            <NoteLabel note={note} key={note} />
+          ))
+        }
         </div>
-        <TouchableArea className='note-wrapper' ref={this.bindTouchableArea}>
-          <Grid cellsPerBeat={this.props.cellsPerBeat} totalBeats={totalBeats} />
-          <div>
-          {
-            this.props.notes.map((note, i) => (
-              <div className='note touchable'
-                  key={i}
-                  data-note={note[0]}
-                  data-beat={note[1]}
-                  style={stylesForNote(note)} />
-            ))
-          }
+        <div className='horizontal-scroller'>
+          <div className='timeline'>
+            {range(0, totalBeats).map(i => (
+              <div className='time-marker' key={i}>
+                {i}
+              </div>
+            ))}
           </div>
-          {
-            this.props.playbackPosition$ ? (<div className='playhead' ref={this.bindPlayhead} />) : null
-          }
-        </TouchableArea>
+          <TouchableArea className='note-wrapper' ref={this.bindTouchableArea}>
+            <Grid cellsPerBeat={this.props.cellsPerBeat} totalBeats={totalBeats} />
+            <div>
+            {
+              this.props.notes.map((note, i) => (
+                <div className='note touchable'
+                    key={i}
+                    data-note={note[0]}
+                    data-beat={note[1]}
+                    style={stylesForNote(note)} />
+              ))
+            }
+            </div>
+            {
+              this.props.playbackPosition$ ? (<div className='playhead' ref={this.bindPlayhead} />) : null
+            }
+          </TouchableArea>
+        </div>
       </div>
     );
   }

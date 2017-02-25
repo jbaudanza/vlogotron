@@ -366,8 +366,12 @@ ul.piano-keys {
 }
 
 .piano-roll {
-  overflow-x: auto;
-  position: relative;
+  display: flex;
+
+  .horizontal-scroller {
+    overflow-x: auto;
+    position: relative;
+  }
 
   .timeline, .row {
     white-space: nowrap;
@@ -379,6 +383,12 @@ ul.piano-keys {
     display: inline-block;
     width: $beat-width;
     color: #eee;
+  }
+
+  .row-labels {
+    font-size: 75%;
+    margin-top: 18px;
+    width: $beat-width / 4;
   }
 
   .black .cell {
@@ -410,14 +420,17 @@ ul.piano-keys {
   @include define-cell-width(8);
   @include define-cell-width(16);
 
+  .cell, .note-label {
+      height: 15px;
+  }
+
   .cell {
+    display: inline-block;
     box-sizing: border-box;
     cursor: pointer;
-    height: 15px;
     border: 1px solid #ccc;
     border-left: none;
     border-top: none;
-    display: inline-block;
   }
 
   .note {

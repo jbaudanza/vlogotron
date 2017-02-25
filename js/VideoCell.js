@@ -5,23 +5,9 @@ import {bindAll} from 'lodash';
 import classNames from 'classnames';
 import colors from './colors'
 import Link from './Link';
+import NoteLabel from './NoteLabel';
+
 import {findWrappingLink} from './domutils';
-
-
-function NoteLabel(props) {
-  const match = props.note.match(/([A-Z])([#b])?(\d)/)
-  if (match) {
-    return (
-      <div className='note-label'>
-        {match[1]}
-        {match[2] ? (<sup>{match[2]}</sup>) : null}
-        <sub>{match[3]}</sub>
-      </div>
-    );
-  } else {
-    return null;
-  }
-}
 
 
 export default class VideoCell extends React.Component {
