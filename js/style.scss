@@ -388,7 +388,8 @@ ul.piano-keys {
   .row-labels {
     font-size: 75%;
     margin-top: 18px;
-    width: $beat-width / 4;
+    min-width: $beat-width / 6;
+    flex-shrink: 0;
   }
 
   .black .cell {

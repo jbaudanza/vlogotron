@@ -118,14 +118,13 @@ function mapKeys(octave, keys, fn) {
 function mapAllKeys(iter) {
 
   function fn(note, sharp, octave) {
-    let list = [
-      iter(noteToString({note, octave, sharp: false}), false)
-    ];
+    const white = iter({note, octave, sharp: false})
 
     if (sharp) {
-      return list.concat(iter(noteToString({note, octave, sharp: true}), true));
+      const black = iter({note, octave, sharp: true});
+      return [black, white];
     } else {
-      return list;
+      return [white];
     }
   }
 
@@ -171,10 +170,14 @@ class Grid extends React.PureComponent {
     return (
       <div>
       {
-        flatten([
-          RowSet(this.props.cellsPerBeat, this.props.totalBeats, 5, keys.slice(-2)),
-          RowSet(this.props.cellsPerBeat, this.props.totalBeats, 4, keys)
-        ])
+        mapAllKeys((props) => (
+          <Row
+              color={props.sharp ? 'black': 'white'}
+              cellsPerBeat={this.props.cellsPerBeat}
+              totalBeats={this.props.totalBeats}
+              key={noteToString(props)}
+              note={noteToString(props)} />
+        ))
       }
       </div>
     );
@@ -259,8 +262,8 @@ export default class PianoRoll extends React.PureComponent {
       <div className='piano-roll'>
         <div className='row-labels'>
         {
-          mapAllKeys((note) => (
-            <NoteLabel note={note} key={note} />
+          mapAllKeys((props) => (
+            <NoteLabel note={noteToString(props)} key={noteToString(props)} />
           ))
         }
         </div>
