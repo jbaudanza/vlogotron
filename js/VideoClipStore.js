@@ -1,5 +1,5 @@
 import {
-  pickBy, includes, identity, omit, without, mapValues, flatten, max
+  pickBy, includes, identity, omit, without, mapValues, flatten, max, clone, forEach
 } from 'lodash';
 
 import {Observable} from 'rxjs/Observable';
@@ -101,13 +101,15 @@ const refs$ = currentRoute$
   });
 
 
-function reduceEventSnapshotToActiveClipIds(snapshot) {
+function mapEventSnapshotToActiveClipIds(snapshot) {
   const uploadedNotes = {};
   const transcodedClips = [];
 
   snapshot.forEach(function(child) {
     const event = child.val();
     let note = event.note;
+
+    // All new notes should have an octave. Some legacy ones don't
     if (event.note && !note.match(/\d$/)) {
       note += '4';
     }
@@ -132,34 +134,60 @@ function reduceEventSnapshotToActiveClipIds(snapshot) {
 const formats = ['webm', 'mp4', 'ogv'];
 
 
+// TODO: The problem with this is it calls getDownloadUrl() for every URL
+// everytime one of them changes. And worse, it resets everything to an
+// empty {} while it's waiting.
 function mapClipIdsToRemoteUrls(clipIds, ref) {
-  function urlFor(clipId, suffix) {
-    return ref.child(clipId + suffix).getDownloadURL()
-  }
   return Observable.fromPromise(
     promiseFromTemplate(
-      mapValues(clipIds, clipId => ({
-        clipId: clipId,
-        sources: formats.map(format => ({
-          src: urlFor(clipId, '.' + format),
-          type: "video/" + format
-        })),
-        poster: urlFor(clipId, '.png'),
-        audioUrl: urlFor(clipId, '-audio.mp4')
-      }))
+      mapValues(clipIds, mapClipIdToPromise.bind(null, ref))
     )
   ).startWith({}); // Empty set while resolving URLs.
 }
 
 
+function mapClipIdToPromise(ref, clipId) {
+  function urlFor(clipId, suffix) {
+    return ref.child(clipId + suffix).getDownloadURL()
+  }
+
+  return promiseFromTemplate({
+    clipId: clipId,
+    sources: formats.map(format => ({
+      src: urlFor(clipId, '.' + format),
+      type: "video/" + format
+    })),
+    poster: urlFor(clipId, '.png'),
+    audioUrl: urlFor(clipId, '-audio.mp4')
+  });
+}
+
+function reduceClipIdsToPromises(ref, acc, clipIds) {
+  const next = {
+    exists: clone(acc.exists), promises: []
+  };
+
+  forEach(clipIds, (clipId, note) => {
+    if (!(clipId in next.exists)) {
+      next.promises.push(
+        mapClipIdToPromise(ref, clipId)
+            .then((result) => ({[note]: result}))
+      );
+      next.exists[clipId] = true;
+    }
+  });
+
+  return next;
+}
+
 function reduceToRemoteUrls(refs) {
   if (refs) {
     return Observable
         .fromEvent(refs.events.orderByKey(), 'value')
-        .map(reduceEventSnapshotToActiveClipIds)
-        .switchMap(activeClipIds => (
-          mapClipIdsToRemoteUrls(activeClipIds, refs.videos)
-        ));
+        .map(mapEventSnapshotToActiveClipIds)
+        .scan(reduceClipIdsToPromises.bind(null, refs.videos), {exists: {}})
+        .mergeMap((obj) => Observable.merge(...obj.promises))
+        .scan((acc, obj) => Object.assign({}, acc, obj), {});
   } else {
     return Promise.resolve({});
   }
