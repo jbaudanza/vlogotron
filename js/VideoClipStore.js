@@ -134,18 +134,6 @@ function mapEventSnapshotToActiveClipIds(snapshot) {
 const formats = ['webm', 'mp4', 'ogv'];
 
 
-// TODO: The problem with this is it calls getDownloadUrl() for every URL
-// everytime one of them changes. And worse, it resets everything to an
-// empty {} while it's waiting.
-function mapClipIdsToRemoteUrls(clipIds, ref) {
-  return Observable.fromPromise(
-    promiseFromTemplate(
-      mapValues(clipIds, mapClipIdToPromise.bind(null, ref))
-    )
-  ).startWith({}); // Empty set while resolving URLs.
-}
-
-
 function mapClipIdToPromise(ref, clipId) {
   function urlFor(clipId, suffix) {
     return ref.child(clipId + suffix).getDownloadURL()
@@ -260,11 +248,30 @@ const localAudioBuffers$ = currentRoute$.switchMap(function(route) {
   }
 });
 
+function reduceToAudioBuffers(acc, noteToUrlMap) {
+  const next = {
+    exists: clone(acc.exists),
+    promises: []
+  };
+
+  forEach(noteToUrlMap, (url, note) => {
+    if (!next.exists[url]) {
+      next.promises.push(
+        getAudioBuffer(url, progress).then(buffer => ({[note]: buffer}))
+      );
+      next.exists[url] = true
+    }
+  });
+
+  return next;
+}
+
+// Looks like { [note]: [audioBuffer], ... }
 const remoteAudioBuffers$ = remoteUrls$
-  .map(o => mapValues(o, v => v.audioUrl))
-  .switchMap((o) => (
-    promiseFromTemplate(mapValues(o, (url) => getAudioBuffer(url, progress)))
-  ));
+  .map(o => mapValues(o, v => v.audioUrl)) // { [note]: [url], ... }
+  .scan(reduceToAudioBuffers, {exists: {}})
+  .mergeMap((obj) => Observable.merge(...obj.promises))
+  .scan((acc, obj) => Object.assign({}, acc, obj), {});
 
 const audioBuffers$ = Observable.combineLatest(
   localAudioBuffers$,
