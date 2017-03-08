@@ -1,5 +1,6 @@
 import {
-  pickBy, includes, identity, omit, without, mapValues, flatten, max, clone, forEach
+  pick, pickBy, includes, identity, omit, without, mapValues, flatten, max,
+  clone, forEach, values, sum
 } from 'lodash';
 
 import {Observable} from 'rxjs/Observable';
@@ -168,7 +169,7 @@ function reduceClipIdsToPromises(ref, acc, clipIds) {
   return next;
 }
 
-function reduceToRemoteUrls(refs) {
+function mapRefsToRemoteUrls(refs) {
   if (refs) {
     return Observable
         .fromEvent(refs.events.orderByKey(), 'value')
@@ -191,9 +192,7 @@ function reduceToRemoteUrls(refs) {
     }
   }
 */
-const remoteUrls$ = refs$.switchMap(reduceToRemoteUrls).startWith({});
-
-const progress = new Subject();
+const remoteUrls$ = refs$.switchMap(mapRefsToRemoteUrls).startWith({});
 
 // XXX: left off here. Come up with a data structure to expose to the UI that
 // communicates loading progress
@@ -208,13 +207,39 @@ function getArrayBuffer(url) {
   xhr.open("GET", url, true);
   xhr.responseType = "arraybuffer";
 
-  //xhr.onprogress = (e) => console.log('progress', e)
-  xhr.send(null);
-
-  return new Promise(function(resolve, reject) {
+  const response = new Promise((resolve, reject) => {
     xhr.onload = function(event) { resolve(xhr.response); }
     xhr.onerror = reject;
   });
+
+  const contentLengthFromResponse = response.then((ab) => ab.byteLength);
+
+  function getContentLength() {
+    const header = xhr.getResponseHeader('Content-Length');
+    if (header != null) {
+      return parseInt(header);
+    } else {
+      return null;
+    }
+  }
+
+  const contentLength = Observable
+      .fromEvent(xhr, 'readystatechange')
+      .takeWhile(e => e.target.readyState < 2) // 2 = XMLHttpRequest.HEADERS_RECEIVED
+      .toPromise()
+      .then(getContentLength);
+
+  const progress = Observable.fromEvent(xhr, 'progress')
+      .takeUntil(response);
+
+  const loaded = Observable.merge(
+    progress.filter(e => e.lengthComputable).map(e => e.loaded),
+    contentLengthFromResponse
+  );
+
+  xhr.send(null);
+
+  return {progress, response, contentLength, loaded};
 }
 
 
@@ -225,7 +250,9 @@ function decodeAudioData(arraybuffer) {
 }
 
 function getAudioBuffer(url, progressSubscriber) {
-  return getArrayBuffer(url).then(decodeAudioData);
+  const http = getArrayBuffer(url);
+  http.audioBuffer = http.response.then(decodeAudioData);
+  return http;
 }
 
 // Audio buffers will be pushed here as they are recorded.
@@ -250,27 +277,73 @@ const localAudioBuffers$ = currentRoute$.switchMap(function(route) {
 
 function reduceToAudioBuffers(acc, noteToUrlMap) {
   const next = {
-    exists: clone(acc.exists),
-    promises: []
+    httpMap: clone(acc.httpMap || {}),
+    promises: [],
+    progressList: [],
+    newUrls: []
   };
 
   forEach(noteToUrlMap, (url, note) => {
-    if (!next.exists[url]) {
+    if (!next.httpMap[url]) {
+      const http = getAudioBuffer(url);
+
       next.promises.push(
-        getAudioBuffer(url, progress).then(buffer => ({[note]: buffer}))
+        http.audioBuffer.then(buffer => ({[note]: buffer}))
       );
-      next.exists[url] = true
+      next.progressList.push(http.progress);
+      next.newUrls.push(url);
+
+      next.httpMap[url] = http;
     }
   });
+
+  next.active = values(noteToUrlMap)
+      .map(url => next.httpMap[url])
+      .filter(identity)
 
   return next;
 }
 
-// Looks like { [note]: [audioBuffer], ... }
-const remoteAudioBuffers$ = remoteUrls$
+const loadingContext$ = remoteUrls$
   .map(o => mapValues(o, v => v.audioUrl)) // { [note]: [url], ... }
-  .scan(reduceToAudioBuffers, {exists: {}})
-  .mergeMap((obj) => Observable.merge(...obj.promises))
+  .scan(reduceToAudioBuffers, {});
+
+
+const http$ = loadingContext$
+  .flatMap(c => (
+    Observable.from(values(pick(c.httpMap, c.newUrls)))
+  ));
+
+
+const loaded$ = http$
+  .scan((acc, http) => acc.concat(http), [])
+  .switchMap((list) => Observable.combineLatest(
+    list.map(http => http.loaded)
+  ))
+  .map(sum)
+  .startWith(0);
+
+const total$ = http$
+  .flatMap(http => http.contentLength)
+  .scan((i, j) => i + j, 0);
+
+
+// XXX: Left off here. Why is the loaded greater than the total sometimes?
+//  - Maybe the progressEvent fires before the content-length header is ready
+const progress$ = Observable.combineLatest(loaded$, total$, (loaded, total) => loaded / total);
+
+progress$.subscribe(x => console.log(x))
+
+
+// High-order observable of progress event streams from all the audio buffer
+// downloads currently in progress.
+const progressStreams$ = loadingContext$.flatMap(x => Observable.from(x.progressList));
+
+
+
+// Looks like { [note]: [audioBuffer], ... }
+const remoteAudioBuffers$ = loadingContext$
+  .mergeMap(obj => Observable.merge(...obj.promises))
   .scan((acc, obj) => Object.assign({}, acc, obj), {});
 
 const audioBuffers$ = Observable.combineLatest(
