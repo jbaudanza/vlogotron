@@ -1,6 +1,6 @@
 import {
   pick, pickBy, includes, identity, omit, without, mapValues, flatten, max,
-  clone, forEach, values, sum
+  clone, forEach, values, sum, isEmpty
 } from 'lodash';
 
 import {Observable} from 'rxjs/Observable';
@@ -332,8 +332,6 @@ const total$ = http$
 //  - Maybe the progressEvent fires before the content-length header is ready
 const progress$ = Observable.combineLatest(loaded$, total$, (loaded, total) => loaded / total);
 
-progress$.subscribe(x => console.log(x))
-
 
 // High-order observable of progress event streams from all the audio buffer
 // downloads currently in progress.
@@ -345,6 +343,12 @@ const progressStreams$ = loadingContext$.flatMap(x => Observable.from(x.progress
 const remoteAudioBuffers$ = loadingContext$
   .mergeMap(obj => Observable.merge(...obj.promises))
   .scan((acc, obj) => Object.assign({}, acc, obj), {});
+
+export const audioLoading$ = http$
+    .flatMap((http) => Observable.of(+1).concat(http.response.then(r => -1)))
+    .scan((i, j) => i + j, 0)
+    .map((count) => count > 0)
+    .startWith(true);
 
 const audioBuffers$ = Observable.combineLatest(
   localAudioBuffers$,

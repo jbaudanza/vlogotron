@@ -6,6 +6,8 @@ import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {Subscription} from 'rxjs/Subscription';
 
+import Spin from 'antd/lib/spin';
+import 'antd/lib/spin/style/css';
 
 import TouchableArea from './TouchableArea';
 import PianoRollWrapper from './PianoRollWrapper';
@@ -18,7 +20,7 @@ import VideoClipStore from './VideoClipStore';
 import {startRecording} from './RecordingStore';
 import {subscribeToAudioPlayback} from './VideoClipStore';
 import {playCommands$ as scriptedPlayCommands$} from './VideoClipStore';
-import {startPlayback} from './VideoClipStore';
+import {startPlayback, audioLoading$} from './VideoClipStore';
 
 import VideoCell from './VideoCell';
 
@@ -193,6 +195,10 @@ export default class Instrument extends React.Component {
     this.subscription.add(this.videoClipStore.videoClips$.subscribe((obj) => {
       this.setState({videoClips: obj})
     }));
+
+    this.subscription.add(audioLoading$.subscribe((value) => {
+      this.setState({loading: value})
+    }));
   }
 
   onClear(note) {
@@ -294,12 +300,14 @@ export default class Instrument extends React.Component {
 
   render() {
     return (
-      <div>
-        <TouchableArea className='video-container' onTouchStart={this.onTouchStart}>
-        {
-          notes.map((note) => <VideoCell key={note} {...this.propsForCell(note)} />)
-        }
-        </TouchableArea>
+      <div className='instrument'>
+        <Spin tip="Loading" size="large" spinning={this.state.loading}>
+          <TouchableArea className='video-container' onTouchStart={this.onTouchStart}>
+          {
+            notes.map((note) => <VideoCell key={note} {...this.propsForCell(note)} />)
+          }
+          </TouchableArea>
+        </Spin>
 
         <PianoRollWrapper
           notes={this.state.currentSong}
