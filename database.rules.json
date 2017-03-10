@@ -11,13 +11,6 @@
         ".read": true,
         ".write": "$uid === auth.uid"
       }
-    },
-    "queue": {
-      "tasks": {
-        ".read": true,
-        ".write": true,
-        ".indexOn": "_state"
-      }
     }
   }
 }

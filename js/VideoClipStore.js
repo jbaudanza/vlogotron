@@ -356,8 +356,6 @@ const audioBuffers$ = Observable.combineLatest(
   (local, remote) => Object.assign({}, local, remote)
 ).publishReplay().refCount();
 
-const queue = firebase.database().ref('queue/tasks');
-
 function refsForUids(uid) {
   return {
     events:   firebase.database().ref('video-clip-events').child(uid),
@@ -403,13 +401,6 @@ export default class VideoClipStore {
 
       task.then(function() {
         refs.events.push({type: 'uploaded', clipId: change.clipId, note: change.note});
-
-        queue.push({
-          note:   change.note,
-          clipId: change.clipId,
-          uid:    refs.uid
-        });
-
         uploadTasks.next(without(uploadTasks._value, task))
       });
     });
