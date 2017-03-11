@@ -4,10 +4,7 @@ import {Observable} from 'rxjs/Observable';
 import {times, sample} from 'lodash';
 
 import encodeWavSync from './encodeWavSync';
-
-
-// TODO: This is duplicated in VideoClipStore
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+import audioContext from './audioContext';
 
 export function startRecording(note, stop$) {
   const countdownSubject = new Subject();

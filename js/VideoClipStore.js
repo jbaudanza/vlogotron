@@ -11,9 +11,7 @@ import {animationFrame} from 'rxjs/scheduler/animationFrame';
 
 import {playbackSchedule} from './playbackSchedule';
 
-
-// TODO: This is duplicated in Instrument.js
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+import audioContext from './audioContext';
 
 
 import createHistory from 'history/createBrowserHistory';
@@ -484,10 +482,15 @@ export function startPlayback(song, playUntil$) {
     const startAt = playbackStartedAt + beatsToTimestamp(note[1], bpm);
     const stopAt =  startAt + beatsToTimestamp(note[2], bpm);
 
+    function makeEvent(obj, when) {
+      return Observable.of(
+        Object.assign({when}, obj)
+      ).delay((when - audioContext.currentTime) * 1000);
+    }
+
     return [
-      Observable.of({play: note[0]}).delay((startAt - audioContext.currentTime) * 1000),
-      Observable.of({pause: note[0]}).delay((stopAt - audioContext.currentTime) * 1000)
-    ]
+        makeEvent({play: note[0]}, startAt), makeEvent({pause: note[0]}, stopAt)
+    ];
   }))).mergeAll().takeUntil(playUntil$);
 
   commands$.subscribe((cmd) => playCommands$.next(cmd));

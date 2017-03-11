@@ -136,14 +136,34 @@ export default class Instrument extends React.Component {
       .subscribe((v) => this.setState({currentSong: v}));
   }
 
-  onStartPlayback(note) {
+  onStartPlayback(note, when) {
     const videoEl = document.getElementById('playback-' + note);
     if (videoEl) {
       videoEl.currentTime = 0;
+      const promise = videoEl.play();
 
-      // TODO: This returns a promise, and technically we shouldn't issue a
-      // pause until the promise resolves.
-      videoEl.play();
+      // Older version of FF don't return a promise
+      if (promise) {
+        promise.then(() => {
+          // Try to compensate for any delay in starting the video
+          if (when) {
+            const delta = this.context.audioContext.currentTime - when;
+            if (delta > 0) {
+              videoEl.currentTime = delta;
+            }
+          }
+        }).catch(function(e) {
+          // 20 = AbortError.
+          // This can happen if we try to pause playback before it starts. This
+          // can safely be ignored. It results in errors that look like:
+          //
+          //   The play() request was interrupted by a call to pause()
+          //
+          if (e.code !== 20) {
+            throw e;
+          }
+        });
+      }
     }
 
     this.state.playing[note] = true;
@@ -179,7 +199,7 @@ export default class Instrument extends React.Component {
 
     this.subscription.add(Observable.merge(mergedCommands$, scriptedPlayCommands$).subscribe((command) => {
       if (command.play) {
-        this.onStartPlayback(command.play);
+        this.onStartPlayback(command.play, command.when);
       }
       if (command.pause) {
         this.onStopPlayback(command.pause);
@@ -336,4 +356,8 @@ export default class Instrument extends React.Component {
 
 Instrument.propTypes = {
   readonly: React.PropTypes.bool
+};
+
+Instrument.contextTypes = {
+  audioContext: React.PropTypes.object
 };

@@ -9,6 +9,7 @@ import Router from './Router';
 import SvgAssets from './SvgAssets';
 
 import {navigate, currentRoute$} from './VideoClipStore';
+import audioContext from './audioContext';
 
 import './style.scss';
 
@@ -43,6 +44,10 @@ class App extends React.Component {
     firebase.auth().signOut();
   }
 
+  getChildContext() {
+    return {audioContext};
+  }
+
   render() {
     return (
       <div>
@@ -55,3 +60,7 @@ class App extends React.Component {
     );
   }
 }
+
+App.childContextTypes = {
+  audioContext: React.PropTypes.object
+};
