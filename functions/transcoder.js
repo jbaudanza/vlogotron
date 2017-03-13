@@ -39,13 +39,25 @@ function runTranscodeJob(bucketName, inputStorageName, database) {
       .then(() => waitForFileToExist(outputFilename + ".png"))
       .then(function() {
         console.log('Transcoding finished');
-        return Promise.all(['.webm', '.mp4', '.ogv', '.png', '-audio.mp4'].map(function(fmt) {
-          // TODO: Should we include a mime-type here?
-          // XXX: This is setting the wrong mime type (video/mp4) for the audio file
-          // Note that we don't want to specify any ACL here. Let it inherit
-          // the default bucket ACL that is set by firebase
-          return bucket.upload(outputFilename + fmt, {
-              destination: outputStorageName + fmt
+        const extensions = ['.webm', '.mp4', '.ogv', '.png', '-audio.mp4'];
+
+        return Promise.all(extensions.map(function(fmt) {
+          const localFilename = outputFilename + fmt;
+          const options = { destination: outputStorageName + fmt };
+
+          if (fmt === '-audio.mp4') {
+            options.metadata = { contentType: 'audio/mp4' };
+          }
+
+          return bucket.upload(localFilename, options).then(() => {
+            // The unlink is done asynchronously, and there's no need to wait
+            // for it to finish. Also, errors aren't really important other
+            // than logging.
+            fs.unlink(localFilename, function(err) {
+              if (err) {
+                console.warn('Error unlinking', localFilename, err)
+              }
+            });
           });
         }));
       })
@@ -79,7 +91,6 @@ function waitForFileToExist(filename) {
 function transcode(inputFilename, outputDirectory, baseFilename) {
   const fullPath = path.join(outputDirectory, baseFilename);
 
-  // TODO: Eventually the video clips shouldn't contain audio
   return new Promise((resolve, reject) => {
     ffmpeg(inputFilename)
       .output(fullPath + '-audio.mp4')
@@ -87,19 +98,24 @@ function transcode(inputFilename, outputDirectory, baseFilename) {
       .noVideo()
       .format('mp4')
 
+      // Note: I left the audio codecs comments out, in case we ever want them
+      // for some reason. For now, there's no need to keep audio in the videos
       .size('?x150')
       .output(fullPath + '.mp4')
-      .audioCodec('aac')
+      //.audioCodec('aac')
+      .noAudio()
       .videoCodec('libx264')
       .format('mp4')
 
       .output(fullPath +'.webm')
-      .audioCodec('libvorbis')
+      //.audioCodec('libvorbis')
+      .noAudio()
       .videoCodec('libvpx')
       .format('webm')
 
       .output(fullPath + '.ogv')
-      .audioCodec('libvorbis')
+      //.audioCodec('libvorbis')
+      .noAudio()
       .videoCodec('libtheora')
       .format('ogv')
 
