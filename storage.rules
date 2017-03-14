@@ -1,13 +1,13 @@
 service firebase.storage {
   match /b/vlogotron-95daf.appspot.com/o {
-    match /uploads {
-      match /{userId}/{allPaths=**} {
-        allow write: if request.auth.uid == userId;
-      }
-    }
     match /video-clips/{allPaths=**} {
       allow read
       allow write: if false
+    }
+  }
+  match /b/vlogotron-uploads/o {
+    match /video-clips/{userId}/{allPaths=**} {
+      allow write: if request.auth.uid == userId;
     }
   }
 }

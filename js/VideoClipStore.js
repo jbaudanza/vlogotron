@@ -358,7 +358,7 @@ function refsForUids(uid) {
   return {
     events:   firebase.database().ref('video-clip-events').child(uid),
     videos:   firebase.storage().ref('video-clips').child(uid),
-    uploads:  firebase.storage().ref('uploads').child(uid),
+    uploads:  firebase.storage().refFromURL('gs://vlogotron-uploads/video-clips').child(uid),
     uid:      uid
   };
 }

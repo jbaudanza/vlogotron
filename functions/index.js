@@ -5,11 +5,12 @@ const doTranscodeJob = require('./transcoder');
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
 
-exports.transcodeVideo = functions.storage.object().onChange(event => {
-  // TODO: We generating a lot of extra log entries for the storage events that
-  // don't match. Perhaps we should move uploads into their own bucket.
-  if (event.data.name.startsWith('uploads/') && 
-      event.data.resourceState === 'exists') {
-    return doTranscodeJob(event.data.bucket, event.data.name, admin.database());
+exports.transcodeVideo = functions.storage.bucket('vlogotron-uploads').object().onChange(event => {
+  if (event.data.resourceState === 'exists') {
+    if (event.data.name.startsWith('video-clips/')) {
+      return doTranscodeJob(event.data.bucket, event.data.name, admin.database());
+    } else {
+      console.warn('Received unexpected storage event on ', event.data.name);
+    }
   }
 });

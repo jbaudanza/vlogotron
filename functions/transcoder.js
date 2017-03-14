@@ -26,11 +26,12 @@ function runTranscodeJob(bucketName, inputStorageName, database) {
 
   jobCount++;
 
-  const bucket = gcs.bucket(bucketName);
+  const sourceBucket = gcs.bucket(bucketName);
+  const destinationBucket = gcs.bucket('vlogotron-95daf.appspot.com');
 
   const outputStorageName = 'video-clips/' + uid + '/' + clipId;
 
-  return bucket.file(inputStorageName)
+  return sourceBucket.file(inputStorageName)
     .download({destination: inputFilename})
       .then(() => transcode(inputFilename, tempDir, filenamePrefix))
       // This is kind of a hack. It seems like the ffmpeg process takes a little
@@ -49,7 +50,7 @@ function runTranscodeJob(bucketName, inputStorageName, database) {
             options.metadata = { contentType: 'audio/mp4' };
           }
 
-          return bucket.upload(localFilename, options).then(() => {
+          return destinationBucket.upload(localFilename, options).then(() => {
             // The unlink is done asynchronously, and there's no need to wait
             // for it to finish. Also, errors aren't really important other
             // than logging.
