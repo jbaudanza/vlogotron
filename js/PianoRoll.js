@@ -69,6 +69,10 @@ function noteToString(props) {
 const cellHeight = 15;
 const cellWidth = 30;
 
+function beatToWidth(beat) {
+  return beat * cellWidth * 4;
+}
+
 function stylesForNote(note) {
   const match = note[0].match(/([A-Z]#?)(\d)/);
   if (match) {
@@ -76,8 +80,8 @@ function stylesForNote(note) {
 
     return {
       top: (row - 8) * cellHeight,
-      width: note[2] * cellWidth * 4,
-      left: note[1] * cellWidth * 4
+      width: beatToWidth(note[2]),
+      left: beatToWidth(note[1])
     };
   } else {
     return {};
@@ -188,10 +192,71 @@ function songLength(song) {
   return max(song.map(note => note[1] + note[2])) || 0;
 }
 
+
+class Timeline extends React.Component {
+  constructor() {
+    super();
+    this.onClick = this.onClick.bind(this);
+  }
+
+  onClick(event) {
+    const el = event.target;
+    if (el.classList.contains('time-marker') && 'beat' in el.dataset) {
+      const newValue = parseFloat(el.dataset['beat']);
+      if (newValue === this.props.playheadStart) {
+        this.props.onChangePlayheadStart(null);
+      } else {
+        this.props.onChangePlayheadStart(newValue);
+      }
+    }
+  }
+
+  render() {
+    let pointer;
+
+    const svgWidth = 14;
+
+    if (Number.isFinite(this.props.playheadStart)) {
+      const pointerStyle = {
+        position: 'absolute',
+        left: beatToWidth(this.props.playheadStart) - svgWidth/2,
+        top: 0
+      };
+      pointer = (
+        <svg version="1.1" width={svgWidth} height="18px" style={pointerStyle} fill="#88c7f4">
+          <use xlinkHref='#down-pointer' />
+        </svg>
+      );
+    }
+
+    return (
+      <div className='timeline' onClick={this.onClick}>
+        {pointer}
+        {range(0, this.props.totalBeats).map(i => (
+          <div className='time-marker' key={i} data-beat={i}>
+            {i}
+          </div>
+        ))}
+      </div>
+    );
+  }
+}
+
+Timeline.propTypes = {
+  totalBeats:            React.PropTypes.number.isRequired,
+  onChangePlayheadStart: React.PropTypes.func.isRequired,
+  playheadStart:         React.PropTypes.number
+};
+
 export default class PianoRoll extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'bindPlayhead', 'bindTouchableArea');
+    this.state = {playheadStart: null};
+    bindAll(this, 'bindPlayhead', 'bindTouchableArea', 'onChangePlayheadStart');
+  }
+
+  onChangePlayheadStart(value) {
+    this.setState({playheadStart: value});
   }
 
   bindTouchableArea(component) {
@@ -271,13 +336,7 @@ export default class PianoRoll extends React.Component {
         }
         </div>
         <div className='horizontal-scroller'>
-          <div className='timeline'>
-            {range(0, totalBeats).map(i => (
-              <div className='time-marker' key={i}>
-                {i}
-              </div>
-            ))}
-          </div>
+          <Timeline totalBeats={totalBeats} playheadStart={this.state.playheadStart} onChangePlayheadStart={this.onChangePlayheadStart} />
           <TouchableArea className='note-wrapper' ref={this.bindTouchableArea}>
             <Grid cellsPerBeat={this.props.cellsPerBeat} totalBeats={totalBeats} />
             <div>

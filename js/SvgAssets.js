@@ -19,6 +19,7 @@ const svgEl = (
     <symbol id="close" viewBox="0 0 96 120" x="0px" y="0px"><rect x="17.63" y="45.48" width="58.46" height="5.04" transform="translate(-20.22 47.19) rotate(-45)"/><rect x="44.34" y="18.77" width="5.04" height="58.46" transform="translate(-20.22 47.19) rotate(-45)"/><path d="M46.86,92.28A44.28,44.28,0,0,1,15.55,16.69,44.28,44.28,0,0,1,78.17,79.31,44,44,0,0,1,46.86,92.28Zm0-83.51a39.23,39.23,0,0,0-27.74,67A39.23,39.23,0,0,0,74.6,20.26h0A39,39,0,0,0,46.86,8.77Z"/></symbol>
     <symbol id="play-arrow" x="0px" y="0px" viewBox="0 0 100 125"><path d="M22.6,23.6c0-3.5,3.8-5.7,6.8-3.9l22.9,13.2L75.2,46c3,1.7,3,6.1,0,7.9L52.3,67.1L29.4,80.4c-3,1.8-6.8-0.4-6.8-3.9l0-26.4  L22.6,23.6z"/></symbol>
     <symbol id="pause-marks" x="0px" y="0px" viewBox="0 0 80 100"><g><path stroke="#000000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" d="M24.667,72.5   c-1.656,0-3-1.344-3-3v-59c0-1.657,1.344-3,3-3h4c1.657,0,3,1.343,3,3v59c0,1.656-1.343,3-3,3H24.667z"/><path stroke="#000000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" strokeMiterlimit="10" d="M51.332,72.5   c-1.656,0-3-1.344-3-3v-59c0-1.657,1.344-3,3-3h4.002c1.656,0,3,1.343,3,3v59c0,1.656-1.344,3-3,3H51.332z"/></g></symbol>
+    <symbol id="down-pointer" viewBox="0 0 24 30" x="0px" y="0px"><path d="M20 2l-8.008 20.007-7.992-20.007 8 4z" /></symbol>
   </svg>
 )
 

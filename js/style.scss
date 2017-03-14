@@ -373,6 +373,11 @@ ul.piano-keys {
     position: relative;
   }
 
+  .timeline {
+    display: relative;
+    cursor: pointer;
+  }
+
   .timeline, .row {
     white-space: nowrap;
   }
