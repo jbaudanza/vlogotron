@@ -18,7 +18,6 @@ import {findIndex, filter, concat} from 'lodash';
 
 import VideoClipStore from './VideoClipStore';
 import {startRecording} from './RecordingStore';
-import {subscribeToAudioPlayback} from './VideoClipStore';
 import {playCommands$ as scriptedPlayCommands$} from './VideoClipStore';
 import {startPlayback, audioLoading$} from './VideoClipStore';
 
@@ -26,8 +25,6 @@ import VideoCell from './VideoCell';
 
 import colors from './colors';
 import {findParentNode} from './domutils';
-import {playCommands$ as midiPlayCommands$} from './midi';
-import {playCommands$ as keyboardPlayCommands$} from './keyboard';
 
 import {songs} from './song';
 
@@ -35,42 +32,6 @@ import {songs} from './song';
 const notes = [
   'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
 ].map(note => note + '4').concat(['C5', 'C#5', 'D5', 'D#5'])
-
-
-function adjustRefCount(countObject, key, change) {
-  return Object.assign(
-      {},
-      countObject,
-      {[key]: (countObject[key] || 0) + change}
-  );
-}
-
-
-function reduceMultipleCommandStreams(last, command) {
-  const nextCommand = {};
-
-  if (command.play && !last.refCounts[command.play]) {
-    nextCommand.play = command.play;
-  }
-
-  if (command.pause && last.refCounts[command.pause] === 1) {
-    nextCommand.pause = command.pause;
-  }
-
-  let refCounts = last.refCounts;
-  if (command.play) {
-    refCounts = adjustRefCount(refCounts, command.play, +1);
-  }
-
-  if (command.pause) {
-    refCounts = adjustRefCount(refCounts, command.pause, -1);
-  }
-
-  return {
-    refCounts: refCounts,
-    command: nextCommand
-  };
-}
 
 
 function SongPlaybackButton(props) {
@@ -187,17 +148,11 @@ export default class Instrument extends React.Component {
     // This is a higher-order stream of stream of play/pause commands
     this.playCommands$ = new Subject();
 
-    // Use a reference counting scheme to merge multiple command streams into
-    // one unified stream to control playback.
-    const mergedCommands$ = Observable.merge(
-          this.playCommands$,
-          Observable.of(midiPlayCommands$, keyboardPlayCommands$)
-        )
-        .mergeAll()
-        .scan(reduceMultipleCommandStreams, {refCounts: {}})
-        .map(x => x.command);
+    this.pauseActions$ = new Subject();
 
-    this.subscription.add(Observable.merge(mergedCommands$, scriptedPlayCommands$).subscribe((command) => {
+    this.videoClipStore = new VideoClipStore(this.playCommands$);
+
+    this.subscription.add(this.videoClipStore.playCommands$.subscribe((command) => {
       if (command.play) {
         this.onStartPlayback(command.play, command.when);
       }
@@ -205,12 +160,6 @@ export default class Instrument extends React.Component {
         this.onStopPlayback(command.pause);
       }
     }));
-
-    this.pauseActions$ = new Subject();
-
-    this.videoClipStore = new VideoClipStore();
-
-    subscribeToAudioPlayback(mergedCommands$);
 
     this.subscription.add(this.videoClipStore.videoClips$.subscribe((obj) => {
       this.setState({videoClips: obj})
@@ -307,7 +256,7 @@ export default class Instrument extends React.Component {
 
     if (this.state.songId !== songId) {
       const song = (songId === 'current' ? this.state.currentSong : songs[songId]);
-      const playback = startPlayback(song, this.pauseActions$.take(1));
+      const playback = this.videoClipStore.startPlayback(song, this.pauseActions$.take(1));
 
       this.setState({
         songId: songId,

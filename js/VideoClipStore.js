@@ -18,6 +18,9 @@ import createHistory from 'history/createBrowserHistory';
 
 import promiseFromTemplate from './promiseFromTemplate';
 
+import {playCommands$ as midiPlayCommands$} from './midi';
+import {playCommands$ as keyboardPlayCommands$} from './keyboard';
+
 
 function reduceToLocalUrls(acc, obj) {
   if (obj.blob) {
@@ -368,7 +371,7 @@ function refsForUids(uid) {
 //  - display upload progress to user
 //  - URL.revokeObjectURL(url)    
 export default class VideoClipStore {
-  constructor() {
+  constructor(touchplayCommandsStreams$) {
     const localBlobs = new Subject();
     const uploadTasks = new BehaviorSubject([]);
     const clearActions = new Subject();
@@ -382,6 +385,25 @@ export default class VideoClipStore {
       localBlobs.next({note, clipId, blob: videoBlob});
       newAudioBuffers$.next({note, clipId, buffer: audioBuffer});
     }
+
+    const scriptedPlayCommandStreams$ = new Subject();
+
+    // Use a reference counting scheme to merge multiple command streams into
+    // one unified stream to control playback.
+    const livePlayCommands$ =
+        Observable.merge(
+            scriptedPlayCommandStreams$,
+            touchplayCommandsStreams$,
+            Observable.of(midiPlayCommands$, keyboardPlayCommands$)
+        )
+        .mergeAll()
+        .scan(reduceMultipleCommandStreams, {refCounts: {}})
+        .map(x => x.command);
+
+    subscribeToAudioPlayback(livePlayCommands$);
+
+    // TODO: embed the when attribute here
+    this.playCommands$ = livePlayCommands$
 
     const localBlobChanges$ = Observable.combineLatest(
       localBlobs,
@@ -421,6 +443,12 @@ export default class VideoClipStore {
         remoteUrls$,
         (local, remote) => Object.assign({}, remote, local)
     );
+
+    this.startPlayback = function(song, playUntil$) {
+      const result = startPlayback(song, playUntil$);
+      scriptedPlayCommandStreams$.next(result.playCommands$);
+      return result;
+    }
   }
 }
 
@@ -437,7 +465,7 @@ function makeNode(audioBuffer, startTime) {
 }
 
 
-export function subscribeToAudioPlayback(playCommands$) {
+function subscribeToAudioPlayback(playCommands$) {
   const activeNodes = {};
 
   return playCommands$
@@ -463,10 +491,7 @@ function beatsToTimestamp(beats, bpm) {
   return (beats / bpm) * 60;
 }
 
-export const playCommands$ = new Subject();
-
-
-export function startPlayback(song, playUntil$) {
+function startPlayback(song, playUntil$) {
   const bpm = 120;
 
   const playbackStartedAt = audioContext.currentTime + 0.125;
@@ -492,8 +517,6 @@ export function startPlayback(song, playUntil$) {
         makeEvent({play: note[0]}, startAt), makeEvent({pause: note[0]}, stopAt)
     ];
   }))).mergeAll().takeUntil(playUntil$);
-
-  commands$.subscribe((cmd) => playCommands$.next(cmd));
 
   // Returns the time window (in beats) that need to be scheduled
   function makeBeatWindow(lastWindow, playbackUntilTimestamp) {
@@ -550,6 +573,7 @@ export function startPlayback(song, playUntil$) {
       .takeUntil(playUntil$);
 
   return {
+    playCommands$: commands$,
     position: position$,
     finished: Observable.merge(
         playUntil$,
@@ -557,3 +581,38 @@ export function startPlayback(song, playUntil$) {
     )).first().toPromise()
   }
 };
+
+
+function reduceMultipleCommandStreams(last, command) {
+  const nextCommand = {};
+
+  if (command.play && !last.refCounts[command.play]) {
+    nextCommand.play = command.play;
+  }
+
+  if (command.pause && last.refCounts[command.pause] === 1) {
+    nextCommand.pause = command.pause;
+  }
+
+  let refCounts = last.refCounts;
+  if (command.play) {
+    refCounts = adjustRefCount(refCounts, command.play, +1);
+  }
+
+  if (command.pause) {
+    refCounts = adjustRefCount(refCounts, command.pause, -1);
+  }
+
+  return {
+    refCounts: refCounts,
+    command: nextCommand
+  };
+}
+
+function adjustRefCount(countObject, key, change) {
+  return Object.assign(
+      {},
+      countObject,
+      {[key]: (countObject[key] || 0) + change}
+  );
+}
