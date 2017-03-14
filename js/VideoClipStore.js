@@ -392,18 +392,17 @@ export default class VideoClipStore {
     // one unified stream to control playback.
     const livePlayCommands$ =
         Observable.merge(
-            scriptedPlayCommandStreams$,
-            touchplayCommandsStreams$,
-            Observable.of(midiPlayCommands$, keyboardPlayCommands$)
+          touchplayCommandsStreams$,
+          Observable.of(midiPlayCommands$, keyboardPlayCommands$)
         )
         .mergeAll()
         .scan(reduceMultipleCommandStreams, {refCounts: {}})
         .map(x => x.command);
 
-    subscribeToAudioPlayback(livePlayCommands$);
-
-    // TODO: embed the when attribute here
-    this.playCommands$ = livePlayCommands$
+    this.playCommands$ = Observable.merge(
+      scriptedPlayCommandStreams$.concatAll(),
+      subscribeToAudioPlayback(livePlayCommands$)
+    )
 
     const localBlobChanges$ = Observable.combineLatest(
       localBlobs,
@@ -468,7 +467,9 @@ function makeNode(audioBuffer, startTime) {
 function subscribeToAudioPlayback(playCommands$) {
   const activeNodes = {};
 
-  return playCommands$
+  const subject = new Subject();
+
+  playCommands$
     .withLatestFrom(audioBuffers$)
     .subscribe(([cmd, audioBuffers]) => {
       if (cmd.play && audioBuffers[cmd.play]) {
@@ -479,7 +480,11 @@ function subscribeToAudioPlayback(playCommands$) {
       if (cmd.pause && activeNodes[cmd.pause]) {
         activeNodes[cmd.pause].stop();
       }
+
+      subject.next(Object.assign({when: audioContext.currentTime}, cmd));
     });
+
+  return subject.asObservable();
 }
 
 

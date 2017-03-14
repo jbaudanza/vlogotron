@@ -5,6 +5,7 @@
   Keep this list alphabetized for sanity. Hint: F5 in Sublime Text
 */
 import 'rxjs/add/operator/concat';
+import 'rxjs/add/operator/concatAll';
 import 'rxjs/add/operator/delay';
 import 'rxjs/add/operator/distinctUntilChanged';
 import 'rxjs/add/operator/do';
