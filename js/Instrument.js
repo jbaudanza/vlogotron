@@ -87,7 +87,7 @@ export default class Instrument extends React.Component {
       recording: null,
       playing: {},
       playbackStartPosition: null,
-      currentSong: [],
+      currentSong: songs['marry-had-a-little-lamb'],
     };
   }
 
@@ -297,6 +297,7 @@ export default class Instrument extends React.Component {
           onChangePlaybackStartPosition={this.onChangePlaybackStartPosition}
           onClickPlay={this.onClickPlay.bind(this, 'current')} />
 
+        {/*
         <SongPlaybackButton
             isPlaying={this.state.songId === 'happy-birthday'}
             onClick={this.onClickPlay.bind(this, 'happy-birthday')}
@@ -306,6 +307,7 @@ export default class Instrument extends React.Component {
             isPlaying={this.state.songId === 'marry-had-a-little-lamb'}
             onClick={this.onClickPlay.bind(this, 'marry-had-a-little-lamb')}
             title="Mary had a little lamb" />
+        */}
 
         {
           // <PianoKeys orientation='horizontal' playing={this.state.playing} onTouchStart={this.onTouchStart} />
