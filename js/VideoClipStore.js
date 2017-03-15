@@ -443,9 +443,9 @@ export default class VideoClipStore {
         (local, remote) => Object.assign({}, remote, local)
     );
 
-    this.startPlayback = function(song, playUntil$) {
-      const result = startPlayback(song, playUntil$);
-      scriptedPlayCommandStreams$.next(result.playCommands$);
+    this.startPlayback = function(song, position, playUntil$) {
+      const result = startPlayback(song, position, playUntil$);
+      scriptedPlayCommandStreams$.next(result.playCommandsForVisuals$);
       return result;
     }
   }
@@ -496,19 +496,23 @@ function beatsToTimestamp(beats, bpm) {
   return (beats / bpm) * 60;
 }
 
-function startPlayback(song, playUntil$) {
+function startPlayback(song, startPosition, playUntil$) {
   const bpm = 120;
 
   const playbackStartedAt = audioContext.currentTime + 0.125;
 
+  const truncatedSong = song
+      .filter(note => note[1] >= startPosition)
+      .map(note => [note[0], note[1] - startPosition, note[2]])
+
   function mapToNotes(beatWindow) {
     const [beatFrom, beatTo] = beatWindow;
-    return song.filter((note) => note[1] >= beatFrom && note[1] < beatTo);
+    return truncatedSong.filter((note) => note[1] >= beatFrom && note[1] < beatTo);
   }
 
-  const songLengthInBeats = max(song.map(note => note[1] + note[2]));
+  const songLengthInBeats = max(truncatedSong.map(note => note[1] + note[2]));
 
-  const commands$ = Observable.from(flatten(song.map(function(note) {
+  const playCommandsForVisuals$ = Observable.from(flatten(truncatedSong.map(function(note) {
     const startAt = playbackStartedAt + beatsToTimestamp(note[1], bpm);
     const stopAt =  startAt + beatsToTimestamp(note[2], bpm);
 
@@ -535,7 +539,7 @@ function startPlayback(song, playUntil$) {
   gainNode.gain.value = 0.9;
   gainNode.connect(audioContext.destination);
   // Silence all audio when the pause button is hit
-  playUntil$.subscribe(x => gainNode.gain.value = 0)
+  playUntil$.subscribe(x => gainNode.gain.value = 0);
 
   playbackSchedule(audioContext)
       .takeUntil(playUntil$)
@@ -574,11 +578,13 @@ function startPlayback(song, playUntil$) {
       .of(0, animationFrame)
       .repeat()
       .map(() => timestampToBeats(audioContext.currentTime - playbackStartedAt, bpm))
+      .filter(beat => beat >= 0)
       .takeWhile(beat => beat < songLengthInBeats)
-      .takeUntil(playUntil$);
+      .takeUntil(playUntil$)
+      .map(beat => beat + startPosition);
 
   return {
-    playCommands$: commands$,
+    playCommandsForVisuals$: playCommandsForVisuals$,
     position: position$,
     finished: Observable.merge(
         playUntil$,

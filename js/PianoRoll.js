@@ -203,10 +203,10 @@ class Timeline extends React.Component {
     const el = event.target;
     if (el.classList.contains('time-marker') && 'beat' in el.dataset) {
       const newValue = parseFloat(el.dataset['beat']);
-      if (newValue === this.props.playheadStart) {
-        this.props.onChangePlayheadStart(null);
+      if (newValue === this.props.playbackStartPosition) {
+        this.props.onChangePlaybackStartPosition(null);
       } else {
-        this.props.onChangePlayheadStart(newValue);
+        this.props.onChangePlaybackStartPosition(newValue);
       }
     }
   }
@@ -216,10 +216,10 @@ class Timeline extends React.Component {
 
     const svgWidth = 14;
 
-    if (Number.isFinite(this.props.playheadStart)) {
+    if (Number.isFinite(this.props.playbackStartPosition)) {
       const pointerStyle = {
         position: 'absolute',
-        left: beatToWidth(this.props.playheadStart) - svgWidth/2,
+        left: beatToWidth(this.props.playbackStartPosition) - svgWidth/2,
         top: 0
       };
       pointer = (
@@ -243,20 +243,16 @@ class Timeline extends React.Component {
 }
 
 Timeline.propTypes = {
-  totalBeats:            React.PropTypes.number.isRequired,
-  onChangePlayheadStart: React.PropTypes.func.isRequired,
-  playheadStart:         React.PropTypes.number
+  totalBeats:                    React.PropTypes.number.isRequired,
+  onChangePlaybackStartPosition: React.PropTypes.func.isRequired,
+  playbackStartPosition:         React.PropTypes.number
 };
 
 export default class PianoRoll extends React.Component {
   constructor() {
     super();
     this.state = {playheadStart: null};
-    bindAll(this, 'bindPlayhead', 'bindTouchableArea', 'onChangePlayheadStart');
-  }
-
-  onChangePlayheadStart(value) {
-    this.setState({playheadStart: value});
+    bindAll(this, 'bindPlayhead', 'bindTouchableArea');
   }
 
   bindTouchableArea(component) {
@@ -336,7 +332,11 @@ export default class PianoRoll extends React.Component {
         }
         </div>
         <div className='horizontal-scroller'>
-          <Timeline totalBeats={totalBeats} playheadStart={this.state.playheadStart} onChangePlayheadStart={this.onChangePlayheadStart} />
+          <Timeline
+              totalBeats={totalBeats}
+              playbackStartPosition={this.props.playbackStartPosition}
+              onChangePlaybackStartPosition={this.props.onChangePlaybackStartPosition} />
+
           <TouchableArea className='note-wrapper' ref={this.bindTouchableArea}>
             <Grid cellsPerBeat={this.props.cellsPerBeat} totalBeats={totalBeats} />
             <div>
@@ -361,8 +361,10 @@ export default class PianoRoll extends React.Component {
 }
 
 PianoRoll.propTypes = {
-  notes:             React.PropTypes.array.isRequired,
-  cellsPerBeat:      React.PropTypes.number.isRequired,
-  playing:           React.PropTypes.object.isRequired,
-  playbackPosition$: React.PropTypes.object
+  notes:                         React.PropTypes.array.isRequired,
+  cellsPerBeat:                  React.PropTypes.number.isRequired,
+  playing:                       React.PropTypes.object.isRequired,
+  onChangePlaybackStartPosition: React.PropTypes.func.isRequired,
+  playbackStartPosition:         React.PropTypes.number,
+  playbackPosition$:             React.PropTypes.object
 }

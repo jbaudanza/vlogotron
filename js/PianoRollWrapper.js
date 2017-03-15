@@ -88,6 +88,8 @@ export default class PianoRollWrapper extends React.Component {
               playbackPosition$={this.props.playbackPosition$}
               cellsPerBeat={this.state.cellsPerBeat}
               playing={this.props.playing}
+              onChangePlaybackStartPosition={this.props.onChangePlaybackStartPosition}
+              playbackStartPosition={this.props.playbackStartPosition}
               ref={this.bindPianoRoll.bind(this)} />
       </div>
     );

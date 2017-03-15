@@ -78,17 +78,25 @@ function reduceEditsToSong(song, edit) {
 export default class Instrument extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'onClear', 'onTouchStart', 'onClickPlay', 'bindPianoRoll');
+    bindAll(this,
+      'onClear', 'onTouchStart', 'onClickPlay', 'bindPianoRoll',
+      'onChangePlaybackStartPosition'
+    );
 
     this.state = {
       recording: null,
       playing: {},
+      playbackStartPosition: null,
       currentSong: [],
     };
   }
 
   componentWillUnmount() {
     this.subscription.unsubscribe();
+  }
+
+  onChangePlaybackStartPosition(value) {
+    this.setState({playbackStartPosition: value});
   }
 
   bindPianoRoll(component) {
@@ -256,7 +264,9 @@ export default class Instrument extends React.Component {
 
     if (this.state.songId !== songId) {
       const song = (songId === 'current' ? this.state.currentSong : songs[songId]);
-      const playback = this.videoClipStore.startPlayback(song, this.pauseActions$.take(1));
+      const playback = this.videoClipStore.startPlayback(
+          song, (this.state.playbackStartPosition || 0), this.pauseActions$.take(1)
+      );
 
       this.setState({
         songId: songId,
@@ -283,6 +293,8 @@ export default class Instrument extends React.Component {
           ref={this.bindPianoRoll}
           playing={this.state.playing}
           playbackPosition$={this.state.playbackPosition$}
+          playbackStartPosition={this.state.playbackStartPosition}
+          onChangePlaybackStartPosition={this.onChangePlaybackStartPosition}
           onClickPlay={this.onClickPlay.bind(this, 'current')} />
 
         <SongPlaybackButton
