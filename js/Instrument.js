@@ -101,7 +101,7 @@ export default class Instrument extends React.Component {
 
   bindPianoRoll(component) {
     component.edits$
-      .scan(reduceEditsToSong, [])
+      .scan(reduceEditsToSong, this.state.currentSong)
       .subscribe((v) => this.setState({currentSong: v}));
   }
 
