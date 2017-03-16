@@ -366,6 +366,50 @@ function refsForUids(uid) {
   };
 }
 
+function recordNotes(playCommands$) {
+  const initialState = {
+    // In progress notes. This is a map of note names to start times
+    recording: {},
+    // List of notes the user has recorded
+    notes: []
+  };
+
+  function reducer(acc, command) {
+    let recording = acc.recording;
+    let notes = acc.notes;
+
+    if (command.play) {
+      if (command.play in acc.recording) {
+        console.warn('Received two play commands for the same note', command.play);
+      } else {
+        recording = Object.assign(
+          {}, acc.recording, {[command.play]: audioContext.currentTime}
+        );
+      }
+    }
+
+    if (command.pause) {
+      if (command.pause in acc.recording) {
+        const startTime = acc.recording[command.pause];
+        notes = notes.concat([[
+          command.pause, startTime, audioContext.currentTime - startTime
+        ]]);
+        recording = omit(acc.recording, command.pause);
+      } else {
+        console.warn('Received a pause command without a preceeding play command', command.pause);
+      }
+    }
+
+    return {recording, notes};
+  }
+
+  return playCommands$
+      .scan(reducer, initialState)
+      .map(state => state.notes)
+      .filter(list => list.length > 0)
+      .distinctUntilChanged((i, j) => i.length === j.length);
+}
+
 // TODO:
 //  - track the tasks somehow
 //  - display upload progress to user
