@@ -379,22 +379,22 @@ function recordNotes(playCommands$) {
     let notes = acc.notes;
 
     if (command.play) {
-      if (command.play in acc.recording) {
+      if (command.play in recording) {
         console.warn('Received two play commands for the same note', command.play);
       } else {
         recording = Object.assign(
-          {}, acc.recording, {[command.play]: audioContext.currentTime}
+          {}, recording, {[command.play]: audioContext.currentTime}
         );
       }
     }
 
     if (command.pause) {
-      if (command.pause in acc.recording) {
-        const startTime = acc.recording[command.pause];
+      if (command.pause in recording) {
+        const startTime = recording[command.pause];
         notes = notes.concat([[
           command.pause, startTime, audioContext.currentTime - startTime
         ]]);
-        recording = omit(acc.recording, command.pause);
+        recording = omit(recording, command.pause);
       } else {
         console.warn('Received a pause command without a preceeding play command', command.pause);
       }
