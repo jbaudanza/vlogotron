@@ -17,6 +17,7 @@ import audioContext from './audioContext';
 import createHistory from 'history/createBrowserHistory';
 
 import promiseFromTemplate from './promiseFromTemplate';
+import {getArrayBuffer} from './http';
 
 import {playCommands$ as midiPlayCommands$} from './midi';
 import {playCommands$ as keyboardPlayCommands$} from './keyboard';
@@ -195,62 +196,13 @@ function mapRefsToRemoteUrls(refs) {
 */
 const remoteUrls$ = refs$.switchMap(mapRefsToRemoteUrls).startWith({});
 
-// XXX: left off here. Come up with a data structure to expose to the UI that
-// communicates loading progress
-// Loading states
-//  - Nothing loaded - waiting for database
-//  - Database returned - calling getDownloadURLs
-//  - Got download URLS - waiting for HTTP
-//  - HTTP started, progress events
-//  - Finished
-function getArrayBuffer(url) {
-  const xhr = new XMLHttpRequest();
-  xhr.open("GET", url, true);
-  xhr.responseType = "arraybuffer";
-
-  const response = new Promise((resolve, reject) => {
-    xhr.onload = function(event) { resolve(xhr.response); }
-    xhr.onerror = reject;
-  });
-
-  const contentLengthFromResponse = response.then((ab) => ab.byteLength);
-
-  function getContentLength() {
-    const header = xhr.getResponseHeader('Content-Length');
-    if (header != null) {
-      return parseInt(header);
-    } else {
-      return null;
-    }
-  }
-
-  const contentLength = Observable
-      .fromEvent(xhr, 'readystatechange')
-      .takeWhile(e => e.target.readyState < 2) // 2 = XMLHttpRequest.HEADERS_RECEIVED
-      .toPromise()
-      .then(getContentLength);
-
-  const progress = Observable.fromEvent(xhr, 'progress')
-      .takeUntil(response);
-
-  const loaded = Observable.merge(
-    progress.filter(e => e.lengthComputable).map(e => e.loaded),
-    contentLengthFromResponse
-  );
-
-  xhr.send(null);
-
-  return {progress, response, contentLength, loaded};
-}
-
-
 function decodeAudioData(arraybuffer) {
   // Safari doesn't support the Promise syntax for decodeAudioData, so we need
   // to make the promise ourselves.
   return new Promise(audioContext.decodeAudioData.bind(audioContext, arraybuffer));
 }
 
-function getAudioBuffer(url, progressSubscriber) {
+export function getAudioBuffer(url, progressSubscriber) {
   const http = getArrayBuffer(url);
   http.audioBuffer = http.response.then(decodeAudioData);
   return http;

@@ -60,14 +60,30 @@ export default class PianoRollWrapper extends React.Component {
       playText = 'play';
     }
 
-    return (
-      <div>
+    let header;
+
+    if (this.props.countdown) {
+      header = <div>Starting to record in {this.props.countdown}</div>;
+    } else if (this.props.recording) {
+      header = (
+        <div>
+          We are now recording. Play some notes!
+          <Button onClick={this.props.onClickStopRecording}>
+            Stop recording
+          </Button>
+        </div>
+      );
+    } else {
+      header = (
         <div>
           <Button
               onClick={this.props.onClickPlay}
               disabled={this.props.notes.length === 0}
               icon={playIcon}>
             {playText}
+          </Button>
+          <Button onClick={this.props.onClickRecord}>
+            Record
           </Button>
           <InputNumber prefix={<Icon type='clock-circle-o' />} defaultValue={120} />
           <Select
@@ -82,7 +98,12 @@ export default class PianoRollWrapper extends React.Component {
 
           <Button disabled icon="save">Save</Button>
         </div>
+      );
+    }
 
+    return (
+      <div>
+        {header}
         <PianoRoll
               notes={this.props.notes}
               playbackPosition$={this.props.playbackPosition$}

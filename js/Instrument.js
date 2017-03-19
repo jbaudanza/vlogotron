@@ -13,13 +13,13 @@ import TouchableArea from './TouchableArea';
 import PianoRollWrapper from './PianoRollWrapper';
 import PianoKeys from './PianoKeys';
 import Link from './Link';
-import {bindAll, omit, includes, identity, remove} from 'lodash';
+import {bindAll, omit, includes, identity, remove, times} from 'lodash';
 import {findIndex, filter, concat} from 'lodash';
 
 import VideoClipStore from './VideoClipStore';
 import {startRecording} from './RecordingStore';
 import {playCommands$ as scriptedPlayCommands$} from './VideoClipStore';
-import {startPlayback, audioLoading$} from './VideoClipStore';
+import {startPlayback, audioLoading$, getAudioBuffer} from './VideoClipStore';
 
 import VideoCell from './VideoCell';
 
@@ -32,6 +32,17 @@ import {songs} from './song';
 const notes = [
   'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
 ].map(note => note + '4').concat(['C5', 'C#5', 'D5', 'D#5'])
+
+
+// TODO: This is duplicated in VideoClipStore
+function startCountdown(countdownSeconds, interval) {
+  return Observable.interval(interval)
+      .take(countdownSeconds)
+      .map(x => countdownSeconds - x - 1)
+      .filter(x => x > 0) // Leave out the last 0 value
+      .startWith(countdownSeconds)
+      .share();
+}
 
 
 function SongPlaybackButton(props) {
@@ -74,12 +85,13 @@ function reduceEditsToSong(song, edit) {
   }
 }
 
+const metronomeBuffer = getAudioBuffer('/metronome.mp3').audioBuffer;
 
 export default class Instrument extends React.Component {
   constructor() {
     super();
     bindAll(this,
-      'onClear', 'onTouchStart', 'onClickPlay', 'bindPianoRoll',
+      'onClear', 'onTouchStart', 'onClickPlay', 'onClickRecord', 'bindPianoRoll',
       'onChangePlaybackStartPosition'
     );
 
@@ -87,7 +99,7 @@ export default class Instrument extends React.Component {
       recording: null,
       playing: {},
       playbackStartPosition: null,
-      currentSong: songs['marry-had-a-little-lamb'],
+      currentSong: songs['marry-had-a-little-lamb']
     };
   }
 
@@ -257,6 +269,33 @@ export default class Instrument extends React.Component {
     );
   }
 
+  onClickRecord() {
+    // TODO: This bpm shouldn't be hardcoded
+    const bpm = 120;
+    const countdown = 8;
+    const interval = (60/bpm);
+
+    metronomeBuffer.then((buffer) => {
+      const startTime = this.context.audioContext.currentTime + 0.125;
+
+      times(countdown, (i) => {
+        const source = this.context.audioContext.createBufferSource();
+        if (i%4 == 0) {
+          source.playbackRate.value = 2;
+        }
+        source.buffer = buffer;
+        source.connect(this.context.audioContext.destination);
+        source.start(startTime + i * interval);
+      });
+
+      startCountdown(countdown, interval * 1000).subscribe({
+        next: (x) => this.setState({keyboardCountdown: x}),
+        complete: () => this.setState({keyboardCountdown: null})
+      });
+
+    });
+  }
+
   onClickPlay(songId) {
     if (this.state.songId) {
       this.pauseActions$.next(songId);
@@ -295,7 +334,10 @@ export default class Instrument extends React.Component {
           playbackPosition$={this.state.playbackPosition$}
           playbackStartPosition={this.state.playbackStartPosition}
           onChangePlaybackStartPosition={this.onChangePlaybackStartPosition}
-          onClickPlay={this.onClickPlay.bind(this, 'current')} />
+          onClickPlay={this.onClickPlay.bind(this, 'current')}
+          onClickRecord={this.onClickRecord}
+          countdown={this.state.keyboardCountdown}
+          />
 
         {/*
         <SongPlaybackButton
