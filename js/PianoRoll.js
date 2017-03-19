@@ -252,7 +252,11 @@ export default class PianoRoll extends React.Component {
   constructor() {
     super();
     this.state = {playheadStart: null};
-    bindAll(this, 'bindPlayhead', 'bindTouchableArea');
+    bindAll(this, 'bindPlayhead', 'bindTouchableArea', 'bindScroller');
+  }
+
+  bindScroller(el) {
+    this.scrollerEl = el;
   }
 
   bindTouchableArea(component) {
@@ -299,13 +303,26 @@ export default class PianoRoll extends React.Component {
   bindPlayhead(el) {
     if (el) {
       this.subscription = this.props.playbackPosition$.subscribe((position) => {
-        el.style.left = (cellWidth * 4 * position) + 'px';
+        const left = (cellWidth * 4 * position);
+        el.style.left = left + 'px';
         el.style.display = 'block';
+
+        if (this.scrollerEl && (
+          left > this.scrollerEl.scrollLeft + this.scrollerEl.clientWidth ||
+          left < this.scrollerEl.scrollLeft
+        )) {
+          this.scrollerEl.scrollLeft = left;
+        }
       });
     } else {
+      // When playback stops, the playhead component will be unmounted and this
+      // code will run
       if (this.subscription) {
         this.subscription.unsubscribe();
         delete this.subscription;
+      }
+      if (this.scrollerEl) {
+        this.scrollerEl.scrollLeft = 0;
       }
     }
   }
@@ -331,7 +348,7 @@ export default class PianoRoll extends React.Component {
           ))
         }
         </div>
-        <div className='horizontal-scroller'>
+        <div className='horizontal-scroller' ref={this.bindScroller}>
           <Timeline
               totalBeats={totalBeats}
               playbackStartPosition={this.props.playbackStartPosition}
