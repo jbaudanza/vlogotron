@@ -1,7 +1,34 @@
 @import 'normalize.css';
 
+
 body {
   font-family: 'Open Sans', sans-serif;
+
+  /*
+    The original texture image dump from Zeplin was 1351x696. This was
+    excessive for a repeated background, so I cropped it down using the
+    command line:
+    convert -crop 73x33+6+6 texture-orig.png texture.png
+
+    The higher-res images used a similar commandline, but scaled up.
+  */
+  background-image: url("/texture.png");
+  background-size: 73px 33px;
+  background-repeat: repeat;
+
+  @media
+    only screen and (-webkit-min-device-pixel-ratio: 2),
+    only screen and (min-resolution: 2dppx) {
+    // convert -crop 146x66+12+12 texture-orig@2x.png texture@2x.png
+    background-image: url("/texture@2x.png");
+  }
+
+  @media
+    only screen and (-webkit-min-device-pixel-ratio: 3),
+    only screen and (min-resolution: 3dppx) {
+    // convert -crop 219x99+18+18 texture-orig@3x.png texture@3x.png
+    background-image: url("/texture@3x.png");
+  }
 }
 
 $cell-size: 150px;
