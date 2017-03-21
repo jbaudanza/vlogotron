@@ -1,8 +1,31 @@
 @import 'normalize.css';
 
+@mixin define-font($family, $weight, $style) {
+  @font-face {
+    font-family: $family;
+    src: url("/fonts/#{$family}.ttf") format('truetype'),
+         url("/fonts/#{$family}.eot") format('eot'),
+         url("/fonts/#{$family}.woff") format('woff'),
+         url("/fonts/#{$family}.woff2") format('woff2'),
+          url("/fonts/#{$family}.svg#{$family}") format('svg');
+    font-weight: $weight;
+    font-style: $style;
+  }
+}
+
+@include define-font('HKGrotesk-Bold', 'bold', 'normal');
+@include define-font('HKGrotesk-BoldItalic', 'bold', 'italic');
+@include define-font('HKGrotesk-Italic', 'normal', 'italic');
+@include define-font('HKGrotesk-Light', 'bold', 'normal');
+@include define-font('HKGrotesk-LightItalic', 'bold', 'italic');
+@include define-font('HKGrotesk-Medium', 'normal', 'normal');
+@include define-font('HKGrotesk-MediumItalic', 'normal', 'italic');
+@include define-font('HKGrotesk-Regular', 'normal', 'normal');
+@include define-font('HKGrotesk-SemiBold', 'normal', 'normal');
+@include define-font('HKGrotesk-SemiBoldItalic', 'normal', 'normal');
 
 body {
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'HKGrotesk-Regular', sans-serif;
 
   /*
     The original texture image dump from Zeplin was 1351x696. This was
