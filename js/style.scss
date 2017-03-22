@@ -1,40 +1,45 @@
 @import 'normalize.css';
 
-@mixin define-font($family, $weight, $style) {
+@mixin define-font($family, $filename, $weight, $style) {
   @font-face {
     font-family: $family;
-    src: url("/fonts/#{$family}.ttf") format('truetype'),
-         url("/fonts/#{$family}.eot") format('eot'),
-         url("/fonts/#{$family}.woff") format('woff'),
-         url("/fonts/#{$family}.woff2") format('woff2'),
-          url("/fonts/#{$family}.svg#{$family}") format('svg');
+    src: url("/fonts/#{$filename}.ttf") format('truetype'),
+         url("/fonts/#{$filename}.eot") format('eot'),
+         url("/fonts/#{$filename}.woff") format('woff'),
+         url("/fonts/#{$filename}.woff2") format('woff2'),
+          url("/fonts/#{$filename}.svg#{$filename}") format('svg');
     font-weight: $weight;
     font-style: $style;
   }
 }
 
-@include define-font('HKGrotesk-Bold', 'bold', 'normal');
-@include define-font('HKGrotesk-BoldItalic', 'bold', 'italic');
-@include define-font('HKGrotesk-Italic', 'normal', 'italic');
-@include define-font('HKGrotesk-Light', 'bold', 'normal');
-@include define-font('HKGrotesk-LightItalic', 'bold', 'italic');
-@include define-font('HKGrotesk-Medium', 'normal', 'normal');
-@include define-font('HKGrotesk-MediumItalic', 'normal', 'italic');
-@include define-font('HKGrotesk-Regular', 'normal', 'normal');
-@include define-font('HKGrotesk-SemiBold', 'normal', 'normal');
-@include define-font('HKGrotesk-SemiBoldItalic', 'normal', 'normal');
+@include define-font(HKGrotesk, 'HKGrotesk-Light', 300, normal);
+@include define-font(HKGrotesk, 'HKGrotesk-LightItalic', 300, italic);
+
+@include define-font(HKGrotesk, 'HKGrotesk-Regular', 400, normal);
+@include define-font(HKGrotesk, 'HKGrotesk-Italic', 400, italic);
+
+@include define-font(HKGrotesk, 'HKGrotesk-Medium', 500, normal);
+@include define-font(HKGrotesk, 'HKGrotesk-MediumItalic', 500, italic);
+
+@include define-font(HKGrotesk, 'HKGrotesk-SemiBold', 600, normal);
+@include define-font(HKGrotesk, 'HKGrotesk-SemiBoldItalic', 600, italic);
+
+@include define-font(HKGrotesk, 'HKGrotesk-Bold', 700, normal);
+@include define-font(HKGrotesk, 'HKGrotesk-BoldItalic', 700, italic);
+
 
 body {
-  font-family: 'HKGrotesk-Regular', sans-serif;
+  font-family: HKGrotesk, sans-serif;
 
-  /*
-    The original texture image dump from Zeplin was 1351x696. This was
-    excessive for a repeated background, so I cropped it down using the
-    command line:
-    convert -crop 73x33+6+6 texture-orig.png texture.png
 
-    The higher-res images used a similar commandline, but scaled up.
-  */
+  //  The original texture image dump from Zeplin was 1351x696. This was
+  //  excessive for a repeated background, so I cropped it down using the
+  //  command line:
+  //  convert -crop 73x33+6+6 texture-orig.png texture.png
+  //
+  //  The higher-res images used a similar commandline, but scaled up.
+
   background-image: url("/texture.png");
   background-size: 73px 33px;
   background-repeat: repeat;
