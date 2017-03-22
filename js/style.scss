@@ -31,32 +31,6 @@
 
 body {
   font-family: HKGrotesk, sans-serif;
-
-
-  //  The original texture image dump from Zeplin was 1351x696. This was
-  //  excessive for a repeated background, so I cropped it down using the
-  //  command line:
-  //  convert -crop 73x33+6+6 texture-orig.png texture.png
-  //
-  //  The higher-res images used a similar commandline, but scaled up.
-
-  background-image: url("/texture.png");
-  background-size: 73px 33px;
-  background-repeat: repeat;
-
-  @media
-    only screen and (-webkit-min-device-pixel-ratio: 2),
-    only screen and (min-resolution: 2dppx) {
-    // convert -crop 146x66+12+12 texture-orig@2x.png texture@2x.png
-    background-image: url("/texture@2x.png");
-  }
-
-  @media
-    only screen and (-webkit-min-device-pixel-ratio: 3),
-    only screen and (min-resolution: 3dppx) {
-    // convert -crop 219x99+18+18 texture-orig@3x.png texture@3x.png
-    background-image: url("/texture@3x.png");
-  }
 }
 
 $cell-size: 150px;
@@ -77,12 +51,8 @@ $cell-size-percentage: (100 - ($cells-per-row - 1) * $cell-margin-percentage) / 
   width: 100vw;
 }
 
-$desktop-width: 675px;
+$desktop-width: 592px;
 @media only screen and (min-width: $desktop-width) {
-  .page-content {
-    width: $desktop-width;
-    margin: 0 auto;
-  }
   .video-container {
     width: $desktop-width;
   }
@@ -124,30 +94,6 @@ $red-color: #bc1838;
   }
 }
 
-.page-header {
-  border-bottom: 1px solid #eee;
-  height: 75px;
-  line-height: 75px;
-  margin-bottom: 15px;
-  background-color: #2c3e50;
-  color: white;
-  overflow: hidden;
-
-  .logo {
-    float: left;
-    svg {
-      position: relative;
-      top: 2px;
-      margin-right: 5px;
-    }
-    font-family: 'BioRhyme', serif;
-    font-size: 150%;
-  }
-
-  .page-content {
-    overflow: hidden;
-  }
-}
 
 h3, .share-buttons, .button-wrapper {
   text-align: center;
@@ -196,10 +142,12 @@ h3 {
 }
 
 .video-cell {
+  background-color: white;
   display: block;
   float: left;
   position: relative;
   overflow: hidden;
+  border-radius: 6px;
 
   border: 1px solid #eee;
   color: #eee;
@@ -211,7 +159,7 @@ h3 {
     border: 2px solid $active-color;
     color: $active-color;
     .note-label {
-      top: 4px;
+      bottom: 4px;
       left: 4px;
     }
   }
@@ -229,12 +177,9 @@ h3 {
     right: 0;
     top: 0;
     bottom: 0;
-    background-color: #aaa;
-    opacity: 0.75;
+    opacity: 0.6;
+    background-color: #cad5e7;
     transition: opacity .1s ease-in-out;
-  }
-  &.sharp .shade {
-    background-color: #444;
   }
   &.playing .shade {
     opacity: 0;
@@ -257,10 +202,12 @@ h3 {
 
   .note-label {
     position: absolute;
-    top: 5px;
+    bottom: 5px;
     left: 5px;
     width: 25px;
     text-align: center;
+    font-weight: bold;
+    font-size: 14px;
   }
   .countdown-label, .stop-action {
     position: absolute;
@@ -323,6 +270,8 @@ h3 {
 }
 
 .video-container {
+  padding-top: 100px;
+  margin: 0 auto;
   overflow: hidden;
 }
 
@@ -521,23 +470,6 @@ ul.piano-keys {
     width: 5px;
     background-color: #88c7f4;
     opacity: 0.5;
-  }
-}
-
-.play-button {
-  @include buttonize(white);
-  border: 1px solid #333;
-  padding-left: 5px;
-
-  svg {
-    margin-top: 3px;
-  }
-
-  .song-title {
-    color: #333;
-    float: right;
-    height: 40px;
-    display: block;
   }
 }
 

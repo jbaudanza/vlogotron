@@ -1,0 +1,173 @@
+$color-purple: #4b57a3;
+$color-dark-purple: #3b406b;
+$color-aqua-blue: #29bdec;
+$color-bluey-grey: #a0a7c4;
+
+.page {
+  display: flex;
+  flex-direction: row;
+
+  color: white;
+
+  .page-header {
+    padding: 0 24px;
+    $header-height: 63px;
+
+    height: $header-height;
+    background-color: $color-purple;
+    display: flex;
+
+    .play-button {
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      margin-top: $header-height/2 - 16px;
+    }
+
+    .song-info {
+      flex-grow: 1;
+      margin-left: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      font-weight: 500; // medium
+      color: white;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+
+      .by {
+        opacity: 0.5;
+      }
+      .top {
+        font-size: 17px;
+      }
+      .bottom {
+        font-size: 10px;
+      }
+    }
+
+    .actions a {
+      font-size: 11px;
+      font-weight: 600; // semi-bold
+      padding: 7px 15px;
+      margin: 0 7px;
+      margin-top: $header-height / 2 - 14px;
+
+      display: inline-block;
+      height: 28px;
+      opacity: 0.7;
+      border-radius: 49px;
+      border: solid 1px white;
+      color: white;
+      text-transform: uppercase;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      letter-spacing: 0.2px;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
+  .page-content {
+    //  The original texture image dump from Zeplin was 1351x696. This was
+    //  excessive for a repeated background, so I cropped it down using the
+    //  command line:
+    //  convert -crop 73x33+6+6 texture-orig.png texture.png
+    //
+    //  The higher-res images used a similar commandline, but scaled up.
+    
+    background-image: url("/texture.png");
+    background-size: 73px 33px;
+    background-repeat: repeat;
+
+    @media
+      only screen and (-webkit-min-device-pixel-ratio: 2), 
+      only screen and (min-resolution: 2dppx) {
+      // convert -crop 146x66+12+12 texture-orig@2x.png texture@2x.png
+      background-image: url("/texture@2x.png");
+    }
+
+    @media 
+      only screen and (-webkit-min-device-pixel-ratio: 3),
+      only screen and (min-resolution: 3dppx) {
+      // convert -crop 219x99+18+18 texture-orig@3x.png texture@3x.png
+      background-image: url("/texture@3x.png");
+    }
+  }
+
+  .page-footer {
+    background-color: $color-dark-purple;
+    height: 43px;
+    line-height: 43px;
+    font-size: 14px;
+    font-weight: 500; // medium
+    text-align: center;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .page-vertical-wrapper {
+    flex-grow: 1;
+  }
+
+  .page-sidebar {
+    flex-shrink: 0;
+
+    background: white;
+    width: 103px;
+    text-align: center;
+    font-size: 11px;
+    box-shadow: 2px 0px 10px #eee;
+
+    .logo {
+      background-color: $color-aqua-blue;
+      color: white;
+      height: 63px;
+      line-height: 63px;
+    }
+  }
+
+  .nav-link {
+    position: relative;    
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.3px;
+    font-weight: normal;
+    text-transform: uppercase;
+    color: $color-bluey-grey;
+    svg {
+      fill: $color-bluey-grey;
+    }
+
+    &:hover {
+      color: $color-purple;
+      svg {
+        fill: $color-purple;
+      }
+    }
+
+    span {
+      margin-top: 10px;
+      display: block; 
+    }
+
+    // TODO: All these fixed margins are kind of a hack to match the mockups.
+    // It would be better to assign a fixed height to all the nav-links, and
+    // figure out a consistent margin between each one
+    &:first-child {
+      margin-top: 51px;
+    }
+    &:nth-child(2) {
+      margin-top: 74px;
+    }
+    &:nth-child(3) {
+      margin-top: 78px;
+    }
+    &:nth-child(4) {
+      margin-top: 79px;
+    }
+  }
+}

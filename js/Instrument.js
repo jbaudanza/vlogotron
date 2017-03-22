@@ -327,6 +327,8 @@ export default class Instrument extends React.Component {
           </TouchableArea>
         </Spin>
 
+        {
+          /*
         <PianoRollWrapper
           notes={this.state.currentSong}
           ref={this.bindPianoRoll}
@@ -338,6 +340,8 @@ export default class Instrument extends React.Component {
           onClickRecord={this.onClickRecord}
           countdown={this.state.keyboardCountdown}
           />
+          */
+        }
 
         {/*
         <SongPlaybackButton

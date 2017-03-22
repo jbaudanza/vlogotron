@@ -34,38 +34,11 @@ export default class Router extends React.Component {
     let overlay;
 
     if (this.props.route.mode === 'playback') {
-      content = (
-        <div>
-          <h3>
-            Click on the videos, click the piano, or mash on your keyboard.
-          </h3>
-
-          <Instrument readonly />
-
-          <h3>Record your own vlogotron</h3>
-          <div className='button-wrapper'>
-            <a href="/record" className='create-button'>Record</a>
-          </div>
-
-          <h3>
-            Share this link on social media
-          </h3>
-          <SocialSection url={this.props.route.shareUrl} />
-        </div>
-      );
+      content = <Instrument readonly />;
     }
 
     if (this.props.route.mode === 'record') {
-      content = (
-        <div>
-          <h3>
-            Hello {this.props.route.displayName}, you can record videos by clicking
-            on the squares below. If you are someone else, you can <Link onClick={this.props.onLogout}>sign out</Link>.
-          </h3>
-
-          <Instrument />
-        </div>
-      );
+      content = <Instrument />;
     }
 
     if (this.props.route.overlay === 'login') {
