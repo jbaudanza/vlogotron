@@ -9,6 +9,7 @@ import NoteLabel from './NoteLabel';
 
 import {findWrappingLink} from './domutils';
 
+import './VideoCell.scss';
 
 export default class VideoCell extends React.Component {
   constructor() {
