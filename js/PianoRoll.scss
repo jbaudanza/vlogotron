@@ -1,0 +1,105 @@
+@import './colors.scss';
+
+.piano-roll {
+  display: flex;
+
+  .horizontal-scroller {
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .timeline {
+    display: relative;
+    cursor: pointer;
+  }
+
+  .timeline, .row {
+    white-space: nowrap;
+  }
+
+  $beat-width: 120px;
+
+  .time-marker {
+    display: inline-block;
+    width: $beat-width;
+    color: #eee;
+  }
+
+  .row-labels {
+    font-size: 75%;
+    margin-top: 18px;
+    min-width: $beat-width / 6;
+    flex-shrink: 0;
+  }
+
+  .black .cell {
+    background-color: #eee;
+  }
+
+  .cell:first-child {
+    border-left: 2px solid #ccc;
+  }
+
+  .row:first-child .cell {
+    border-top: 1px solid #ccc;
+  }
+
+  @mixin define-cell-width($n) {
+    .cell-width-#{$n} {
+      .cell {
+        width: $beat-width / $n;
+      }
+      .cell:nth-child(#{$n}n+0) {
+        border-right: 2px solid #ccc;
+      }
+    }
+  }
+
+  @include define-cell-width(1);
+  @include define-cell-width(2);
+  @include define-cell-width(4);
+  @include define-cell-width(8);
+  @include define-cell-width(16);
+
+  .cell, .note-label {
+      height: 15px;
+  }
+
+  .note-label.playing {
+    color: $active-color;
+    font-weight: bold;
+  }
+
+  .cell {
+    display: inline-block;
+    box-sizing: border-box;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-left: none;
+    border-top: none;
+  }
+
+  .note {
+    position: absolute;
+    box-sizing: border-box;
+    height: 15px;
+    width: 15px;
+    background-color: red;
+    border: 1px solid #333;
+  }
+
+  .note-wrapper {
+    position: relative;
+  }
+
+  .playhead {
+    position: absolute;
+    display: none;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background-color: #88c7f4;
+    opacity: 0.5;
+  }
+}

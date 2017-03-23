@@ -1,0 +1,75 @@
+@import './colors.scss';
+
+ul.piano-keys {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  $border-radius: 3px;
+
+  > li {
+    box-sizing: border-box;
+    border: 1px solid #333;
+    cursor: pointer;
+  }
+  .white-key {
+    background-color: white;
+  }
+  .black-key {
+    background-color: black;
+    position: absolute;
+  }
+  .playing {
+    background-color: $active-color;
+  }
+
+  &.horizontal-orientation {
+    overflow: hidden;
+
+    > li {
+      border-bottom-right-radius: $border-radius;
+      border-bottom-left-radius: $border-radius;
+      float: left;
+      height: 200px;
+      width: #{(100/7.0) + '%'};
+    }
+
+    .white-key {
+      border-left: none;
+      &:first-child {
+        border-left: 1px solid #333;
+      }
+    }
+
+    .black-key {
+      width: #{(100/7.0 - 4) + '%'};
+      height: 50%;
+      top: 0;
+    }
+  }
+
+  &.vertical-orientation {
+    width: 75px;
+    $height: 210px;
+
+    > li {
+      border-top-right-radius: $border-radius;
+      border-bottom-right-radius: $border-radius;
+      height: $height / 7;
+    }
+
+    .white-key {
+      border-top: none;
+
+      &:first-child {
+        border-top: 1px solid #333;
+      }
+    }
+
+    .black-key {
+      height: ($height / 7) - 8px;
+      width: 50%;
+      left: 0;
+    }
+  }
+}
