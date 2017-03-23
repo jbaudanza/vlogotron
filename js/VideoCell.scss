@@ -1,7 +1,7 @@
 @import 'colors.scss';
 
 .video-cell {
-  background-color: $color-bluey-grey;
+  background-color: $color-blue-grey;
   display: block;
   float: left;
   position: relative;
@@ -15,8 +15,8 @@
 
   &.playing {
     padding: 0;
-    border: 2px solid $color-purple;
-    color: $color-purple;
+    border: 2px solid $active-color;
+    color: $active-color;
     .note-label {
       bottom: 4px;
       left: 4px;
@@ -37,7 +37,7 @@
     top: 0;
     bottom: 0;
     opacity: 0.6;
-    background-color: $color-light-bluey-grey;
+    background-color: $color-light-blue-grey;
     transition: opacity .1s ease-in-out;
   }
   &.playing .shade {

@@ -134,15 +134,15 @@
     letter-spacing: 0.3px;
     font-weight: normal;
     text-transform: uppercase;
-    color: $color-bluey-grey;
+    color: $color-blue-grey;
     svg {
-      fill: $color-bluey-grey;
+      fill: $color-blue-grey;
     }
 
     &:hover {
-      color: $color-purple;
+      color: $active-color;
       svg {
-        fill: $color-purple;
+        fill: $active-color;
       }
     }
 

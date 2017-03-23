@@ -4,6 +4,8 @@ import TouchableArea from './TouchableArea';
 
 import {flatten} from 'lodash';
 
+import './PianoKeys.scss';
+
 const keys = [
   ['C', true],
   ['D', true],

@@ -2,6 +2,7 @@
 
 .piano-roll {
   display: flex;
+  background-color: $color-dusk;
 
   .horizontal-scroller {
     overflow-x: auto;
@@ -11,6 +12,13 @@
   .timeline {
     display: relative;
     cursor: pointer;
+    color: $color-dark-blue-grey;
+    background-color: $color-dark;
+    letter-spacing: 0.2px;
+    font-weight: 600; // semi-bold
+    font-size: 11px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   .timeline, .row {
@@ -20,9 +28,9 @@
   $beat-width: 120px;
 
   .time-marker {
+    color: $color-blue-grey;
     display: inline-block;
     width: $beat-width;
-    color: #eee;
   }
 
   .row-labels {
@@ -32,16 +40,12 @@
     flex-shrink: 0;
   }
 
-  .black .cell {
-    background-color: #eee;
-  }
-
   .cell:first-child {
-    border-left: 2px solid #ccc;
+    border-left: 2px solid $color-dark-two;
   }
 
   .row:first-child .cell {
-    border-top: 1px solid #ccc;
+    border-top: 1px solid $color-dark-two;
   }
 
   @mixin define-cell-width($n) {
@@ -50,7 +54,7 @@
         width: $beat-width / $n;
       }
       .cell:nth-child(#{$n}n+0) {
-        border-right: 2px solid #ccc;
+        border-right: 2px solid $color-dark-two;
       }
     }
   }
@@ -74,7 +78,7 @@
     display: inline-block;
     box-sizing: border-box;
     cursor: pointer;
-    border: 1px solid #ccc;
+    border: 1px solid $color-dark-two;
     border-left: none;
     border-top: none;
   }
@@ -84,12 +88,12 @@
     box-sizing: border-box;
     height: 15px;
     width: 15px;
-    background-color: red;
-    border: 1px solid #333;
+    background-color: $color-aqua-blue;
   }
 
   .note-wrapper {
     position: relative;
+    background-color: $color-dark-three;
   }
 
   .playhead {

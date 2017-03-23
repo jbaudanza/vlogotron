@@ -8,6 +8,7 @@ import {range, flatten, bindAll, identity, isEqual, max} from 'lodash';
 
 import {Observable} from 'rxjs/Observable';
 
+import './PianoRoll.scss';
 
 const keys = [
   ['C', true],
