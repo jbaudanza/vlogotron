@@ -33,36 +33,6 @@ body {
   font-family: HKGrotesk, sans-serif;
 }
 
-$cell-size: 150px;
-$cell-margin: 5px;
-
-$cells-per-row: 4;
-$cell-margin-percentage: 1;
-$cell-size-percentage: (100 - ($cells-per-row - 1) * $cell-margin-percentage) / $cells-per-row;
-
-.video-cell {
-  width: #{$cell-size-percentage}vw;
-  height: #{$cell-size-percentage}vw;
-
-  margin-bottom: #{$cell-margin-percentage}vw;
-  margin-right: #{$cell-margin-percentage}vw;
-}
-.video-container {
-  width: 100vw;
-}
-
-$desktop-width: 592px;
-@media only screen and (min-width: $desktop-width) {
-  .video-container {
-    width: $desktop-width;
-  }
-  .video-cell {
-    width: $desktop-width * ($cell-size-percentage/100);
-    height: $desktop-width * ($cell-size-percentage/100);
-    margin-bottom: $desktop-width * ($cell-margin-percentage/100);
-    margin-right: $desktop-width * ($cell-margin-percentage/100);
-  }
-}
 
 $active-color: #18BC9C;
 $red-color: #bc1838;
@@ -196,10 +166,6 @@ h3 {
     color: #333;
   }
 
-  &:nth-child(#{$cells-per-row}n+0) {
-    margin-right: 0;
-  }
-
   .note-label {
     position: absolute;
     bottom: 5px;
@@ -231,7 +197,6 @@ h3 {
   }
   .stop-action {
     font-size: 200%;
-    line-height: $cell-size/3;
   }
   .empty-video {
     text-align: center;
@@ -246,7 +211,6 @@ h3 {
     }
     .record-prompt {
       display: none;
-      margin-top: $cell-size / 2 - 20px;
       svg {
         margin-bottom: 5px;
       }
@@ -267,12 +231,6 @@ h3 {
     // TODO: This magic number might need to change if we change the video sizes
     margin-left: -19%;
   }
-}
-
-.video-container {
-  padding-top: 100px;
-  margin: 0 auto;
-  overflow: hidden;
 }
 
 #keyboard {

@@ -6,12 +6,8 @@ import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 import {Subscription} from 'rxjs/Subscription';
 
-import Spin from 'antd/lib/spin';
-import 'antd/lib/spin/style/css';
-
-import TouchableArea from './TouchableArea';
+import VideoGrid from './VideoGrid';
 import PianoRollWrapper from './PianoRollWrapper';
-import PianoKeys from './PianoKeys';
 import Link from './Link';
 import {bindAll, omit, includes, identity, remove, times} from 'lodash';
 import {findIndex, filter, concat} from 'lodash';
@@ -20,8 +16,6 @@ import VideoClipStore from './VideoClipStore';
 import {startRecording} from './RecordingStore';
 import {playCommands$ as scriptedPlayCommands$} from './VideoClipStore';
 import {startPlayback, audioLoading$, getAudioBuffer} from './VideoClipStore';
-
-import VideoCell from './VideoCell';
 
 import colors from './colors';
 import {findParentNode} from './domutils';
@@ -91,8 +85,8 @@ export default class Instrument extends React.Component {
   constructor() {
     super();
     bindAll(this,
-      'onClear', 'onTouchStart', 'onClickPlay', 'onClickRecord', 'bindPianoRoll',
-      'onChangePlaybackStartPosition'
+      'onClear', 'onClickPlay', 'onClickRecord', 'bindPianoRoll',
+      'bindVideoGrid', 'onChangePlaybackStartPosition'
     );
 
     this.state = {
@@ -111,54 +105,16 @@ export default class Instrument extends React.Component {
     this.setState({playbackStartPosition: value});
   }
 
+  bindVideoGrid(component) {
+    this.subscription.add(component.playCommands$$.subscribe((stream$) => {
+      this.playCommands$.next(stream$)
+    }));
+  }
+
   bindPianoRoll(component) {
     component.edits$
       .scan(reduceEditsToSong, this.state.currentSong)
       .subscribe((v) => this.setState({currentSong: v}));
-  }
-
-  onStartPlayback(note, when) {
-    const videoEl = document.getElementById('playback-' + note);
-    if (videoEl) {
-      videoEl.currentTime = 0;
-      const promise = videoEl.play();
-
-      // Older version of FF don't return a promise
-      if (promise) {
-        promise.then(() => {
-          // Try to compensate for any delay in starting the video
-          if (when) {
-            const delta = this.context.audioContext.currentTime - when;
-            if (delta > 0) {
-              videoEl.currentTime = delta;
-            }
-          }
-        }).catch(function(e) {
-          // 20 = AbortError.
-          // This can happen if we try to pause playback before it starts. This
-          // can safely be ignored. It results in errors that look like:
-          //
-          //   The play() request was interrupted by a call to pause()
-          //
-          if (e.code !== 20) {
-            throw e;
-          }
-        });
-      }
-    }
-
-    this.state.playing[note] = true;
-    this.forceUpdate();
-  }
-
-  onStopPlayback(note) {
-    const videoEl = document.getElementById('playback-' + note);
-    if (videoEl) {
-      videoEl.pause();
-      videoEl.currentTime = 0;
-    }
-
-    this.setState({playing: omit(this.state.playing, note)});
   }
 
   componentWillMount() {
@@ -171,15 +127,6 @@ export default class Instrument extends React.Component {
     this.pauseActions$ = new Subject();
 
     this.videoClipStore = new VideoClipStore(this.playCommands$);
-
-    this.subscription.add(this.videoClipStore.playCommands$.subscribe((command) => {
-      if (command.play) {
-        this.onStartPlayback(command.play, command.when);
-      }
-      if (command.pause) {
-        this.onStopPlayback(command.pause);
-      }
-    }));
 
     this.subscription.add(this.videoClipStore.videoClips$.subscribe((obj) => {
       this.setState({videoClips: obj})
@@ -219,54 +166,6 @@ export default class Instrument extends React.Component {
 
   onStop(note) {
     this.stopRecording$.next(note);
-  }
-
-  propsForCell(note) {
-    const props = {
-      videoClip: this.state.videoClips[note],
-      note: note,
-      recording: !!this.state.recording,
-      onStartRecording: this.onRecord.bind(this, note),
-      onStopRecording: this.onStop.bind(this, note),
-      onClear: this.onClear.bind(this, note),
-      playing: !!this.state.playing[note],
-      readonly: this.props.readonly
-    };
-
-    if (this.state.recording === note) {
-      Object.assign(props, {
-        stream: this.state.stream,
-        duration: this.state.timeStamp,
-        countdown: this.state.countdown
-      });
-    }
-
-    return props;
-  }
-
-  onTouchStart(stream$) {
-    // Reduces into something like: {'play': 'C', 'pause': 'A'}
-    function reduceToCommands(lastCommand, note) {
-      const nextCommand = {};
-
-      if (note != null) {
-        nextCommand.play = note;
-      }
-
-      if (lastCommand.play) {
-        nextCommand.pause = lastCommand.play;
-      }
-
-      return nextCommand;
-    }
-
-    this.playCommands$.next(
-        stream$
-          .concat(Observable.of(null))
-          .map(x => x ? x.dataset.note : null) // Map to current note
-          .distinctUntilChanged()
-          .scan(reduceToCommands, {})
-    );
   }
 
   onClickRecord() {
@@ -319,13 +218,16 @@ export default class Instrument extends React.Component {
   render() {
     return (
       <div className='instrument'>
-        <Spin tip="Loading" size="large" spinning={this.state.loading}>
-          <TouchableArea className='video-container' onTouchStart={this.onTouchStart}>
-          {
-            notes.map((note) => <VideoCell key={note} {...this.propsForCell(note)} />)
-          }
-          </TouchableArea>
-        </Spin>
+        <VideoGrid
+          loading={this.state.loading}
+          readonly={this.props.readonly}
+          videoClips={this.state.videoClips}
+          onStartRecording={this.onRecord}
+          onStopRecording={this.onStop}
+          onClear={this.onClear}
+          playCommands$={this.videoClipStore.playCommands$}
+          ref={this.bindVideoGrid}
+          />
 
         {
           /*
@@ -354,10 +256,6 @@ export default class Instrument extends React.Component {
             onClick={this.onClickPlay.bind(this, 'marry-had-a-little-lamb')}
             title="Mary had a little lamb" />
         */}
-
-        {
-          // <PianoKeys orientation='horizontal' playing={this.state.playing} onTouchStart={this.onTouchStart} />
-        }
       </div>
     );
   }
