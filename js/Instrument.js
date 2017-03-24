@@ -23,11 +23,6 @@ import {findParentNode} from './domutils';
 import {songs} from './song';
 
 
-const notes = [
-  'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
-].map(note => note + '4').concat(['C5', 'C#5', 'D5', 'D#5'])
-
-
 // TODO: This is duplicated in VideoClipStore
 function startCountdown(countdownSeconds, interval) {
   return Observable.interval(interval)

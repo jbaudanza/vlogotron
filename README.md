@@ -14,7 +14,7 @@
 
     npm install -g firebase-tools
     firebase login
-    firebase deploy
+    firebase deploy --except functions
 
 # Transcoder
 

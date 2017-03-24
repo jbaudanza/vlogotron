@@ -8,10 +8,10 @@ import {bindAll} from 'lodash';
 import Router from './Router';
 import SvgAssets from './SvgAssets';
 
-import {navigate, currentRoute$} from './VideoClipStore';
 import audioContext from './audioContext';
 
 import './style.scss';
+import {navigate, currentRoute$} from './router2';
 
 import bindComponentToObservable from './bindComponentToObservable';
 
