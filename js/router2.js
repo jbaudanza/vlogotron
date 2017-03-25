@@ -1,19 +1,12 @@
 import {Observable} from 'rxjs/Observable';
 import createHistory from 'history/createBrowserHistory';
 
+import PlaybackView from './PlaybackView';
+
+import playbackController from './playbackController';
+
 // This is the UID that is loaded on the root URL. (It's me, Jon B!)
 const DEFAULT_UID = 'b7Z6g5LFN7SiyJpAnxByRmuSHuV2';
-
-
-function urlForUid(uid) {
-  const baseUrl = document.location.protocol + '//' + document.location.host;
-
-  if (uid === DEFAULT_UID) {
-    return baseUrl + '/';
-  } else {
-    return baseUrl + '/u' + uid;
-  }
-}
 
 
 export function navigate(href) {
@@ -21,25 +14,33 @@ export function navigate(href) {
 }
 
 function mapToRoute(location, user) {
-  let match;
+  // let match;
 
-  if (location.pathname === '/') {
-    return {mode: 'playback', uid: DEFAULT_UID, shareUrl: urlForUid(DEFAULT_UID)};
-  } else if (location.pathname === '/record') {
-    const obj = {mode: 'record'};
-    if (user) {
-      obj.uid = user.uid;
-      obj.shareUrl = urlForUid(user.uid);
-      obj.displayName = user.displayName;
-    } else {
-      obj.uid = null;
-      obj.overlay = 'login';
-    }
-    return obj;
-  } else if (match = location.pathname.match(/\/u\/([\w-]+)/)) {
-    return {mode: 'playback', uid: match[1], shareUrl: urlForUid(match[1])};
-  } else {
-    return {mode: 'not-found'};
+  // if (location.pathname === '/') {
+  //   return {
+  //     view: PlaybackView, uid: DEFAULT_UID
+  //   };
+  // } else if (location.pathname === '/record') {
+  //   const obj = {view: PlaybackView};
+  //   if (user) {
+  //     obj.uid = user.uid;
+  //     obj.displayName = user.displayName;
+  //   } else {
+  //     obj.uid = null;
+  //     obj.overlay = 'login';
+  //   }
+  //   return obj;
+  // } else if (match = location.pathname.match(/\/u\/([\w-]+)/)) {
+  //   return {uid: match[1], view: PlaybackView};
+  // } else {
+  //   return {view: PlaybackView};
+  // }
+
+  return {
+    view: PlaybackView,
+    controller: playbackController,
+    params: {uid: DEFAULT_UID},
+    initialState: { loading: true, videoClips: {}, playCommands$: Observable.never() }
   }
 }
 
@@ -47,7 +48,7 @@ const urlHistory = createHistory();
 
 export const currentUser$ = Observable.create(function(observer) {
   firebase.auth().onAuthStateChanged((user) => observer.next(user));
-});
+}).startWith(null);
 
 const currentLocation$ = Observable.create((observer) => {
   observer.next(urlHistory.location);
@@ -56,4 +57,4 @@ const currentLocation$ = Observable.create((observer) => {
 
 export const currentRoute$ = Observable.combineLatest(
   currentLocation$, currentUser$, mapToRoute
-).startWith({mode: 'loading'});
+);

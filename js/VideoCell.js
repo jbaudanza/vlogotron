@@ -151,10 +151,10 @@ export default class VideoCell extends React.Component {
 
 VideoCell.propTypes = {
   note:              React.PropTypes.string.isRequired,
-  onStartRecording:  React.PropTypes.func.isRequired,
-  onStopRecording:   React.PropTypes.func.isRequired,
   recording:         React.PropTypes.bool.isRequired,
   playing:           React.PropTypes.bool.isRequired,
+  onStartRecording:  React.PropTypes.func,
+  onStopRecording:   React.PropTypes.func,
   videoClip:         React.PropTypes.object,
   readonly:          React.PropTypes.bool,
   countdown:         React.PropTypes.number

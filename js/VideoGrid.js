@@ -92,12 +92,17 @@ export default class VideoGrid extends React.Component {
       videoClip: this.props.videoClips[note],
       note: note,
       recording: !!this.state.recording,
-      onStartRecording: this.props.onStartRecording.bind(this, note),
-      onStopRecording: this.props.onStopRecording.bind(this, note),
-      onClear: this.props.onClear.bind(this, note),
       playing: !!this.state.playing[note],
       readonly: this.props.readonly
     };
+
+    if (!this.props.readonly) {
+      Object.assign(props, {
+        onStartRecording: this.props.onStartRecording.bind(this, note),
+        onStopRecording: this.props.onStopRecording.bind(this, note),
+        onClear: this.props.onClear.bind(this, note)
+      });
+    }
 
     if (this.props.recording === note) {
       Object.assign(props, {
@@ -154,9 +159,9 @@ VideoGrid.propTypes = {
   readonly:         React.PropTypes.bool.isRequired,
   loading:          React.PropTypes.bool.isRequired,
   videoClips:       React.PropTypes.object.isRequired,
-  onStartRecording: React.PropTypes.func.isRequired,
-  onStopRecording:  React.PropTypes.func.isRequired,
-  onClear:          React.PropTypes.func.isRequired,
+  onStartRecording: React.PropTypes.func,
+  onStopRecording:  React.PropTypes.func,
+  onClear:          React.PropTypes.func,
   recording:        React.PropTypes.string
 };
 
