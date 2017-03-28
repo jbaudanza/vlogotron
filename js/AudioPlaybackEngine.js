@@ -14,55 +14,55 @@ const batchTime = audioContext.baseLatency || ((2 * 128) / audioContext.sampleRa
 import {max, flatten} from 'lodash';
 
 
-export default class AudioPlaybackEngine {
-  constructor(audioBuffers$, playCommands$, songPlayback$) {
-    const activeNodes = {};
+export function startPlaybackEngine(audioBuffers$, playCommands$, songPlayback$, subscription) {
+  const activeNodes = {};
 
-    const subject = new Subject();
+  const subject = new Subject();
 
-    this.destinationNode = audioContext.createGain();
-    this.destinationNode.gain.value = 0.9;
-    this.destinationNode.connect(audioContext.destination);
+  subscription.add(playCommands$
+    .withLatestFrom(audioBuffers$, gainNode$)
+    .subscribe(([cmd, audioBuffers, destinationNode]) => {
+      const when = audioContext.currentTime + batchTime;
+      if (cmd.play && audioBuffers[cmd.play]) {
+        const node = audioContext.createBufferSource();
+        node.buffer = audioBuffers[cmd.play];
+        node.connect(destinationNode);
+        activeNodes[cmd.play] = node;
+        node.start(when);
+      }
 
-    this.subscription = playCommands$
-      .withLatestFrom(audioBuffers$)
-      .subscribe(([cmd, audioBuffers]) => {
-        const when = audioContext.currentTime + batchTime;
+      if (cmd.pause && activeNodes[cmd.pause]) {
+        activeNodes[cmd.pause].stop(when);
+      }
 
-        if (cmd.play && audioBuffers[cmd.play]) {
-          const node = audioContext.createBufferSource();
-          node.buffer = audioBuffers[cmd.play];
-          node.connect(this.destinationNode);
-          activeNodes[cmd.play] = node;
-          node.start(when);
-        }
+      subject.next(Object.assign({when}, cmd));
+    })
+  );
 
-        if (cmd.pause && activeNodes[cmd.pause]) {
-          activeNodes[cmd.pause].stop(when);
-        }
+  subscription.add(songPlayback$.subscribe((command) => {
+    startPlayback(
+      command.song,
+      command.bpm,
+      command.startPosition,
+      command.playUntil$,
+      audioBuffers$
+    )
+  }))
 
-        subject.next(Object.assign({when}, cmd));
-      });
-
-    this.subscription.add(songPlayback$.subscribe((command) => {
-      startPlayback(
-        command.song,
-        command.bpm,
-        command.startPosition,
-        command.playUntil$,
-        audioBuffers$
-      )
-    }))
-
-    this.playCommands$ = subject.asObservable();
-  }
-
-  destroy() {
-    this.subscription.unsubscribe();
-  }
+  return subject.asObservable();
 }
 
+const gainNode$ = Observable.create(function(observer) {
+  const node = audioContext.createGain();
+  node.gain.value = 0.9;
+  node.connect(audioContext.destination);
 
+  observer.next(node);
+
+  return function() {
+    node.disconnect();
+  };
+});
 
 function startPlayback(song, bpm, startPosition, playUntil$, audioBuffers$) {
   const playbackStartedAt = audioContext.currentTime + batchTime;
@@ -101,6 +101,7 @@ function startPlayback(song, bpm, startPosition, playUntil$, audioBuffers$) {
     ];
   }
 
+  // TODO: Maybe this should pull a gainNode from the gainNode$ observable.
   const gainNode = audioContext.createGain();
   gainNode.gain.value = 0.9;
   gainNode.connect(audioContext.destination);

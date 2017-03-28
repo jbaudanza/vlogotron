@@ -7,6 +7,7 @@ import promiseFromTemplate from './promiseFromTemplate';
 
 import {playCommands$ as midiPlayCommands$} from './midi';
 import {playCommands$ as keyboardPlayCommands$} from './keyboard';
+import {startPlaybackEngine} from './AudioPlaybackEngine';
 
 import audioContext from './audioContext';
 
@@ -58,18 +59,14 @@ export default function playbackController(params, actions, subscription) {
       .map((count) => count > 0)
       .startWith(true);
 
-  const audioEngineState = {
-    playCommands: livePlayCommands$,
-    audioBuffers: audioBuffers$,
-    songPlayback: songPlayback$
-  };
-
-  const viewState = Observable.combineLatest(
-    videoClips$, loading$,
-    (videoClips, loading) => ({videoClips, loading})
+  const playCommands$ = startPlaybackEngine(
+    audioBuffers$, livePlayCommands$, songPlayback$, subscription
   );
 
-  return {audioEngineState, viewState};
+  return Observable.combineLatest(
+    videoClips$, loading$,
+    (videoClips, loading) => ({videoClips, loading, playCommands$})
+  );
 }
 
 
@@ -208,7 +205,7 @@ function decodeAudioData(arraybuffer) {
   return new Promise(audioContext.decodeAudioData.bind(audioContext, arraybuffer));
 }
 
-export function getAudioBuffer(url, progressSubscriber) {
+export function getAudioBuffer(url) {
   const http = getArrayBuffer(url);
   http.audioBuffer = http.response.then(decodeAudioData);
   return http;

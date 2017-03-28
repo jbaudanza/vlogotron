@@ -10,7 +10,6 @@ import {bindAll} from 'lodash';
 import SvgAssets from './SvgAssets';
 
 import audioContext from './audioContext';
-import AudioPlaybackEngine from './AudioPlaybackEngine';
 
 import './style.scss';
 import {navigate, currentRoute$} from './router2';
@@ -54,25 +53,12 @@ class App extends React.Component {
 
     this.pageSubscription = new Subscription();
 
-    if (this.state.audioEngine) {
-      this.state.audioEngine.destroy();
-    }
-
-    const result = this.state.route.controller(
+    const viewState$ = this.state.route.controller(
       this.state.route.params, view.actions, this.pageSubscription
     );
 
-    const audioEngine = new AudioPlaybackEngine(
-      result.audioEngineState.audioBuffers,
-      result.audioEngineState.playCommands,
-      result.audioEngineState.songPlayback
-    );
-
     this.pageSubscription.add(
-      result.viewState.subscribe((state) => this.setState({
-        viewState: state,
-        audioEngine: audioEngine
-      }))
+      viewState$.subscribe((viewState) => this.setState({viewState}))
     );
   }
 
@@ -97,19 +83,11 @@ class App extends React.Component {
   render() {
     const View = this.state.route.view;
 
-    let playCommands$;
-    if (this.state.audioEngine) {
-      playCommands$ = this.state.audioEngine.playCommands$;
-    } else {
-      playCommands$ = Observable.never();
-    }
-
     return (
       <div>
         <SvgAssets />
         <View
             {...this.state.viewState}
-            playCommands$={playCommands$}
             ref={this.bindView}
             onNavigate={this.onNavigate}
             onLogin={this.onLogin}
