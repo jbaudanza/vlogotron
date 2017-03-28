@@ -390,18 +390,6 @@ export default class VideoClipStore {
 }
 
 
-const gainNode = audioContext.createGain();
-gainNode.gain.value = 0.9;
-gainNode.connect(audioContext.destination);
-
-function makeNode(audioBuffer, startTime) {
-  const source = audioContext.createBufferSource();
-  source.buffer = audioBuffer;
-  source.connect(gainNode);
-  return source;
-}
-
-
 function subscribeToAudioPlayback(playCommands$) {
   const activeNodes = {};
 

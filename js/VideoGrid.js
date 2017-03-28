@@ -1,7 +1,7 @@
 import React from 'react';
 import {Observable} from 'rxjs/Observable';
 
-import {omit} from 'lodash';
+import {omit, bindAll} from 'lodash';
 
 import TouchableArea from './TouchableArea';
 import VideoCell from './VideoCell';
@@ -25,18 +25,27 @@ export default class VideoGrid extends React.Component {
       playing: {}
     };
 
-    this.bindTouchableArea = this.bindTouchableArea.bind(this);
+    bindAll(this, 'bindTouchableArea', 'onPlayCommand');
   }
 
   componentWillMount() {
-    this.subscription = this.props.playCommands$.subscribe((command) => {
-      if (command.play) {
-        this.onStartPlayback(command.play, command.when);
-      }
-      if (command.pause) {
-        this.onStopPlayback(command.pause);
-      }
-    });
+    this.subscription = this.props.playCommands$.subscribe(this.onPlayCommand);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.playCommands$ !== this.props.playCommands$) {
+      this.subscription.unsubscribe();
+      this.subscription = nextProps.playCommands$.subscribe(this.onPlayCommand);
+    }
+  }
+
+  onPlayCommand(command) {
+    if (command.play) {
+      this.onStartPlayback(command.play, command.when);
+    }
+    if (command.pause) {
+      this.onStopPlayback(command.pause);
+    }
   }
 
   componentWillUnmount() {

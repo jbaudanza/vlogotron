@@ -31,6 +31,11 @@ export default function playbackController(params, actions) {
     .map(o => mapValues(o, v => v.audioUrl)) // { [note]: [url], ... }
     .scan(reduceToAudioBuffers, {});
 
+  // Looks like { [note]: [audioBuffer], ... }
+  const audioBuffers$ = loadingContext$
+    .mergeMap(obj => Observable.merge(...obj.promises))
+    .scan((acc, obj) => Object.assign({}, acc, obj), {});
+
   const http$ = loadingContext$
     .flatMap(c => (
       Observable.from(values(pick(c.httpMap, c.newUrls)))
@@ -42,13 +47,19 @@ export default function playbackController(params, actions) {
       .map((count) => count > 0)
       .startWith(true);
 
-  // XXX: Left off here.
-  //  - playCommands should trigger playback
-  return Observable.combineLatest(
+  const audioEngineState = {
+    playCommands: livePlayCommands$,
+    audioBuffers: audioBuffers$
+  };
+
+  const viewState = Observable.combineLatest(
     videoClips$, loading$,
     (videoClips, loading) => ({videoClips, loading})
   );
+
+  return {audioEngineState, viewState};
 }
+
 
 function reduceMultipleCommandStreams(last, command) {
   const nextCommand = {};
@@ -218,4 +229,31 @@ function reduceToAudioBuffers(acc, noteToUrlMap) {
       .filter(identity)
 
   return next;
+}
+
+
+function subscribeToAudioPlayback(playCommands$, audioBuffers$, destinationNode) {
+  const activeNodes = {};
+
+  const subject = new Subject();
+
+  playCommands$
+    .withLatestFrom(audioBuffers$)
+    .subscribe(([cmd, audioBuffers]) => {
+      if (cmd.play && audioBuffers[cmd.play]) {
+        const node = audioContext.createBufferSource();
+        node.buffer = audioBuffers[cmd.play];
+        node.connect(destinationNode);
+        activeNodes[cmd.play] = node;
+        node.start();
+      }
+
+      if (cmd.pause && activeNodes[cmd.pause]) {
+        activeNodes[cmd.pause].stop();
+      }
+
+      subject.next(Object.assign({when: audioContext.currentTime}, cmd));
+    });
+
+  return subject.asObservable();
 }
