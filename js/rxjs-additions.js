@@ -16,6 +16,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mapTo';
 import 'rxjs/add/operator/mergeAll';
 import 'rxjs/add/operator/mergeMap';
+import 'rxjs/add/operator/partition';
 import 'rxjs/add/operator/publish';
 import 'rxjs/add/operator/publishReplay';
 import 'rxjs/add/operator/repeat';

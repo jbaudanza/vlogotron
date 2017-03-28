@@ -1,5 +1,7 @@
 import {Observable} from 'rxjs/Observable';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+import {Subject} from 'rxjs/Subject';
+
 
 import {
   pickBy, includes, clone, forEach, values, pick, sum, mapValues, identity
@@ -58,14 +60,24 @@ export default function playbackController(params, actions, subscription) {
   );
 
   const isPlaying$ = new BehaviorSubject(false);
+  const scriptedPlayCommandStreams$ = new Subject();
+
+  // const playCommands$ = Observable.merge(
+  //   scriptedPlayCommandStreams$.concatAll(),
+  //   subscribeToAudioPlayback(livePlayCommands$)
+  // )
+
+  const [pauseActions$, playActions$] = actions.play$
+      .withLatestFrom(isPlaying$, (x, isPlaying) => isPlaying)
+      .partition(identity);
 
   subscription.add(
-    actions.play$
+    playActions$
       .mapTo({
         song: songs['mary-had-a-little-lamb'],
         bpm: 120,
         startPosition: 0,
-        playUntil$: Observable.never()
+        playUntil$: pauseActions$.take(1)
       })
       .subscribe((command) => {
         isPlaying$.next(true);
@@ -79,6 +91,7 @@ export default function playbackController(params, actions, subscription) {
         );
 
         result.finished.then((x) => isPlaying$.next(false));
+        scriptedPlayCommandStreams$.next(result.playCommandsForVisuals$);
       })
   );
 

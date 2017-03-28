@@ -28,7 +28,7 @@ export default class Page extends React.Component {
 
   render() {
     return (
-      <div {...this.props} className='page'>
+      <div className='page'>
         <div className='page-sidebar'>
           <div className='logo'>VLOGOTRON</div>
           <div className='navigation'>
