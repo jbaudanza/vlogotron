@@ -40,7 +40,9 @@ function mapToRoute(location, user) {
     view: PlaybackView,
     controller: playbackController,
     params: {uid: DEFAULT_UID},
-    initialState: { loading: true, videoClips: {}, playCommands$: Observable.never() }
+    initialState: {
+      loading: true, videoClips: {}, playCommands$: Observable.never(), isPlaying: false
+    }
   }
 }
 

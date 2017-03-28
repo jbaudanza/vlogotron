@@ -1,4 +1,6 @@
 import {Observable} from 'rxjs/Observable';
+import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+
 import {
   pickBy, includes, clone, forEach, values, pick, sum, mapValues, identity
 } from 'lodash';
@@ -7,7 +9,7 @@ import promiseFromTemplate from './promiseFromTemplate';
 
 import {playCommands$ as midiPlayCommands$} from './midi';
 import {playCommands$ as keyboardPlayCommands$} from './keyboard';
-import {startPlaybackEngine} from './AudioPlaybackEngine';
+import {startLivePlaybackEngine, startScriptedPlayback} from './AudioPlaybackEngine';
 
 import audioContext from './audioContext';
 
@@ -16,14 +18,6 @@ import {songs} from './song';
 
 export default function playbackController(params, actions, subscription) {
   const videoClips$ = videoClipsForUid(params.uid);
-
-  const songPlayback$ = actions.play$
-    .mapTo({
-      song: songs['mary-had-a-little-lamb'],
-      bpm: 120,
-      startPosition: 0,
-      playUntil$: Observable.never()
-    });
 
   // Use a reference counting scheme to merge multiple command streams into
   // one unified stream to control playback.
@@ -59,13 +53,38 @@ export default function playbackController(params, actions, subscription) {
       .map((count) => count > 0)
       .startWith(true);
 
-  const playCommands$ = startPlaybackEngine(
-    audioBuffers$, livePlayCommands$, songPlayback$, subscription
+  const playCommands$ = startLivePlaybackEngine(
+      audioBuffers$, livePlayCommands$, subscription
+  );
+
+  const isPlaying$ = new BehaviorSubject(false);
+
+  subscription.add(
+    actions.play$
+      .mapTo({
+        song: songs['mary-had-a-little-lamb'],
+        bpm: 120,
+        startPosition: 0,
+        playUntil$: Observable.never()
+      })
+      .subscribe((command) => {
+        isPlaying$.next(true);
+
+        const result = startScriptedPlayback(
+          command.song,
+          command.bpm,
+          command.startPosition,
+          command.playUntil$,
+          audioBuffers$
+        );
+
+        result.finished.then((x) => isPlaying$.next(false));
+      })
   );
 
   return Observable.combineLatest(
-    videoClips$, loading$,
-    (videoClips, loading) => ({videoClips, loading, playCommands$})
+    videoClips$, loading$, isPlaying$,
+    (videoClips, loading, isPlaying) => ({videoClips, isPlaying, loading, playCommands$})
   );
 }
 

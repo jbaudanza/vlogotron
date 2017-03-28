@@ -44,7 +44,7 @@ export default class Page extends React.Component {
 
             <Link onClick={this.onClickPlay} className='play-button'>
               <svg version="1.1" width={32} height={32}>
-                <use xlinkHref='#svg-play' />
+                <use xlinkHref={ this.props.isPlaying ? '#svg-pause' : '#svg-play' } />
               </svg>
             </Link>
 

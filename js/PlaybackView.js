@@ -23,7 +23,7 @@ export default class PlaybackView extends React.Component {
 
   render() {
     return (
-      <Page ref={this.bindPage}>
+      <Page ref={this.bindPage} isPlaying={this.props.isPlaying}>
         <VideoGrid readonly
           loading={this.props.loading}
           videoClips={this.props.videoClips}
@@ -38,5 +38,6 @@ export default class PlaybackView extends React.Component {
 PlaybackView.propTypes = {
   loading:       React.PropTypes.bool.isRequired,
   videoClips:    React.PropTypes.object.isRequired,
-  playCommands$: React.PropTypes.object.isRequired
+  playCommands$: React.PropTypes.object.isRequired,
+  isPlaying:     React.PropTypes.bool.isRequired
 }

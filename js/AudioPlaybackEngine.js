@@ -14,7 +14,7 @@ const batchTime = audioContext.baseLatency || ((2 * 128) / audioContext.sampleRa
 import {max, flatten} from 'lodash';
 
 
-export function startPlaybackEngine(audioBuffers$, playCommands$, songPlayback$, subscription) {
+export function startLivePlaybackEngine(audioBuffers$, playCommands$, subscription) {
   const activeNodes = {};
 
   const subject = new Subject();
@@ -39,16 +39,6 @@ export function startPlaybackEngine(audioBuffers$, playCommands$, songPlayback$,
     })
   );
 
-  subscription.add(songPlayback$.subscribe((command) => {
-    startPlayback(
-      command.song,
-      command.bpm,
-      command.startPosition,
-      command.playUntil$,
-      audioBuffers$
-    )
-  }))
-
   return subject.asObservable();
 }
 
@@ -64,7 +54,8 @@ const gainNode$ = Observable.create(function(observer) {
   };
 });
 
-function startPlayback(song, bpm, startPosition, playUntil$, audioBuffers$) {
+
+export function startScriptedPlayback(song, bpm, startPosition, playUntil$, audioBuffers$) {
   const playbackStartedAt = audioContext.currentTime + batchTime;
 
   const truncatedSong = song
