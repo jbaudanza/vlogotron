@@ -5,10 +5,15 @@ import {animationFrame} from 'rxjs/scheduler/animationFrame';
 import audioContext from './audioContext';
 import {playbackSchedule} from './playbackSchedule';
 
+// This is the minimum amount of time we will try to schedule audio in the
+// future. This is based on the following comment by Chris Wilson:
+// https://github.com/WebAudio/web-audio-api/issues/296#issuecomment-257100626
+// https://webaudio.github.io/web-audio-api/#widl-BaseAudioContext-baseLatency
+const batchTime = audioContext.baseLatency || ((2 * 128) / audioContext.sampleRate);
 
 import {max, flatten} from 'lodash';
 
-// TODO: This should also playback full songs
+
 export default class AudioPlaybackEngine {
   constructor(audioBuffers$, playCommands$, songPlayback$) {
     const activeNodes = {};
@@ -22,19 +27,21 @@ export default class AudioPlaybackEngine {
     this.subscription = playCommands$
       .withLatestFrom(audioBuffers$)
       .subscribe(([cmd, audioBuffers]) => {
+        const when = audioContext.currentTime + batchTime;
+
         if (cmd.play && audioBuffers[cmd.play]) {
           const node = audioContext.createBufferSource();
           node.buffer = audioBuffers[cmd.play];
           node.connect(this.destinationNode);
           activeNodes[cmd.play] = node;
-          node.start();
+          node.start(when);
         }
 
         if (cmd.pause && activeNodes[cmd.pause]) {
-          activeNodes[cmd.pause].stop();
+          activeNodes[cmd.pause].stop(when);
         }
 
-        subject.next(Object.assign({when: audioContext.currentTime}, cmd));
+        subject.next(Object.assign({when}, cmd));
       });
 
     this.subscription.add(songPlayback$.subscribe((command) => {
@@ -58,7 +65,7 @@ export default class AudioPlaybackEngine {
 
 
 function startPlayback(song, bpm, startPosition, playUntil$, audioBuffers$) {
-  const playbackStartedAt = audioContext.currentTime + 0.125;
+  const playbackStartedAt = audioContext.currentTime + batchTime;
 
   const truncatedSong = song
       .filter(note => note[1] >= startPosition)
@@ -111,7 +118,6 @@ function startPlayback(song, bpm, startPosition, playUntil$, audioBuffers$) {
       .subscribe({
         next([commands, audioBuffers]) {
           commands.forEach((command) => {
-            console.log('scheduling', command)
             const audioBuffer = audioBuffers[command[0]];
             if (audioBuffer) {
               const startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
