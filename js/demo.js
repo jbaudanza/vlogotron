@@ -3,6 +3,7 @@ import './rxjs-additions';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Observable} from 'rxjs/Observable';
+import {Subscription} from 'rxjs/Subscription';
 
 import {bindAll} from 'lodash';
 
@@ -41,22 +42,24 @@ class App extends React.Component {
   componentWillUnmount() {
     this.subscription.unsubscribe();
 
-    if (this.viewSubscription) {
-      this.viewSubscription.unsubscribe();
+    if (this.pageSubscription) {
+      this.pageSubscription.unsubscribe();
     }
   }
 
   bindView(view) {
-    if (this.viewSubscription) {
-      this.viewSubscription.unsubscribe();
+    if (this.pageSubscription) {
+      this.pageSubscription.unsubscribe();
     }
+
+    this.pageSubscription = new Subscription();
 
     if (this.state.audioEngine) {
       this.state.audioEngine.destroy();
     }
 
     const result = this.state.route.controller(
-      this.state.route.params, view.actions
+      this.state.route.params, view.actions, this.pageSubscription
     );
 
     const audioEngine = new AudioPlaybackEngine(
@@ -65,10 +68,12 @@ class App extends React.Component {
       result.audioEngineState.songPlayback
     );
 
-    this.viewSubscription = result.viewState.subscribe((state) => this.setState({
-      viewState: state,
-      audioEngine: audioEngine
-    }));
+    this.pageSubscription.add(
+      result.viewState.subscribe((state) => this.setState({
+        viewState: state,
+        audioEngine: audioEngine
+      }))
+    );
   }
 
   onNavigate(href) {

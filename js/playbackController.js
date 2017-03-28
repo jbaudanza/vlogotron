@@ -13,7 +13,7 @@ import audioContext from './audioContext';
 import {getArrayBuffer} from './http';
 import {songs} from './song';
 
-export default function playbackController(params, actions) {
+export default function playbackController(params, actions, subscription) {
   const videoClips$ = videoClipsForUid(params.uid);
 
   const songPlayback$ = actions.play$
@@ -43,7 +43,9 @@ export default function playbackController(params, actions) {
   const audioBuffers$ = loadingContext$
     .mergeMap(obj => Observable.merge(...obj.promises))
     .scan((acc, obj) => Object.assign({}, acc, obj), {})
-    .publishReplay().refCount();
+    .publishReplay();
+
+  subscription.add(audioBuffers$.connect());
 
   const http$ = loadingContext$
     .flatMap(c => (

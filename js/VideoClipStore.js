@@ -492,7 +492,7 @@ function startPlayback(song, startPosition, playUntil$) {
               } else {
                 offset = 0;
               }
-              source.start(startAt, offset, beatsToTimestamp(command[2], bpm));
+              source.start(0, offset, beatsToTimestamp(command[2], bpm));
             } else {
               console.warn('missing audiobuffer for', command[0])
             }
