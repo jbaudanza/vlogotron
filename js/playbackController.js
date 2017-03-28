@@ -11,10 +11,18 @@ import {playCommands$ as keyboardPlayCommands$} from './keyboard';
 import audioContext from './audioContext';
 
 import {getArrayBuffer} from './http';
-
+import {songs} from './song';
 
 export default function playbackController(params, actions) {
   const videoClips$ = videoClipsForUid(params.uid);
+
+  const songPlayback$ = actions.play$
+    .mapTo({
+      song: songs['mary-had-a-little-lamb'],
+      bpm: 120,
+      startPosition: 0,
+      playUntil$: Observable.never()
+    });
 
   // Use a reference counting scheme to merge multiple command streams into
   // one unified stream to control playback.
@@ -34,7 +42,8 @@ export default function playbackController(params, actions) {
   // Looks like { [note]: [audioBuffer], ... }
   const audioBuffers$ = loadingContext$
     .mergeMap(obj => Observable.merge(...obj.promises))
-    .scan((acc, obj) => Object.assign({}, acc, obj), {});
+    .scan((acc, obj) => Object.assign({}, acc, obj), {})
+    .publishReplay().refCount();
 
   const http$ = loadingContext$
     .flatMap(c => (
@@ -49,7 +58,8 @@ export default function playbackController(params, actions) {
 
   const audioEngineState = {
     playCommands: livePlayCommands$,
-    audioBuffers: audioBuffers$
+    audioBuffers: audioBuffers$,
+    songPlayback: songPlayback$
   };
 
   const viewState = Observable.combineLatest(
@@ -229,31 +239,4 @@ function reduceToAudioBuffers(acc, noteToUrlMap) {
       .filter(identity)
 
   return next;
-}
-
-
-function subscribeToAudioPlayback(playCommands$, audioBuffers$, destinationNode) {
-  const activeNodes = {};
-
-  const subject = new Subject();
-
-  playCommands$
-    .withLatestFrom(audioBuffers$)
-    .subscribe(([cmd, audioBuffers]) => {
-      if (cmd.play && audioBuffers[cmd.play]) {
-        const node = audioContext.createBufferSource();
-        node.buffer = audioBuffers[cmd.play];
-        node.connect(destinationNode);
-        activeNodes[cmd.play] = node;
-        node.start();
-      }
-
-      if (cmd.pause && activeNodes[cmd.pause]) {
-        activeNodes[cmd.pause].stop();
-      }
-
-      subject.next(Object.assign({when: audioContext.currentTime}, cmd));
-    });
-
-  return subject.asObservable();
 }

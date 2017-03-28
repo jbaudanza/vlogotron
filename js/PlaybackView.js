@@ -1,5 +1,7 @@
 import React from 'react';
 
+import {bindAll} from 'lodash';
+
 import Page from './Page';
 import VideoGrid from './VideoGrid';
 
@@ -7,18 +9,21 @@ import VideoGrid from './VideoGrid';
 export default class PlaybackView extends React.Component {
   constructor() {
     super();
-    this.bindVideoGrid = this.bindVideoGrid.bind(this);
+    bindAll(this, 'bindVideoGrid', 'bindPage');
+    this.actions = {};
   }
 
   bindVideoGrid(component) {
-    this.actions = {
-      playCommands$$: component.playCommands$$
-    };
+    this.actions.playCommands$$ = component.playCommands$$;
+  }
+
+  bindPage(component) {
+    this.actions.play$ = component.play$;
   }
 
   render() {
     return (
-      <Page>
+      <Page ref={this.bindPage}>
         <VideoGrid readonly
           loading={this.props.loading}
           videoClips={this.props.videoClips}

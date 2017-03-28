@@ -1,4 +1,5 @@
 import React from 'react';
+import {Subject} from 'rxjs/Subject';
 
 import Link from './Link';
 
@@ -19,6 +20,12 @@ function NavLink(props) {
 function noop() {}
 
 export default class Page extends React.Component {
+  constructor() {
+    super();
+    this.play$ = new Subject();
+    this.onClickPlay = this.play$.next.bind(this.play$);
+  }
+
   render() {
     return (
       <div {...this.props} className='page'>
@@ -35,7 +42,7 @@ export default class Page extends React.Component {
         <div className="page-vertical-wrapper">
           <div className='page-header'>
 
-            <Link onClick={noop} className='play-button'>
+            <Link onClick={this.onClickPlay} className='play-button'>
               <svg version="1.1" width={32} height={32}>
                 <use xlinkHref='#svg-play' />
               </svg>

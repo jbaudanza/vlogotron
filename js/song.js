@@ -87,6 +87,6 @@ const happyBirthday = [
 ];
 
 export const songs = {
-  'marry-had-a-little-lamb': maryHadALittleLamb,
+  'mary-had-a-little-lamb': maryHadALittleLamb,
   'happy-birthday': happyBirthday
 };

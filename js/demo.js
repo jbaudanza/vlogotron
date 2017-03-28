@@ -61,7 +61,8 @@ class App extends React.Component {
 
     const audioEngine = new AudioPlaybackEngine(
       result.audioEngineState.audioBuffers,
-      result.audioEngineState.playCommands
+      result.audioEngineState.playCommands,
+      result.audioEngineState.songPlayback
     );
 
     this.viewSubscription = result.viewState.subscribe((state) => this.setState({
