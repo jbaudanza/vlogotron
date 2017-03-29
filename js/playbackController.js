@@ -55,17 +55,14 @@ export default function playbackController(params, actions, subscription) {
       .map((count) => count > 0)
       .startWith(true);
 
-  const playCommands$ = startLivePlaybackEngine(
-      audioBuffers$, livePlayCommands$, subscription
-  );
-
   const isPlaying$ = new BehaviorSubject(false);
   const scriptedPlayCommandStreams$ = new Subject();
 
-  // const playCommands$ = Observable.merge(
-  //   scriptedPlayCommandStreams$.concatAll(),
-  //   subscribeToAudioPlayback(livePlayCommands$)
-  // )
+  // TODO: Do we need to main refcounts when merging these streams?
+  const playCommands$ = Observable.merge(
+    scriptedPlayCommandStreams$.concatAll(),
+    startLivePlaybackEngine(audioBuffers$, livePlayCommands$, subscription)
+  )
 
   const [pauseActions$, playActions$] = actions.play$
       .withLatestFrom(isPlaying$, (x, isPlaying) => isPlaying)
