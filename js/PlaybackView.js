@@ -19,6 +19,7 @@ export default class PlaybackView extends React.Component {
 
   bindPage(component) {
     this.actions.play$ = component.play$;
+    this.actions.pause$ = component.pause$;
   }
 
   render() {

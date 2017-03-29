@@ -78,9 +78,9 @@ export function startScriptedPlayback(song, bpm, startPosition, playUntil$, audi
     ];
   }
 
+  // XXX: left off here. Can playUntil$ be replaced with a simple unsubscribe?
   const playCommandsForVisuals$ = gainNode$.switchMap((gainNode) => {
     return playbackSchedule(audioContext)
-        .takeUntil(playUntil$)
         .scan(makeBeatWindow, [null, 0])
         // TODO: This really should be takeUntil with a predicate function, but
         // that doesn't exist. Right now we're emitting one more than we need to.

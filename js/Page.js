@@ -32,7 +32,17 @@ export default class Page extends React.Component {
   constructor() {
     super();
     this.play$ = new Subject();
-    this.onClickPlay = this.play$.next.bind(this.play$);
+    this.pause$ = new Subject();
+
+    this.onClickPlay = this.onClickPlay.bind(this);
+  }
+
+  onClickPlay(event) {
+    if (this.props.isPlaying) {
+      this.pause$.next(event);
+    } else {
+      this.play$.next(event);
+    }
   }
 
   render() {

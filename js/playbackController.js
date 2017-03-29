@@ -56,36 +56,37 @@ export default function playbackController(params, actions, subscription) {
       .map((count) => count > 0)
       .startWith(true);
 
-  // XXX: Left off here. isPlaying$ should be derived from scriptedPlayCommandStreams$
-  const isPlaying$ = new BehaviorSubject(false);
-
-  const [pauseActions$, playActions$] = actions.play$
-      .withLatestFrom(isPlaying$, (x, isPlaying) => isPlaying)
-      .partition(identity);
-
   const song = songs['mary-had-a-little-lamb'];
   const bpm = 120;
   const songLength = songLengthInSeconds(song, bpm);
 
-  const scriptedPlayCommandStreams$ = playActions$
+  const scriptedPlayCommands$$ = actions.play$
     .map(function(action) {
-      isPlaying$.next(true);
-
       const result = startScriptedPlayback(
         song,
         bpm,
         0, // Start position
-        pauseActions$.take(1),
+        actions.pause$.take(1),
         audioBuffers$
       );
 
-      result.finished.then((x) => isPlaying$.next(false));
       return result.playCommandsForVisuals$;
-    })
+    }).publish();
 
-  // TODO: Do we need to main refcounts when merging these streams?
+  subscription.add(scriptedPlayCommands$$.connect());
+
+  const isPlaying$ = scriptedPlayCommands$$
+    .switchMap((stream) => (
+      Observable.concat(
+        Observable.of(true),
+        stream.ignoreElements(),
+        Observable.of(false)
+      )
+    )).startWith(false);
+
+  // TODO: Do we need to keep refcounts when merging these streams?
   const playCommands$ = Observable.merge(
-    scriptedPlayCommandStreams$.concatAll(),
+    scriptedPlayCommands$$.concatAll(),
     startLivePlaybackEngine(audioBuffers$, livePlayCommands$, subscription)
   )
 
