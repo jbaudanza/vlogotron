@@ -78,56 +78,51 @@ export function startScriptedPlayback(song, bpm, startPosition, playUntil$, audi
     ];
   }
 
-  // TODO: Maybe this should pull a gainNode from the gainNode$ observable.
-  const gainNode = audioContext.createGain();
-  gainNode.gain.value = 0.9;
-  gainNode.connect(audioContext.destination);
-  // Silence all audio when the pause button is hit
-  playUntil$.subscribe(x => gainNode.disconnect());
+  const playCommandsForVisuals$ = gainNode$.switchMap((gainNode) => {
+    return playbackSchedule(audioContext)
+        .takeUntil(playUntil$)
+        .scan(makeBeatWindow, [null, 0])
+        // TODO: This really should be takeUntil with a predicate function, but
+        // that doesn't exist. Right now we're emitting one more than we need to.
+        .takeWhile(beatWindow => beatWindow[0] < length)
+        .map(mapToNotes)
+        .withLatestFrom(audioBuffers$)
+        .flatMap(([commands, audioBuffers]) => {
+          const events = [];
 
-  const playCommandsForVisuals$ = playbackSchedule(audioContext)
-      .takeUntil(playUntil$)
-      .scan(makeBeatWindow, [null, 0])
-      // TODO: This really should be takeUntil with a predicate function, but
-      // that doesn't exist. Right now we're emitting one more than we need to.
-      .takeWhile(beatWindow => beatWindow[0] < length)
-      .map(mapToNotes)
-      .withLatestFrom(audioBuffers$)
-      .flatMap(([commands, audioBuffers]) => {
-        const events = [];
+          commands.forEach((command) => {
+            const audioBuffer = audioBuffers[command[0]];
 
-        commands.forEach((command) => {
-          const audioBuffer = audioBuffers[command[0]];
+            let startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
+            const duration = beatsToTimestamp(command[2], bpm)
 
-          let startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
-          const duration = beatsToTimestamp(command[2], bpm)
+            if (audioBuffer) {
+              const source = audioContext.createBufferSource();
+              source.buffer = audioBuffer;
+              source.connect(gainNode);
 
-          if (audioBuffer) {
-            const source = audioContext.createBufferSource();
-            source.buffer = audioBuffer;
-            source.connect(gainNode);
-
-            let offset;
-            if (audioContext.currentTime > startAt) {
-              offset = audioContext.currentTime - startAt;
-              startAt = 0;
-              console.warn('scheduling playback late.', offset);
+              let offset;
+              if (audioContext.currentTime > startAt) {
+                offset = audioContext.currentTime - startAt;
+                startAt = 0;
+                console.warn('scheduling playback late.', offset);
+              } else {
+                offset = 0;
+              }
+              source.start(startAt, offset, duration);
             } else {
-              offset = 0;
+              console.warn('missing audiobuffer for', command[0])
             }
-            source.start(startAt, offset, duration);
-          } else {
-            console.warn('missing audiobuffer for', command[0])
-          }
 
-          events.push({play: command[0],  when: startAt});
-          events.push({pause: command[0], when: startAt + duration});
-        })
+            events.push({play: command[0],  when: startAt});
+            events.push({pause: command[0], when: startAt + duration});
+          })
 
-        return Observable.from(events)
-            .flatMap(obj => Observable.of(obj).delay((obj.when - audioContext.currentTime) * 1000));
+          return Observable.from(events)
+              .flatMap(obj => Observable.of(obj).delay((obj.when - audioContext.currentTime) * 1000));
 
-      }).takeUntil(playUntil$);
+        });
+  }).takeUntil(playUntil$);
 
   const position$ = Observable
       .of(0, animationFrame)
@@ -138,6 +133,7 @@ export function startScriptedPlayback(song, bpm, startPosition, playUntil$, audi
       .takeUntil(playUntil$)
       .map(beat => beat + startPosition);
 
+  // TODO: finished can be derived from playCommandsForVisuals stream
   return {
     playCommandsForVisuals$: playCommandsForVisuals$,
     position: position$,

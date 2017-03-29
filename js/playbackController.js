@@ -56,14 +56,8 @@ export default function playbackController(params, actions, subscription) {
       .map((count) => count > 0)
       .startWith(true);
 
+  // XXX: Left off here. isPlaying$ should be derived from scriptedPlayCommandStreams$
   const isPlaying$ = new BehaviorSubject(false);
-  const scriptedPlayCommandStreams$ = new Subject();
-
-  // TODO: Do we need to main refcounts when merging these streams?
-  const playCommands$ = Observable.merge(
-    scriptedPlayCommandStreams$.concatAll(),
-    startLivePlaybackEngine(audioBuffers$, livePlayCommands$, subscription)
-  )
 
   const [pauseActions$, playActions$] = actions.play$
       .withLatestFrom(isPlaying$, (x, isPlaying) => isPlaying)
@@ -73,29 +67,27 @@ export default function playbackController(params, actions, subscription) {
   const bpm = 120;
   const songLength = songLengthInSeconds(song, bpm);
 
-  subscription.add(
-    playActions$
-      .mapTo({
-        song: song,
-        bpm: bpm,
-        startPosition: 0,
-        playUntil$: pauseActions$.take(1)
-      })
-      .subscribe((command) => {
-        isPlaying$.next(true);
+  const scriptedPlayCommandStreams$ = playActions$
+    .map(function(action) {
+      isPlaying$.next(true);
 
-        const result = startScriptedPlayback(
-          command.song,
-          command.bpm,
-          command.startPosition,
-          command.playUntil$,
-          audioBuffers$
-        );
+      const result = startScriptedPlayback(
+        song,
+        bpm,
+        0, // Start position
+        pauseActions$.take(1),
+        audioBuffers$
+      );
 
-        result.finished.then((x) => isPlaying$.next(false));
-        scriptedPlayCommandStreams$.next(result.playCommandsForVisuals$);
-      })
-  );
+      result.finished.then((x) => isPlaying$.next(false));
+      return result.playCommandsForVisuals$;
+    })
+
+  // TODO: Do we need to main refcounts when merging these streams?
+  const playCommands$ = Observable.merge(
+    scriptedPlayCommandStreams$.concatAll(),
+    startLivePlaybackEngine(audioBuffers$, livePlayCommands$, subscription)
+  )
 
   return Observable.combineLatest(
     videoClips$, loading$, isPlaying$,
