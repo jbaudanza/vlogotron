@@ -41,7 +41,7 @@ function mapToRoute(location, user) {
     controller: playbackController,
     params: {uid: DEFAULT_UID},
     initialState: {
-      loading: true, videoClips: {}, playCommands$: Observable.never(), isPlaying: false, songLength: 0, songName: ''
+      loading: true, videoClips: {}, playCommands$: Observable.never(), isPlaying: false, songLength: 0, playbackPositionInSeconds: 0, songName: ''
     }
   }
 }

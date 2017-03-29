@@ -29,6 +29,7 @@ export default class PlaybackView extends React.Component {
         isPlaying={this.props.isPlaying}
         songName={this.props.songName}
         songLength={this.props.songLength}
+        playbackPositionInSeconds={this.props.playbackPositionInSeconds}
         >
         <VideoGrid readonly
           loading={this.props.loading}

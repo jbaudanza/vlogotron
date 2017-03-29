@@ -3,7 +3,6 @@ import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {Subject} from 'rxjs/Subject';
 import {songLengthInSeconds} from './song';
 
-
 import {
   pickBy, includes, clone, forEach, values, pick, sum, mapValues, identity
 } from 'lodash';
@@ -65,7 +64,7 @@ export default function playbackController(params, actions, subscription) {
         bpm,
         0, // Start position
         audioBuffers$
-      ).takeUntil(actions.pause$.take(1))
+      ).takeUntil(actions.pause$).share()
     )).publish();
 
   const isPlaying$ = scriptedPlayCommands$$
@@ -76,6 +75,14 @@ export default function playbackController(params, actions, subscription) {
         Observable.of(false)
       )
     )).startWith(false);
+
+  const playbackPositionInSeconds$ = scriptedPlayCommands$$.switchMap((stream) => (
+    Observable
+      .interval(1000).map(i => i + 1)
+      .startWith(0)
+      .takeUntil(stream.ignoreElements().concat(Observable.of(1)))
+      .concat(Observable.of(0))
+  )).startWith(0);
 
   // TODO: Do we need to keep refcounts when merging these streams?
   const playCommands$ = Observable.merge(
@@ -88,9 +95,15 @@ export default function playbackController(params, actions, subscription) {
   subscription.add(scriptedPlayCommands$$.connect());
 
   return Observable.combineLatest(
-    videoClips$, loading$, isPlaying$,
-    (videoClips, loading, isPlaying) => ({
-      videoClips, isPlaying, loading, playCommands$, songLength, songName: 'Mary had a little lamb'
+    videoClips$, loading$, isPlaying$, playbackPositionInSeconds$,
+    (videoClips, loading, isPlaying, playbackPositionInSeconds) => ({
+      videoClips,
+      isPlaying,
+      playbackPositionInSeconds,
+      loading,
+      playCommands$,
+      songLength,
+      songName: 'Mary had a little lamb'
     })
   );
 }

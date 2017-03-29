@@ -57,11 +57,6 @@ const gainNode$ = Observable.create(function(observer) {
 
 
 export function startScriptedPlayback(song, bpm, startPosition, audioBuffers$) {
-  // TODO: 125ms is a long time, but using batchTime instead leads to late
-  // playbacks. Why is this? Probably because it takes too long for the
-  // audioScheduler to startup.
-  const playbackStartedAt = audioContext.currentTime + 0.125;
-
   const truncatedSong = song
       .filter(note => note[1] >= startPosition)
       .map(note => [note[0], note[1] - startPosition, note[2]])
@@ -73,15 +68,20 @@ export function startScriptedPlayback(song, bpm, startPosition, audioBuffers$) {
 
   const length = songLengthInBeats(truncatedSong);
 
-  // Returns the time window (in beats) that need to be scheduled
-  function makeBeatWindow(lastWindow, playbackUntilTimestamp) {
-    return [
-      lastWindow[1],
-      timestampToBeats(playbackUntilTimestamp - playbackStartedAt, bpm)
-    ];
-  }
-
   return gainNode$.switchMap((gainNode) => {
+    // TODO: 125ms is a long time, but using batchTime instead leads to late
+    // playbacks. Why is this? Probably because it takes too long for the
+    // audioScheduler to startup.
+    const playbackStartedAt = audioContext.currentTime + 0.125;
+
+    // Returns the time window (in beats) that need to be scheduled
+    function makeBeatWindow(lastWindow, playbackUntilTimestamp) {
+      return [
+        lastWindow[1],
+        timestampToBeats(playbackUntilTimestamp - playbackStartedAt, bpm)
+      ];
+    }
+
     return playbackSchedule(audioContext)
         .scan(makeBeatWindow, [null, 0])
         // TODO: This really should be takeUntil with a predicate function, but
@@ -123,7 +123,7 @@ export function startScriptedPlayback(song, bpm, startPosition, audioBuffers$) {
           return Observable.from(events)
               .flatMap(obj => Observable.of(obj).delay((obj.when - audioContext.currentTime) * 1000));
 
-        });
+        }).startWith({playbackStartedAt});
   });
 
   // const position$ = Observable
@@ -135,13 +135,4 @@ export function startScriptedPlayback(song, bpm, startPosition, audioBuffers$) {
   //     .takeUntil(playUntil$)
   //     .map(beat => beat + startPosition);
 
-  // // TODO: finished can be derived from playCommandsForVisuals stream
-  // return {
-  //   playCommandsForVisuals$: playCommandsForVisuals$,
-  //   position: position$,
-  //   finished: Observable.merge(
-  //       playUntil$,
-  //       Observable.of(1).delay(beatsToTimestamp(length, bpm) * 1000
-  //   )).first().toPromise()
-  // }
 };

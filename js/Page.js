@@ -74,7 +74,7 @@ export default class Page extends React.Component {
                 <span className='song-author'>Jack Harris</span>
               </div>
               <div className='bottom'>
-                0:00 | {formatDurationString(this.props.songLength)}
+                {formatDurationString(this.props.playbackPositionInSeconds)} | {formatDurationString(this.props.songLength)}
               </div>
             </div>
 
