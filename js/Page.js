@@ -5,6 +5,15 @@ import Link from './Link';
 
 import './Page.scss';
 
+function formatDurationString(durationInSeconds) {
+  const minutes = String(Math.floor(durationInSeconds / 60));
+  let seconds = String(durationInSeconds % 60);
+
+  if (seconds.length === 1)
+    seconds = "0" + seconds;
+
+  return minutes + ':' + seconds;
+}
 
 function NavLink(props) {
   return (
@@ -50,12 +59,12 @@ export default class Page extends React.Component {
 
             <div className='song-info'>
               <div className='top'>
-                <span className='song-title'>Happy birthday to you</span>
+                <span className='song-title'>{this.props.songName}</span>
                 <span className='by'> by </span>
                 <span className='song-author'>Jack Harris</span>
               </div>
               <div className='bottom'>
-                0:00 | 3:41
+                0:00 | {formatDurationString(this.props.songLength)}
               </div>
             </div>
 

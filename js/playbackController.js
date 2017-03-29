@@ -1,6 +1,7 @@
 import {Observable} from 'rxjs/Observable';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {Subject} from 'rxjs/Subject';
+import {songLengthInSeconds} from './song';
 
 
 import {
@@ -68,11 +69,15 @@ export default function playbackController(params, actions, subscription) {
       .withLatestFrom(isPlaying$, (x, isPlaying) => isPlaying)
       .partition(identity);
 
+  const song = songs['mary-had-a-little-lamb'];
+  const bpm = 120;
+  const songLength = songLengthInSeconds(song, bpm);
+
   subscription.add(
     playActions$
       .mapTo({
-        song: songs['mary-had-a-little-lamb'],
-        bpm: 120,
+        song: song,
+        bpm: bpm,
         startPosition: 0,
         playUntil$: pauseActions$.take(1)
       })
@@ -94,7 +99,9 @@ export default function playbackController(params, actions, subscription) {
 
   return Observable.combineLatest(
     videoClips$, loading$, isPlaying$,
-    (videoClips, loading, isPlaying) => ({videoClips, isPlaying, loading, playCommands$})
+    (videoClips, loading, isPlaying) => ({
+      videoClips, isPlaying, loading, playCommands$, songLength, songName: 'Mary had a little lamb'
+    })
   );
 }
 

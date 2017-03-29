@@ -5,6 +5,8 @@ import {animationFrame} from 'rxjs/scheduler/animationFrame';
 import audioContext from './audioContext';
 import {playbackSchedule} from './playbackSchedule';
 
+import {songLengthInBeats, beatsToTimestamp, timestampToBeats} from './song';
+
 // This is the minimum amount of time we will try to schedule audio in the
 // future. This is based on the following comment by Chris Wilson:
 // https://github.com/WebAudio/web-audio-api/issues/296#issuecomment-257100626
@@ -17,11 +19,9 @@ import {max, flatten} from 'lodash';
 export function startLivePlaybackEngine(audioBuffers$, playCommands$, subscription) {
   const activeNodes = {};
 
-  const subject = new Subject();
-
-  subscription.add(playCommands$
+  const stream$ = playCommands$
     .withLatestFrom(audioBuffers$, gainNode$)
-    .subscribe(([cmd, audioBuffers, destinationNode]) => {
+    .map(([cmd, audioBuffers, destinationNode]) => {
       const when = audioContext.currentTime + batchTime;
       if (cmd.play && audioBuffers[cmd.play]) {
         const node = audioContext.createBufferSource();
@@ -35,11 +35,12 @@ export function startLivePlaybackEngine(audioBuffers$, playCommands$, subscripti
         activeNodes[cmd.pause].stop(when);
       }
 
-      subject.next(Object.assign({when}, cmd));
-    })
-  );
+      return Object.assign({when}, cmd);
+    }).publish();
 
-  return subject.asObservable();
+  subscription.add(stream$.connect());
+
+  return stream$;
 }
 
 const gainNode$ = Observable.create(function(observer) {
@@ -67,7 +68,7 @@ export function startScriptedPlayback(song, bpm, startPosition, playUntil$, audi
     return truncatedSong.filter((note) => note[1] >= beatFrom && note[1] < beatTo);
   }
 
-  const songLengthInBeats = max(truncatedSong.map(note => note[1] + note[2]));
+  const length = songLengthInBeats(truncatedSong);
 
   const playCommandsForVisuals$ = Observable.from(flatten(truncatedSong.map(function(note) {
     const startAt = playbackStartedAt + beatsToTimestamp(note[1], bpm);
@@ -97,14 +98,14 @@ export function startScriptedPlayback(song, bpm, startPosition, playUntil$, audi
   gainNode.gain.value = 0.9;
   gainNode.connect(audioContext.destination);
   // Silence all audio when the pause button is hit
-  playUntil$.subscribe(x => gainNode.gain.value = 0);
+  playUntil$.subscribe(x => gainNode.disconnect());
 
   playbackSchedule(audioContext)
       .takeUntil(playUntil$)
       .scan(makeBeatWindow, [null, 0])
       // TODO: This really should be takeUntil with a predicate function, but
       // that doesn't exist. Right now we're emitting one more than we need to.
-      .takeWhile(beatWindow => beatWindow[0] < songLengthInBeats)
+      .takeWhile(beatWindow => beatWindow[0] < length)
       .map(mapToNotes)
       .withLatestFrom(audioBuffers$)
       .subscribe({
@@ -137,7 +138,7 @@ export function startScriptedPlayback(song, bpm, startPosition, playUntil$, audi
       .repeat()
       .map(() => timestampToBeats(audioContext.currentTime - playbackStartedAt, bpm))
       .filter(beat => beat >= 0)
-      .takeWhile(beat => beat < songLengthInBeats)
+      .takeWhile(beat => beat < length)
       .takeUntil(playUntil$)
       .map(beat => beat + startPosition);
 
@@ -146,15 +147,7 @@ export function startScriptedPlayback(song, bpm, startPosition, playUntil$, audi
     position: position$,
     finished: Observable.merge(
         playUntil$,
-        Observable.of(1).delay(beatsToTimestamp(songLengthInBeats, bpm) * 1000
+        Observable.of(1).delay(beatsToTimestamp(length, bpm) * 1000
     )).first().toPromise()
   }
 };
-
-function timestampToBeats(timestamp, bpm) {
-  return (timestamp / 60.0) * bpm;
-}
-
-function beatsToTimestamp(beats, bpm) {
-  return (beats / bpm) * 60;
-}

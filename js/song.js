@@ -1,3 +1,5 @@
+import {max} from 'lodash';
+
 // Consider encoding this like:
 /*
 {
@@ -90,3 +92,19 @@ export const songs = {
   'mary-had-a-little-lamb': maryHadALittleLamb,
   'happy-birthday': happyBirthday
 };
+
+export function timestampToBeats(timestamp, bpm) {
+  return (timestamp / 60.0) * bpm;
+}
+
+export function beatsToTimestamp(beats, bpm) {
+  return (beats / bpm) * 60;
+}
+
+export function songLengthInBeats(notes) {
+  return max(notes.map(note => note[1] + note[2]))
+}
+
+export function songLengthInSeconds(notes, bpm) {
+  return beatsToTimestamp(songLengthInBeats(notes), bpm);
+}
