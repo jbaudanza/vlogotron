@@ -56,8 +56,11 @@ const gainNode$ = Observable.create(function(observer) {
 });
 
 
-export function startScriptedPlayback(song, bpm, startPosition, playUntil$, audioBuffers$) {
-  const playbackStartedAt = audioContext.currentTime + batchTime;
+export function startScriptedPlayback(song, bpm, startPosition, audioBuffers$) {
+  // TODO: 125ms is a long time, but using batchTime instead leads to late
+  // playbacks. Why is this? Probably because it takes too long for the
+  // audioScheduler to startup.
+  const playbackStartedAt = audioContext.currentTime + 0.125;
 
   const truncatedSong = song
       .filter(note => note[1] >= startPosition)
@@ -78,8 +81,7 @@ export function startScriptedPlayback(song, bpm, startPosition, playUntil$, audi
     ];
   }
 
-  // XXX: left off here. Can playUntil$ be replaced with a simple unsubscribe?
-  const playCommandsForVisuals$ = gainNode$.switchMap((gainNode) => {
+  return gainNode$.switchMap((gainNode) => {
     return playbackSchedule(audioContext)
         .scan(makeBeatWindow, [null, 0])
         // TODO: This really should be takeUntil with a predicate function, but
@@ -94,7 +96,7 @@ export function startScriptedPlayback(song, bpm, startPosition, playUntil$, audi
             const audioBuffer = audioBuffers[command[0]];
 
             let startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
-            const duration = beatsToTimestamp(command[2], bpm)
+            const duration = beatsToTimestamp(command[2], bpm);
 
             if (audioBuffer) {
               const source = audioContext.createBufferSource();
@@ -122,24 +124,24 @@ export function startScriptedPlayback(song, bpm, startPosition, playUntil$, audi
               .flatMap(obj => Observable.of(obj).delay((obj.when - audioContext.currentTime) * 1000));
 
         });
-  }).takeUntil(playUntil$);
+  });
 
-  const position$ = Observable
-      .of(0, animationFrame)
-      .repeat()
-      .map(() => timestampToBeats(audioContext.currentTime - playbackStartedAt, bpm))
-      .filter(beat => beat >= 0)
-      .takeWhile(beat => beat < length)
-      .takeUntil(playUntil$)
-      .map(beat => beat + startPosition);
+  // const position$ = Observable
+  //     .of(0, animationFrame)
+  //     .repeat()
+  //     .map(() => timestampToBeats(audioContext.currentTime - playbackStartedAt, bpm))
+  //     .filter(beat => beat >= 0)
+  //     .takeWhile(beat => beat < length)
+  //     .takeUntil(playUntil$)
+  //     .map(beat => beat + startPosition);
 
-  // TODO: finished can be derived from playCommandsForVisuals stream
-  return {
-    playCommandsForVisuals$: playCommandsForVisuals$,
-    position: position$,
-    finished: Observable.merge(
-        playUntil$,
-        Observable.of(1).delay(beatsToTimestamp(length, bpm) * 1000
-    )).first().toPromise()
-  }
+  // // TODO: finished can be derived from playCommandsForVisuals stream
+  // return {
+  //   playCommandsForVisuals$: playCommandsForVisuals$,
+  //   position: position$,
+  //   finished: Observable.merge(
+  //       playUntil$,
+  //       Observable.of(1).delay(beatsToTimestamp(length, bpm) * 1000
+  //   )).first().toPromise()
+  // }
 };

@@ -43,8 +43,6 @@ export default function playbackController(params, actions, subscription) {
     .scan((acc, obj) => Object.assign({}, acc, obj), {})
     .publishReplay();
 
-  subscription.add(audioBuffers$.connect());
-
   const http$ = loadingContext$
     .flatMap(c => (
       Observable.from(values(pick(c.httpMap, c.newUrls)))
@@ -61,19 +59,14 @@ export default function playbackController(params, actions, subscription) {
   const songLength = songLengthInSeconds(song, bpm);
 
   const scriptedPlayCommands$$ = actions.play$
-    .map(function(action) {
-      const result = startScriptedPlayback(
+    .map((action) => (
+      startScriptedPlayback(
         song,
         bpm,
         0, // Start position
-        actions.pause$.take(1),
         audioBuffers$
-      );
-
-      return result.playCommandsForVisuals$;
-    }).publish();
-
-  subscription.add(scriptedPlayCommands$$.connect());
+      ).takeUntil(actions.pause$.take(1))
+    )).publish();
 
   const isPlaying$ = scriptedPlayCommands$$
     .switchMap((stream) => (
@@ -89,6 +82,10 @@ export default function playbackController(params, actions, subscription) {
     scriptedPlayCommands$$.concatAll(),
     startLivePlaybackEngine(audioBuffers$, livePlayCommands$, subscription)
   )
+
+  // Start up Observables with side-effect
+  subscription.add(audioBuffers$.connect());
+  subscription.add(scriptedPlayCommands$$.connect());
 
   return Observable.combineLatest(
     videoClips$, loading$, isPlaying$,
