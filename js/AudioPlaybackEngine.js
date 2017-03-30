@@ -89,7 +89,7 @@ export function startScriptedPlayback(song, bpm, startPosition, audioBuffers$) {
         .takeWhile(beatWindow => beatWindow[0] < length)
         .map(mapToNotes)
         .withLatestFrom(audioBuffers$)
-        .flatMap(([commands, audioBuffers]) => {
+        .map(([commands, audioBuffers]) => {
           const events = [];
 
           commands.forEach((command) => {
@@ -120,10 +120,13 @@ export function startScriptedPlayback(song, bpm, startPosition, audioBuffers$) {
             events.push({pause: command[0], when: startAt + duration});
           })
 
-          return Observable.from(events)
-              .flatMap(obj => Observable.of(obj).delay((obj.when - audioContext.currentTime) * 1000));
-
-        }).startWith({playbackStartedAt});
+          return events;
+        })
+        .flatMap((events) => (
+          Observable.from(events)
+              .flatMap(obj => Observable.of(obj).delay((obj.when - audioContext.currentTime) * 1000))
+        ))
+        .startWith({playbackStartedAt});
   });
 
   // const position$ = Observable

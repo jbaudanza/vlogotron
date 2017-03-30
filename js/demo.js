@@ -14,7 +14,7 @@ import audioContext from './audioContext';
 import {findWrappingLink} from './domutils';
 
 import './style.scss';
-import {navigate, currentRoute$} from './router2';
+import {navigate, currentRoute$} from './router';
 
 import bindComponentToObservable from './bindComponentToObservable';
 
