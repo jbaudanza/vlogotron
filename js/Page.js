@@ -54,7 +54,13 @@ export default class Page extends React.Component {
             <NavLink onClick={noop} width='33px' height='32px' icon='#svg-home' text="Home" />
             <NavLink onClick={noop} width='32px' height='29px' icon='#svg-sound-wave' text="My Tracks"/>
             <NavLink onClick={noop} width='30px' height='30px' icon='#svg-plus' text="Create New" />
-            <NavLink onClick={noop} width='29px' height='27px' icon='#svg-logout' text="Logout" />
+            {
+              (this.props.isLoggedIn) ? (
+                <NavLink onClick={this.props.onLogout} width='29px' height='27px' icon='#svg-logout' text="Logout" />
+              ) : (
+                <NavLink onClick={this.props.onLogin} width='33px' height='33px' icon='#svg-login' text="Login" />
+              )
+            }
           </div>
         </div>
 
