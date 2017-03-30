@@ -5,6 +5,7 @@ import {bindAll} from 'lodash';
 import Page from './Page';
 import VideoGrid from './VideoGrid';
 
+const messages = require('messageformat-loader!json-loader!./messages.json');
 
 export default class RecordVideosView extends React.Component {
   constructor() {
@@ -31,8 +32,6 @@ export default class RecordVideosView extends React.Component {
   }
 
   render() {
-    const footerText = "Click on a square to start recording. You will here a sample of the selected note playing, please repeat it after the countdown."
-
     return (
       <Page
         ref={this.bindPage}
@@ -44,7 +43,7 @@ export default class RecordVideosView extends React.Component {
         onLogout={() => true}
         isLoggedIn={false}
         sidebarVisible={false}
-        footerText={footerText}
+        footerText={messages['record-videos-tip']()}
         >
         <VideoGrid readonly
           loading={this.props.loading}
