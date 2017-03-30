@@ -18,7 +18,7 @@ export default class VideoCell extends React.Component {
   }
 
   setVideoStream(videoEl) {
-    if (this.props.stream) {
+    if (videoEl && this.props.stream) {
       videoEl.srcObject = this.props.stream;
       videoEl.play();
     }

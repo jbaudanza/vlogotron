@@ -67,15 +67,17 @@ class App extends React.Component {
       this.pageSubscription.unsubscribe();
     }
 
-    this.pageSubscription = new Subscription();
+    if (view) {
+      this.pageSubscription = new Subscription();
 
-    const viewState$ = this.state.route.controller(
-      this.state.route.params, view.actions, this.pageSubscription
-    );
+      const viewState$ = this.state.route.controller(
+        this.state.route.params, view.actions, this.pageSubscription
+      );
 
-    this.pageSubscription.add(
-      viewState$.subscribe((viewState) => this.setState({viewState}))
-    );
+      this.pageSubscription.add(
+        viewState$.subscribe((viewState) => this.setState({viewState}))
+      );
+    }
   }
 
   onNavigate(href) {

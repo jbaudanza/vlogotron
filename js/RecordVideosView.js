@@ -6,7 +6,7 @@ import Page from './Page';
 import VideoGrid from './VideoGrid';
 
 
-export default class PlaybackView extends React.Component {
+export default class RecordVideosView extends React.Component {
   constructor() {
     super();
     bindAll(this, 'bindVideoGrid', 'bindPage', 'onClickLogin');
@@ -31,6 +31,8 @@ export default class PlaybackView extends React.Component {
   }
 
   render() {
+    const footerText = "Click on a square to start recording. You will here a sample of the selected note playing, please repeat it after the countdown."
+
     return (
       <Page
         ref={this.bindPage}
@@ -41,7 +43,8 @@ export default class PlaybackView extends React.Component {
         onLogin={this.onClickLogin}
         onLogout={() => true}
         isLoggedIn={false}
-        sidebarVisible={true}
+        sidebarVisible={false}
+        footerText={footerText}
         >
         <VideoGrid readonly
           loading={this.props.loading}
@@ -54,7 +57,7 @@ export default class PlaybackView extends React.Component {
   }
 }
 
-PlaybackView.propTypes = {
+RecordVideosView.propTypes = {
   loading:       React.PropTypes.bool.isRequired,
   videoClips:    React.PropTypes.object.isRequired,
   playCommands$: React.PropTypes.object.isRequired,

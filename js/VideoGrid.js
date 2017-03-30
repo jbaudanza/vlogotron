@@ -140,14 +140,16 @@ export default class VideoGrid extends React.Component {
       return nextCommand;
     }
 
-    this.playCommands$$ = touchableArea.touches$$.map((touch) => (
-      touch.movements$
-        .startWith(touch.firstEl)
-        .map(x => x ? x.dataset.note : null) // Map to current note
-        .distinctUntilChanged()
-        .concat(Observable.of(null))
-        .scan(reduceToCommands, {})
-    ))
+    if (touchableArea) {
+      this.playCommands$$ = touchableArea.touches$$.map((touch) => (
+        touch.movements$
+          .startWith(touch.firstEl)
+          .map(x => x ? x.dataset.note : null) // Map to current note
+          .distinctUntilChanged()
+          .concat(Observable.of(null))
+          .scan(reduceToCommands, {})
+      ))
+    }
   }
 
   render() {
