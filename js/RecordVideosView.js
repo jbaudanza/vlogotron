@@ -5,7 +5,7 @@ import {bindAll} from 'lodash';
 import Page from './Page';
 import VideoGrid from './VideoGrid';
 
-const messages = require('messageformat-loader!json-loader!./messages.json');
+function noop() {}
 
 export default class RecordVideosView extends React.Component {
   constructor() {
@@ -43,18 +43,26 @@ export default class RecordVideosView extends React.Component {
         onLogout={() => true}
         isLoggedIn={false}
         sidebarVisible={false}
-        footerText={messages['record-videos-tip']()}
+        footerText={this.context.messages['record-videos-tip-long']()}
         >
         <VideoGrid readonly
           loading={this.props.loading}
           videoClips={this.props.videoClips}
           playCommands$={this.props.playCommands$}
+          readonly={false}
+          onStartRecording={noop}
+          onStopRecording={noop}
+          onClear={noop}
           ref={this.bindVideoGrid}
           />
       </Page>
     );
   }
 }
+
+RecordVideosView.contextTypes = {
+  messages: React.PropTypes.object.isRequired
+};
 
 RecordVideosView.propTypes = {
   loading:       React.PropTypes.bool.isRequired,

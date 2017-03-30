@@ -98,32 +98,15 @@ export default class VideoCell extends React.Component {
         }
       }
     } else {
-      const fill = this.props.playing ? colors.active: '#eee';
-
-      let recordPromptEl;
-
-      if (!this.props.readonly) {
-        recordPromptEl = (
-          <div className='record-prompt'>
-            <svg version="1.1" width="20px" height="20px">
-              <circle cx="10" cy="10" r="10" fill={colors.red} />
-            </svg>
-            <div>
-              Record a clip
-            </div>
-          </div>
-        );
-      }
-
       videoEl = (
         <Link
-            className='empty-video'r
+            className='empty-video'
             onClick={this.props.onStartRecording}
             enabled={!this.props.recording && !this.props.readonly}>
-          <svg version="1.1" className='background'>
-            <use xlinkHref='#video-record' fill={fill} />
+          <svg version="1.1" width="30px" height="59px" className='background'>
+            <use xlinkHref='#svg-microphone' />
           </svg>
-          {recordPromptEl}
+          <span className='tip'>{this.context.messages['record-videos-tip-short']()}</span>
         </Link>
       );
     }
@@ -148,6 +131,10 @@ export default class VideoCell extends React.Component {
     );
   }
 }
+
+VideoCell.contextTypes = {
+  messages: React.PropTypes.object.isRequired
+};
 
 VideoCell.propTypes = {
   note:              React.PropTypes.string.isRequired,

@@ -92,25 +92,29 @@
     display: block;
     height: 100%;
     width: 100%;
-    .background {
-      display: inline-block;
-      margin-top: 25%;
-      width: 50%;
-      height: 50%;
+
+    svg {
+      fill: $color-cloudy-blue;
+      margin-top: 41px;
     }
-    .record-prompt {
+
+    .tip {
+      font-size: 12px;
+      font-weight: 500; // Medium
+      color: $color-periwinkle;
       display: none;
-      svg {
-        margin-bottom: 5px;
-      }
     }
 
     &.enabled:hover {
-      .background {
-        display: none;
+      background-color: $color-purple;
+      .tip {
+        display: block;
       }
-      .record-prompt {
-        display: inline-block;
+      svg {
+        margin-top: 27px;
+        fill: $color-periwinkle;
+        width: 23px;
+        height: 44px;
       }
     }
   }

@@ -18,6 +18,8 @@ import {navigate, currentRoute$} from './router';
 
 import bindComponentToObservable from './bindComponentToObservable';
 
+const messages = require('messageformat-loader!json-loader!./messages.json');
+
 window.main = function(node) {
   ReactDOM.render(<App />, node);
 };
@@ -95,7 +97,7 @@ class App extends React.Component {
   }
 
   getChildContext() {
-    return {audioContext};
+    return {audioContext, messages};
   }
 
   render() {
@@ -117,5 +119,6 @@ class App extends React.Component {
 }
 
 App.childContextTypes = {
-  audioContext: React.PropTypes.object
+  audioContext: React.PropTypes.object,
+  messages:     React.PropTypes.object
 };
