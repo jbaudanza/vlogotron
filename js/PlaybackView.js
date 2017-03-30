@@ -9,7 +9,7 @@ import VideoGrid from './VideoGrid';
 export default class PlaybackView extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'bindVideoGrid', 'bindPage');
+    bindAll(this, 'bindVideoGrid', 'bindPage', 'onClickLogin');
     this.actions = {};
   }
 
@@ -22,6 +22,10 @@ export default class PlaybackView extends React.Component {
     this.actions.pause$ = component.pause$;
   }
 
+  onClickLogin() {
+    this.props.onNavigate('#login')
+  }
+
   render() {
     return (
       <Page
@@ -30,9 +34,9 @@ export default class PlaybackView extends React.Component {
         songName={this.props.songName}
         songLength={this.props.songLength}
         playbackPositionInSeconds={this.props.playbackPositionInSeconds}
-        onLogin={() => true}
+        onLogin={this.onClickLogin}
         onLogout={() => true}
-        isLoggedIn={true}
+        isLoggedIn={false}
         >
         <VideoGrid readonly
           loading={this.props.loading}

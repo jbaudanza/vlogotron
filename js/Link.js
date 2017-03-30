@@ -21,9 +21,14 @@ class Link extends React.Component {
 
     const props = omit(this.props, 'onClick', 'children', 'enabled', 'className');
 
+    if (this.props.onClick) {
+      props.onClick = this.onClick;
+      props.href = '#';
+    }
+
     if (enabled) {
       return (
-        <a className={className} href="#" onClick={this.onClick} {...props}>
+        <a className={className} {...props}>
           {this.props.children}
         </a>
       );
@@ -36,7 +41,8 @@ class Link extends React.Component {
 }
 
 React.propTypes = {
-  onClick: React.PropTypes.func.isRequired,
+  href:    React.PropTypes.string,
+  onClick: React.PropTypes.func,
   enabled: React.PropTypes.bool
 };
 

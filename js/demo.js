@@ -11,6 +11,8 @@ import SvgAssets from './SvgAssets';
 
 import audioContext from './audioContext';
 
+import {findWrappingLink} from './domutils';
+
 import './style.scss';
 import {navigate, currentRoute$} from './router2';
 
@@ -24,9 +26,23 @@ window.main = function(node) {
 class App extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'onLogin', 'onNavigate', 'onLogout', 'bindView');
+    bindAll(this, 'onLogin', 'onNavigate', 'onLogout', 'bindView', 'onClick');
 
     this.state = {};
+  }
+
+  onClick(event) {
+    const node = event.target;
+
+    if (node instanceof Node) {
+      const clickable = findWrappingLink(node);
+
+      if (clickable && clickable.host === document.location.host) {
+        this.onNavigate(clickable.getAttribute('href'));
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }
   }
 
   componentWillMount() {
@@ -84,7 +100,7 @@ class App extends React.Component {
     const View = this.state.route.view;
 
     return (
-      <div>
+      <div onClick={this.onClick}>
         <SvgAssets />
         <View
             {...this.state.viewState}
@@ -92,6 +108,7 @@ class App extends React.Component {
             onNavigate={this.onNavigate}
             onLogin={this.onLogin}
             onLogout={this.onLogout} />
+          {this.state.route.overlay}
       </div>
     );
   }

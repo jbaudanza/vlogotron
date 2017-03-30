@@ -1,6 +1,8 @@
 import React from 'react';
 import {Subject} from 'rxjs/Subject';
 
+import {omit} from 'lodash';
+
 import Link from './Link';
 
 import './Page.scss';
@@ -16,8 +18,9 @@ function formatDurationString(durationInSeconds) {
 }
 
 function NavLink(props) {
+  const linkProps = omit(props, 'icon', 'text');
   return (
-    <Link onClick={props.onClick} className='nav-link'>
+    <Link {...linkProps} className='nav-link'>
       <svg version="1.1" width={props.width} height={props.height}>
         <use xlinkHref={props.icon} />
       </svg>
@@ -52,13 +55,19 @@ export default class Page extends React.Component {
           <div className='logo'>VLOGOTRON</div>
           <div className='navigation'>
             <NavLink onClick={noop} width='33px' height='32px' icon='#svg-home' text="Home" />
-            <NavLink onClick={noop} width='32px' height='29px' icon='#svg-sound-wave' text="My Tracks"/>
+            {
+              (this.props.isLoggedIn) ? (
+                <NavLink onClick={noop} width='32px' height='29px' icon='#svg-sound-wave' text="My Tracks"/>
+              ) : (
+                null
+              )
+            }
             <NavLink onClick={noop} width='30px' height='30px' icon='#svg-plus' text="Create New" />
             {
               (this.props.isLoggedIn) ? (
                 <NavLink onClick={this.props.onLogout} width='29px' height='27px' icon='#svg-logout' text="Logout" />
               ) : (
-                <NavLink onClick={this.props.onLogin} width='33px' height='33px' icon='#svg-login' text="Login" />
+                <NavLink href="#login" width='33px' height='33px' icon='#svg-login' text="Login" />
               )
             }
           </div>

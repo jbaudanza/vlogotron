@@ -1,5 +1,6 @@
+@import './colors.scss';
+
 $shadow-index: 1;
-$black: #333;
 
 .overlay {
   z-index: 999999;
@@ -19,20 +20,31 @@ $black: #333;
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: $black;
-    opacity: 0.8;
+    background-color: $color-dark-three;
+    opacity: 0.85;
     z-index: $shadow-index;
   }
 
+  h1 {
+    font-size: 24px;
+    font-weight: 500; // Medium
+  }
+  h2 {
+    font-size: 13px;
+    font-weight: 500; // Medium
+  }
+
   .content {
+    text-align: center;
     position: relative;
     z-index: $shadow-index + 1;
     font-size: 14px;
     padding: 30px;
-    max-width: 650px;
+    width: 380px;
     opacity: 1;
     background-color: white;
-    border-radius: 2px;
+    border-radius: 6px;
+    padding: 25px;
 
     .scroll {
       overflow-y: auto;
@@ -42,16 +54,11 @@ $black: #333;
   }
 
   .close-link {
-    $size: 25px;
     display: block;
-    width: $size;
-    height: $size;
-    line-height: 25px;
     text-align: center;
     color: #999;
     position: absolute;
-    right: -$size;
-    top: -$size;
-    font-size: 150%;
+    right: 17px;
+    top: 17px
   }
 }

@@ -29,9 +29,9 @@ class Overlay extends React.Component {
       <div id="overlay" className={className}>
         <div className='shadow'/>
         <div className='content'>
-          <Link onClick={this.props.onClose} className="close-link">
-            <svg version="1.1" width="25px" height="25px">
-              <use xlinkHref="#close" fill="white"/>
+          <Link href={this.props.onClose} className="close-link">
+            <svg version="1.1" width="22px" height="21px">
+              <use xlinkHref="#svg-close" fill="white"/>
             </svg>
           </Link>
           <div className='scroll'>
@@ -44,7 +44,7 @@ class Overlay extends React.Component {
 }
 
 Overlay.propTypes = {
-  onClose:   React.PropTypes.func.isRequired,
+  onClose:   React.PropTypes.string.isRequired,
   className: React.PropTypes.string
 };
 

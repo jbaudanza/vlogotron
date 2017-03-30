@@ -9,6 +9,10 @@ export default class LoginOverlay extends React.Component {
   render() {
     return (
       <Overlay className='login-overlay' onClose={this.props.onClose}>
+        <h1>Log in</h1>
+        <h2>
+          Start creating and sharing music by connecting with one of these services
+        </h2>
         {
           providers.map((provider) => (
             <Link
@@ -26,5 +30,5 @@ export default class LoginOverlay extends React.Component {
 
 LoginOverlay.propTypes = {
   onLogin: React.PropTypes.func.isRequired,
-  onClose: React.PropTypes.func.isRequired
+  onClose: React.PropTypes.string.isRequired
 };

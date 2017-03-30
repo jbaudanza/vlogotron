@@ -1,7 +1,11 @@
+import React from 'react';
+
 import {Observable} from 'rxjs/Observable';
 import createHistory from 'history/createBrowserHistory';
 
 import PlaybackView from './PlaybackView';
+import LoginOverlay from './LoginOverlay';
+
 
 import playbackController from './playbackController';
 
@@ -36,9 +40,20 @@ function mapToRoute(location, user) {
   //   return {view: PlaybackView};
   // }
 
+  let overlay;
+  if (location.hash === '#login') {
+    overlay = (
+      <LoginOverlay
+          onLogin={() => false}
+          onClose={location.pathname} />
+    );
+  }
+
   return {
     view: PlaybackView,
     controller: playbackController,
+    overlay: overlay,
+    location: location,
     params: {uid: DEFAULT_UID},
     initialState: {
       loading: true, videoClips: {}, playCommands$: Observable.never(), isPlaying: false, songLength: 0, playbackPositionInSeconds: 0, songName: ''
