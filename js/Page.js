@@ -104,9 +104,10 @@ export default class Page extends React.Component {
           <div className='page-content'>
             {this.props.children}
           </div>
-          <div className='page-footer'>
-            Click on a square to start recording. You will here a sample of the
-            selected note playing, please repeat it after the countdown.
+          <div className={classNames('page-footer', {hidden: this.props.footerText == null})}>
+            <div className='page-footer-content'>
+              {this.props.footerText}
+            </div>
           </div>
         </div>
       </div>
@@ -115,5 +116,6 @@ export default class Page extends React.Component {
 }
 
 Page.PropTypes = {
-  sidebarVisible: React.PropTypes.bool.isRequired
+  sidebarVisible: React.PropTypes.bool.isRequired,
+  footerText:     React.PropTypes.string
 }

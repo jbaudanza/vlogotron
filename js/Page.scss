@@ -1,6 +1,9 @@
 @import 'colors.scss';
 
 .page {
+  $sidebar-z-index: 1;
+  $slide-in-duration: 150ms;
+
   display: flex;
   flex-direction: row;
 
@@ -97,16 +100,31 @@
 
   .page-footer {
     background-color: $color-dark-purple;
-    height: 43px;
-    line-height: 43px;
     font-size: 14px;
     font-weight: 500; // medium
     text-align: center;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
+    text-align: center;
 
-  $sidebar-z-index: 1;
+    $height: 43px;
+    line-height: $height;
+    height: $height;
+    position: relative;
+    .page-footer-content {
+      height: $height;
+      top: 0;
+      left: 0;
+      right: 0;
+      position: absolute;
+    }
+    transition: height $slide-in-duration;
+    overflow: hidden;
+    &.hidden {
+      height: 0px;
+    }
+
+  }
 
   .page-vertical-wrapper {
     flex-grow: 1;
@@ -133,7 +151,7 @@
       right: 0;
       position: absolute;
     }
-    transition: width 150ms;
+    transition: width $slide-in-duration;;
     overflow: hidden;
     &.hidden {
       width: 0px;
