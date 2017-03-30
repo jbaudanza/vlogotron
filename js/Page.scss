@@ -13,7 +13,8 @@
     padding: 0 24px;
     $header-height: 63px;
 
-    height: $header-height;
+    flex: 0 0 $header-height;
+
     background-color: $color-purple;
     display: flex;
 
@@ -78,10 +79,12 @@
     //  convert -crop 73x33+6+6 texture-orig.png texture.png
     //
     //  The higher-res images used a similar commandline, but scaled up.
-    
     background-image: url("/texture.png");
     background-size: 73px 33px;
     background-repeat: repeat;
+
+    overflow-y: scroll;
+    flex: 1;
 
     @media
       only screen and (-webkit-min-device-pixel-ratio: 2), 
@@ -99,6 +102,9 @@
   }
 
   .page-footer {
+    $height: 43px;
+    flex: 0 0 $height;
+
     background-color: $color-dark-purple;
     font-size: 14px;
     font-weight: 500; // medium
@@ -107,7 +113,6 @@
     -moz-osx-font-smoothing: grayscale;
     text-align: center;
 
-    $height: 43px;
     line-height: $height;
     height: $height;
     position: relative;
@@ -118,16 +123,19 @@
       right: 0;
       position: absolute;
     }
-    transition: height $slide-in-duration;
+    transition: flex-basis $slide-in-duration;
     overflow: hidden;
     &.hidden {
-      height: 0px;
+      flex-basis: 0px;
     }
 
   }
 
   .page-vertical-wrapper {
+    display: flex;
+    flex-direction: column;
     flex-grow: 1;
+    height: 100%;
 
     // This is to block the boxshadow coming from the sidebar;
     position: relative;
