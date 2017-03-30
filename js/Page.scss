@@ -106,18 +106,38 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  $sidebar-z-index: 1;
+
   .page-vertical-wrapper {
     flex-grow: 1;
+
+    // This is to block the boxshadow coming from the sidebar;
+    position: relative;
+    z-index: $sidebar-z-index + 1;
   }
 
   .page-sidebar {
     flex-shrink: 0;
 
     background: white;
-    width: 103px;
     text-align: center;
     font-size: 11px;
     box-shadow: 2px 0px 10px #eee;
+
+    $width: 103px;
+    width: $width;
+    position: relative;
+    z-index: $sidebar-z-index;
+    .page-sidebar-content {
+      width: $width;
+      right: 0;
+      position: absolute;
+    }
+    transition: width 150ms;
+    overflow: hidden;
+    &.hidden {
+      width: 0px;
+    }
 
     .logo {
       background-color: $color-aqua-blue;
@@ -128,7 +148,7 @@
   }
 
   .nav-link {
-    position: relative;    
+    position: relative;
     display: block;
     font-size: 11px;
     letter-spacing: 0.3px;
