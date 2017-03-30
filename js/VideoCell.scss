@@ -7,20 +7,11 @@
   position: relative;
   overflow: hidden;
   border-radius: 6px;
-
-  border: 1px solid #eee;
-  color: #eee;
-  padding: 1px;
+  box-shadow: 0 3px 10px 0 $color-cloudy-blue-two;
   box-sizing: border-box;
 
   &.playing {
-    padding: 0;
-    border: 2px solid $active-color;
     color: $active-color;
-    .note-label {
-      bottom: 4px;
-      left: 4px;
-    }
   }
 
   .record-status {
@@ -58,8 +49,8 @@
   .note-label {
     position: absolute;
     bottom: 5px;
-    left: 5px;
-    width: 25px;
+    left: 12.5px;
+    width: 9.7px;
     text-align: center;
     font-weight: bold;
     font-size: 14px;
