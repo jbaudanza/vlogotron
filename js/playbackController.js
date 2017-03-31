@@ -61,8 +61,9 @@ export default function playbackController(params, actions, subscription) {
         song,
         bpm,
         0, // Start position
-        audioBuffers$
-      ).takeUntil(actions.pause$).share()
+        audioBuffers$,
+        actions.pause$
+      )
     )).publish();
 
   const isPlaying$ = scriptedPlayCommands$$

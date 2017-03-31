@@ -43,11 +43,15 @@ export function startLivePlaybackEngine(audioBuffers$, playCommands$, subscripti
   return stream$;
 }
 
-const gainNode$ = Observable.create(function(observer) {
+function createGainNode() {
   const node = audioContext.createGain();
   node.gain.value = 0.9;
   node.connect(audioContext.destination);
+  return node;
+}
 
+const gainNode$ = Observable.create(function(observer) {
+  const node = createGainNode();
   observer.next(node);
 
   return function() {
@@ -56,7 +60,7 @@ const gainNode$ = Observable.create(function(observer) {
 });
 
 
-export function startScriptedPlayback(song, bpm, startPosition, audioBuffers$) {
+export function startScriptedPlayback(song, bpm, startPosition, audioBuffers$, playUntil$) {
   const truncatedSong = song
       .filter(note => note[1] >= startPosition)
       .map(note => [note[0], note[1] - startPosition, note[2]])
@@ -68,66 +72,79 @@ export function startScriptedPlayback(song, bpm, startPosition, audioBuffers$) {
 
   const length = songLengthInBeats(truncatedSong);
 
-  return gainNode$.switchMap((gainNode) => {
-    // TODO: 125ms is a long time, but using batchTime instead leads to late
-    // playbacks. Why is this? Probably because it takes too long for the
-    // audioScheduler to startup.
-    const playbackStartedAt = audioContext.currentTime + 0.125;
+  // TODO: 125ms is a long time, but using batchTime instead leads to late
+  // playbacks. Why is this? Probably because it takes too long for the
+  // audioScheduler to startup.
+  const playbackStartedAt = audioContext.currentTime + 0.125;
 
-    // Returns the time window (in beats) that need to be scheduled
-    function makeBeatWindow(lastWindow, playbackUntilTimestamp) {
-      return [
-        lastWindow[1],
-        timestampToBeats(playbackUntilTimestamp - playbackStartedAt, bpm)
-      ];
-    }
+  // Returns the time window (in beats) that need to be scheduled
+  function makeBeatWindow(lastWindow, playbackUntilTimestamp) {
+    return [
+      lastWindow[1],
+      timestampToBeats(playbackUntilTimestamp - playbackStartedAt, bpm)
+    ];
+  }
 
-    return playbackSchedule(audioContext)
-        .scan(makeBeatWindow, [null, 0])
-        // TODO: This really should be takeUntil with a predicate function, but
-        // that doesn't exist. Right now we're emitting one more than we need to.
-        .takeWhile(beatWindow => beatWindow[0] < length)
-        .map(mapToNotes)
-        .withLatestFrom(audioBuffers$)
-        .map(([commands, audioBuffers]) => {
-          const events = [];
+  const gainNode = createGainNode();
 
-          commands.forEach((command) => {
-            const audioBuffer = audioBuffers[command[0]];
+  function disconnectGainNode() {
+    gainNode.disconnect();
+  }
 
-            let startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
-            const duration = beatsToTimestamp(command[2], bpm);
+  const stream$ = playbackSchedule(audioContext)
+      .scan(makeBeatWindow, [null, 0])
+      // TODO: This really should be takeUntil with a predicate function, but
+      // that doesn't exist. Right now we're emitting one more than we need to.
+      .takeWhile(beatWindow => beatWindow[0] < length)
+      .map(mapToNotes)
+      .withLatestFrom(audioBuffers$)
+      .map(([commands, audioBuffers]) => {
+        const events = [];
 
-            if (audioBuffer) {
-              const source = audioContext.createBufferSource();
-              source.buffer = audioBuffer;
-              source.connect(gainNode);
+        commands.forEach((command) => {
+          const audioBuffer = audioBuffers[command[0]];
 
-              let offset;
-              if (audioContext.currentTime > startAt) {
-                offset = audioContext.currentTime - startAt;
-                startAt = 0;
-                console.warn('scheduling playback late.', offset);
-              } else {
-                offset = 0;
-              }
-              source.start(startAt, offset, duration);
+          let startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
+          const duration = beatsToTimestamp(command[2], bpm);
+
+          if (audioBuffer) {
+            const source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(gainNode);
+
+            let offset;
+            if (audioContext.currentTime > startAt) {
+              offset = audioContext.currentTime - startAt;
+              startAt = 0;
+              console.warn('scheduling playback late.', offset);
             } else {
-              console.warn('missing audiobuffer for', command[0])
+              offset = 0;
             }
+            source.start(startAt, offset, duration);
+          } else {
+            console.warn('missing audiobuffer for', command[0])
+          }
 
-            events.push({play: command[0],  when: startAt});
-            events.push({pause: command[0], when: startAt + duration});
-          })
-
-          return events;
+          events.push({play: command[0],  when: startAt});
+          events.push({pause: command[0], when: startAt + duration});
         })
-        .flatMap((events) => (
-          Observable.from(events)
-              .flatMap(obj => Observable.of(obj).delay((obj.when - audioContext.currentTime) * 1000))
-        ))
-        .startWith({playbackStartedAt});
-  });
+
+        return events;
+      })
+      .flatMap((events) => (
+        Observable.from(events)
+            .flatMap(obj => Observable.of(obj).delay((obj.when - audioContext.currentTime) * 1000))
+      ))
+      .startWith({playbackStartedAt})
+      .takeUntil(playUntil$)
+      .do({complete: disconnectGainNode})
+      .publish();
+
+  // Make this hot right away. We don't need to worry about unsubscribing,
+  // because the stream will end when the song is over or playUntil$ fires.
+  stream$.connect();
+
+  return stream$;
 
   // const position$ = Observable
   //     .of(0, animationFrame)
