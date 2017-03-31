@@ -2,15 +2,23 @@ import React from 'react';
 
 import {bindAll} from 'lodash';
 
-import Page from './Page';
-import VideoGrid from './VideoGrid';
+import {Subject} from 'rxjs/Subject';
 
+import Page from './Page';
+import PlaybackHeader from './PlaybackHeader';
+import VideoGrid from './VideoGrid';
 
 export default class PlaybackView extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'bindVideoGrid', 'bindPage', 'onClickLogin');
-    this.actions = {};
+    bindAll(this, 'bindVideoGrid', 'onClickLogin');
+    this.actions = {
+      play$: new Subject(),
+      pause$: new Subject()
+    };
+
+    this.onClickPlay = this.actions.play$.next.bind(this.actions.play$);
+    this.onClickPause = this.actions.pause$.next.bind(this.actions.pause$);
   }
 
   bindVideoGrid(component) {
@@ -19,11 +27,9 @@ export default class PlaybackView extends React.Component {
     }
   }
 
-  bindPage(component) {
-    if (component) {
-      this.actions.play$ = component.play$;
-      this.actions.pause$ = component.pause$;
-    }
+  componentWillUnmount() {
+    this.actions.play$.complete();
+    this.actions.pause$.complete();
   }
 
   onClickLogin() {
@@ -31,16 +37,24 @@ export default class PlaybackView extends React.Component {
   }
 
   render() {
+    const header = (
+      <PlaybackHeader
+          className='playback-page'
+          isPlaying={this.props.isPlaying}
+          songTitle={this.props.songTitle}
+          songLength={this.props.songLength}
+          authorName={this.props.authorName}
+          playbackPositionInSeconds={this.props.playbackPositionInSeconds}
+          onClickPlay={this.onClickPlay}
+          onClickPause={this.onClickPause} />
+    );
+
     return (
       <Page
-        ref={this.bindPage}
-        isPlaying={this.props.isPlaying}
-        songName={this.props.songName}
-        songLength={this.props.songLength}
-        playbackPositionInSeconds={this.props.playbackPositionInSeconds}
         onLogin={this.onClickLogin}
         onLogout={() => true}
         isLoggedIn={false}
+        header={header}
         sidebarVisible={true}
         >
         <VideoGrid readonly
@@ -60,5 +74,5 @@ PlaybackView.propTypes = {
   playCommands$: React.PropTypes.object.isRequired,
   isPlaying:     React.PropTypes.bool.isRequired,
   songLength:    React.PropTypes.number.isRequired,
-  songName:      React.PropTypes.string.isRequired,
+  songTitle:     React.PropTypes.string.isRequired,
 }

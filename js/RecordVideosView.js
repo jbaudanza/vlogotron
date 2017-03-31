@@ -4,13 +4,14 @@ import {bindAll} from 'lodash';
 
 import Page from './Page';
 import VideoGrid from './VideoGrid';
+import RecordVideosHeader from './RecordVideosHeader';
 
 function noop() {}
 
 export default class RecordVideosView extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'bindVideoGrid', 'bindPage', 'onClickLogin');
+    bindAll(this, 'bindVideoGrid', 'onClickLogin');
     this.actions = {};
   }
 
@@ -20,29 +21,21 @@ export default class RecordVideosView extends React.Component {
     }
   }
 
-  bindPage(component) {
-    if (component) {
-      this.actions.play$ = component.play$;
-      this.actions.pause$ = component.pause$;
-    }
-  }
-
   onClickLogin() {
     this.props.onNavigate('#login')
   }
 
   render() {
+    const header = <RecordVideosHeader songTitle='Untitled song' />;
+
     return (
       <Page
-        ref={this.bindPage}
-        isPlaying={this.props.isPlaying}
-        songName={this.props.songName}
-        songLength={this.props.songLength}
-        playbackPositionInSeconds={this.props.playbackPositionInSeconds}
         onLogin={this.onClickLogin}
         onLogout={() => true}
         isLoggedIn={false}
         sidebarVisible={false}
+        header={header}
+        className='record-videos-page'
         footerText={this.context.messages['record-videos-tip-long']()}
         >
         <VideoGrid readonly

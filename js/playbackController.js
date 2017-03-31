@@ -101,7 +101,8 @@ export default function playbackController(params, actions, subscription) {
       loading,
       playCommands$,
       songLength,
-      songName: 'Mary had a little lamb'
+      songTitle: 'Mary had a little lamb',
+      authorName: 'Jonathan Baudanza'
     })
   );
 }

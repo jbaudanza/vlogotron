@@ -1,22 +1,13 @@
 import React from 'react';
-import {Subject} from 'rxjs/Subject';
 
 import classNames from 'classnames';
 import {omit} from 'lodash';
+
 
 import Link from './Link';
 
 import './Page.scss';
 
-function formatDurationString(durationInSeconds) {
-  const minutes = String(Math.floor(durationInSeconds / 60));
-  let seconds = String(durationInSeconds % 60);
-
-  if (seconds.length === 1)
-    seconds = "0" + seconds;
-
-  return minutes + ':' + seconds;
-}
 
 function NavLink(props) {
   const linkProps = omit(props, 'icon', 'text');
@@ -33,25 +24,9 @@ function NavLink(props) {
 function noop() {}
 
 export default class Page extends React.Component {
-  constructor() {
-    super();
-    this.play$ = new Subject();
-    this.pause$ = new Subject();
-
-    this.onClickPlay = this.onClickPlay.bind(this);
-  }
-
-  onClickPlay(event) {
-    if (this.props.isPlaying) {
-      this.pause$.next(event);
-    } else {
-      this.play$.next(event);
-    }
-  }
-
   render() {
     return (
-      <div className='page'>
+      <div className={classNames('page', this.props.className)}>
         <div className={classNames('page-sidebar', {hidden: !this.props.sidebarVisible})}>
           <div className='page-sidebar-content'>
             <div className='logo'>VLOGOTRON</div>
@@ -77,30 +52,7 @@ export default class Page extends React.Component {
         </div>
 
         <div className="page-vertical-wrapper">
-          <div className='page-header'>
-
-            <Link onClick={this.onClickPlay} className='play-button'>
-              <svg version="1.1" width={32} height={32}>
-                <use xlinkHref={ this.props.isPlaying ? '#svg-pause' : '#svg-play' } />
-              </svg>
-            </Link>
-
-            <div className='song-info'>
-              <div className='top'>
-                <span className='song-title'>{this.props.songName}</span>
-                <span className='by'> by </span>
-                <span className='song-author'>Jack Harris</span>
-              </div>
-              <div className='bottom'>
-                {formatDurationString(this.props.playbackPositionInSeconds)} | {formatDurationString(this.props.songLength)}
-              </div>
-            </div>
-
-            <div className='actions'>
-              <Link onClick={noop}>Share</Link>
-              <Link onClick={noop}>Remix</Link>
-            </div>
-          </div>
+          {this.props.header}
           <div className='page-content'>
             {this.props.children}
           </div>
@@ -117,5 +69,6 @@ export default class Page extends React.Component {
 
 Page.PropTypes = {
   sidebarVisible: React.PropTypes.bool.isRequired,
+  header:         React.PropTypes.node.isRequired,
   footerText:     React.PropTypes.string
 }

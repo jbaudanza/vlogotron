@@ -3,20 +3,34 @@
 .page {
   $sidebar-z-index: 1;
   $slide-in-duration: 150ms;
+  $header-height: 63px;
 
   display: flex;
   flex-direction: row;
 
   color: white;
 
+  &.record-videos-page .page-header {
+  }
+
+  .song-title {
+    line-height: $header-height;
+  }
+
   .page-header {
     padding: 0 24px;
-    $header-height: 63px;
 
     flex: 0 0 $header-height;
 
     background-color: $color-purple;
     display: flex;
+
+    .song-title {
+      font-weight: 500; // Medium
+      font-size: 17px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
 
     .play-button {
       display: inline-block;
@@ -48,15 +62,17 @@
       }
     }
 
-    .actions a {
+    a.action {
       font-size: 11px;
       font-weight: 600; // semi-bold
-      padding: 7px 15px;
+      padding: 0 15px;
       margin: 0 7px;
       margin-top: $header-height / 2 - 14px;
+      text-decoration: none;
 
       display: inline-block;
       height: 28px;
+      line-height: 28px;
       opacity: 0.7;
       border-radius: 49px;
       border: solid 1px white;
@@ -68,6 +84,11 @@
 
       &:hover {
         opacity: 1;
+      }
+
+      &.inverse {
+        background-color: white;
+        color: $color-purple;
       }
     }
   }
@@ -180,6 +201,7 @@
     letter-spacing: 0.3px;
     font-weight: normal;
     text-transform: uppercase;
+    text-decoration: none;
     color: $color-blue-grey;
     svg {
       fill: $color-blue-grey;

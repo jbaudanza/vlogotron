@@ -7,7 +7,7 @@ import TouchableArea from './TouchableArea';
 import VideoCell from './VideoCell';
 
 import Spin from 'antd/lib/spin';
-import 'antd/lib/spin/style/css';
+//import 'antd/lib/spin/style/css';
 
 import './VideoGrid.scss';
 

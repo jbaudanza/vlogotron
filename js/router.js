@@ -41,7 +41,7 @@ function mapToRoute(location, user) {
       location: location,
       params: {uid: DEFAULT_UID},
       initialState: {
-        loading: true, videoClips: {}, playCommands$: Observable.never(), isPlaying: false, songLength: 0, playbackPositionInSeconds: 0, songName: ''
+        loading: true, videoClips: {}, playCommands$: Observable.never(), isPlaying: false, songLength: 0, playbackPositionInSeconds: 0, songTitle: ''
       }
     };
   } else if (location.pathname === '/record-videos') {
