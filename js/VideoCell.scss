@@ -10,10 +10,6 @@
   box-shadow: 0 3px 10px 0 $color-cloudy-blue-two;
   box-sizing: border-box;
 
-  &.playing {
-    color: $active-color;
-  }
-
   .record-status {
     position: absolute;
     left: 5px;
@@ -98,11 +94,17 @@
 
     &.enabled:hover {
       background-color: $color-purple;
+      padding: 20px;
+      box-sizing: border-box;
+      letter-spacing: 0.2px;
+
       .tip {
         display: block;
+        line-height: normal;
       }
       svg {
-        margin-top: 27px;
+        margin-top: 7px;
+        margin-bottom: 7px;
         fill: $color-periwinkle;
         width: 23px;
         height: 44px;

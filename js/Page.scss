@@ -11,10 +11,21 @@
   color: white;
 
   &.record-videos-page .page-header {
-  }
+    display: flex;
 
-  .song-title {
-    line-height: $header-height;
+    .first, .last {
+      flex: 0;
+    }
+    .middle {
+      flex: 1;
+      text-align: center;
+      line-height: $header-height;
+    }
+
+    .song-title {
+      margin-right: 10px;
+    }
+
   }
 
   .page-header {
