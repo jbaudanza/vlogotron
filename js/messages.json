@@ -4,5 +4,6 @@
   "share-action": "share",
   "remix-action": "remix",
   "cancel-action": "cancel",
-  "next-action": "next"
+  "next-action": "next",
+  "start-singing-countdown-prompt": "Start singing in"
 }

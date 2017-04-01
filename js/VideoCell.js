@@ -18,8 +18,8 @@ export default class VideoCell extends React.Component {
   }
 
   setVideoStream(videoEl) {
-    if (videoEl && this.props.stream) {
-      videoEl.srcObject = this.props.stream;
+    if (videoEl && this.props.mediaStream) {
+      videoEl.srcObject = this.props.mediaStream;
       videoEl.play();
     }
   }
@@ -40,13 +40,15 @@ export default class VideoCell extends React.Component {
     if (this.props.countdown) {
       countdownEl = (
         <div className='countdown-label'>
-          <div className='text'>Sing along with the tone. Recording in</div>
+          <div className='text'>
+            {this.context.messages['start-singing-countdown-prompt']()}
+          </div>
           <div className='number'>{this.props.countdown}</div>
         </div>
       );
     }
 
-    if (this.props.stream) {
+    if (this.props.mediaStream) {
       videoEl = <video key="recorder" muted ref={this.setVideoStream} />;
 
       if (!this.props.countdown) {
@@ -102,7 +104,7 @@ export default class VideoCell extends React.Component {
         <Link
             className='empty-video'
             onClick={this.props.onStartRecording}
-            enabled={!this.props.recording && !this.props.readonly}>
+            enabled={!this.props.mediaStream && !this.props.readonly}>
           <svg version="1.1" width="30px" height="59px" className='background'>
             <use xlinkHref='#svg-microphone' />
           </svg>
@@ -138,8 +140,8 @@ VideoCell.contextTypes = {
 
 VideoCell.propTypes = {
   note:              React.PropTypes.string.isRequired,
-  recording:         React.PropTypes.bool.isRequired,
   playing:           React.PropTypes.bool.isRequired,
+  mediaStream:       React.PropTypes.object,
   onStartRecording:  React.PropTypes.func,
   onStopRecording:   React.PropTypes.func,
   videoClip:         React.PropTypes.object,

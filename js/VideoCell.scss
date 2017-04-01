@@ -55,7 +55,7 @@
     position: absolute;
     left: 0;
     right: 0;
-    top: 0;
+    top: 25px;
     bottom: 0;
     text-align: center;
     color: white;
@@ -63,12 +63,12 @@
     -webkit-text-stroke-color: #333;
   }
   .countdown-label {
+    font-weight: bold;
     .text {
-      font-size: 125%;
-      line-height: 1.5;
+      font-size: 17px;
     }
     .number {
-      font-size: 200%;
+      font-size: 23px;
     }
   }
   .stop-action {

@@ -1,18 +1,32 @@
 import React from 'react';
 
-import {bindAll} from 'lodash';
+import {Subject} from 'rxjs/Subject';
+
+import {bindAll, bindKey} from 'lodash';
 
 import Page from './Page';
 import VideoGrid from './VideoGrid';
 import RecordVideosHeader from './RecordVideosHeader';
 
-function noop() {}
+function noop() {console.log('noop')}
 
 export default class RecordVideosView extends React.Component {
   constructor() {
     super();
     bindAll(this, 'bindVideoGrid', 'onClickLogin');
-    this.actions = {};
+
+    this.actions = {
+      startRecording$: new Subject(),
+      stopRecording$: new Subject()
+    };
+
+    this.onStartRecording = bindKey(this.actions.startRecording$, 'next');
+    this.onStopRecording = bindKey(this.actions.stopRecording$, 'next');
+  }
+
+  componentWillUnmount() {
+    this.actions.startRecording$.complete();
+    this.actions.stopRecording$.complete();
   }
 
   bindVideoGrid(component) {
@@ -26,7 +40,7 @@ export default class RecordVideosView extends React.Component {
   }
 
   render() {
-    const header = <RecordVideosHeader songTitle='Untitled song' />;
+    const header = <RecordVideosHeader songTitle={this.props.songTitle} />;
 
     return (
       <Page
@@ -43,9 +57,12 @@ export default class RecordVideosView extends React.Component {
           videoClips={this.props.videoClips}
           playCommands$={this.props.playCommands$}
           readonly={false}
-          onStartRecording={noop}
-          onStopRecording={noop}
+          onStartRecording={this.onStartRecording}
+          onStopRecording={this.onStopRecording}
           onClear={noop}
+          mediaStream={this.props.mediaStream}
+          recordingCountdown={this.props.recordingCountdown}
+          noteBeingRecorded={this.props.noteBeingRecorded}
           ref={this.bindVideoGrid}
           />
       </Page>
