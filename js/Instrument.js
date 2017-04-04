@@ -17,7 +17,6 @@ import {startRecording} from './RecordingStore';
 import {playCommands$ as scriptedPlayCommands$} from './VideoClipStore';
 import {startPlayback, audioLoading$, getAudioBuffer} from './VideoClipStore';
 
-import colors from './colors';
 import {findParentNode} from './domutils';
 
 import {songs} from './song';

@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 
 import {bindAll} from 'lodash';
 import classNames from 'classnames';
-import colors from './colors'
 import Link from './Link';
 import NoteLabel from './NoteLabel';
 
@@ -60,7 +59,7 @@ export default class VideoCell extends React.Component {
             </span>
             <div className='record-status'>
               <svg version="1.1" width="10px" height="10px">
-                <circle cx="5" cy="5" r="5" fill={colors.red}>
+                <circle cx="5" cy="5" r="5">
                   <animate
                           attributeType="XML"
                           attributeName="opacity"

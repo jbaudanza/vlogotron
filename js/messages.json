@@ -5,7 +5,9 @@
   "remix-action": "remix",
   "cancel-action": "cancel",
   "next-action": "next",
+  "ok-action": "OK",
   "start-singing-countdown-prompt": "Start singing in",
   "default-song-title": "Untitled Song",
-  "stop-recording-prompt": "Click to stop recording"
+  "stop-recording-prompt": "Click to stop recording",
+  "user-media-access-error": "We were unable to access your camera and microphone. You may need to adjust your browser permissions."
 }

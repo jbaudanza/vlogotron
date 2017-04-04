@@ -36,7 +36,7 @@ export default class PlaybackHeader extends React.Component {
             <span className='song-author'>{this.props.authorName}</span>
           </div>
           <div className='bottom'>
-            {formatDurationString(this.props.playbackPositionInSeconds)} | {formatDurationString(this.props.songLength)}
+            {formatSeconds(this.props.playbackPositionInSeconds)} | {formatSeconds(this.props.songLength)}
           </div>
         </div>
 

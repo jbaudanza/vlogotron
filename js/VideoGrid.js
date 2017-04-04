@@ -112,12 +112,16 @@ export default class VideoGrid extends React.Component {
       });
     }
 
-    if (this.props.noteBeingRecorded === note) {
-      Object.assign(props, {
-        mediaStream: this.props.mediaStream,
-        countdown: this.props.countdownUntilRecord,
-        durationRecorded: this.props.durationRecorded
-      });
+    if (this.props.noteBeingRecorded) {
+      if (this.props.noteBeingRecorded === note) {
+        Object.assign(props, {
+          mediaStream: this.props.mediaStream,
+          countdown: this.props.countdownUntilRecord,
+          durationRecorded: this.props.durationRecorded
+        });
+      } else {
+        props.readonly = true;
+      }
     }
 
     return props;

@@ -20,7 +20,7 @@ export default class RecordVideosHeader extends React.Component {
           </svg>
         </div>
         <div className='last'>
-          <Link className='action inverse' onClick={noop}>{this.context.messages['next-action']()}</Link>
+          <Link className='action primary' onClick={noop}>{this.context.messages['next-action']()}</Link>
         </div>
       </div>
     );

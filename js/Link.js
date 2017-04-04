@@ -34,7 +34,7 @@ class Link extends React.Component {
       );
     } else {
       return (
-        <span className={className} {...props}>{this.props.children}</span>
+        <span className={className} {...omit(props, 'onClick', 'href')}>{this.props.children}</span>
       );
     }
   }

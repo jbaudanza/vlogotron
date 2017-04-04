@@ -19,35 +19,54 @@ const initialState = {
 };
 
 
-Observable.prototype.debug = function(message) {
-  return this.do(
-    (next) => {
-      console.log(message, next)
-    },
-    (err) => {
-      console.error(message, err)
-    },
-    () => {
-      console.info(message, 'completed')
-    }
-  );
-};
-
+/**
+  TODO
+    - Keep videos in some local store
+    - ESC key should abort
+    - durationRecorded should increment every second, not every event callback
+    - Get Playback to work
+    - Should be able to clear videos
+    - Should upload to server
+ */
 
 export default function recordVideosController(params, actions, subscription) {
-  const viewState$ = actions.startRecording$.switchMap((note) => (
+  const recordingState$ = actions.startRecording$.switchMap((note) => (
     startRecording(note, actions.stopRecording$)
-  )).map((obj) => Object.assign({}, initialState, obj))
+  ))
 
-  return viewState$.startWith(initialState);
+  const viewState$ = Observable.merge(
+    recordingState$,
+    actions.dismissError$.mapTo({})
+  );
+
+  return viewState$
+      .map((obj) => Object.assign({}, initialState, obj))
+      .startWith(initialState);
 }
 
-export function startRecording(note, stop$) {
-  // TODO: Handle the case where getUserMedia is rejected
-  const mediaStreamPromise = navigator.mediaDevices.getUserMedia({
+
+function startRecording(note, stop$) {
+  const promise = navigator.mediaDevices.getUserMedia({
     audio: true, video: true
   });
 
+  return Observable
+    .fromPromise(promise)
+    .switchMap((mediaStream) => {
+      return startRecording2(mediaStream, note, stop$)
+    })
+    .catch((err) => {
+      // TODO: Is there some cross-platform way we can inspect this error to
+      // make sure it's a permissions error and not something else?
+      return Observable.of(Object.assign(
+        {error: messages["user-media-access-error"]()},
+        initialState)
+      )
+    })
+}
+
+// TODO: better name
+function startRecording2(mediaStream, note, stop$) {
   const countdownWithTone$ = Observable.create((observer) => {
     const stopTone = startTone(note);
     return countdown$
@@ -57,32 +76,21 @@ export function startRecording(note, stop$) {
   });
 
   const startCapturing$ = Observable.create((observer) => {
-    mediaStreamPromise.then(function(mediaStream) {
-      // TODO: This should take a $stop and $cancel observable
-      const result = startCapturing(mediaStream, stop$);
+    // TODO: This should take a $stop and $cancel observable
+    const result = startCapturing(mediaStream, stop$);
 
-      // XXX: Where does the unsubscribe go?
-      result.duration$.map(d => ({durationRecorded: d})).subscribe(observer)
-    })
+    return result.duration$.map(d => ({durationRecorded: d})).subscribe(observer)
   });
 
-  const state$ = Observable.concat(
-    mediaStreamPromise.then( x => ({})),
+  return Observable.concat(
     countdownWithTone$,
     startCapturing$
-  );
-
-  return Observable.combineLatest(
-      mediaStreamPromise,
-      state$,
-      (mediaStream, state) => (
-        Object.assign(
-          {mediaStream, noteBeingRecorded: note},
-          state
-        )
-      )
-  );
-
+  ).map((state) => (
+    Object.assign(
+      {mediaStream, noteBeingRecorded: note},
+      state
+    )
+  ))
   // TODO: The media and clip id need to be deposited into some local store.
   // The clipId only needs to be unique per each user
   //const clipId = createRandomString(6);

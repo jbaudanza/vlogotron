@@ -56,9 +56,22 @@ export default class Page extends React.Component {
           <div className='page-content'>
             {this.props.children}
           </div>
-          <div className={classNames('page-footer', {hidden: this.props.footerText == null})}>
+          <div className={classNames('page-footer', {hidden: this.props.footerText == null, error: !!this.props.error})}>
             <div className='page-footer-content'>
-              {this.props.footerText}
+              {
+                this.props.error ? (
+                  <div className='page-footer-content'>
+                    {this.props.error}
+                    <Link className='action primary' onClick={this.props.onDismissError}>
+                      {this.context.messages['ok-action']()}
+                    </Link>
+                  </div>
+                ) : (
+                  <div className='page-footer-content'>
+                    {this.props.footerText}
+                  </div>
+                )
+              }
             </div>
           </div>
         </div>
@@ -66,6 +79,10 @@ export default class Page extends React.Component {
     );
   }
 }
+
+Page.contextTypes = {
+  messages: React.PropTypes.object.isRequired
+};
 
 Page.PropTypes = {
   sidebarVisible: React.PropTypes.bool.isRequired,

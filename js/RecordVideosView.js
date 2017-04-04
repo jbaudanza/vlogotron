@@ -17,16 +17,19 @@ export default class RecordVideosView extends React.Component {
 
     this.actions = {
       startRecording$: new Subject(),
-      stopRecording$: new Subject()
+      stopRecording$: new Subject(),
+      dismissError$: new Subject()
     };
 
     this.onStartRecording = bindKey(this.actions.startRecording$, 'next');
     this.onStopRecording = bindKey(this.actions.stopRecording$, 'next');
+    this.onDismissError = bindKey(this.actions.dismissError$, 'next');
   }
 
   componentWillUnmount() {
     this.actions.startRecording$.complete();
     this.actions.stopRecording$.complete();
+    this.actions.dismissError$.complete();
   }
 
   bindVideoGrid(component) {
@@ -46,11 +49,13 @@ export default class RecordVideosView extends React.Component {
       <Page
         onLogin={this.onClickLogin}
         onLogout={() => true}
+        onDismissError={this.onDismissError}
         isLoggedIn={false}
         sidebarVisible={false}
         header={header}
         className='record-videos-page'
         footerText={this.context.messages['record-videos-tip-long']()}
+        error={this.props.error}
         >
         <VideoGrid readonly
           loading={this.props.loading}

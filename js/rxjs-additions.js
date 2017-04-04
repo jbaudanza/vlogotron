@@ -4,6 +4,7 @@
 
   Keep this list alphabetized for sanity. Hint: F5 in Sublime Text
 */
+import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/concat';
 import 'rxjs/add/operator/concatAll';
 import 'rxjs/add/operator/delay';
@@ -42,3 +43,20 @@ import 'rxjs/add/observable/interval';
 import 'rxjs/add/observable/merge';
 import 'rxjs/add/observable/never';
 import 'rxjs/add/observable/of';
+
+
+import {Observable} from 'rxjs/Observable';
+
+Observable.prototype.debug = function(message) {
+  return this.do(
+    (next) => {
+      console.log(message, next)
+    },
+    (err) => {
+      console.error(message, err)
+    },
+    () => {
+      console.info(message, 'completed')
+    }
+  );
+};
