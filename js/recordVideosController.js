@@ -6,6 +6,8 @@ import {times, sample} from 'lodash';
 import encodeWavSync from './encodeWavSync';
 import audioContext from './audioContext';
 
+const messages = require('messageformat-loader!json-loader!./messages.json');
+
 const initialState = {
   loading: false,
   videoClips: {},
@@ -13,69 +15,80 @@ const initialState = {
   isPlaying: false,
   songLength: 0,
   playbackPositionInSeconds: 0,
-  songTitle: 'Untitled Song'
+  songTitle: messages['default-song-title']()
+};
+
+
+Observable.prototype.debug = function(message) {
+  return this.do(
+    (next) => {
+      console.log(message, next)
+    },
+    (err) => {
+      console.error(message, err)
+    },
+    () => {
+      console.info(message, 'completed')
+    }
+  );
 };
 
 
 export default function recordVideosController(params, actions, subscription) {
-  const viewState$ = actions.startRecording$.switchMap((note) => {
-    const result = startRecording(note, actions.stopRecording$);
-
-    return Observable.combineLatest(
-      result.mediaStream,
-      result.countdown$,
-      function(mediaStream, countdown) {
-        return Object.assign(
-          {
-            noteBeingRecorded: note,
-            mediaStream,
-            recordingCountdown: countdown
-          },
-          initialState
-        )
-      }
-    );
-  });
+  const viewState$ = actions.startRecording$.switchMap((note) => (
+    startRecording(note, actions.stopRecording$)
+  )).map((obj) => Object.assign({}, initialState, obj))
 
   return viewState$.startWith(initialState);
 }
 
 export function startRecording(note, stop$) {
-  const countdownSubject = new Subject();
-  const durationSubject = new Subject();
-
+  // TODO: Handle the case where getUserMedia is rejected
   const mediaStreamPromise = navigator.mediaDevices.getUserMedia({
     audio: true, video: true
   });
 
-  // TODO: Handle the case where getUserMedia is rejected
+  const countdownWithTone$ = Observable.create((observer) => {
+    const stopTone = startTone(note);
+    return countdown$
+        .do({complete: stopTone})
+        .map(countdown => ({countdownUntilRecord: countdown}))
+        .subscribe(observer);
+  });
 
-  const mediaPromise = mediaStreamPromise
-      .then((mediaStream) => startCountdown(note, countdownSubject).then(() => mediaStream))
-      .then((mediaStream) => startCapturing(mediaStream, stop$, durationSubject));
+  const startCapturing$ = Observable.create((observer) => {
+    mediaStreamPromise.then(function(mediaStream) {
+      // TODO: This should take a $stop and $cancel observable
+      const result = startCapturing(mediaStream, stop$);
 
+      // XXX: Where does the unsubscribe go?
+      result.duration$.map(d => ({durationRecorded: d})).subscribe(observer)
+    })
+  });
+
+  const state$ = Observable.concat(
+    mediaStreamPromise.then( x => ({})),
+    countdownWithTone$,
+    startCapturing$
+  );
+
+  return Observable.combineLatest(
+      mediaStreamPromise,
+      state$,
+      (mediaStream, state) => (
+        Object.assign(
+          {mediaStream, noteBeingRecorded: note},
+          state
+        )
+      )
+  );
+
+  // TODO: The media and clip id need to be deposited into some local store.
   // The clipId only needs to be unique per each user
-  const clipId = createRandomString(6);
-
-  return {
-    countdown$: countdownSubject.asObservable(),
-    duration$: durationSubject.asObservable(),
-    mediaStream: mediaStreamPromise,
-    media: mediaPromise,
-    clipId: clipId
-  };
+  //const clipId = createRandomString(6);
 }
 
-function startCountdown(note, countObserver) {
-  const stopTone = startTone(note);
-
-  const thisCountdown = countdown$.share();
-  thisCountdown.subscribe(countObserver);
-
-  return countdown$.toPromise().then(stopTone);
-}
-
-function startCapturing(mediaStream, stop$, durationObserver) {
+function startCapturing(mediaStream, stop$) {
   const videoRecorder = new MediaRecorder(mediaStream);
   videoRecorder.start();
 
@@ -84,13 +97,16 @@ function startCapturing(mediaStream, stop$, durationObserver) {
     mediaStream.getTracks().forEach((t) => t.stop());
   });
 
-  const audioBufferPromise = takeAudioBufferFromMediaStream(
+  const result = takeAudioBufferFromMediaStream(
     mediaStream, stop$
   );
 
   const streams = mediaRecorderStreams(videoRecorder);
 
-  return Promise.all([streams.blob, audioBufferPromise]);
+  return {
+    duration$: result.duration$,
+    media: Promise.all([streams.blob, result.audioBuffer])
+  };
 }
 
 
@@ -220,15 +236,23 @@ function takeAudioBufferFromMediaStream(mediaStream, takeUntil$) {
   // the audioprocess event doesn't seem to fire unless it's hooked up.
   recorderNode.connect(audioContext.destination);
 
-  const audioProcessEvent$ = Observable.fromEvent(recorderNode, 'audioprocess');
+  const audioProcessEvent$ = Observable
+      .fromEvent(recorderNode, 'audioprocess')
+      .takeUntil(takeUntil$);
 
-  return audioProcessEvent$
-      .takeUntil(takeUntil$)
+  const duration$ = audioProcessEvent$
+      .map(event => event.inputBuffer.length)
+      .scan((i,j) => i + j, 0)
+      .map(x => x/audioContext.sampleRate);
+
+  const audioBuffer = audioProcessEvent$
       .map(buffersFromAudioProcessEvent)
       .toArray()
       .map((batches) => encodeWavSync(batches, audioContext.sampleRate))
       .toPromise()
       .then(decodeAudioData);
+
+  return {duration$, audioBuffer};
 }
 
 function createRandomString(length) {

@@ -5,5 +5,7 @@
   "remix-action": "remix",
   "cancel-action": "cancel",
   "next-action": "next",
-  "start-singing-countdown-prompt": "Start singing in"
+  "start-singing-countdown-prompt": "Start singing in",
+  "default-song-title": "Untitled Song",
+  "stop-recording-prompt": "Click to stop recording"
 }

@@ -3,15 +3,7 @@ import Link from './Link';
 
 function noop() {}
 
-function formatDurationString(durationInSeconds) {
-  const minutes = String(Math.floor(durationInSeconds / 60));
-  let seconds = String(durationInSeconds % 60);
-
-  if (seconds.length === 1)
-    seconds = "0" + seconds;
-
-  return minutes + ':' + seconds;
-}
+import {formatSeconds} from './format';
 
 
 export default class PlaybackHeader extends React.Component {

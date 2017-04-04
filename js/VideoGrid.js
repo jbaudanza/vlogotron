@@ -115,8 +115,8 @@ export default class VideoGrid extends React.Component {
     if (this.props.noteBeingRecorded === note) {
       Object.assign(props, {
         mediaStream: this.props.mediaStream,
-        duration: this.props.timeStamp,
-        countdown: this.props.recordingCountdown
+        countdown: this.props.countdownUntilRecord,
+        durationRecorded: this.props.durationRecorded
       });
     }
 
@@ -165,16 +165,17 @@ export default class VideoGrid extends React.Component {
 }
 
 VideoGrid.propTypes = {
-  playCommands$:      React.PropTypes.object.isRequired,
-  readonly:           React.PropTypes.bool.isRequired,
-  loading:            React.PropTypes.bool.isRequired,
-  videoClips:         React.PropTypes.object.isRequired,
-  recordingCountdown: React.PropTypes.number,
-  mediaStream:        React.PropTypes.object,
-  onStartRecording:   React.PropTypes.func,
-  onStopRecording:    React.PropTypes.func,
-  onClear:            React.PropTypes.func,
-  noteBeingRecorded:  React.PropTypes.string
+  playCommands$:        React.PropTypes.object.isRequired,
+  readonly:             React.PropTypes.bool.isRequired,
+  loading:              React.PropTypes.bool.isRequired,
+  videoClips:           React.PropTypes.object.isRequired,
+  countdownUntilRecord: React.PropTypes.number,
+  durationRecorded:     React.PropTypes.number,
+  mediaStream:          React.PropTypes.object,
+  onStartRecording:     React.PropTypes.func,
+  onStopRecording:      React.PropTypes.func,
+  onClear:              React.PropTypes.func,
+  noteBeingRecorded:    React.PropTypes.string
 };
 
 VideoGrid.contextTypes = {

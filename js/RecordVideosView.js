@@ -61,7 +61,8 @@ export default class RecordVideosView extends React.Component {
           onStopRecording={this.onStopRecording}
           onClear={noop}
           mediaStream={this.props.mediaStream}
-          recordingCountdown={this.props.recordingCountdown}
+          countdownUntilRecord={this.props.countdownUntilRecord}
+          durationRecorded={this.props.durationRecorded}
           noteBeingRecorded={this.props.noteBeingRecorded}
           ref={this.bindVideoGrid}
           />
@@ -80,5 +81,5 @@ RecordVideosView.propTypes = {
   playCommands$: React.PropTypes.object.isRequired,
   isPlaying:     React.PropTypes.bool.isRequired,
   songLength:    React.PropTypes.number.isRequired,
-  songName:      React.PropTypes.string.isRequired,
+  songTitle:     React.PropTypes.string.isRequired
 }

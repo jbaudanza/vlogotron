@@ -8,6 +8,7 @@ import Link from './Link';
 import NoteLabel from './NoteLabel';
 
 import {findWrappingLink} from './domutils';
+import {formatSeconds} from './format';
 
 import './VideoCell.scss';
 
@@ -54,19 +55,24 @@ export default class VideoCell extends React.Component {
       if (!this.props.countdown) {
         stopActionEl = (
           <Link onClick={this.props.onStopRecording} className='stop-action'>
-            Click to stop recording
-            <svg version="1.1" width="10px" height="10px" className='record-status'>
-              <circle cx="5" cy="5" r="5" fill={colors.red}>
-                <animate
-                        attributeType="XML"
-                        attributeName="opacity"
-                        calcMode="discrete"
-                        dur="0.75s"
-                        values="0;1"
-                        keyTimes="0;0.5"
-                        repeatCount="indefinite" />
-              </circle>
-            </svg>
+            <span>
+              {this.context.messages['stop-recording-prompt']()}
+            </span>
+            <div className='record-status'>
+              <svg version="1.1" width="10px" height="10px">
+                <circle cx="5" cy="5" r="5" fill={colors.red}>
+                  <animate
+                          attributeType="XML"
+                          attributeName="opacity"
+                          calcMode="discrete"
+                          dur="0.75s"
+                          values="0;1"
+                          keyTimes="0;0.5"
+                          repeatCount="indefinite" />
+                </circle>
+              </svg>
+              <span className='duration'>{formatSeconds(this.props.durationRecorded)}</span>
+            </div>
           </Link>
         );
       }
