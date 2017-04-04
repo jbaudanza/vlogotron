@@ -48,7 +48,7 @@ function mapToRoute(location, user) {
     return {
       controller: recordVideosController,
       view: RecordVideosView,
-      initialState: {loading: false, videoClips: {}, playCommands$: Observable.never(), isPlaying: false, songLength: 0, playbackPositionInSeconds: 0, songName: ''}
+      initialState: {loading: false, videoClips: {}, playCommands$: Observable.never(), isPlaying: false, playbackPositionInSeconds: 0, songTitle: ''}
     }
   } else if (match = location.pathname.match(/\/playback\/([\w-]+)/)) {
     return {

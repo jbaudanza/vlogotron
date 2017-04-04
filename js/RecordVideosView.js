@@ -85,6 +85,5 @@ RecordVideosView.propTypes = {
   videoClips:    React.PropTypes.object.isRequired,
   playCommands$: React.PropTypes.object.isRequired,
   isPlaying:     React.PropTypes.bool.isRequired,
-  songLength:    React.PropTypes.number.isRequired,
   songTitle:     React.PropTypes.string.isRequired
 }

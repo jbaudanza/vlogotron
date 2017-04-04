@@ -10,18 +10,14 @@ const messages = require('messageformat-loader!json-loader!./messages.json');
 
 const initialState = {
   loading: false,
-  videoClips: {},
   playCommands$: Observable.never(),
   isPlaying: false,
-  songLength: 0,
-  playbackPositionInSeconds: 0,
   songTitle: messages['default-song-title']()
 };
 
 
 /**
   TODO
-    - Keep videos in some local store
     - ESC key should abort
     - durationRecorded should increment every second, not every event callback
     - Get Playback to work
@@ -31,17 +27,39 @@ const initialState = {
 
 export default function recordVideosController(params, actions, subscription) {
   const recordingState$ = actions.startRecording$.switchMap((note) => (
-    startRecording(note, actions.stopRecording$)
-  ))
+    startRecording(note, actions.stopRecording$).concat(Observable.of({}))
+  )).publish();
+
+  // TODO: This connect() is necessary because the subscription breaks into
+  // two to pull out the mediaItems. Is there a way this can stay one observable?
+  subscription.add(recordingState$.connect());
 
   const viewState$ = Observable.merge(
     recordingState$,
     actions.dismissError$.mapTo({})
   );
 
-  return viewState$
-      .map((obj) => Object.assign({}, initialState, obj))
-      .startWith(initialState);
+  const videoClips$ = recordingState$
+    .filter(state => 'finalMedia' in state)
+    .map(x => x.finalMedia)
+    .scan(reduceToLocalVideoClipStore, {})
+    .startWith({});
+
+  return Observable.combineLatest(
+      viewState$.startWith(initialState),
+      videoClips$.map(x => ({videoClips: x})),
+      (obj1, obj2) => Object.assign({}, obj1, obj2, initialState)
+  );
+}
+
+function reduceToLocalVideoClipStore(acc, obj) {
+  return Object.assign({}, acc, {[obj.note]: {
+    clipId: obj.clipId,
+    sources: [{
+      src: URL.createObjectURL(obj.videoBlob),
+      type: obj.videoBlob.type
+    }]}}
+  );
 }
 
 
@@ -58,6 +76,8 @@ function startRecording(note, stop$) {
     .catch((err) => {
       // TODO: Is there some cross-platform way we can inspect this error to
       // make sure it's a permissions error and not something else?
+      // Or, can we at least catch this error higher up in the observable chain,
+      // just after the getUserMedia promise?
       return Observable.of(Object.assign(
         {error: messages["user-media-access-error"]()},
         initialState)
@@ -67,6 +87,9 @@ function startRecording(note, stop$) {
 
 // TODO: better name
 function startRecording2(mediaStream, note, stop$) {
+  // The clipId only needs to be unique per each user
+  const clipId = createRandomString(6);
+
   const countdownWithTone$ = Observable.create((observer) => {
     const stopTone = startTone(note);
     return countdown$
@@ -79,21 +102,23 @@ function startRecording2(mediaStream, note, stop$) {
     // TODO: This should take a $stop and $cancel observable
     const result = startCapturing(mediaStream, stop$);
 
-    return result.duration$.map(d => ({durationRecorded: d})).subscribe(observer)
+    return result.duration$
+      .map(d => ({durationRecorded: d}))
+      .concat(result.media.then(([videoBlob, audioBuffer]) => ({
+        finalMedia: {note, clipId, videoBlob}
+      })))
+      .subscribe(observer)
   });
 
   return Observable.concat(
     countdownWithTone$,
-    startCapturing$
+    startCapturing$,
   ).map((state) => (
     Object.assign(
       {mediaStream, noteBeingRecorded: note},
       state
     )
-  ))
-  // TODO: The media and clip id need to be deposited into some local store.
-  // The clipId only needs to be unique per each user
-  //const clipId = createRandomString(6);
+  ));
 }
 
 function startCapturing(mediaStream, stop$) {

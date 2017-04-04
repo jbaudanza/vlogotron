@@ -10,10 +10,15 @@
   box-shadow: 0 3px 10px 0 $color-cloudy-blue-two;
   box-sizing: border-box;
 
+  // TODO: This z-index seems necessary to get the overflow:hidden to crop
+  // the shade element. I'm not sure why this is necessary, because the
+  // shade doesn't have a z-index
+  z-index: 1;
+
   .record-status {
     position: absolute;
     left: 5px;
-    top: 5px;
+    top: 12.5px;
     font-size: 14px;
 
     svg {
