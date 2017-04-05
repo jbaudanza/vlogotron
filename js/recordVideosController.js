@@ -5,6 +5,12 @@ import {times, sample} from 'lodash';
 
 import encodeWavSync from './encodeWavSync';
 import audioContext from './audioContext';
+import {combine as combinePlayCommands} from './playCommands';
+
+import {startLivePlaybackEngine} from './AudioPlaybackEngine';
+
+import {playCommands$ as midiPlayCommands$} from './midi';
+import {playCommands$ as keyboardPlayCommands$} from './keyboard';
 
 const messages = require('messageformat-loader!json-loader!./messages.json');
 
@@ -25,7 +31,7 @@ const initialState = {
     - Should upload to server
  */
 
-export default function recordVideosController(params, actions) {
+export default function recordVideosController(params, actions, subscription) {
 
   const recordingState$ =
     Observable.merge(
@@ -36,10 +42,32 @@ export default function recordVideosController(params, actions) {
       actions.dismissError$.mapTo({})
     );
 
-  const stateWithVideoClipStore$ = recordingState$.
-    scan(reduceToRecordingViewState, {videoClips: {}});
+  const audioBuffers$ = recordingState$
+      .filter(state => !!state.finalMedia)
+      .map(state => state.finalMedia)
+      .scan(reduceToAudioBufferStore, {});
 
-  return stateWithVideoClipStore$.map(obj => Object.assign({}, obj, initialState))
+  const livePlayCommands$ = combinePlayCommands(
+    Observable.merge(
+      actions.playCommands$$,
+      Observable.of(midiPlayCommands$, keyboardPlayCommands$)
+    )
+  );
+
+  const playCommands$ = startLivePlaybackEngine(audioBuffers$, livePlayCommands$, subscription);
+
+  const stateWithVideoClipStore$ = recordingState$
+      .scan(reduceToRecordingViewState, {videoClips: {}});
+
+  return stateWithVideoClipStore$.map(obj => Object.assign(
+    {}, obj, initialState, {playCommands$}
+  ));
+}
+
+function reduceToAudioBufferStore(acc, finalMedia) {
+  return Object.assign(
+    {}, acc, {[finalMedia.note]: finalMedia.audioBuffer}
+  );
 }
 
 function reduceToRecordingViewState(acc, recorderState) {
@@ -86,6 +114,7 @@ function startRecording(note, stop$) {
     })
 }
 
+
 // TODO: better name
 function startRecording2(mediaStream, note, stop$) {
   // The clipId only needs to be unique per each user
@@ -106,7 +135,7 @@ function startRecording2(mediaStream, note, stop$) {
     return result.duration$
       .map(d => ({durationRecorded: d}))
       .concat(result.media.then(([videoBlob, audioBuffer]) => ({
-        finalMedia: {note, clipId, videoBlob}
+        finalMedia: {note, clipId, videoBlob, audioBuffer}
       })))
       .subscribe(observer)
   });

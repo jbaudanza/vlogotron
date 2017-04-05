@@ -10,6 +10,8 @@ import promiseFromTemplate from './promiseFromTemplate';
 import {playCommands$ as midiPlayCommands$} from './midi';
 import {playCommands$ as keyboardPlayCommands$} from './keyboard';
 import {startLivePlaybackEngine, startScriptedPlayback} from './AudioPlaybackEngine';
+import {combine as combinePlayCommands} from './playCommands';
+
 
 import audioContext from './audioContext';
 
@@ -19,16 +21,12 @@ import {songs} from './song';
 export default function playbackController(params, actions, subscription) {
   const videoClips$ = videoClipsForUid(params.uid);
 
-  // Use a reference counting scheme to merge multiple command streams into
-  // one unified stream to control playback.
-  const livePlayCommands$ =
-      Observable.merge(
-        actions.playCommands$$,
-        Observable.of(midiPlayCommands$, keyboardPlayCommands$)
-      )
-      .mergeAll()
-      .scan(reduceMultipleCommandStreams, {refCounts: {}})
-      .map(x => x.command);
+  const livePlayCommands$ = combinePlayCommands(
+    Observable.merge(
+      actions.playCommands$$,
+      Observable.of(midiPlayCommands$, keyboardPlayCommands$)
+    )
+  );
 
   const loadingContext$ = videoClips$
     .map(o => mapValues(o, v => v.audioUrl)) // { [note]: [url], ... }
@@ -105,41 +103,6 @@ export default function playbackController(params, actions, subscription) {
       songTitle: 'Mary had a little lamb',
       authorName: 'Jonathan Baudanza'
     })
-  );
-}
-
-
-function reduceMultipleCommandStreams(last, command) {
-  const nextCommand = {};
-
-  if (command.play && !last.refCounts[command.play]) {
-    nextCommand.play = command.play;
-  }
-
-  if (command.pause && last.refCounts[command.pause] === 1) {
-    nextCommand.pause = command.pause;
-  }
-
-  let refCounts = last.refCounts;
-  if (command.play) {
-    refCounts = adjustRefCount(refCounts, command.play, +1);
-  }
-
-  if (command.pause) {
-    refCounts = adjustRefCount(refCounts, command.pause, -1);
-  }
-
-  return {
-    refCounts: refCounts,
-    command: nextCommand
-  };
-}
-
-function adjustRefCount(countObject, key, change) {
-  return Object.assign(
-      {},
-      countObject,
-      {[key]: (countObject[key] || 0) + change}
   );
 }
 

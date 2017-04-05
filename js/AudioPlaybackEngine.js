@@ -13,8 +13,6 @@ import {songLengthInBeats, beatsToTimestamp, timestampToBeats} from './song';
 // https://webaudio.github.io/web-audio-api/#widl-BaseAudioContext-baseLatency
 const batchTime = audioContext.baseLatency || ((2 * 128) / audioContext.sampleRate);
 
-import {max, flatten} from 'lodash';
-
 
 export function startLivePlaybackEngine(audioBuffers$, playCommands$, subscription) {
   const activeNodes = {};
