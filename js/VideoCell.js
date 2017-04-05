@@ -97,8 +97,8 @@ export default class VideoCell extends React.Component {
         if (!this.props.readonly) {
           clearEl = (
             <Link onClick={this.onClear} className='clear-button'>
-              <svg version="1.1" width="25px" height="25px">
-                <use xlinkHref="#close" fill="white"/>
+              <svg version="1.1" width="11px" height="11px">
+                <use xlinkHref="#svg-trash" fill="white"/>
               </svg>
             </Link>
           );

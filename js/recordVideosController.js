@@ -26,7 +26,6 @@ const initialState = {
   TODO
     - ESC key should abort
     - durationRecorded should increment every second, not every event callback
-    - Get Playback to work
     - Should be able to clear videos
     - Should upload to server
  */
