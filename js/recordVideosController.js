@@ -25,31 +25,32 @@ const initialState = {
     - Should upload to server
  */
 
-export default function recordVideosController(params, actions, subscription) {
-  const recordingState$ = actions.startRecording$.switchMap((note) => (
-    startRecording(note, actions.stopRecording$).concat(Observable.of({}))
-  )).publish();
+export default function recordVideosController(params, actions) {
 
-  // TODO: This connect() is necessary because the subscription breaks into
-  // two to pull out the mediaItems. Is there a way this can stay one observable?
-  subscription.add(recordingState$.connect());
+  const recordingState$ =
+    Observable.merge(
+      actions.startRecording$.switchMap((note) => (
+        startRecording(note, actions.stopRecording$)
+      )),
 
-  const viewState$ = Observable.merge(
-    recordingState$,
-    actions.dismissError$.mapTo({})
-  );
+      actions.dismissError$.mapTo({})
+    );
 
-  const videoClips$ = recordingState$
-    .filter(state => 'finalMedia' in state)
-    .map(x => x.finalMedia)
-    .scan(reduceToLocalVideoClipStore, {})
-    .startWith({});
+  const stateWithVideoClipStore$ = recordingState$.
+    scan(reduceToRecordingViewState, {videoClips: {}});
 
-  return Observable.combineLatest(
-      viewState$.startWith(initialState),
-      videoClips$.map(x => ({videoClips: x})),
-      (obj1, obj2) => Object.assign({}, obj1, obj2, initialState)
-  );
+  return stateWithVideoClipStore$.map(obj => Object.assign({}, obj, initialState))
+}
+
+function reduceToRecordingViewState(acc, recorderState) {
+  if (recorderState.finalMedia) {
+    const videoClips = reduceToLocalVideoClipStore(
+        acc.videoClips, recorderState.finalMedia
+    );
+    return {videoClips};
+  } else {
+    return Object.assign({videoClips: acc.videoClips}, recorderState)
+  }
 }
 
 function reduceToLocalVideoClipStore(acc, obj) {
