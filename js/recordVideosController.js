@@ -31,7 +31,6 @@ const initialState = {
  */
 
 export default function recordVideosController(params, actions, subscription) {
-
   const recordingState$ =
     Observable.merge(
       actions.startRecording$.switchMap((note) => (
@@ -39,11 +38,24 @@ export default function recordVideosController(params, actions, subscription) {
       )),
 
       actions.dismissError$.mapTo({})
-    );
+    ).publish();
 
-  const audioBuffers$ = recordingState$
+  // TODO: Can we refactor these streams so we don't need to make this hot?
+  subscription.add(recordingState$.connect());
+
+  const finalMedia$ = recordingState$
       .filter(state => !!state.finalMedia)
-      .map(state => state.finalMedia)
+      .map(state => state.finalMedia);
+
+  const uploadTasks$ = finalMedia$
+      .map((media) => startUploadTask(params.uid, media.clipId, media.videoBlob))
+      .debug('upload-tasks')
+      .mergeAll()
+      .subscribe(function() {
+        refs.events.push({type: 'uploaded', clipId: media.clipId, note: media.note});
+      });
+
+  const audioBuffers$ = finalMedia$
       .scan(reduceToAudioBufferStore, {});
 
   const livePlayCommands$ = combinePlayCommands(
@@ -61,6 +73,16 @@ export default function recordVideosController(params, actions, subscription) {
   return stateWithVideoClipStore$.map(obj => Object.assign(
     {}, obj, initialState, {playCommands$}
   ));
+}
+
+function startUploadTask(uid, clipId, videoBlob) {
+  const uploadRef =
+    firebase.storage()
+      .refFromURL('gs://vlogotron-uploads/video-clips')
+      .child(uid)
+      .child(clipId);
+
+  return uploadRef.put(videoBlob);
 }
 
 function reduceToAudioBufferStore(acc, finalMedia) {
