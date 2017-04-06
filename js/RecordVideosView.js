@@ -7,6 +7,8 @@ import {bindAll, bindKey} from 'lodash';
 import Page from './Page';
 import VideoGrid from './VideoGrid';
 import RecordVideosHeader from './RecordVideosHeader';
+import LoginOverlay from './LoginOverlay';
+
 
 function noop() {console.log('noop')}
 
@@ -45,12 +47,19 @@ export default class RecordVideosView extends React.Component {
   render() {
     const header = <RecordVideosHeader songTitle={this.props.songTitle} />;
 
+    let overlay;
+    if (!this.props.currentUser) {
+      overlay = (
+        <LoginOverlay onLogin={this.props.onLogin} onClose='/' />
+      );
+    }
+
     return (
       <Page
         onLogin={this.onClickLogin}
-        onLogout={() => true}
+        onLogout={this.props.onLogout}
+        isLoggedIn={!!this.props.currentUser}
         onDismissError={this.onDismissError}
-        isLoggedIn={false}
         sidebarVisible={false}
         header={header}
         className='record-videos-page'
@@ -71,6 +80,7 @@ export default class RecordVideosView extends React.Component {
           noteBeingRecorded={this.props.noteBeingRecorded}
           ref={this.bindVideoGrid}
           />
+          {overlay}
       </Page>
     );
   }

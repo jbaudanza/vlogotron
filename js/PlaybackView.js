@@ -52,8 +52,8 @@ export default class PlaybackView extends React.Component {
     return (
       <Page
         onLogin={this.onClickLogin}
-        onLogout={() => true}
-        isLoggedIn={false}
+        onLogout={this.props.onLogout}
+        isLoggedIn={!!this.props.currentUser}
         header={header}
         sidebarVisible={true}
         >

@@ -24,6 +24,12 @@ window.main = function(node) {
   ReactDOM.render(<App />, node);
 };
 
+export const currentUser$ = Observable.create(function(observer) {
+  const auth = firebase.auth();
+  observer.next(auth.currentUser);
+  firebase.auth().onAuthStateChanged((user) => observer.next(user));
+});
+
 
 class App extends React.Component {
   constructor() {
@@ -73,7 +79,7 @@ class App extends React.Component {
       this.pageSubscription = new Subscription();
 
       const viewState$ = this.state.route.controller(
-        this.state.route.params, view.actions, this.pageSubscription
+        this.state.route.params, view.actions, currentUser$, this.pageSubscription
       );
 
       this.pageSubscription.add(
@@ -103,6 +109,16 @@ class App extends React.Component {
   render() {
     const View = this.state.route.view;
 
+    let overlay;
+    if (this.state.route.overlay) {
+      const Overlay = this.state.route.overlay;
+      overlay = (
+        <Overlay
+          onLogin={this.onLogin}
+          onClose={this.state.route.location.pathname} />
+      );
+    }
+
     return (
       <div onClick={this.onClick}>
         <SvgAssets />
@@ -112,7 +128,7 @@ class App extends React.Component {
             onNavigate={this.onNavigate}
             onLogin={this.onLogin}
             onLogout={this.onLogout} />
-          {this.state.route.overlay}
+        {overlay}
       </div>
     );
   }

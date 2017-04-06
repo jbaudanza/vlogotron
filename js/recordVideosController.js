@@ -30,7 +30,7 @@ const initialState = {
     - Should upload to server
  */
 
-export default function recordVideosController(params, actions, subscription) {
+export default function recordVideosController(params, actions, currentUser$, subscription) {
   const recordingState$ =
     Observable.merge(
       actions.startRecording$.switchMap((note) => (
@@ -68,11 +68,15 @@ export default function recordVideosController(params, actions, subscription) {
   const playCommands$ = startLivePlaybackEngine(audioBuffers$, livePlayCommands$, subscription);
 
   const stateWithVideoClipStore$ = recordingState$
-      .scan(reduceToRecordingViewState, {videoClips: {}});
+      .scan(reduceToRecordingViewState, {videoClips: {}})
+      .startWith({videoClips: {}});
 
-  return stateWithVideoClipStore$.map(obj => Object.assign(
-    {}, obj, initialState, {playCommands$}
-  ));
+  return Observable.combineLatest(
+    stateWithVideoClipStore$,
+    currentUser$,
+    (obj, currentUser) => (
+      Object.assign({}, obj, initialState, {playCommands$, currentUser})
+    ))
 }
 
 function startUploadTask(uid, clipId, videoBlob) {

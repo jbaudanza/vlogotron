@@ -19,18 +19,14 @@ export function navigate(href) {
   urlHistory.push(href);
 }
 
-function mapToRoute(location, user) {
+function mapToRoute(location) {
   let match;
 
   // TODO: Overlay should perhaps be a different observable, since it can
   // change independently of the main route.
   let overlay;
   if (location.hash === '#login') {
-    overlay = (
-      <LoginOverlay
-          onLogin={() => false}
-          onClose={location.pathname} />
-    );
+    overlay = LoginOverlay;
   }
 
   if (location.pathname === '/') {
@@ -41,38 +37,35 @@ function mapToRoute(location, user) {
       location: location,
       params: {uid: DEFAULT_UID},
       initialState: {
-        loading: true, videoClips: {}, playCommands$: Observable.never(), isPlaying: false, songLength: 0, playbackPositionInSeconds: 0, songTitle: ''
+        loading: true, videoClips: {}, playCommands$: Observable.never(), isPlaying: false, songLength: 0, playbackPositionInSeconds: 0, songTitle: '', currentUser: firebase.auth().currentUser
       }
     };
   } else if (location.pathname === '/record-videos') {
     return {
       controller: recordVideosController,
+      location: location,
       params: {uid: DEFAULT_UID},
       view: RecordVideosView,
-      initialState: {loading: false, videoClips: {}, playCommands$: Observable.never(), isPlaying: false, playbackPositionInSeconds: 0, songTitle: 'Untitled Song'}
+      initialState: {loading: false, videoClips: {}, playCommands$: Observable.never(), isPlaying: false, playbackPositionInSeconds: 0, songTitle: 'Untitled Song', currentUser: firebase.auth().currentUser}
     }
   } else if (match = location.pathname.match(/\/playback\/([\w-]+)/)) {
     return {
-      params: {songId: match[1]}
+      params: {songId: match[1]},
+      location: location
     }
   } else {
     return {
-      view: () => <div>Not found</div>
+      view: () => <div>Not found</div>,
+      location: location
     };
   }
 }
 
 const urlHistory = createHistory();
 
-export const currentUser$ = Observable.create(function(observer) {
-  firebase.auth().onAuthStateChanged((user) => observer.next(user));
-}).startWith(null);
-
 const currentLocation$ = Observable.create((observer) => {
   observer.next(urlHistory.location);
   return urlHistory.listen(observer.next.bind(observer));
 });
 
-export const currentRoute$ = Observable.combineLatest(
-  currentLocation$, currentUser$, mapToRoute
-);
+export const currentRoute$ = currentLocation$.map(mapToRoute);

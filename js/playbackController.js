@@ -18,7 +18,7 @@ import audioContext from './audioContext';
 import {getArrayBuffer} from './http';
 import {songs} from './song';
 
-export default function playbackController(params, actions, subscription) {
+export default function playbackController(params, actions, currentUser$, subscription) {
   const videoClips$ = videoClipsForUid(params.uid);
 
   const livePlayCommands$ = combinePlayCommands(
@@ -92,12 +92,13 @@ export default function playbackController(params, actions, subscription) {
   subscription.add(scriptedPlayCommands$$.connect());
 
   return Observable.combineLatest(
-    videoClips$, loading$, isPlaying$, playbackPositionInSeconds$,
-    (videoClips, loading, isPlaying, playbackPositionInSeconds) => ({
+    videoClips$, loading$, isPlaying$, playbackPositionInSeconds$, currentUser$,
+    (videoClips, loading, isPlaying, playbackPositionInSeconds, currentUser) => ({
       videoClips,
       isPlaying,
       playbackPositionInSeconds,
       loading,
+      currentUser,
       playCommands$,
       songLength,
       songTitle: 'Mary had a little lamb',
