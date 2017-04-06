@@ -14,6 +14,11 @@ import {playCommands$ as keyboardPlayCommands$} from './keyboard';
 
 const messages = require('messageformat-loader!json-loader!./messages.json');
 
+// Note: keypress doesn't work for escape key. Need to use keydown.
+const escapeKey$ = Observable.fromEvent(document, 'keydown')
+    .filter(e => e.keyCode === 27);
+
+
 const initialState = {
   loading: false,
   playCommands$: Observable.never(),
@@ -34,7 +39,7 @@ export default function recordVideosController(params, actions, currentUser$, su
   const recordingState$ =
     Observable.merge(
       actions.startRecording$.switchMap((note) => (
-        startRecording(note, actions.stopRecording$)
+        startRecording(note, actions.stopRecording$, escapeKey$)
       )),
 
       actions.dismissError$.mapTo({})
@@ -48,12 +53,20 @@ export default function recordVideosController(params, actions, currentUser$, su
       .map(state => state.finalMedia);
 
   const uploadTasks$ = finalMedia$
-      .map((media) => startUploadTask(params.uid, media.clipId, media.videoBlob))
-      .debug('upload-tasks')
-      .mergeAll()
-      .subscribe(function() {
-        refs.events.push({type: 'uploaded', clipId: media.clipId, note: media.note});
-      });
+      .withLatestFrom(currentUser$,
+        (media, currentUser) => (
+          startUploadTask(currentUser.uid, media.clipId, media.videoBlob).then(() => (
+            [currentUser.uid, {type: 'uploaded', clipId: media.clipId, note: media.note}]
+          ))
+        )
+      )
+      .mergeAll();
+
+  subscription.add(
+    uploadTasks$.subscribe(function([uid, event]) {
+      firebase.database().ref('video-clip-events').child(uid).push(event);
+    })
+  )
 
   const audioBuffers$ = finalMedia$
       .scan(reduceToAudioBufferStore, {});
@@ -117,7 +130,7 @@ function reduceToLocalVideoClipStore(acc, obj) {
 }
 
 
-function startRecording(note, stop$) {
+function startRecording(note, stop$, abort$) {
   const promise = navigator.mediaDevices.getUserMedia({
     audio: true, video: true
   });
@@ -125,9 +138,11 @@ function startRecording(note, stop$) {
   return Observable
     .fromPromise(promise)
     .switchMap((mediaStream) => {
-      return startRecording2(mediaStream, note, stop$)
+      return startRecording2(mediaStream, note, stop$, abort$)
     })
     .catch((err) => {
+      console.error(err);
+
       // TODO: Is there some cross-platform way we can inspect this error to
       // make sure it's a permissions error and not something else?
       // Or, can we at least catch this error higher up in the observable chain,
@@ -141,17 +156,14 @@ function startRecording(note, stop$) {
 
 
 // TODO: better name
-function startRecording2(mediaStream, note, stop$) {
+function startRecording2(mediaStream, note, stop$, abort$) {
   // The clipId only needs to be unique per each user
   const clipId = createRandomString(6);
 
-  const countdownWithTone$ = Observable.create((observer) => {
-    const stopTone = startTone(note);
-    return countdown$
-        .do({complete: stopTone})
+  const countdownWithTone$ = countdown$
         .map(countdown => ({countdownUntilRecord: countdown}))
-        .subscribe(observer);
-  });
+        // model the tone side-effect as an observable
+        .merge(Observable.create(() => startTone(note)));
 
   const startCapturing$ = Observable.create((observer) => {
     // TODO: This should take a $stop and $cancel observable
@@ -168,7 +180,9 @@ function startRecording2(mediaStream, note, stop$) {
   return Observable.concat(
     countdownWithTone$,
     startCapturing$,
-  ).map((state) => (
+  )
+  .takeUntil(abort$)
+  .map((state) => (
     Object.assign(
       {mediaStream, noteBeingRecorded: note},
       state
