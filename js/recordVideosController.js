@@ -29,7 +29,6 @@ const initialState = {
 
 /**
   TODO
-    - ESC key should abort
     - durationRecorded should increment every second, not every event callback
     - Should be able to clear videos
     - Should upload to server
@@ -156,19 +155,32 @@ function startRecording(note, stop$, abort$) {
 
 
 // TODO: better name
-function startRecording2(mediaStream, note, stop$, abort$) {
+function startRecording2(mediaStream, note, finish$, abort$) {
   // The clipId only needs to be unique per each user
   const clipId = createRandomString(6);
 
-  const countdownWithTone$ = countdown$
+  // model the tone side-effect as an observable
+  const countdownWithTone$ = Observable.create((observer) => {
+    return countdown$
         .map(countdown => ({countdownUntilRecord: countdown}))
-        // model the tone side-effect as an observable
-        .merge(Observable.create(() => startTone(note)));
+        .subscribe(observer)
+        .add(startTone(note));
+  });
+
+  const finishOrAbort$ = Observable.merge(finish$, abort$);
+
+  function cleanup() {
+    mediaStream.getTracks().forEach((t) => t.stop());
+  }
+
+  finishOrAbort$.take(1).subscribe({complete: cleanup});
 
   const startCapturing$ = Observable.create((observer) => {
-    // TODO: This should take a $stop and $cancel observable
-    const result = startCapturing(mediaStream, stop$);
+    const result = startCapturing(mediaStream, finishOrAbort$);
 
+    // TODO: I think it's odd that we flash a finalMedia state and then remove
+    // it. There should be a more graceful way to emit the finalMedia. Probably
+    // through another promise or Observable
     return result.duration$
       .map(d => ({durationRecorded: d}))
       .concat(result.media.then(([videoBlob, audioBuffer]) => ({
@@ -187,8 +199,10 @@ function startRecording2(mediaStream, note, stop$, abort$) {
       {mediaStream, noteBeingRecorded: note},
       state
     )
-  ));
+  ))
+  .concat(Observable.of({}));
 }
+
 
 function startCapturing(mediaStream, stop$) {
   const videoRecorder = new MediaRecorder(mediaStream);
@@ -196,18 +210,17 @@ function startCapturing(mediaStream, stop$) {
 
   stop$.take(1).subscribe(() => {
     videoRecorder.stop();
-    mediaStream.getTracks().forEach((t) => t.stop());
   });
 
   const result = takeAudioBufferFromMediaStream(
     mediaStream, stop$
   );
 
-  const streams = mediaRecorderStreams(videoRecorder);
+  const videoBlob = videoBlobFromMediaRecorder(videoRecorder);
 
   return {
     duration$: result.duration$,
-    media: Promise.all([streams.blob, result.audioBuffer])
+    media: Promise.all([videoBlob, result.audioBuffer])
   };
 }
 
@@ -288,21 +301,21 @@ function combineBlobs(list) {
   }
 }
 
-function mediaRecorderStreams(mediaRecorder) {
+function videoBlobFromMediaRecorder(mediaRecorder) {
   const stopEvent$ = Observable.fromEvent(mediaRecorder, 'stop');
 
   const dataEvents$ = Observable.fromEvent(mediaRecorder, 'dataavailable')
       .takeUntil(stopEvent$);
 
-  const progress$ = dataEvents$.map(e => e.timeStamp);
+  // We're currently using the audiostream to track progress, but we could
+  // use this too.
+  //const progress$ = dataEvents$.map(e => e.timeStamp);
 
-  const blob = dataEvents$
+  return dataEvents$
       .map(e => e.data)
       .toArray()
       .map(combineBlobs)
-      .toPromise()
-
-  return {progress$, blob};
+      .toPromise();
 }
 
 function buffersFromAudioProcessEvent(event) {
