@@ -1,7 +1,7 @@
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 
-import {times, sample} from 'lodash';
+import {times, sample, omit} from 'lodash';
 
 import audioContext from './audioContext';
 import {combine as combinePlayCommands} from './playCommands';
@@ -33,7 +33,6 @@ const initialState = {
   TODO
     - handle case where the user navigates while recording.
     - durationRecorded should increment every second, not every event callback
-    - Should be able to clear videos
  */
 
 export default function recordVideosController(params, actions, currentUser$, subscription) {
@@ -66,6 +65,7 @@ export default function recordVideosController(params, actions, currentUser$, su
       (note, currentUser) => ([currentUser.uid, {type: 'cleared', note: note}])
   );
 
+  // Store events in firebase
   subscription.add(
     Observable.merge(clearedEvents$, uploadedEvents$)
       .subscribe(function([uid, event]) {
@@ -73,7 +73,10 @@ export default function recordVideosController(params, actions, currentUser$, su
       })
   );
 
-  const localAudioBuffers$ = finalMedia$
+  const clearedMedia$ = actions.clearVideoClip$.map(note => ({note, cleared: true}));
+
+  const localAudioBuffers$ = Observable
+      .merge(finalMedia$, clearedMedia$)
       .scan(reduceToAudioBufferStore, {})
       .startWith({});
 
@@ -84,7 +87,8 @@ export default function recordVideosController(params, actions, currentUser$, su
     )
   );
 
-  const localVideoStore$ = finalMedia$
+  const localVideoStore$ = Observable
+      .merge(finalMedia$, clearedMedia$)
       .scan(reduceToLocalVideoClipStore, {})
       .startWith({});
 
@@ -139,20 +143,27 @@ function startUploadTask(uid, clipId, videoBlob) {
 }
 
 function reduceToAudioBufferStore(acc, finalMedia) {
-  return Object.assign(
-    {}, acc, {[finalMedia.note]: finalMedia.audioBuffer}
-  );
+  if (finalMedia.cleared) {
+    return omit(acc, finalMedia.note);
+  } else {
+    return Object.assign(
+      {}, acc, {[finalMedia.note]: finalMedia.audioBuffer}
+    );
+  }
 }
 
-
 function reduceToLocalVideoClipStore(acc, obj) {
-  return Object.assign({}, acc, {[obj.note]: {
-    clipId: obj.clipId,
-    sources: [{
-      src: URL.createObjectURL(obj.videoBlob),
-      type: obj.videoBlob.type
-    }]}}
-  );
+  if (obj.cleared) {
+    return omit(acc, obj.note);
+  } else {
+    return Object.assign({}, acc, {[obj.note]: {
+      clipId: obj.clipId,
+      sources: [{
+        src: URL.createObjectURL(obj.videoBlob),
+        type: obj.videoBlob.type
+      }]}}
+    )
+  }
 }
 
 
