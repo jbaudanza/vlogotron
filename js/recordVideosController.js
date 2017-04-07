@@ -12,6 +12,8 @@ import {startLivePlaybackEngine} from './AudioPlaybackEngine';
 import {playCommands$ as midiPlayCommands$} from './midi';
 import {playCommands$ as keyboardPlayCommands$} from './keyboard';
 
+import {videoClipsForUid, loadAudioBuffersFromVideoClips} from './mediaLoading';
+
 const messages = require('messageformat-loader!json-loader!./messages.json');
 
 // Note: keypress doesn't work for escape key. Need to use keydown.
@@ -67,8 +69,9 @@ export default function recordVideosController(params, actions, currentUser$, su
     })
   )
 
-  const audioBuffers$ = finalMedia$
-      .scan(reduceToAudioBufferStore, {});
+  const localAudioBuffers$ = finalMedia$
+      .scan(reduceToAudioBufferStore, {})
+      .startWith({});
 
   const livePlayCommands$ = combinePlayCommands(
     Observable.merge(
@@ -77,23 +80,41 @@ export default function recordVideosController(params, actions, currentUser$, su
     )
   );
 
-  const playCommands$ = startLivePlaybackEngine(audioBuffers$, livePlayCommands$, subscription);
-
   const localVideoStore$ = finalMedia$
       .scan(reduceToLocalVideoClipStore, {})
       .startWith({});
 
+  const remoteVideoStore$ = currentUser$.switchMap(user => user ? videoClipsForUid(user.uid) : Observable.of({}))
+
+  const videoClips$ = Observable.combineLatest(
+    localVideoStore$,
+    remoteVideoStore$,
+    (local, remote) => Object.assign({}, remote, local)
+  );
+
+  const audioLoadingContext = loadAudioBuffersFromVideoClips(remoteVideoStore$, subscription);
+  const loading$ = audioLoadingContext.loading$;
+
+  // Looks like { [note]: [audioBuffer], ... }
+  const audioBuffers$ = Observable.combineLatest(
+    localAudioBuffers$,
+    audioLoadingContext.audioBuffers$,
+    (local, remote) => Object.assign({}, remote, local)
+  );
+
+  const playCommands$ = startLivePlaybackEngine(audioBuffers$, livePlayCommands$, subscription);
+
   return Observable.combineLatest(
-      localVideoStore$,
+      videoClips$,
       recordingState$,
       currentUser$,
-      (videoClips, recordingState, currentUser) => (
+      loading$,
+      (videoClips, recordingState, currentUser, loading) => (
         Object.assign(
           {},
-          {videoClips},
           recordingState,
           initialState,
-          {playCommands$, currentUser}
+          {playCommands$, currentUser, videoClips, loading}
         )
       )
   )
