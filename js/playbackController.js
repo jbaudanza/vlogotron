@@ -13,7 +13,9 @@ import {videoClipsForUid, loadAudioBuffersFromVideoClips} from './mediaLoading';
 import {songs} from './song';
 
 export default function playbackController(params, actions, currentUser$, subscription) {
-  const videoClips$ = videoClipsForUid(params.uid);
+  const videoClips$ = videoClipsForUid(params.uid).publish();
+
+  subscription.add(videoClips$.connect());
 
   const livePlayCommands$ = combinePlayCommands(
     Observable.merge(

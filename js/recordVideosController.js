@@ -34,7 +34,6 @@ const initialState = {
     - handle case where the user navigates while recording.
     - durationRecorded should increment every second, not every event callback
     - Should be able to clear videos
-    - Should upload to server
  */
 
 export default function recordVideosController(params, actions, currentUser$, subscription) {
@@ -53,7 +52,7 @@ export default function recordVideosController(params, actions, currentUser$, su
   const finalMedia$ = recordingEngine$
     .switchMap(o => o.media$)
 
-  const uploadTasks$ = finalMedia$
+  const uploadedEvents$ = finalMedia$
       .withLatestFrom(currentUser$,
         (media, currentUser) => (
           startUploadTask(currentUser.uid, media.clipId, media.videoBlob).then(() => (
@@ -63,11 +62,16 @@ export default function recordVideosController(params, actions, currentUser$, su
       )
       .mergeAll();
 
+  const clearedEvents$ = actions.clearVideoClip$.withLatestFrom(currentUser$,
+      (note, currentUser) => ([currentUser.uid, {type: 'cleared', note: note}])
+  );
+
   subscription.add(
-    uploadTasks$.subscribe(function([uid, event]) {
-      firebase.database().ref('video-clip-events').child(uid).push(event);
-    })
-  )
+    Observable.merge(clearedEvents$, uploadedEvents$)
+      .subscribe(function([uid, event]) {
+        firebase.database().ref('video-clip-events').child(uid).push(event);
+      })
+  );
 
   const localAudioBuffers$ = finalMedia$
       .scan(reduceToAudioBufferStore, {})
@@ -84,7 +88,11 @@ export default function recordVideosController(params, actions, currentUser$, su
       .scan(reduceToLocalVideoClipStore, {})
       .startWith({});
 
-  const remoteVideoStore$ = currentUser$.switchMap(user => user ? videoClipsForUid(user.uid) : Observable.of({}))
+  const remoteVideoStore$ = currentUser$
+      .switchMap(user => user ? videoClipsForUid(user.uid) : Observable.of({}))
+      .publish();
+
+  subscription.add(remoteVideoStore$.connect());
 
   const videoClips$ = Observable.combineLatest(
     localVideoStore$,

@@ -2,7 +2,7 @@ import React from 'react';
 
 import {Subject} from 'rxjs/Subject';
 
-import {bindAll, bindKey} from 'lodash';
+import {bindAll, bindKey, forEach} from 'lodash';
 
 import Page from './Page';
 import VideoGrid from './VideoGrid';
@@ -20,18 +20,18 @@ export default class RecordVideosView extends React.Component {
     this.actions = {
       startRecording$: new Subject(),
       stopRecording$: new Subject(),
-      dismissError$: new Subject()
+      dismissError$: new Subject(),
+      clearVideoClip$: new Subject()
     };
 
     this.onStartRecording = bindKey(this.actions.startRecording$, 'next');
     this.onStopRecording = bindKey(this.actions.stopRecording$, 'next');
     this.onDismissError = bindKey(this.actions.dismissError$, 'next');
+    this.onClearVideoClip = bindKey(this.actions.clearVideoClip$, 'next');
   }
 
   componentWillUnmount() {
-    this.actions.startRecording$.complete();
-    this.actions.stopRecording$.complete();
-    this.actions.dismissError$.complete();
+    forEach(this.actions, (subject) => subject.complete());
   }
 
   bindVideoGrid(component) {
@@ -73,7 +73,7 @@ export default class RecordVideosView extends React.Component {
           readonly={false}
           onStartRecording={this.onStartRecording}
           onStopRecording={this.onStopRecording}
-          onClear={noop}
+          onClear={this.onClearVideoClip}
           mediaStream={this.props.mediaStream}
           countdownUntilRecord={this.props.countdownUntilRecord}
           durationRecorded={this.props.durationRecorded}
