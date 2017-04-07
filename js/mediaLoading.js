@@ -5,7 +5,7 @@ import audioContext from './audioContext';
 import {getArrayBuffer} from './http';
 
 import {
-  pickBy, includes, clone, forEach, values, pick, sum, mapValues, identity
+  pickBy, includes, clone, omit, forEach, values, pick, sum, mapValues, identity
 } from 'lodash';
 
 import promiseFromTemplate from './promiseFromTemplate';
@@ -98,33 +98,45 @@ function mapClipIdToPromise(ref, clipId) {
 }
 
 function mapEventSnapshotToActiveClipIds(snapshot) {
-  const uploadedNotes = {};
-  const transcodedClips = [];
+  let acc = {
+    uploadedNotes: {},
+    transcodedClips: []
+  };
 
+  // simulate a reduce() call because firebase doesn't have one.
   snapshot.forEach(function(child) {
     const event = child.val();
-    let note = event.note;
-
-    // All new notes should have an octave. Some legacy ones don't
-    if (event.note && !note.match(/\d$/)) {
-      note += '4';
-    }
-
-    if (event.type === 'uploaded') {
-      uploadedNotes[note] = event.clipId;
-    }
-
-    if (event.type === 'cleared') {
-      delete uploadedNotes[note];
-    }
-
-    if (event.type === 'transcoded') {
-      transcodedClips.push(event.clipId);
-    }
+    acc = reduceEventsToVideoClipState(acc, event)
   });
 
-  return pickBy(uploadedNotes, (v) => includes(transcodedClips, v));
+  return pickBy(acc.uploadedNotes, (v) => includes(acc.transcodedClips, v));
 }
+
+function reduceEventsToVideoClipState(acc, event) {
+  let note = event.note;
+
+  // All new notes should have an octave. Some legacy ones don't
+  if (event.note && !note.match(/\d$/)) {
+    note += '4';
+  }
+
+  if (event.type === 'uploaded') {
+    const uploadedNotes = Object.assign({}, acc.uploadedNotes, {[note]: event.clipId});
+    return Object.assign({}, acc, {uploadedNotes});
+  }
+
+  if (event.type === 'cleared') {
+    const uploadedNotes = omit(acc.uploadedNotes, note);
+    return Object.assign({}, acc, {uploadedNotes});
+  }
+
+  if (event.type === 'transcoded') {
+    return Object.assign({}, acc, {transcodedClips: acc.transcodedClips.concat(event.clipId)});
+  }
+
+  return acc;
+}
+
 
 function decodeAudioData(arraybuffer) {
   // Safari doesn't support the Promise syntax for decodeAudioData, so we need
