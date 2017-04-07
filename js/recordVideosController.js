@@ -3,9 +3,9 @@ import {Subject} from 'rxjs/Subject';
 
 import {times, sample} from 'lodash';
 
-import encodeWavSync from './encodeWavSync';
 import audioContext from './audioContext';
 import {combine as combinePlayCommands} from './playCommands';
+import {start as startCapturing} from './recording';
 
 import {startLivePlaybackEngine} from './AudioPlaybackEngine';
 
@@ -29,27 +29,27 @@ const initialState = {
 
 /**
   TODO
+    - handle case where the user navigates while recording.
     - durationRecorded should increment every second, not every event callback
     - Should be able to clear videos
     - Should upload to server
  */
 
 export default function recordVideosController(params, actions, currentUser$, subscription) {
+  const recordingEngine$ = actions.startRecording$.switchMap((note) => (
+    startRecording(note, actions.stopRecording$, escapeKey$)
+  )).publish();
+
+  subscription.add(recordingEngine$.connect());
+
   const recordingState$ =
     Observable.merge(
-      actions.startRecording$.switchMap((note) => (
-        startRecording(note, actions.stopRecording$, escapeKey$)
-      )),
+      recordingEngine$.switchMap(o => o.viewState$),
+      actions.dismissError$.mapTo({}),
+    ).startWith({});
 
-      actions.dismissError$.mapTo({})
-    ).publish();
-
-  // TODO: Can we refactor these streams so we don't need to make this hot?
-  subscription.add(recordingState$.connect());
-
-  const finalMedia$ = recordingState$
-      .filter(state => !!state.finalMedia)
-      .map(state => state.finalMedia);
+  const finalMedia$ = recordingEngine$
+    .switchMap(o => o.media$)
 
   const uploadTasks$ = finalMedia$
       .withLatestFrom(currentUser$,
@@ -79,16 +79,24 @@ export default function recordVideosController(params, actions, currentUser$, su
 
   const playCommands$ = startLivePlaybackEngine(audioBuffers$, livePlayCommands$, subscription);
 
-  const stateWithVideoClipStore$ = recordingState$
-      .scan(reduceToRecordingViewState, {videoClips: {}})
-      .startWith({videoClips: {}});
+  const localVideoStore$ = finalMedia$
+      .scan(reduceToLocalVideoClipStore, {})
+      .startWith({});
 
   return Observable.combineLatest(
-    stateWithVideoClipStore$,
-    currentUser$,
-    (obj, currentUser) => (
-      Object.assign({}, obj, initialState, {playCommands$, currentUser})
-    ))
+      localVideoStore$,
+      recordingState$,
+      currentUser$,
+      (videoClips, recordingState, currentUser) => (
+        Object.assign(
+          {},
+          {videoClips},
+          recordingState,
+          initialState,
+          {playCommands$, currentUser}
+        )
+      )
+  )
 }
 
 function startUploadTask(uid, clipId, videoBlob) {
@@ -107,16 +115,6 @@ function reduceToAudioBufferStore(acc, finalMedia) {
   );
 }
 
-function reduceToRecordingViewState(acc, recorderState) {
-  if (recorderState.finalMedia) {
-    const videoClips = reduceToLocalVideoClipStore(
-        acc.videoClips, recorderState.finalMedia
-    );
-    return {videoClips};
-  } else {
-    return Object.assign({videoClips: acc.videoClips}, recorderState)
-  }
-}
 
 function reduceToLocalVideoClipStore(acc, obj) {
   return Object.assign({}, acc, {[obj.note]: {
@@ -129,16 +127,16 @@ function reduceToLocalVideoClipStore(acc, obj) {
 }
 
 
-function startRecording(note, stop$, abort$) {
+function startRecording(note, finish$, abort$) {
   const promise = navigator.mediaDevices.getUserMedia({
     audio: true, video: true
   });
 
   return Observable
     .fromPromise(promise)
-    .switchMap((mediaStream) => {
-      return startRecording2(mediaStream, note, stop$, abort$)
-    })
+    .map((mediaStream) => (
+      runRecordingProcess(mediaStream, note, finish$, abort$)
+    ))
     .catch((err) => {
       console.error(err);
 
@@ -146,82 +144,73 @@ function startRecording(note, stop$, abort$) {
       // make sure it's a permissions error and not something else?
       // Or, can we at least catch this error higher up in the observable chain,
       // just after the getUserMedia promise?
-      return Observable.of(Object.assign(
-        {error: messages["user-media-access-error"]()},
-        initialState)
-      )
+      return {viewState$: Observable.of({error: messages["user-media-access-error"]()})};
     })
 }
 
 
-// TODO: better name
-function startRecording2(mediaStream, note, finish$, abort$) {
-  // The clipId only needs to be unique per each user
-  const clipId = createRandomString(6);
+// Manages the process of starting a countdown, playing a tone, and capturing
+// audio and video data
+function runRecordingProcess(mediaStream, note, finish$, abort$) {
+  const finishOrAbort$ = Observable.merge(finish$, abort$).take(1);
 
-  // model the tone side-effect as an observable
-  const countdownWithTone$ = Observable.create((observer) => {
-    return countdown$
-        .map(countdown => ({countdownUntilRecord: countdown}))
-        .subscribe(observer)
-        .add(startTone(note));
-  });
-
-  const finishOrAbort$ = Observable.merge(finish$, abort$);
-
+  // TODO: I really wish this was closer to where the MediaStream is opened
   function cleanup() {
     mediaStream.getTracks().forEach((t) => t.stop());
   }
 
-  finishOrAbort$.take(1).subscribe({complete: cleanup});
+  finishOrAbort$.subscribe({complete: cleanup});
 
-  const startCapturing$ = Observable.create((observer) => {
-    const result = startCapturing(mediaStream, finishOrAbort$);
-
-    // TODO: I think it's odd that we flash a finalMedia state and then remove
-    // it. There should be a more graceful way to emit the finalMedia. Probably
-    // through another promise or Observable
-    return result.duration$
-      .map(d => ({durationRecorded: d}))
-      .concat(result.media.then(([videoBlob, audioBuffer]) => ({
-        finalMedia: {note, clipId, videoBlob, audioBuffer}
-      })))
-      .subscribe(observer)
+  // model the tone side-effect as an observable
+  const countdownWithTone$ = Observable.create((observer) => {
+    return countdown$
+        .map(countdown => ({viewState: {countdownUntilRecord: countdown}}))
+        .subscribe(observer)
+        .add(startTone(note));
   });
 
-  return Observable.concat(
+  const startCapturing$ = Observable.create((observer) => {
+    const result = startCapturing(mediaStream, finish$, abort$);
+
+    const media$ = Observable.combineLatest(
+      result.audioBuffer$,
+      result.videoBlob$,
+      (audioBuffer, videoBlob) => (
+        // The clipId only needs to be unique per each user
+        {note, videoBlob, audioBuffer, clipId: createRandomString(6) }
+      )
+    );
+
+    return Observable.merge(
+      result.duration$.map(d => ({viewState: {durationRecorded: d}})),
+      media$.map(media => ({media}))
+    ).subscribe(observer);
+  });
+
+  const processes$ = Observable.concat(
     countdownWithTone$,
     startCapturing$,
   )
   .takeUntil(abort$)
-  .map((state) => (
-    Object.assign(
-      {mediaStream, noteBeingRecorded: note},
-      state
-    )
-  ))
-  .concat(Observable.of({}));
-}
+  .publish();
 
+  const viewState$ = processes$
+    .filter(obj => 'viewState' in obj)
+    .map((obj) => (
+      Object.assign(
+        {mediaStream, noteBeingRecorded: note},
+        obj.viewState
+      )
+    ))
+    .concat(Observable.of({}));
 
-function startCapturing(mediaStream, stop$) {
-  const videoRecorder = new MediaRecorder(mediaStream);
-  videoRecorder.start();
+  const media$ = processes$.filter(o => o.media).map(o => o.media);
 
-  stop$.take(1).subscribe(() => {
-    videoRecorder.stop();
-  });
+  // The observable should cleanup itself when stop$ or abort$ fire
+  // TODO: We might need to handle the case where the user navigates away while recording.
+  processes$.connect();
 
-  const result = takeAudioBufferFromMediaStream(
-    mediaStream, stop$
-  );
-
-  const videoBlob = videoBlobFromMediaRecorder(videoRecorder);
-
-  return {
-    duration$: result.duration$,
-    media: Promise.all([videoBlob, result.audioBuffer])
-  };
+  return {viewState$, media$};
 }
 
 
@@ -292,83 +281,6 @@ const countdown$ = Observable.interval(1000)
   .filter(x => x > 0) // Leave out the last 0 value
   .startWith(countdownSeconds);
 
-
-function combineBlobs(list) {
-  if (list.length > 0) {
-    return new Blob(list, {type: list[0].type})
-  } else {
-    return new Blob(); // empty
-  }
-}
-
-function videoBlobFromMediaRecorder(mediaRecorder) {
-  const stopEvent$ = Observable.fromEvent(mediaRecorder, 'stop');
-
-  const dataEvents$ = Observable.fromEvent(mediaRecorder, 'dataavailable')
-      .takeUntil(stopEvent$);
-
-  // We're currently using the audiostream to track progress, but we could
-  // use this too.
-  //const progress$ = dataEvents$.map(e => e.timeStamp);
-
-  return dataEvents$
-      .map(e => e.data)
-      .toArray()
-      .map(combineBlobs)
-      .toPromise();
-}
-
-function buffersFromAudioProcessEvent(event) {
-  const list = [];
-  for (let i=0; i<event.inputBuffer.numberOfChannels; i++) {
-    list.push(
-      new Float32Array(event.inputBuffer.getChannelData(i))
-    );
-  }
-  return list;
-}
-
-// TODO: duplicated in VideoClipStore
-function decodeAudioData(arraybuffer) {
-  // Safari doesn't support the Promise syntax for decodeAudioData, so we need
-  // to make the promise ourselves.
-  return new Promise(audioContext.decodeAudioData.bind(audioContext, arraybuffer));
-}
-
-function takeAudioBufferFromMediaStream(mediaStream, takeUntil$) {
-  const blockSize = 16384;
-  const audioSource = audioContext.createMediaStreamSource(mediaStream);
-
-  const recorderNode = audioContext.createScriptProcessor(
-    blockSize,                // buffer size
-    audioSource.channelCount, // input channels
-    audioSource.channelCount  // output channels
-  );
-
-  audioSource.connect(recorderNode);
-
-  // NOTE: We are not really directing any audio to this destination, however,
-  // the audioprocess event doesn't seem to fire unless it's hooked up.
-  recorderNode.connect(audioContext.destination);
-
-  const audioProcessEvent$ = Observable
-      .fromEvent(recorderNode, 'audioprocess')
-      .takeUntil(takeUntil$);
-
-  const duration$ = audioProcessEvent$
-      .map(event => event.inputBuffer.length)
-      .scan((i,j) => i + j, 0)
-      .map(x => x/audioContext.sampleRate);
-
-  const audioBuffer = audioProcessEvent$
-      .map(buffersFromAudioProcessEvent)
-      .toArray()
-      .map((batches) => encodeWavSync(batches, audioContext.sampleRate))
-      .toPromise()
-      .then(decodeAudioData);
-
-  return {duration$, audioBuffer};
-}
 
 function createRandomString(length) {
   const chars = "abcdefghijklmnopqrstufwxyzABCDEFGHIJKLMNOPQRSTUFWXYZ1234567890";
