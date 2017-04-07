@@ -5,7 +5,7 @@ import audioContext from './audioContext';
 import {getArrayBuffer} from './http';
 
 import {
-  pickBy, includes, clone, omit, forEach, values, pick, sum, mapValues, identity
+  pickBy, keys, includes, clone, omit, forEach, values, pick, sum, mapValues, identity
 } from 'lodash';
 
 import promiseFromTemplate from './promiseFromTemplate';
@@ -28,9 +28,16 @@ export function videoClipsForUid(uid) {
   return Observable
       .fromEvent(eventsRef.orderByKey(), 'value')
       .map(mapEventSnapshotToActiveClipIds)
-      .scan(reduceClipIdsToPromises.bind(null, videosRef), {exists: {}})
-      .mergeMap((obj) => Observable.merge(...obj.promises))
-      .scan((acc, obj) => Object.assign({}, acc, obj), {});
+      .scan(reduceClipIdsToPromises.bind(null, videosRef), {promises: {}})
+      .switchMap((obj) => (
+          Observable
+            .merge(...gatherPromises(obj))
+            .reduce((acc, obj) => Object.assign({}, acc, obj), {})
+      ));
+}
+
+function gatherPromises(obj) {
+  return values(pick(obj.promises, values(obj.clipIds)));
 }
 
 export function loadAudioBuffersFromVideoClips(videoClips$, subscription) {
@@ -65,16 +72,15 @@ const formats = ['webm', 'mp4', 'ogv'];
 
 function reduceClipIdsToPromises(ref, acc, clipIds) {
   const next = {
-    exists: clone(acc.exists), promises: []
+    clipIds: clipIds,
+    promises: {},
   };
 
   forEach(clipIds, (clipId, note) => {
-    if (!(clipId in next.exists)) {
-      next.promises.push(
-        mapClipIdToPromise(ref, clipId)
-            .then((result) => ({[note]: result}))
-      );
-      next.exists[clipId] = true;
+    if (clipId in acc.promises) {
+      next.promises[clipId] = acc.promises[clipId];
+    } else {
+      next.promises[clipId] = mapClipIdToPromise(ref, clipId).then((result) => ({[note]: result}));
     }
   });
 
