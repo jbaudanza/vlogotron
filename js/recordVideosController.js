@@ -21,14 +21,6 @@ const escapeKey$ = Observable.fromEvent(document, 'keydown')
     .filter(e => e.keyCode === 27);
 
 
-const initialState = {
-  loading: false,
-  playCommands$: Observable.never(),
-  isPlaying: false,
-  songTitle: messages['default-song-title']()
-};
-
-
 /**
   TODO
     - handle case where the user navigates while recording.
@@ -117,7 +109,7 @@ export default function recordVideosController(params, actions, currentUser$, su
   const playCommands$ = startLivePlaybackEngine(audioBuffers$, livePlayCommands$, subscription);
 
   return Observable.combineLatest(
-      videoClips$,
+      videoClips$.startWith({}),
       recordingState$,
       currentUser$,
       loading$,
@@ -125,8 +117,7 @@ export default function recordVideosController(params, actions, currentUser$, su
         Object.assign(
           {},
           recordingState,
-          initialState,
-          {playCommands$, currentUser, videoClips, loading}
+          {playCommands$, currentUser, videoClips, loading, songTitle: messages['default-song-title']()}
         )
       )
   )

@@ -36,10 +36,7 @@ function mapToRoute(location) {
       overlay: overlay,
       location: location,
       params: {uid: DEFAULT_UID},
-      actions: ['play', 'pause', 'playCommands$'],
-      initialState: {
-        loading: true, videoClips: {}, playCommands$: Observable.never(), isPlaying: false, songLength: 0, playbackPositionInSeconds: 0, songTitle: '', currentUser: firebase.auth().currentUser
-      }
+      actions: ['play', 'pause', 'playCommands$']
     };
   } else if (location.pathname === '/record-videos') {
     return {
@@ -47,8 +44,7 @@ function mapToRoute(location) {
       location: location,
       params: {uid: DEFAULT_UID},
       view: RecordVideosView,
-      actions: ['startRecording', 'stopRecording', 'dismissError', 'clearVideoClip'],
-      initialState: {loading: false, videoClips: {}, playCommands$: Observable.never(), isPlaying: false, playbackPositionInSeconds: 0, songTitle: 'Untitled Song', currentUser: firebase.auth().currentUser}
+      actions: ['startRecording', 'stopRecording', 'dismissError', 'clearVideoClip']
     }
   } else if (match = location.pathname.match(/\/playback\/([\w-]+)/)) {
     return {

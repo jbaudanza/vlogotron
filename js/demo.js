@@ -74,7 +74,7 @@ class App extends React.Component {
     this.setState({
       overlay: route.overlay,
       location: route.location,
-      view: <div>Loading</div>
+      view: (<div/>) // If the controller emits immediately, this div will never be shown.
     });
 
     this.pageSubscription.add(

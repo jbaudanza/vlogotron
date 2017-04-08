@@ -13,7 +13,8 @@ import {videoClipsForUid, loadAudioBuffersFromVideoClips} from './mediaLoading';
 import {songs} from './song';
 
 export default function playbackController(params, actions, currentUser$, subscription) {
-  const videoClips$ = videoClipsForUid(params.uid).publish();
+  const videoClips$ = videoClipsForUid(params.uid)
+      .publish();
 
   subscription.add(videoClips$.connect());
 
@@ -69,7 +70,7 @@ export default function playbackController(params, actions, currentUser$, subscr
   subscription.add(scriptedPlayCommands$$.connect());
 
   return Observable.combineLatest(
-    videoClips$, loading$, isPlaying$, playbackPositionInSeconds$, currentUser$,
+    videoClips$.startWith({}), loading$, isPlaying$, playbackPositionInSeconds$, currentUser$,
     (videoClips, loading, isPlaying, playbackPositionInSeconds, currentUser) => ({
       videoClips,
       isPlaying,
