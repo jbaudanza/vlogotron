@@ -4,8 +4,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Observable} from 'rxjs/Observable';
 import {Subscription} from 'rxjs/Subscription';
+import {Subject} from 'rxjs/Subject';
 
-import {bindAll} from 'lodash';
+import {bindAll, fromPairs, forEach} from 'lodash';
 
 import SvgAssets from './SvgAssets';
 
@@ -34,9 +35,9 @@ export const currentUser$ = Observable.create(function(observer) {
 class App extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'onLogin', 'onNavigate', 'onLogout', 'bindView', 'onClick');
+    bindAll(this, 'onLogin', 'onNavigate', 'onLogout', 'onClick', 'onRouteChange');
 
-    this.state = {};
+    this.state = {overlay: null};
   }
 
   onClick(event) {
@@ -54,37 +55,58 @@ class App extends React.Component {
   }
 
   componentWillMount() {
-    this.subscription = currentRoute$.subscribe((route) => {
-      this.setState({
-        route: route,
-        viewState: route.initialState
-      });
+    this.subscription = currentRoute$.subscribe(this.onRouteChange);
+  }
+
+  onRouteChange(route) {
+    this.disposePage();
+
+    this.pageSubscription = new Subscription();
+
+    this.pageActions = fromPairs(route.actions.map(
+      (name) => ([name + '$', new Subject()]))
+    );
+
+    const viewState$ = route.controller(
+      route.params, this.pageActions, currentUser$, this.pageSubscription
+    );
+
+    this.setState({
+      overlay: route.overlay,
+      location: route.location,
+      view: <div>Loading</div>
     });
+
+    this.pageSubscription.add(
+      viewState$.subscribe((viewState) => {
+        const View = route.view;
+        this.setState({
+          view: (
+             <View
+                {...viewState}
+                actions={this.pageActions}
+                onNavigate={this.onNavigate}
+                onLogin={this.onLogin}
+                onLogout={this.onLogout} />
+          )
+        });
+      })
+    );
   }
 
   componentWillUnmount() {
     this.subscription.unsubscribe();
 
-    if (this.pageSubscription) {
-      this.pageSubscription.unsubscribe();
-    }
+    this.disposePage();
   }
 
-  bindView(view) {
+  disposePage() {
     if (this.pageSubscription) {
       this.pageSubscription.unsubscribe();
-    }
+      forEach(this.pageActions, (subject) => subject.complete());
 
-    if (view) {
-      this.pageSubscription = new Subscription();
-
-      const viewState$ = this.state.route.controller(
-        this.state.route.params, view.actions, currentUser$, this.pageSubscription
-      );
-
-      this.pageSubscription.add(
-        viewState$.subscribe((viewState) => this.setState({viewState}))
-      );
+      delete this.pageSubscription;
+      delete this.pageActions;
     }
   }
 
@@ -107,27 +129,20 @@ class App extends React.Component {
   }
 
   render() {
-    const View = this.state.route.view;
-
     let overlay;
-    if (this.state.route.overlay) {
-      const Overlay = this.state.route.overlay;
+    if (this.state.overlay) {
+      const Overlay = this.state.overlay;
       overlay = (
         <Overlay
           onLogin={this.onLogin}
-          onClose={this.state.route.location.pathname} />
+          onClose={this.state.location.pathname} />
       );
     }
 
     return (
       <div onClick={this.onClick}>
         <SvgAssets />
-        <View
-            {...this.state.viewState}
-            ref={this.bindView}
-            onNavigate={this.onNavigate}
-            onLogin={this.onLogin}
-            onLogout={this.onLogout} />
+        {this.state.view}
         {overlay}
       </div>
     );

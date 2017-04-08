@@ -10,33 +10,25 @@ import RecordVideosHeader from './RecordVideosHeader';
 import LoginOverlay from './LoginOverlay';
 
 
-function noop() {console.log('noop')}
-
 export default class RecordVideosView extends React.Component {
   constructor() {
     super();
     bindAll(this, 'bindVideoGrid', 'onClickLogin');
-
-    this.actions = {
-      startRecording$: new Subject(),
-      stopRecording$: new Subject(),
-      dismissError$: new Subject(),
-      clearVideoClip$: new Subject()
-    };
-
-    this.onStartRecording = bindKey(this.actions.startRecording$, 'next');
-    this.onStopRecording = bindKey(this.actions.stopRecording$, 'next');
-    this.onDismissError = bindKey(this.actions.dismissError$, 'next');
-    this.onClearVideoClip = bindKey(this.actions.clearVideoClip$, 'next');
   }
 
-  componentWillUnmount() {
-    forEach(this.actions, (subject) => subject.complete());
+  componentWillMount() {
+    this.onStartRecording = bindKey(this.props.actions.startRecording$, 'next');
+    this.onStopRecording = bindKey(this.props.actions.stopRecording$, 'next');
+    this.onDismissError = bindKey(this.props.actions.dismissError$, 'next');
+    this.onClearVideoClip = bindKey(this.props.actions.clearVideoClip$, 'next');
   }
 
   bindVideoGrid(component) {
     if (component) {
-      this.actions.playCommands$$ = component.playCommands$$;
+      this.subscription = component.playCommands$$.subscribe(this.props.actions.playCommands$$);
+    } else {
+      if (this.subscription)
+        this.subscription.unsubscribe();
     }
   }
 

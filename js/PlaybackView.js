@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {bindAll} from 'lodash';
+import {bindAll, bindKey} from 'lodash';
 
 import {Subject} from 'rxjs/Subject';
 
@@ -12,24 +12,20 @@ export default class PlaybackView extends React.Component {
   constructor() {
     super();
     bindAll(this, 'bindVideoGrid', 'onClickLogin');
-    this.actions = {
-      play$: new Subject(),
-      pause$: new Subject()
-    };
+  }
 
-    this.onClickPlay = this.actions.play$.next.bind(this.actions.play$);
-    this.onClickPause = this.actions.pause$.next.bind(this.actions.pause$);
+  componentWillMount() {
+    this.onClickPlay = bindKey(this.props.actions.play$, 'next');
+    this.onClickPause = bindKey(this.props.actions.pause$, 'next');
   }
 
   bindVideoGrid(component) {
     if (component) {
-      this.actions.playCommands$$ = component.playCommands$$;
+      this.subscription = component.playCommands$$.subscribe(this.props.actions.playCommands$$);
+    } else {
+      if (this.subscription)
+        this.subscription.unsubscribe();
     }
-  }
-
-  componentWillUnmount() {
-    this.actions.play$.complete();
-    this.actions.pause$.complete();
   }
 
   onClickLogin() {
