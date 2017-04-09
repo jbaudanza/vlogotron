@@ -5,10 +5,13 @@ import createHistory from 'history/createBrowserHistory';
 
 import PlaybackView from './PlaybackView';
 import RecordVideosView from './RecordVideosView';
+import SongEditorView from './SongEditorView';
 import LoginOverlay from './LoginOverlay';
 
 
+
 import playbackController from './playbackController';
+import songEditorController from './songEditorController';
 import recordVideosController from './recordVideosController';
 
 
@@ -44,8 +47,15 @@ function mapToRoute(location) {
       location: location,
       params: {uid: DEFAULT_UID},
       view: RecordVideosView,
-      actions: ['startRecording', 'stopRecording', 'dismissError', 'clearVideoClip']
+      actions: ['startRecording', 'stopRecording', 'dismissError', 'clearVideoClip', 'playCommands$']
     }
+  } else if (location.pathname === '/song-editor') {
+    return {
+      view: SongEditorView,
+      controller: songEditorController,
+      location: location,
+      actions: ['play', 'pause', 'playCommands$']
+    };
   } else if (match = location.pathname.match(/\/playback\/([\w-]+)/)) {
     return {
       params: {songId: match[1]},

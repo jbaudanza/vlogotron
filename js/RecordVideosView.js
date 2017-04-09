@@ -1,7 +1,5 @@
 import React from 'react';
 
-import {Subject} from 'rxjs/Subject';
-
 import {bindAll, bindKey, forEach} from 'lodash';
 
 import Page from './Page';
@@ -37,7 +35,14 @@ export default class RecordVideosView extends React.Component {
   }
 
   render() {
-    const header = <RecordVideosHeader songTitle={this.props.songTitle} />;
+    const header = (
+      <RecordVideosHeader
+        songTitle={this.props.songTitle}
+        secondaryAction={{href: '/'}}
+        secondaryActionLabel={this.context.messages['cancel-action']()}
+        primaryAction={{href: '/song-editor'}}
+        primaryActionLabel={this.context.messages['next-action']()} />
+    );
 
     let overlay;
     if (!this.props.currentUser) {
@@ -86,6 +91,5 @@ RecordVideosView.propTypes = {
   loading:       React.PropTypes.bool.isRequired,
   videoClips:    React.PropTypes.object.isRequired,
   playCommands$: React.PropTypes.object.isRequired,
-  isPlaying:     React.PropTypes.bool.isRequired,
   songTitle:     React.PropTypes.string.isRequired
-}
+};

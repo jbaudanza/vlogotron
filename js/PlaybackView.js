@@ -2,8 +2,6 @@ import React from 'react';
 
 import {bindAll, bindKey} from 'lodash';
 
-import {Subject} from 'rxjs/Subject';
-
 import Page from './Page';
 import PlaybackHeader from './PlaybackHeader';
 import VideoGrid from './VideoGrid';

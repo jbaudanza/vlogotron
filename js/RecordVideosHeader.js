@@ -1,7 +1,6 @@
 import React from 'react';
 import Link from './Link';
 
-function noop() {}
 
 export default class RecordVideosHeader extends React.Component {
   render() {
@@ -9,7 +8,9 @@ export default class RecordVideosHeader extends React.Component {
     return (
       <div className='page-header'>
         <div className='first'>
-          <Link className='action' href="/">{this.context.messages['cancel-action']()}</Link>
+          <Link className='action' {...props.secondaryAction}>
+            {props.secondaryActionLabel}
+          </Link>
         </div>
         <div className='middle'>
           <span className='song-title'>
@@ -20,13 +21,11 @@ export default class RecordVideosHeader extends React.Component {
           </svg>
         </div>
         <div className='last'>
-          <Link className='action primary' onClick={noop}>{this.context.messages['next-action']()}</Link>
+          <Link className='action primary' {...props.primaryAction}>
+            {props.primaryActionLabel}
+          </Link>
         </div>
       </div>
     );
   }
 }
-
-RecordVideosHeader.contextTypes = {
-  messages: React.PropTypes.object.isRequired
-};

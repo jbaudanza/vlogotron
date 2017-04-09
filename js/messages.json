@@ -2,6 +2,8 @@
   "record-videos-tip-long": "Click on a square to start recording. You will here a sample of the selected note playing, please repeat it after the countdown.",
   "record-videos-tip-short": "Click to record your voice now.",
   "share-action": "share",
+  "save-action": "save",
+  "back-action": "back",
   "remix-action": "remix",
   "cancel-action": "cancel",
   "next-action": "next",
