@@ -136,17 +136,21 @@
     }
   }
 
-  .page-footer {
+  .page-text-footer {
     $height: 43px;
     flex: 0 0 $height;
 
-    background-color: $color-dark-purple;
     font-size: 14px;
     font-weight: 500; // medium
     text-align: center;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-align: center;
+
+    &.error {
+      background-color: $color-red;
+      .action { margin-left: 15px; }
+    }
 
     line-height: $height;
     height: $height;
@@ -158,14 +162,15 @@
       right: 0;
       position: absolute;
     }
+  }
+
+  .page-footer {
+    background-color: $color-dark-purple;
+
     transition: flex-basis $slide-in-duration;
     overflow: hidden;
     &.hidden {
       flex-basis: 0px;
-    }
-    &.error {
-      background-color: $color-red;
-      .action { margin-left: 15px; }
     }
   }
 

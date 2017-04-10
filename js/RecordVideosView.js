@@ -5,6 +5,7 @@ import {bindAll, bindKey, forEach} from 'lodash';
 import Page from './Page';
 import VideoGrid from './VideoGrid';
 import RecordVideosHeader from './RecordVideosHeader';
+import PageTextFooter from './PageTextFooter';
 import LoginOverlay from './LoginOverlay';
 
 
@@ -44,6 +45,20 @@ export default class RecordVideosView extends React.Component {
         primaryActionLabel={this.context.messages['next-action']()} />
     );
 
+    let footer;
+    if (this.props.error) {
+      footer = (
+        <PageTextFooter
+            error
+            text={this.props.error}
+            onDismissError={this.onDismissError} />
+      )
+    } else {
+      footer = (
+        <PageTextFooter text={this.context.messages['record-videos-tip-long']()} />
+      );
+    }
+
     let overlay;
     if (!this.props.currentUser) {
       overlay = (
@@ -56,12 +71,10 @@ export default class RecordVideosView extends React.Component {
         onLogin={this.onClickLogin}
         onLogout={this.props.onLogout}
         isLoggedIn={!!this.props.currentUser}
-        onDismissError={this.onDismissError}
         sidebarVisible={false}
         header={header}
+        footer={footer}
         className='record-videos-page'
-        footerText={this.context.messages['record-videos-tip-long']()}
-        error={this.props.error}
         >
         <VideoGrid readonly
           loading={this.props.loading}

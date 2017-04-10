@@ -49,6 +49,7 @@ export default class PlaybackView extends React.Component {
         onLogout={this.props.onLogout}
         isLoggedIn={!!this.props.currentUser}
         header={header}
+        footer={null}
         sidebarVisible={true}
         >
         <VideoGrid readonly

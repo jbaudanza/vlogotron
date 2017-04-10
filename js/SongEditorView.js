@@ -4,6 +4,7 @@ import Page from './Page';
 import RecordVideosHeader from './RecordVideosHeader';
 import VideoGrid from './VideoGrid';
 import LoginOverlay from './LoginOverlay';
+import PianoRoll from './PianoRoll';
 
 
 
@@ -26,17 +27,27 @@ export default class SongEditorView extends React.Component {
       );
     }
 
+    const footer = (
+      <div className='page-footer'>
+        <div className='page-footer-content'>
+          <PianoRoll
+            notes={[]}
+            cellsPerBeat={4}
+            playing={false}
+            onChangePlaybackStartPosition={function() {}} />
+        </div>
+      </div>
+    )
+
     return (
       <Page
         onLogin={this.onClickLogin}
         onLogout={this.props.onLogout}
         isLoggedIn={!!this.props.currentUser}
-        onDismissError={this.onDismissError}
         sidebarVisible={false}
         header={header}
+        footer={footer}
         className='record-videos-page'
-        footerText={this.context.messages['record-videos-tip-long']()}
-        error={this.props.error}
         >
         <VideoGrid readonly
           loading={this.props.loading}
@@ -45,9 +56,8 @@ export default class SongEditorView extends React.Component {
           readonly={true}
           onClear={this.onClearVideoClip}
           mediaStream={this.props.mediaStream}
-          ref={this.bindVideoGrid}
-          />
-          {overlay}
+          ref={this.bindVideoGrid} />
+        {overlay}
       </Page>
     );
   }
