@@ -1,10 +1,12 @@
 import React from 'react';
 
 import Page from './Page';
+import Link from './Link';
 import RecordVideosHeader from './RecordVideosHeader';
 import VideoGrid from './VideoGrid';
 import LoginOverlay from './LoginOverlay';
 import PianoRoll from './PianoRoll';
+import PianoRollHeader from './PianoRollHeader';
 
 
 
@@ -30,6 +32,7 @@ export default class SongEditorView extends React.Component {
     const footer = (
       <div className='page-footer'>
         <div className='page-footer-content'>
+          <PianoRollHeader />
           <PianoRoll
             notes={[]}
             cellsPerBeat={4}

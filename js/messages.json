@@ -10,6 +10,11 @@
   "ok-action": "OK",
   "start-singing-countdown-prompt": "Start singing in",
   "default-song-title": "Untitled Song",
+  "song-chooser-prompt": "Choose a song...",
   "stop-recording-prompt": "Click to stop recording",
-  "user-media-access-error": "We were unable to access your camera and microphone. You may need to adjust your browser permissions."
+  "user-media-access-error": "We were unable to access your camera and microphone. You may need to adjust your browser permissions.",
+  "tips-action": "tips",
+  "reset-action": "reset",
+  "quarter-notes": "Quarter notes",
+  "bpm-with-number": "{BPM} bpm"
 }

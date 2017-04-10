@@ -76,6 +76,7 @@
     a.action {
       margin: 0 7px;
       margin-top: $header-height / 2 - 14px;
+      border: solid 1px white;
     }
   }
 
@@ -90,7 +91,6 @@
     line-height: 28px;
     opacity: 0.7;
     border-radius: 49px;
-    border: solid 1px white;
     color: white;
     text-transform: uppercase;
     -webkit-font-smoothing: antialiased;

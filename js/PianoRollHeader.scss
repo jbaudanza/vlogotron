@@ -1,0 +1,58 @@
+@import './colors';
+
+.piano-roll-header {
+  height: 45px;
+  padding: 0 25px;
+
+  $action-height: 28px;
+
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  .song-chooser {
+    text-transform: uppercase;
+    svg {
+      float: left;
+      margin-top: 4px;
+      margin-right: 7px;
+    }
+  }
+
+  a, .song-chooser {
+    margin-top: 8px;
+    height: $action-height;
+    line-height: $action-height;
+  }
+
+  overflow: hidden;
+  .left-side {
+    float: left;
+  }
+  .right-side {
+    float: right;
+  }
+  .right-side {
+    float: right;
+  }
+
+  .left-side {
+    overflow: hidden;
+    a {
+      margin-right: 25px;
+    }
+    a, .song-chooser {
+      float: left;
+      display: block;
+    }
+  }
+
+  .right-side a {
+    margin-right: 5px;
+    margin-left: 5px;
+    background-color: $color-dusk-three;
+  }
+}
