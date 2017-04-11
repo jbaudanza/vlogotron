@@ -133,7 +133,6 @@ export function startScriptedPlayback(song, bpm, startPosition, audioBuffers$, p
         Observable.from(events)
             .flatMap(obj => Observable.of(obj).delay((obj.when - audioContext.currentTime) * 1000))
       ))
-      .startWith({playbackStartedAt})
       .takeUntil(playUntil$)
       .do({complete: disconnectGainNode})
       .publish();
@@ -142,15 +141,8 @@ export function startScriptedPlayback(song, bpm, startPosition, audioBuffers$, p
   // because the stream will end when the song is over or playUntil$ fires.
   stream$.connect();
 
-  return stream$;
-
-  // const position$ = Observable
-  //     .of(0, animationFrame)
-  //     .repeat()
-  //     .map(() => timestampToBeats(audioContext.currentTime - playbackStartedAt, bpm))
-  //     .filter(beat => beat >= 0)
-  //     .takeWhile(beat => beat < length)
-  //     .takeUntil(playUntil$)
-  //     .map(beat => beat + startPosition);
-
+  return {
+    playbackStartedAt: playbackStartedAt,
+    playCommands$: stream$
+  }
 };

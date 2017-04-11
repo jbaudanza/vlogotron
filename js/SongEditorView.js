@@ -8,9 +8,18 @@ import LoginOverlay from './LoginOverlay';
 import PianoRoll from './PianoRoll';
 import PianoRollHeader from './PianoRollHeader';
 
+import {songs} from './song'
 
+import {bindKey} from 'lodash';
+
+import './SongEditorView.scss';
 
 export default class SongEditorView extends React.Component {
+  componentWillMount() {
+    this.onClickPlay = bindKey(this.props.actions.play$, 'next');
+    this.onClickPause = bindKey(this.props.actions.pause$, 'next');
+  }
+
   render() {
     const header = (
       <RecordVideosHeader
@@ -31,12 +40,18 @@ export default class SongEditorView extends React.Component {
 
     const footer = (
       <div className='page-footer'>
-        <div className='page-footer-content'>
-          <PianoRollHeader />
+        <div className='page-footer-content page-footer-with-piano-roll'>
+          <PianoRollHeader
+              onClickPlay={this.onClickPlay}
+              onClickPause={this.onClickPause}
+              isPlaying={this.props.isPlaying}
+              isRecording={false} />
           <PianoRoll
-            notes={[]}
+            notes={songs['mary-had-a-little-lamb']}
             cellsPerBeat={4}
-            playing={false}
+            songLength={this.props.songLength}
+            playbackPosition$={this.props.playbackPositionInBeats$}
+            playing={{}}
             onChangePlaybackStartPosition={function() {}} />
         </div>
       </div>
@@ -50,7 +65,7 @@ export default class SongEditorView extends React.Component {
         sidebarVisible={false}
         header={header}
         footer={footer}
-        className='record-videos-page'
+        className='song-editor-page'
         >
         <VideoGrid readonly
           loading={this.props.loading}

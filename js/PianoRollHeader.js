@@ -5,11 +5,24 @@ import Link from './Link';
 import './PianoRollHeader.scss';
 
 export default class PianoRollHeader extends React.Component {
+  constructor() {
+    super();
+    this.onClickPlay = this.onClickPlay.bind(this);
+  }
+
+  onClickPlay() {
+    if (this.props.isPlaying) {
+      this.props.onClickPause();
+    } else {
+      this.props.onClickPlay();
+    }
+  }
+
   render() {
     return (
       <div className='piano-roll-header'>
         <div className="left-side">
-          <Link onClick={null} className='play-button'>
+          <Link onClick={this.onClickPlay} className='play-button'>
             <svg version="1.1" width={28} height={28}>
               <use xlinkHref={this.props.isPlaying ? '#svg-pause' : '#svg-play' } />
             </svg>
@@ -49,4 +62,11 @@ export default class PianoRollHeader extends React.Component {
 
 PianoRollHeader.contextTypes = {
   messages: React.PropTypes.object.isRequired
+};
+
+PianoRollHeader.propTypes = {
+  isRecording:    React.PropTypes.bool.isRequired,
+  isPlaying:      React.PropTypes.bool.isRequired,
+  onClickPlay:    React.PropTypes.func.isRequired,
+  onClickPause:   React.PropTypes.func.isRequired
 };

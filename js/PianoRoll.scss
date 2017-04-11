@@ -3,6 +3,9 @@
 .piano-roll {
   display: flex;
   background-color: $color-dusk;
+  position: absolute;
+  left: 0;
+  right: 0;
 
   .horizontal-scroller {
     flex-grow: 1;
@@ -10,7 +13,7 @@
     position: relative;
   }
 
-  $timeline-height: 25px;
+  @import './PianoRollDimensions';
 
   .timeline {
     position: relative;
@@ -90,7 +93,7 @@
   @include define-cell-width(16);
 
   .cell, .note-label {
-    height: 15px;
+    height: $cell-height;
     border-bottom: solid 1px $color-dusk-four;
     box-sizing: border-box;
   }
@@ -112,7 +115,7 @@
   .note {
     position: absolute;
     box-sizing: border-box;
-    height: 15px;
+    height: $cell-height;
     width: 15px;
     background-color: $color-aqua-blue;
   }

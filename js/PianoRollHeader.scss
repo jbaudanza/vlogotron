@@ -1,7 +1,9 @@
 @import './colors';
 
 .piano-roll-header {
-  height: 45px;
+  @import './PianoRollDimensions';
+
+  height: $piano-roll-header-height;
   padding: 0 25px;
 
   $action-height: 28px;

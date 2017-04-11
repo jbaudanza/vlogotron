@@ -1,12 +1,13 @@
 import React from 'react';
 import classNames from 'classnames';
 
-import TouchableArea from './TouchableArea';
-import NoteLabel from './NoteLabel';
-
 import {range, flatten, bindAll, identity, isEqual, max} from 'lodash';
 
 import {Observable} from 'rxjs/Observable';
+
+import TouchableArea from './TouchableArea';
+import NoteLabel from './NoteLabel';
+import {formatSeconds} from './format';
 
 import './PianoRoll.scss';
 
@@ -137,36 +138,6 @@ function mapAllKeys(iter) {
     flatten(mapKeys(5, keys.slice(-2), fn)),
     flatten(mapKeys(4, keys, fn))
   ]);
-}
-
-function RowSet(cellsPerBeat, totalBeats, octave, keys) {
-  const rowProps = {
-      cellsPerBeat: cellsPerBeat, octave: octave, totalBeats: totalBeats
-  };
-
-  return mapKeys(octave, keys, (note, sharp, octave) => {
-    const white = (
-      <Row
-        color="white"
-        {...rowProps}
-        key={note + octave}
-        note={note + octave} />
-    );
-
-    if (sharp) {
-      const black = (
-        <Row
-          color='black'
-          {...rowProps}
-          key={note + '#' + octave}
-          note={note + '#' + octave} />
-      );
-
-      return [black, white];
-    } else {
-      return [white];
-    }
-  });
 }
 
 
@@ -374,7 +345,7 @@ export default class PianoRoll extends React.Component {
       <div className='piano-roll'>
         <div className='row-labels'>
         <div className='song-duration'>
-          0.00 / 3.00
+          0:00 / {formatSeconds(this.props.songLength)}
         </div>
         {
           mapAllKeys((props) => (

@@ -1,0 +1,8 @@
+.song-editor-page {
+  @import './PianoRollDimensions';
+
+  .page-footer-with-piano-roll {
+    position: relative;
+    height: $piano-roll-header-height + $number-of-notes * $cell-height + $timeline-height;
+  }
+}

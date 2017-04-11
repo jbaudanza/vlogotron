@@ -9,8 +9,11 @@ import {startLivePlaybackEngine, startScriptedPlayback} from './AudioPlaybackEng
 import {combine as combinePlayCommands} from './playCommands';
 import {videoClipsForUid, loadAudioBuffersFromVideoClips} from './mediaLoading';
 
+import {animationFrame} from 'rxjs/scheduler/animationFrame';
+import audioContext from './audioContext';
 
-import {songs} from './song';
+
+import {songs, timestampToBeats, songLengthInBeats} from './song';
 
 export default function playbackController(params, actions, currentUser$, subscription) {
   const videoClips$ = videoClipsForUid(params.uid)
@@ -32,7 +35,7 @@ export default function playbackController(params, actions, currentUser$, subscr
   const bpm = 120;
   const songLength = songLengthInSeconds(song, bpm);
 
-  const scriptedPlayCommands$$ = actions.play$
+  const scriptedPlaybackContext$$ = actions.play$
     .map((action) => (
       startScriptedPlayback(
         song,
@@ -42,6 +45,8 @@ export default function playbackController(params, actions, currentUser$, subscr
         actions.pause$
       )
     )).publish();
+
+  const scriptedPlayCommands$$ = scriptedPlaybackContext$$.map(context => context.playCommands$)
 
   const isPlaying$ = scriptedPlayCommands$$
     .switchMap((stream) => (
@@ -56,9 +61,20 @@ export default function playbackController(params, actions, currentUser$, subscr
     Observable
       .interval(1000).map(i => i + 1)
       .startWith(0)
-      .takeUntil(stream.ignoreElements().concat(Observable.of(1)))
+      .takeUntil(stream.ignoreElements())
       .concat(Observable.of(0))
   )).startWith(0);
+
+  const playbackPositionInBeats$ = scriptedPlaybackContext$$.switchMap((context) => (
+    Observable
+      .of(context.playbackStartedAt, animationFrame)
+      .repeat()
+      .map((playbackStartedAt) => timestampToBeats(audioContext.currentTime - playbackStartedAt, bpm))
+      .filter(beat => beat >= 0)
+      .takeWhile(beat => beat < songLengthInBeats(song))
+      .takeUntil(context.playCommands$.ignoreElements())
+      //.map(beat => beat + startPosition) // TODO: Make this work
+  ));
 
   // TODO: Do we need to keep refcounts when merging these streams?
   const playCommands$ = Observable.merge(
@@ -67,7 +83,7 @@ export default function playbackController(params, actions, currentUser$, subscr
   )
 
   // Start up Observables with side-effect
-  subscription.add(scriptedPlayCommands$$.connect());
+  subscription.add(scriptedPlaybackContext$$.connect());
 
   return Observable.combineLatest(
     videoClips$.startWith({}), loading$, isPlaying$, playbackPositionInSeconds$, currentUser$,
@@ -75,6 +91,7 @@ export default function playbackController(params, actions, currentUser$, subscr
       videoClips,
       isPlaying,
       playbackPositionInSeconds,
+      playbackPositionInBeats$,
       loading,
       currentUser,
       playCommands$,

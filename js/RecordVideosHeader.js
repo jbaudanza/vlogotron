@@ -2,11 +2,13 @@ import React from 'react';
 import Link from './Link';
 
 
+// TODO: This name is kind of misleading because this header is also used
+// on the SongEditor page
 export default class RecordVideosHeader extends React.Component {
   render() {
     const props = this.props;
     return (
-      <div className='page-header'>
+      <div className='page-header record-videos-header'>
         <div className='first'>
           <Link className='action' {...props.secondaryAction}>
             {props.secondaryActionLabel}
