@@ -73,8 +73,9 @@ export default function playbackController(params, actions, currentUser$, subscr
       .filter(beat => beat >= 0)
       .takeWhile(beat => beat < songLengthInBeats(song))
       .takeUntil(context.playCommands$.ignoreElements())
+      .concat(Observable.of(0))
       //.map(beat => beat + startPosition) // TODO: Make this work
-  ));
+  )).startWith(0.0);
 
   // TODO: Do we need to keep refcounts when merging these streams?
   const playCommands$ = Observable.merge(

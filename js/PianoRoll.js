@@ -7,7 +7,8 @@ import {Observable} from 'rxjs/Observable';
 
 import TouchableArea from './TouchableArea';
 import NoteLabel from './NoteLabel';
-import {formatSeconds} from './format';
+
+import {songLengthInBeats} from './song';
 
 import './PianoRoll.scss';
 
@@ -160,10 +161,6 @@ class Grid extends React.PureComponent {
   }
 }
 
-function songLength(song) {
-  return max(song.map(note => note[1] + note[2])) || 0;
-}
-
 
 class Timeline extends React.Component {
   constructor() {
@@ -255,7 +252,7 @@ export default class PianoRoll extends React.Component {
   constructor() {
     super();
     this.state = {playheadStart: null};
-    bindAll(this, 'bindPlayhead', 'bindTouchableArea', 'bindScroller');
+    bindAll(this, 'bindPlayhead', 'bindPlaybackPosition', 'bindTouchableArea', 'bindScroller');
   }
 
   bindScroller(el) {
@@ -305,6 +302,14 @@ export default class PianoRoll extends React.Component {
     }
   }
 
+  bindPlaybackPosition(el) {
+    if (el) {
+      this.props.playbackPosition$.subscribe((position) => {
+        el.textContent = position.toFixed(2);
+      });
+    }
+  }
+
   bindPlayhead(el) {
     if (el) {
       this.subscription = this.props.playbackPosition$.subscribe((position) => {
@@ -339,13 +344,14 @@ export default class PianoRoll extends React.Component {
   }
 
   render() {
-    const totalBeats = Math.floor(songLength(this.props.notes) + 8);
+    const songLength = songLengthInBeats(this.props.notes);
+    const totalBeats = Math.floor(songLength + 8);
 
     return (
       <div className='piano-roll'>
         <div className='row-labels'>
         <div className='song-duration'>
-          0:00 / {formatSeconds(this.props.songLength)}
+          <span ref={this.bindPlaybackPosition}/> / {songLength.toFixed(2)}
         </div>
         {
           mapAllKeys((props) => (
@@ -390,6 +396,6 @@ PianoRoll.propTypes = {
   cellsPerBeat:                  React.PropTypes.number.isRequired,
   playing:                       React.PropTypes.object.isRequired,
   onChangePlaybackStartPosition: React.PropTypes.func.isRequired,
+  playbackPosition$:             React.PropTypes.object.isRequired,
   playbackStartPosition:         React.PropTypes.number,
-  playbackPosition$:             React.PropTypes.object
 }
