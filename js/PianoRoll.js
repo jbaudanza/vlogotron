@@ -197,51 +197,99 @@ function songLength(song) {
 class Timeline extends React.Component {
   constructor() {
     super();
-    this.onClick = this.onClick.bind(this);
+    this.setCanvas = this.setCanvas.bind(this);
   }
 
-  onClick(event) {
-    const el = event.target;
-    if (el.classList.contains('time-marker') && 'beat' in el.dataset) {
-      const newValue = parseFloat(el.dataset['beat']);
-      if (newValue === this.props.playbackStartPosition) {
-        this.props.onChangePlaybackStartPosition(null);
-      } else {
-        this.props.onChangePlaybackStartPosition(newValue);
+  setCanvas(canvasEl) {
+    if (!canvasEl)
+      return;
+
+    const ctx = canvasEl.getContext('2d');
+    ctx.font = "11px HKGrotesk";
+
+    const cellWidth = 30;
+
+    ctx.fillStyle = '#1f233d';
+    ctx.rect(0, 0, canvasEl.width, canvasEl.height);
+    ctx.fill();
+
+    function drawLine(x, height) {
+      ctx.beginPath();
+      ctx.moveTo(x, canvasEl.height * height);
+      ctx.lineTo(x, canvasEl.height);
+      ctx.strokeStyle='#363d69'; // $color-dark-blue-grey
+      ctx.stroke();
+    }
+
+    for (let beat=0; beat<this.props.totalBeats; beat++) {
+      const x = beat * cellWidth * 4;
+      drawLine(x, 0.25);
+
+      ctx.fillStyle='#a0a7c4'; // $color-blue-grey
+      ctx.fillText(beat, x + 5, canvasEl.height - 10);
+
+      for (let i=1; i<4; i++) {
+        drawLine(x + i * cellWidth, 0.75);
       }
     }
   }
 
   render() {
-    let pointer;
-
-    const svgWidth = 14;
-
-    if (Number.isFinite(this.props.playbackStartPosition)) {
-      const pointerStyle = {
-        position: 'absolute',
-        left: beatToWidth(this.props.playbackStartPosition) - svgWidth/2,
-        top: 0
-      };
-      pointer = (
-        <svg version="1.1" width={svgWidth} height="18px" style={pointerStyle} fill="#88c7f4">
-          <use xlinkHref='#down-pointer' />
-        </svg>
-      );
-    }
-
     return (
-      <div className='timeline' onClick={this.onClick}>
-        {pointer}
-        {range(0, this.props.totalBeats).map(i => (
-          <div className='time-marker' key={i} data-beat={i}>
-            {i}
-          </div>
-        ))}
-      </div>
-    );
+      <canvas className='timeline' ref={this.setCanvas} width={this.props.totalBeats * 30 * 4} height={25}/>
+    )
   }
 }
+
+// class Timeline extends React.Component {
+//   constructor() {
+//     super();
+//     this.onClick = this.onClick.bind(this);
+//   }
+
+//   onClick(event) {
+//     const el = event.target;
+//     if (el.classList.contains('time-marker') && 'beat' in el.dataset) {
+//       const newValue = parseFloat(el.dataset['beat']);
+//       if (newValue === this.props.playbackStartPosition) {
+//         this.props.onChangePlaybackStartPosition(null);
+//       } else {
+//         this.props.onChangePlaybackStartPosition(newValue);
+//       }
+//     }
+//   }
+
+//   render() {
+//     let pointer;
+
+//     const svgWidth = 14;
+
+//     if (Number.isFinite(this.props.playbackStartPosition)) {
+//       const pointerStyle = {
+//         position: 'absolute',
+//         left: beatToWidth(this.props.playbackStartPosition) - svgWidth/2,
+//         top: 0
+//       };
+//       pointer = (
+//         <svg version="1.1" width={svgWidth} height="18px" style={pointerStyle} fill="#88c7f4">
+//           <use xlinkHref='#down-pointer' />
+//         </svg>
+//       );
+//     }
+
+//     return (
+//       <div className='timeline' onClick={this.onClick}>
+//         {pointer}
+//         {range(0, this.props.totalBeats).map(i => (
+//           <div className='time-marker' key={i} data-beat={i}>
+//             {i}
+//           </div>
+//         ))}
+//       </div>
+//     );
+//   }
+// }
+
 
 Timeline.propTypes = {
   totalBeats:                    React.PropTypes.number.isRequired,
