@@ -113,7 +113,8 @@ export default class TouchableArea extends React.Component {
       <div ref={this.setRootElement}
           onTouchStart={this.onTouchStart}
           onMouseDown={this.onMouseDown}
-          className={this.props.className}>
+          className={this.props.className}
+          style={this.props.style}>
         {this.props.children}
       </div>
     );

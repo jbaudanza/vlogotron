@@ -5,6 +5,7 @@
   background-color: $color-dusk;
 
   .horizontal-scroller {
+    flex-grow: 1;
     overflow-x: auto;
     position: relative;
   }
@@ -27,6 +28,7 @@
 
   .timeline, .song-duration {
     height: $timeline-height;
+    line-height: $timeline-height;
     background-color: $color-dark;
     color: $color-blue-grey;
     letter-spacing: 0.2px;
@@ -52,7 +54,7 @@
 
   .row-labels {
     box-sizing: border-box;
-    width: 81px;
+    flex: 0 0 81px;
     font-size: 9px;
     line-height: 2.03;
     letter-spacing: 0.2px;
@@ -90,6 +92,7 @@
   .cell, .note-label {
     height: 15px;
     border-bottom: solid 1px $color-dusk-four;
+    box-sizing: border-box;
   }
 
   .note-label.playing {

@@ -258,7 +258,9 @@ class Timeline extends React.Component {
     }
 
     return (
-      <div className='timeline' onClick={this.onClick}>
+      <div className='timeline'
+          onClick={this.onClick}
+          style={{width: beatToWidth(this.props.totalBeats)}}>
         {pointer}
         <canvas ref={this.setCanvas} width={this.props.totalBeats * 30 * 4} height={25}/>
         {range(0, this.props.totalBeats).map(i => (
@@ -389,7 +391,7 @@ export default class PianoRoll extends React.Component {
               playbackStartPosition={this.props.playbackStartPosition}
               onChangePlaybackStartPosition={this.props.onChangePlaybackStartPosition} />
 
-          <TouchableArea className='note-wrapper' ref={this.bindTouchableArea}>
+          <TouchableArea className='note-wrapper' ref={this.bindTouchableArea} style={{width: beatToWidth(totalBeats)}}>
             <Grid cellsPerBeat={this.props.cellsPerBeat} totalBeats={totalBeats} />
             <div>
             {
