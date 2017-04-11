@@ -12,9 +12,17 @@
   $timeline-height: 25px;
 
   .timeline {
-    display: relative;
+    position: relative;
     cursor: pointer;
     width: 100%;
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
   }
 
   .timeline, .song-duration {
@@ -37,6 +45,9 @@
   .time-marker {
     display: inline-block;
     width: $beat-width;
+    line-height: $timeline-height;
+    padding-left: 8px;
+    box-sizing: border-box;
   }
 
   .row-labels {
