@@ -9,11 +9,17 @@
     position: relative;
   }
 
+  $timeline-height: 25px;
+
   .timeline {
     display: relative;
     cursor: pointer;
-    color: $color-dark-blue-grey;
+  }
+
+  .timeline, .song-duration {
+    height: $timeline-height;
     background-color: $color-dark;
+    color: $color-blue-grey;
     letter-spacing: 0.2px;
     font-weight: 600; // semi-bold
     font-size: 11px;
@@ -28,15 +34,19 @@
   $beat-width: 120px;
 
   .time-marker {
-    color: $color-blue-grey;
     display: inline-block;
     width: $beat-width;
   }
 
   .row-labels {
-    font-size: 75%;
-    margin-top: 18px;
-    min-width: $beat-width / 6;
+    box-sizing: border-box;
+    width: 81px;
+    font-size: 9px;
+    line-height: 2.03;
+    letter-spacing: 0.2px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-align: center;
     flex-shrink: 0;
   }
 
@@ -66,7 +76,8 @@
   @include define-cell-width(16);
 
   .cell, .note-label {
-      height: 15px;
+    height: 15px;
+    border-bottom: solid 1px $color-dusk-four;
   }
 
   .note-label.playing {

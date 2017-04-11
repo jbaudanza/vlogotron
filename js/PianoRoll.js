@@ -342,6 +342,9 @@ export default class PianoRoll extends React.Component {
     return (
       <div className='piano-roll'>
         <div className='row-labels'>
+        <div className='song-duration'>
+          0.00 / 3.00
+        </div>
         {
           mapAllKeys((props) => (
             <NoteLabel
