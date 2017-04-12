@@ -9,6 +9,7 @@ import TouchableArea from './TouchableArea';
 import NoteLabel from './NoteLabel';
 
 import {songLengthInBeats} from './song';
+import {findWrappingClass} from './domutils';
 
 import './PianoRoll.scss';
 
@@ -208,9 +209,12 @@ class Timeline extends React.Component {
   }
 
   setupEventHandler(canvasEl) {
-    function mapEventToStartPosition(event) {
+    function mapEventToPixel(event) {
       const rect = canvasEl.getBoundingClientRect();
-      const x = event.clientX - rect.left;
+      return event.clientX - rect.left;
+    }
+
+    function mapPixelToStartPosition(x) {
       if (x >= 0) {
         return widthToBeat(x);
       } else {
@@ -218,18 +222,45 @@ class Timeline extends React.Component {
       }
     }
 
+    function startsOnPointer(obj) {
+      return findWrappingClass(obj.startEl, 'start-position-pointer');
+    }
+
     // TODO: implement this with touch events
-    const mouseDown$ = Observable.fromEvent(canvasEl, 'mousedown');
-    const changes$ = mouseDown$.switchMap((event) => {
-      return Observable
-        .of(mapEventToStartPosition(event))
-        .concat(documentMouseMove$.map(mapEventToStartPosition))
-        .takeUntil(documentMouseUp$);
+    const mouseDown$ = Observable.fromEvent(canvasEl.parentNode, 'mousedown');
+    const dragStreams$ = mouseDown$.map((event) => {
+      const stream$ = Observable
+        .of(mapEventToPixel(event))
+        .concat(documentMouseMove$.map(mapEventToPixel))
+        .takeUntil(documentMouseUp$)
+
+      return {
+        startEl: event.target,
+        stream: stream$
+      }
     });
 
-    this.subscription = changes$.subscribe(
-      (value) => this.props.onChangePlaybackStartPosition(value)
-    )
+    function isTrivialChange(list) {
+      if (list.length < 2)
+        return true;
+
+      return list.length < 10 && Math.abs(list[0] - list[list.length-1]) < 10;
+    }
+
+    const clears$ = dragStreams$
+      .filter(startsOnPointer)
+      .switchMap((obj) => obj.stream.toArray())
+      .filter(isTrivialChange)
+      .mapTo(null);
+
+    const changes$ = dragStreams$
+        .map(obj => obj.stream)
+        .mergeAll()
+        .map(mapPixelToStartPosition);
+
+    this.subscription = Observable
+        .merge(clears$, changes$)
+        .subscribe((value) => this.props.onChangePlaybackStartPosition(value));
   }
 
   render() {
@@ -244,7 +275,13 @@ class Timeline extends React.Component {
         top: 0
       };
       pointer = (
-        <svg version="1.1" width={svgWidth} height="25px" style={pointerStyle} fill="#88c7f4">
+        <svg
+            className='start-position-pointer'
+            version="1.1"
+            width={svgWidth}
+            height="25px"
+            style={pointerStyle}>
+
           <use xlinkHref='#svg-tracker' />
         </svg>
       );
@@ -253,7 +290,6 @@ class Timeline extends React.Component {
     return (
       <div className='timeline'
           style={{width: beatToWidth(this.props.totalBeats)}}>
-        {pointer}
         <canvas
             ref={this.bindCanvas}
             width={this.props.totalBeats * 30 * 4}
@@ -263,6 +299,7 @@ class Timeline extends React.Component {
             {i}
           </div>
         ))}
+        {pointer}
       </div>
     );
   }

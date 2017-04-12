@@ -6,7 +6,7 @@ import {Subject} from 'rxjs/Subject';
 
 import {bindAll, forEach, identity, find} from 'lodash';
 
-import {findParentNode, findWrappingLink} from './domutils'
+import {findWrappingLink, findWrappingClass} from './domutils'
 
 const documentMouseMove$ = Observable.fromEvent(document, 'mousemove');
 const documentMouseUp$ = Observable.fromEvent(document, 'mouseup');
@@ -101,11 +101,7 @@ export default class TouchableArea extends React.Component {
   }
 
   findTouchableElement(el) {
-    return findParentNode(
-        el,
-        (el) => el.classList && el.classList.contains('touchable'),
-        this.rootElement
-    );
+    return findWrappingClass(el, 'touchable', this.rootElement);
   }
 
   render() {

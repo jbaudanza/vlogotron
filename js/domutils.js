@@ -11,6 +11,14 @@ export function findParentNode(startEl, testFn, stopEl) {
   return null;
 }
 
+export function findWrappingClass(element, className, stopEl) {
+  return findParentNode(
+      element,
+      (el) => el.classList && el.classList.contains(className),
+      stopEl
+  );
+}
+
 export function findWrappingLink(element) {
   return findParentNode(element, (e) => e instanceof HTMLAnchorElement)
 }
