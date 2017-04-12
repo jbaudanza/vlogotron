@@ -143,6 +143,7 @@ export function startScriptedPlayback(song, bpm, startPosition, audioBuffers$, p
 
   return {
     playbackStartedAt: playbackStartedAt,
+    startPosition: startPosition,
     playCommands$: stream$
   }
 };

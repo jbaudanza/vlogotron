@@ -35,12 +35,20 @@ export default function playbackController(params, actions, currentUser$, subscr
   const bpm = 120;
   const songLength = songLengthInSeconds(song, bpm);
 
-  const scriptedPlaybackContext$$ = actions.play$
-    .map((action) => (
+  let startPosition$;
+  if (actions.changePlaybackStartPosition$) {
+    startPosition$ = actions.changePlaybackStartPosition$.startWith(null);
+  } else {
+    startPosition$ = Observable.of(0);
+  }
+
+  const scriptedPlaybackContext$$ = actions
+    .play$
+    .withLatestFrom(startPosition$, (action, startPosition) => (
       startScriptedPlayback(
         song,
         bpm,
-        0, // Start position
+        (startPosition || 0),
         audioBuffers$,
         actions.pause$
       )
@@ -74,7 +82,7 @@ export default function playbackController(params, actions, currentUser$, subscr
       .takeWhile(beat => beat < songLengthInBeats(song))
       .takeUntil(context.playCommands$.ignoreElements().concatWith(1))
       .concatWith(0)
-      //.map(beat => beat + startPosition) // TODO: Make this work
+      .map(beat => beat + context.startPosition)
   ));
 
   // TODO: Do we need to keep refcounts when merging these streams?
@@ -87,12 +95,13 @@ export default function playbackController(params, actions, currentUser$, subscr
   subscription.add(scriptedPlaybackContext$$.connect());
 
   return Observable.combineLatest(
-    videoClips$.startWith({}), loading$, isPlaying$, playbackPositionInSeconds$, currentUser$,
-    (videoClips, loading, isPlaying, playbackPositionInSeconds, currentUser) => ({
+    videoClips$.startWith({}), loading$, isPlaying$, playbackPositionInSeconds$, currentUser$, startPosition$,
+    (videoClips, loading, isPlaying, playbackPositionInSeconds, currentUser, playbackStartPosition) => ({
       videoClips,
       isPlaying,
       playbackPositionInSeconds,
       playbackPositionInBeats$$,
+      playbackStartPosition,
       loading,
       currentUser,
       playCommands$,

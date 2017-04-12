@@ -12,6 +12,9 @@ import {songLengthInBeats} from './song';
 
 import './PianoRoll.scss';
 
+const documentMouseMove$ = Observable.fromEvent(document, 'mousemove');
+const documentMouseUp$ = Observable.fromEvent(document, 'mouseup');
+
 const keys = [
   ['C', true],
   ['D', true],
@@ -74,6 +77,10 @@ const cellWidth = 30;
 
 function beatToWidth(beat) {
   return beat * cellWidth * 4;
+}
+
+function widthToBeat(width) {
+  return width / (cellWidth * 4)
 }
 
 function stylesForNote(note) {
@@ -165,26 +172,19 @@ class Grid extends React.PureComponent {
 class Timeline extends React.Component {
   constructor() {
     super();
-    this.onClick = this.onClick.bind(this);
-    this.setCanvas = this.setCanvas.bind(this);
+    this.bindCanvas = this.bindCanvas.bind(this);
   }
 
-  onClick(event) {
-    const el = event.target;
-    if (el.classList.contains('time-marker') && 'beat' in el.dataset) {
-      const newValue = parseFloat(el.dataset['beat']);
-      if (newValue === this.props.playbackStartPosition) {
-        this.props.onChangePlaybackStartPosition(null);
-      } else {
-        this.props.onChangePlaybackStartPosition(newValue);
-      }
+  bindCanvas(canvasEl) {
+    if (canvasEl) {
+      this.drawCanvas(canvasEl);
+      this.setupEventHandler(canvasEl);
+    } else {
+      this.subscription.unsubscribe();
     }
   }
 
-  setCanvas(canvasEl) {
-    if (!canvasEl)
-      return;
-
+  drawCanvas(canvasEl) {
     const ctx = canvasEl.getContext('2d');
 
     const cellWidth = 30;
@@ -207,10 +207,35 @@ class Timeline extends React.Component {
     }
   }
 
+  setupEventHandler(canvasEl) {
+    function mapEventToStartPosition(event) {
+      const rect = canvasEl.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      if (x >= 0) {
+        return widthToBeat(x);
+      } else {
+        return null;
+      }
+    }
+
+    // TODO: implement this with touch events
+    const mouseDown$ = Observable.fromEvent(canvasEl, 'mousedown');
+    const changes$ = mouseDown$.switchMap((event) => {
+      return Observable
+        .of(mapEventToStartPosition(event))
+        .concat(documentMouseMove$.map(mapEventToStartPosition))
+        .takeUntil(documentMouseUp$);
+    });
+
+    this.subscription = changes$.subscribe(
+      (value) => this.props.onChangePlaybackStartPosition(value)
+    )
+  }
+
   render() {
     let pointer;
 
-    const svgWidth = 14;
+    const svgWidth = 19;
 
     if (Number.isFinite(this.props.playbackStartPosition)) {
       const pointerStyle = {
@@ -219,18 +244,20 @@ class Timeline extends React.Component {
         top: 0
       };
       pointer = (
-        <svg version="1.1" width={svgWidth} height="18px" style={pointerStyle} fill="#88c7f4">
-          <use xlinkHref='#down-pointer' />
+        <svg version="1.1" width={svgWidth} height="25px" style={pointerStyle} fill="#88c7f4">
+          <use xlinkHref='#svg-tracker' />
         </svg>
       );
     }
 
     return (
       <div className='timeline'
-          onClick={this.onClick}
           style={{width: beatToWidth(this.props.totalBeats)}}>
         {pointer}
-        <canvas ref={this.setCanvas} width={this.props.totalBeats * 30 * 4} height={25}/>
+        <canvas
+            ref={this.bindCanvas}
+            width={this.props.totalBeats * 30 * 4}
+            height={25}/>
         {range(0, this.props.totalBeats).map(i => (
           <div className='time-marker' key={i} data-beat={i}>
             {i}

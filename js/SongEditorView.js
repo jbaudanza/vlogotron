@@ -18,6 +18,7 @@ export default class SongEditorView extends React.Component {
   componentWillMount() {
     this.onClickPlay = bindKey(this.props.actions.play$, 'next');
     this.onClickPause = bindKey(this.props.actions.pause$, 'next');
+    this.onChangePlaybackStartPosition = bindKey(this.props.actions.changePlaybackStartPosition$, 'next');
   }
 
   render() {
@@ -52,7 +53,8 @@ export default class SongEditorView extends React.Component {
             songLength={this.props.songLength}
             playbackPosition$$={this.props.playbackPositionInBeats$$}
             playing={{}}
-            onChangePlaybackStartPosition={function() {}} />
+            playbackStartPosition={this.props.playbackStartPosition}
+            onChangePlaybackStartPosition={this.onChangePlaybackStartPosition} />
         </div>
       </div>
     )
