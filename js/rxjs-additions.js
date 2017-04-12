@@ -63,3 +63,7 @@ Observable.prototype.debug = function(message) {
     }
   );
 };
+
+Observable.prototype.concatWith = function(value) {
+  return this.concat(Observable.of(value));
+};

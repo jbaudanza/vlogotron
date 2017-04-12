@@ -233,7 +233,7 @@ function runRecordingProcess(mediaStream, note, finish$, abort$) {
         obj.viewState
       )
     ))
-    .concat(Observable.of({}));
+    .concatWith({});
 
   const media$ = processes$.filter(o => o.media).map(o => o.media);
 

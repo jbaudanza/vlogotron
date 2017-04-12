@@ -149,7 +149,7 @@ export default class VideoGrid extends React.Component {
           .startWith(touch.firstEl)
           .map(x => x ? x.dataset.note : null) // Map to current note
           .distinctUntilChanged()
-          .concat(Observable.of(null))
+          .concatWith(null)
           .scan(reduceToCommands, {})
       ))
     }
