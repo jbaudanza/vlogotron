@@ -61,7 +61,7 @@ export default function playbackController(params, actions, currentUser$, subscr
     Observable
       .interval(1000).map(i => i + 1)
       .startWith(0)
-      .takeUntil(stream.ignoreElements())
+      .takeUntil(stream.ignoreElements().concat(Observable.of(1)))
       .concat(Observable.of(0))
   )).startWith(0);
 
@@ -72,7 +72,7 @@ export default function playbackController(params, actions, currentUser$, subscr
       .map((playbackStartedAt) => timestampToBeats(audioContext.currentTime - playbackStartedAt, bpm))
       .filter(beat => beat >= 0)
       .takeWhile(beat => beat < songLengthInBeats(song))
-      .takeUntil(context.playCommands$.ignoreElements())
+      .takeUntil(context.playCommands$.ignoreElements().concat(Observable.of(1)))
       .concat(Observable.of(0))
       //.map(beat => beat + startPosition) // TODO: Make this work
   )).startWith(0.0);
