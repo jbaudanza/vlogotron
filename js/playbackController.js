@@ -65,7 +65,7 @@ export default function playbackController(params, actions, currentUser$, subscr
       .concatWith(0)
   )).startWith(0);
 
-  const playbackPositionInBeats$ = scriptedPlaybackContext$$.switchMap((context) => (
+  const playbackPositionInBeats$$ = scriptedPlaybackContext$$.map((context) => (
     Observable
       .of(context.playbackStartedAt, animationFrame)
       .repeat()
@@ -75,7 +75,7 @@ export default function playbackController(params, actions, currentUser$, subscr
       .takeUntil(context.playCommands$.ignoreElements().concatWith(1))
       .concatWith(0)
       //.map(beat => beat + startPosition) // TODO: Make this work
-  )).startWith(0.0);
+  ));
 
   // TODO: Do we need to keep refcounts when merging these streams?
   const playCommands$ = Observable.merge(
@@ -92,7 +92,7 @@ export default function playbackController(params, actions, currentUser$, subscr
       videoClips,
       isPlaying,
       playbackPositionInSeconds,
-      playbackPositionInBeats$,
+      playbackPositionInBeats$$,
       loading,
       currentUser,
       playCommands$,

@@ -251,12 +251,20 @@ Timeline.propTypes = {
 export default class PianoRoll extends React.Component {
   constructor() {
     super();
-    this.state = {playheadStart: null};
+    this.state = {isPlaying: false};
     bindAll(this, 'bindPlayhead', 'bindPlaybackPosition', 'bindTouchableArea', 'bindScroller');
   }
 
   bindScroller(el) {
     this.scrollerEl = el;
+  }
+
+  bindPlaybackPosition(el) {
+    this.playbackPositionSpan = el;
+  }
+
+  bindPlayhead(el) {
+    this.playheadEl = el;
   }
 
   bindTouchableArea(component) {
@@ -302,44 +310,62 @@ export default class PianoRoll extends React.Component {
     }
   }
 
-  bindPlaybackPosition(el) {
-    if (el) {
-      this.props.playbackPosition$.subscribe((position) => {
-        el.textContent = position.toFixed(2);
-      });
+  updatePlaybackPosition(position) {
+    // Move playhead
+    const left = (cellWidth * 4 * position);
+    this.playheadEl.style.left = left + 'px';
+    this.playheadEl.style.display = 'block';
+
+    // Make sure the playhead is in view of the scroller
+    if (this.scrollerEl && (
+      left > this.scrollerEl.scrollLeft + this.scrollerEl.clientWidth ||
+      left < this.scrollerEl.scrollLeft
+    )) {
+      this.scrollerEl.scrollLeft = left;
+    }
+
+    // Update span text
+    this.playbackPositionSpan.textContent = position.toFixed(2);
+  }
+
+  stopPlayback() {
+    this.playbackPositionSpan.textContent = (0.0).toFixed(2);
+    this.scrollerEl.scrollLeft = 0;
+    this.playheadEl.style.display = 'none';
+    this.setState({isPlaying: false});
+
+    if (this.innerSubscribe) {
+      this.innerSubscribe.unsubscribe();
+      delete this.innerSubscribe;
     }
   }
 
-  bindPlayhead(el) {
-    if (el) {
-      this.subscription = this.props.playbackPosition$.subscribe((position) => {
-        const left = (cellWidth * 4 * position);
-        el.style.left = left + 'px';
-        el.style.display = 'block';
+  componentWillMount() {
+    this.outerSubscribe = this.props.playbackPosition$$.subscribe(
+      (playbackPosition$) => {
+        this.setState({isPlaying: true})
 
-        if (this.scrollerEl && (
-          left > this.scrollerEl.scrollLeft + this.scrollerEl.clientWidth ||
-          left < this.scrollerEl.scrollLeft
-        )) {
-          this.scrollerEl.scrollLeft = left;
-        }
-      });
-    } else {
-      // When playback stops, the playhead component will be unmounted and this
-      // code will run
-      if (this.subscription) {
-        this.subscription.unsubscribe();
-        delete this.subscription;
+        this.innerSubscribe = playbackPosition$.subscribe({
+          next: this.updatePlaybackPosition.bind(this),
+          complete: this.stopPlayback.bind(this)
+        });
       }
-      if (this.scrollerEl) {
-        this.scrollerEl.scrollLeft = 0;
-      }
-    }
+    );
+  }
+
+  componentDidMount() {
+    this.stopPlayback();
   }
 
   componentWillUnmount() {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
+    if (this.outerSubscribe) {
+      this.outerSubscribe.unsubscribe();
+      delete this.outerSubscribe;
+    }
+
+    if (this.innerSubscribe) {
+      this.innerSubscribe.unsubscribe();
+      delete this.innerSubscribe;
     }
   }
 
@@ -381,9 +407,7 @@ export default class PianoRoll extends React.Component {
               ))
             }
             </div>
-            {
-              this.props.playbackPosition$ ? (<div className='playhead' ref={this.bindPlayhead} />) : null
-            }
+            <div className='playhead' ref={this.bindPlayhead} />;
           </TouchableArea>
         </div>
       </div>
@@ -396,6 +420,6 @@ PianoRoll.propTypes = {
   cellsPerBeat:                  React.PropTypes.number.isRequired,
   playing:                       React.PropTypes.object.isRequired,
   onChangePlaybackStartPosition: React.PropTypes.func.isRequired,
-  playbackPosition$:             React.PropTypes.object.isRequired,
+  playbackPosition$$:            React.PropTypes.object.isRequired,
   playbackStartPosition:         React.PropTypes.number,
 }

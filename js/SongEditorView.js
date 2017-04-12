@@ -50,7 +50,7 @@ export default class SongEditorView extends React.Component {
             notes={songs['mary-had-a-little-lamb']}
             cellsPerBeat={4}
             songLength={this.props.songLength}
-            playbackPosition$={this.props.playbackPositionInBeats$}
+            playbackPosition$$={this.props.playbackPositionInBeats$$}
             playing={{}}
             onChangePlaybackStartPosition={function() {}} />
         </div>
