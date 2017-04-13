@@ -1,23 +1,23 @@
-import React from 'react';
+import React from "react";
 
-import Button from 'antd/lib/button';
-import Select from 'antd/lib/select';
-import Slider from 'antd/lib/slider';
-import Icon from 'antd/lib/icon';
-import Input from 'antd/lib/input';
-import InputNumber from 'antd/lib/input-number';
+import Button from "antd/lib/button";
+import Select from "antd/lib/select";
+import Slider from "antd/lib/slider";
+import Icon from "antd/lib/icon";
+import Input from "antd/lib/input";
+import InputNumber from "antd/lib/input-number";
 
 const ButtonGroup = Button.Group;
 const Option = Select.Option;
 
-import 'antd/lib/button/style/css';
-import 'antd/lib/select/style/css';
-import 'antd/lib/slider/style/css';
-import 'antd/lib/icon/style/css';
-import 'antd/lib/input-number/style/css';
-import 'antd/lib/input/style/css';
+import "antd/lib/button/style/css";
+import "antd/lib/select/style/css";
+import "antd/lib/slider/style/css";
+import "antd/lib/icon/style/css";
+import "antd/lib/input-number/style/css";
+import "antd/lib/input/style/css";
 
-import PianoRoll from './PianoRoll';
+import PianoRoll from "./PianoRoll";
 
 // header actions
 // - save
@@ -26,12 +26,10 @@ import PianoRoll from './PianoRoll';
 // - play/pause
 // - change time signature
 //
-// signature: 
+// signature:
 //    beats-per-bar / beat-unit
 //    grid-selector: note-type
 //  beat-unit: quarter-node, eighth-note, etc..
-
-
 
 export default class PianoRollWrapper extends React.Component {
   constructor() {
@@ -53,11 +51,11 @@ export default class PianoRollWrapper extends React.Component {
     let playIcon;
     let playText;
     if (this.props.playbackPosition$) {
-      playIcon = 'pause-circle';
-      playText = 'pause';
+      playIcon = "pause-circle";
+      playText = "pause";
     } else {
-      playIcon = 'play-circle';
-      playText = 'play';
+      playIcon = "play-circle";
+      playText = "play";
     }
 
     let header;
@@ -77,23 +75,28 @@ export default class PianoRollWrapper extends React.Component {
       header = (
         <div>
           <Button
-              onClick={this.props.onClickPlay}
-              disabled={this.props.notes.length === 0}
-              icon={playIcon}>
+            onClick={this.props.onClickPlay}
+            disabled={this.props.notes.length === 0}
+            icon={playIcon}
+          >
             {playText}
           </Button>
           <Button onClick={this.props.onClickRecord}>
             Record
           </Button>
-          <InputNumber prefix={<Icon type='clock-circle-o' />} defaultValue={120} />
+          <InputNumber
+            prefix={<Icon type="clock-circle-o" />}
+            defaultValue={120}
+          />
           <Select
-              value={String(this.state.cellsPerBeat)}
-              onSelect={(v) => this.setState({cellsPerBeat: parseInt(v)})}>
-            <Option value='1'>Whole notes</Option>
-            <Option value='2'>Half notes</Option>
-            <Option value='4'>Quarter notes</Option>
-            <Option value='8'>Eighth notes</Option>
-            <Option value='16'>Sixteenth notes</Option>
+            value={String(this.state.cellsPerBeat)}
+            onSelect={v => this.setState({ cellsPerBeat: parseInt(v) })}
+          >
+            <Option value="1">Whole notes</Option>
+            <Option value="2">Half notes</Option>
+            <Option value="4">Quarter notes</Option>
+            <Option value="8">Eighth notes</Option>
+            <Option value="16">Sixteenth notes</Option>
           </Select>
 
           <Button disabled icon="save">Save</Button>
@@ -105,13 +108,16 @@ export default class PianoRollWrapper extends React.Component {
       <div>
         {header}
         <PianoRoll
-              notes={this.props.notes}
-              playbackPosition$={this.props.playbackPosition$}
-              cellsPerBeat={this.state.cellsPerBeat}
-              playing={this.props.playing}
-              onChangePlaybackStartPosition={this.props.onChangePlaybackStartPosition}
-              playbackStartPosition={this.props.playbackStartPosition}
-              ref={this.bindPianoRoll.bind(this)} />
+          notes={this.props.notes}
+          playbackPosition$={this.props.playbackPosition$}
+          cellsPerBeat={this.state.cellsPerBeat}
+          playing={this.props.playing}
+          onChangePlaybackStartPosition={
+            this.props.onChangePlaybackStartPosition
+          }
+          playbackStartPosition={this.props.playbackStartPosition}
+          ref={this.bindPianoRoll.bind(this)}
+        />
       </div>
     );
   }

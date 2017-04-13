@@ -13,6 +13,7 @@
     "messageformat": "^1.0.2",
     "messageformat-loader": "^0.4.1",
     "node-sass": "^4.2.0",
+    "prettier": "^1.0.2",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "rxjs": "5.3.0",
@@ -21,11 +22,13 @@
     "webpack": "2.2.0"
   },
   "devDependencies": {
-    "ava": "^0.17.0"
+    "ava": "^0.17.0",
+    "prettier": "^1.0.2"
   },
   "scripts": {
     "start": "firebase serve",
-    "test": "ava"
+    "test": "ava",
+    "prettier": "prettier --write \"{js,functions}/*.js\""
   },
   "ava": {
     "files": "tests/*.js",

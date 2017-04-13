@@ -1,5 +1,4 @@
-import {sumBy, uniqBy} from 'lodash';
-
+import { sumBy, uniqBy } from "lodash";
 
 // Based off of:
 //  http://typedarray.org/from-microphone-to-wav-with-getusermedia-and-web-audio/
@@ -33,7 +32,7 @@ export default function encodeWavSync(sampleBatches, sampleRate) {
 
   if (sampleBatches.length > 0) {
     // Assume each channel has the name number of samples
-    numberOfSamplesPerChannel = sumBy(sampleBatches, (batch) => batch[0].length);
+    numberOfSamplesPerChannel = sumBy(sampleBatches, batch => batch[0].length);
     numberOfChannels = sampleBatches[0].length;
   } else {
     numberOfSamplesPerChannel = 0;
@@ -41,7 +40,8 @@ export default function encodeWavSync(sampleBatches, sampleRate) {
   }
 
   // create the buffer and view to create the .WAV file
-  const dataSize = (numberOfSamplesPerChannel * numberOfChannels * bytesPerSample);
+  const dataSize =
+    numberOfSamplesPerChannel * numberOfChannels * bytesPerSample;
   const buffer = new ArrayBuffer(44 + dataSize);
   const view = new DataView(buffer);
 
@@ -57,17 +57,17 @@ export default function encodeWavSync(sampleBatches, sampleRate) {
   // RIFF chunk descriptor
   //
   // ChunkID
-  writeUTFBytes(0, 'RIFF');
+  writeUTFBytes(0, "RIFF");
   // ChunkSize
   view.setUint32(4, buffer.byteLength - 8, true);
   // Format
-  writeUTFBytes(8, 'WAVE');
+  writeUTFBytes(8, "WAVE");
 
   //
   // FMT sub-chunk
   //
   // Subchunk1ID
-  writeUTFBytes(12, 'fmt '); 
+  writeUTFBytes(12, "fmt ");
   // Subchunk1Size
   view.setUint32(16, 16, true);
   // AudioFormat
@@ -87,28 +87,28 @@ export default function encodeWavSync(sampleBatches, sampleRate) {
   // data sub-chunk
   //
   // Subchunk2ID
-  writeUTFBytes(36, 'data');
+  writeUTFBytes(36, "data");
   // Subchunk2Size
   view.setUint32(40, dataSize, true);
 
   // write the interleaved PCM samples
   let byteOffset = 44;
   const volume = 1;
-  const pcmMax = (((1 << bitsPerSample)) / 2) - 1;
+  const pcmMax = (1 << bitsPerSample) / 2 - 1;
 
-  sampleBatches.forEach((batch) => {
+  sampleBatches.forEach(batch => {
     if (batch.length !== numberOfChannels)
       throw "Mismatched channel count. Expected " + numberOfChannels;
 
-    if (uniqBy(batch, (array) => array.length).length !== 1)
+    if (uniqBy(batch, array => array.length).length !== 1)
       throw "Expected each channel to have the same number of sample";
 
     const numberOfSamples = batch[0].length;
 
-    for (let i=0; i<numberOfSamples; i++) {
-      for (let ch=0; ch<numberOfChannels; ch++) {
-         view.setInt16(byteOffset, batch[ch][i] * (pcmMax * volume), true);
-         byteOffset += bytesPerSample;
+    for (let i = 0; i < numberOfSamples; i++) {
+      for (let ch = 0; ch < numberOfChannels; ch++) {
+        view.setInt16(byteOffset, batch[ch][i] * (pcmMax * volume), true);
+        byteOffset += bytesPerSample;
       }
     }
   });

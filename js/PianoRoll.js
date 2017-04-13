@@ -1,63 +1,61 @@
-import React from 'react';
-import classNames from 'classnames';
+import React from "react";
+import classNames from "classnames";
 
-import {range, flatten, bindAll, identity, isEqual, max} from 'lodash';
+import { range, flatten, bindAll, identity, isEqual, max } from "lodash";
 
-import {Observable} from 'rxjs/Observable';
+import { Observable } from "rxjs/Observable";
 
-import TouchableArea from './TouchableArea';
-import NoteLabel from './NoteLabel';
+import TouchableArea from "./TouchableArea";
+import NoteLabel from "./NoteLabel";
 
-import {songLengthInBeats} from './song';
-import {findWrappingClass} from './domutils';
+import { songLengthInBeats } from "./song";
+import { findWrappingClass } from "./domutils";
 
-import './PianoRoll.scss';
+import "./PianoRoll.scss";
 
-const documentMouseMove$ = Observable.fromEvent(document, 'mousemove');
-const documentMouseUp$ = Observable.fromEvent(document, 'mouseup');
+const documentMouseMove$ = Observable.fromEvent(document, "mousemove");
+const documentMouseUp$ = Observable.fromEvent(document, "mouseup");
 
 const keys = [
-  ['C', true],
-  ['D', true],
-  ['E', false],
-  ['F', true],
-  ['G', true],
-  ['A', true],
-  ['B', false]
+  ["C", true],
+  ["D", true],
+  ["E", false],
+  ["F", true],
+  ["G", true],
+  ["A", true],
+  ["B", false]
 ].reverse();
 
 // TODO: This could probably be derived
+// prettier-ignore
 const rowMap = {
-  'C':  11,
-  'C#': 10,
-  'D':  9,
-  'D#': 8,
-  'E':  7,
-  'F':  6,
-  'F#': 5,
-  'G':  4,
-  'G#': 3,
-  'A':  2,
-  'A#': 1,
-  'B':  0
+  "C": 11,
+  "C#": 10,
+  "D": 9,
+  "D#": 8,
+  "E": 7,
+  "F": 6,
+  "F#": 5,
+  "G": 4,
+  "G#": 3,
+  "A": 2,
+  "A#": 1,
+  "B": 0
 };
-
 
 function Row(props) {
   const cellsPerBeat = props.cellsPerBeat;
 
   const className = classNames(`row cell-width-${cellsPerBeat}`, {
-    white: (props.color === 'white'),
-    black: (props.color === 'black')
+    white: props.color === "white",
+    black: props.color === "black"
   });
 
   return (
     <div className={className} data-note={props.note}>
-      {
-        range(0, props.totalBeats*cellsPerBeat).map(i => (
-          <div className='cell touchable' key={i} data-beat={i/cellsPerBeat} />
-        ))
-      }
+      {range(0, props.totalBeats * cellsPerBeat).map(i => (
+        <div className="cell touchable" key={i} data-beat={i / cellsPerBeat} />
+      ))}
     </div>
   );
 }
@@ -65,7 +63,7 @@ function Row(props) {
 function noteToString(props) {
   let str = props.note;
   if (props.sharp) {
-    str += '#';
+    str += "#";
   }
   if (props.octave) {
     str += props.octave;
@@ -81,7 +79,7 @@ function beatToWidth(beat) {
 }
 
 function widthToBeat(width) {
-  return width / (cellWidth * 4)
+  return width / (cellWidth * 4);
 }
 
 function stylesForNote(note) {
@@ -116,27 +114,23 @@ function mapElementToBeat(el) {
 }
 
 function isEmptyCell(el) {
-  return el && el.classList.contains('cell')
+  return el && el.classList.contains("cell");
 }
 
 function isNoteCell(el) {
-  return el && el.classList.contains('note')
+  return el && el.classList.contains("note");
 }
 
-
 function mapKeys(octave, keys, fn) {
-  return flatten(
-    keys.map(([note, sharp], i) => fn(note, sharp, octave, i)
-  ));
+  return flatten(keys.map(([note, sharp], i) => fn(note, sharp, octave, i)));
 }
 
 function mapAllKeys(iter) {
-
   function fn(note, sharp, octave) {
-    const white = iter({note, octave, sharp: false})
+    const white = iter({ note, octave, sharp: false });
 
     if (sharp) {
-      const black = iter({note, octave, sharp: true});
+      const black = iter({ note, octave, sharp: true });
       return [black, white];
     } else {
       return [white];
@@ -149,26 +143,23 @@ function mapAllKeys(iter) {
   ]);
 }
 
-
 class Grid extends React.PureComponent {
   render() {
     return (
       <div>
-      {
-        mapAllKeys((props) => (
+        {mapAllKeys(props => (
           <Row
-              color={props.sharp ? 'black': 'white'}
-              cellsPerBeat={this.props.cellsPerBeat}
-              totalBeats={this.props.totalBeats}
-              key={noteToString(props)}
-              note={noteToString(props)} />
-        ))
-      }
+            color={props.sharp ? "black" : "white"}
+            cellsPerBeat={this.props.cellsPerBeat}
+            totalBeats={this.props.totalBeats}
+            key={noteToString(props)}
+            note={noteToString(props)}
+          />
+        ))}
       </div>
     );
   }
 }
-
 
 class Timeline extends React.Component {
   constructor() {
@@ -186,7 +177,7 @@ class Timeline extends React.Component {
   }
 
   drawCanvas(canvasEl) {
-    const ctx = canvasEl.getContext('2d');
+    const ctx = canvasEl.getContext("2d");
 
     const cellWidth = 30;
 
@@ -194,15 +185,15 @@ class Timeline extends React.Component {
       ctx.beginPath();
       ctx.moveTo(x, canvasEl.height * height);
       ctx.lineTo(x, canvasEl.height);
-      ctx.strokeStyle='#363d69'; // $color-dark-blue-grey
+      ctx.strokeStyle = "#363d69"; // $color-dark-blue-grey
       ctx.stroke();
     }
 
-    for (let beat=0; beat<this.props.totalBeats; beat++) {
+    for (let beat = 0; beat < this.props.totalBeats; beat++) {
       const x = beat * cellWidth * 4;
       drawLine(x, 0.25);
 
-      for (let i=1; i<4; i++) {
+      for (let i = 1; i < 4; i++) {
         drawLine(x + i * cellWidth, 0.75);
       }
     }
@@ -223,44 +214,42 @@ class Timeline extends React.Component {
     }
 
     function startsOnPointer(obj) {
-      return findWrappingClass(obj.startEl, 'start-position-pointer');
+      return findWrappingClass(obj.startEl, "start-position-pointer");
     }
 
     // TODO: implement this with touch events
-    const mouseDown$ = Observable.fromEvent(canvasEl.parentNode, 'mousedown');
-    const dragStreams$ = mouseDown$.map((event) => {
-      const stream$ = Observable
-        .of(mapEventToPixel(event))
+    const mouseDown$ = Observable.fromEvent(canvasEl.parentNode, "mousedown");
+    const dragStreams$ = mouseDown$.map(event => {
+      const stream$ = Observable.of(mapEventToPixel(event))
         .concat(documentMouseMove$.map(mapEventToPixel))
-        .takeUntil(documentMouseUp$)
+        .takeUntil(documentMouseUp$);
 
       return {
         startEl: event.target,
         stream: stream$
-      }
+      };
     });
 
     function isTrivialChange(list) {
-      if (list.length < 2)
-        return true;
+      if (list.length < 2) return true;
 
-      return list.length < 10 && Math.abs(list[0] - list[list.length-1]) < 10;
+      return list.length < 10 && Math.abs(list[0] - list[list.length - 1]) < 10;
     }
 
     const clears$ = dragStreams$
       .filter(startsOnPointer)
-      .switchMap((obj) => obj.stream.toArray())
+      .switchMap(obj => obj.stream.toArray())
       .filter(isTrivialChange)
       .mapTo(null);
 
     const changes$ = dragStreams$
-        .map(obj => obj.stream)
-        .mergeAll()
-        .map(mapPixelToStartPosition);
+      .map(obj => obj.stream)
+      .mergeAll()
+      .map(mapPixelToStartPosition);
 
-    this.subscription = Observable
-        .merge(clears$, changes$)
-        .subscribe((value) => this.props.onChangePlaybackStartPosition(value));
+    this.subscription = Observable.merge(clears$, changes$).subscribe(value =>
+      this.props.onChangePlaybackStartPosition(value)
+    );
   }
 
   render() {
@@ -270,32 +259,36 @@ class Timeline extends React.Component {
 
     if (Number.isFinite(this.props.playbackStartPosition)) {
       const pointerStyle = {
-        position: 'absolute',
-        left: beatToWidth(this.props.playbackStartPosition) - svgWidth/2,
+        position: "absolute",
+        left: beatToWidth(this.props.playbackStartPosition) - svgWidth / 2,
         top: 0
       };
       pointer = (
         <svg
-            className='start-position-pointer'
-            version="1.1"
-            width={svgWidth}
-            height="25px"
-            style={pointerStyle}>
+          className="start-position-pointer"
+          version="1.1"
+          width={svgWidth}
+          height="25px"
+          style={pointerStyle}
+        >
 
-          <use xlinkHref='#svg-tracker' />
+          <use xlinkHref="#svg-tracker" />
         </svg>
       );
     }
 
     return (
-      <div className='timeline'
-          style={{width: beatToWidth(this.props.totalBeats)}}>
+      <div
+        className="timeline"
+        style={{ width: beatToWidth(this.props.totalBeats) }}
+      >
         <canvas
-            ref={this.bindCanvas}
-            width={this.props.totalBeats * 30 * 4}
-            height={25}/>
+          ref={this.bindCanvas}
+          width={this.props.totalBeats * 30 * 4}
+          height={25}
+        />
         {range(0, this.props.totalBeats).map(i => (
-          <div className='time-marker' key={i} data-beat={i}>
+          <div className="time-marker" key={i} data-beat={i}>
             {i}
           </div>
         ))}
@@ -305,18 +298,23 @@ class Timeline extends React.Component {
   }
 }
 
-
 Timeline.propTypes = {
-  totalBeats:                    React.PropTypes.number.isRequired,
+  totalBeats: React.PropTypes.number.isRequired,
   onChangePlaybackStartPosition: React.PropTypes.func.isRequired,
-  playbackStartPosition:         React.PropTypes.number
+  playbackStartPosition: React.PropTypes.number
 };
 
 export default class PianoRoll extends React.Component {
   constructor() {
     super();
-    this.state = {isPlaying: false};
-    bindAll(this, 'bindPlayhead', 'bindPlaybackPosition', 'bindTouchableArea', 'bindScroller');
+    this.state = { isPlaying: false };
+    bindAll(
+      this,
+      "bindPlayhead",
+      "bindPlaybackPosition",
+      "bindTouchableArea",
+      "bindScroller"
+    );
   }
 
   bindScroller(el) {
@@ -333,58 +331,59 @@ export default class PianoRoll extends React.Component {
 
   bindTouchableArea(component) {
     if (component) {
-      this.edits$ = component
-        .touches$$
-        .flatMap((event) => {
-          const firstBeat = mapElementToBeat(event.firstEl);
-          const moves$ = event.movements$
-              .filter(isEmptyCell)
-              .distinctUntilChanged(isEqual)
-              .scan(
-                (last, el) => ({
-                  action: 'move',
-                  to: mapElementToBeat(el),
-                  from: last.to
-                }),
-                {to: firstBeat}
-              );
+      this.edits$ = component.touches$$.flatMap(event => {
+        const firstBeat = mapElementToBeat(event.firstEl);
+        const moves$ = event.movements$
+          .filter(isEmptyCell)
+          .distinctUntilChanged(isEqual)
+          .scan(
+            (last, el) => ({
+              action: "move",
+              to: mapElementToBeat(el),
+              from: last.to
+            }),
+            { to: firstBeat }
+          );
 
-          if (isEmptyCell(event.firstEl)) {
-            const create$ = Observable.of(
-              Object.assign({action: 'create'},
-                  firstBeat, {duration: 1.0/this.props.cellsPerBeat}
+        if (isEmptyCell(event.firstEl)) {
+          const create$ = Observable.of(
+            Object.assign({ action: "create" }, firstBeat, {
+              duration: 1.0 / this.props.cellsPerBeat
+            })
+          );
+
+          return Observable.merge(create$, moves$);
+        } else if (isNoteCell(event.firstEl)) {
+          const deletes$ = event.movements$
+            .isEmpty()
+            .filter(identity)
+            .mapTo(
+              Object.assign(
+                { action: "delete" },
+                mapElementToBeat(event.firstEl)
               )
             );
 
-            return Observable.merge(create$, moves$);
-          } else if (isNoteCell(event.firstEl)) {
-            const deletes$ = event.movements$
-                .isEmpty()
-                .filter(identity)
-                .mapTo(Object.assign(
-                  {action: 'delete'},
-                  mapElementToBeat(event.firstEl))
-                );
-
-            return Observable.merge(moves$, deletes$);
-          } else {
-            return Observable.never();
-          }
-        });
+          return Observable.merge(moves$, deletes$);
+        } else {
+          return Observable.never();
+        }
+      });
     }
   }
 
   updatePlaybackPosition(position) {
     // Move playhead
-    const left = (cellWidth * 4 * position);
-    this.playheadEl.style.left = left + 'px';
-    this.playheadEl.style.display = 'block';
+    const left = cellWidth * 4 * position;
+    this.playheadEl.style.left = left + "px";
+    this.playheadEl.style.display = "block";
 
     // Make sure the playhead is in view of the scroller
-    if (this.scrollerEl && (
-      left > this.scrollerEl.scrollLeft + this.scrollerEl.clientWidth ||
-      left < this.scrollerEl.scrollLeft
-    )) {
+    if (
+      this.scrollerEl &&
+      (left > this.scrollerEl.scrollLeft + this.scrollerEl.clientWidth ||
+        left < this.scrollerEl.scrollLeft)
+    ) {
       this.scrollerEl.scrollLeft = left;
     }
 
@@ -395,8 +394,8 @@ export default class PianoRoll extends React.Component {
   stopPlayback() {
     this.playbackPositionSpan.textContent = (0.0).toFixed(2);
     this.scrollerEl.scrollLeft = 0;
-    this.playheadEl.style.display = 'none';
-    this.setState({isPlaying: false});
+    this.playheadEl.style.display = "none";
+    this.setState({ isPlaying: false });
 
     if (this.innerSubscribe) {
       this.innerSubscribe.unsubscribe();
@@ -405,9 +404,10 @@ export default class PianoRoll extends React.Component {
   }
 
   componentWillMount() {
-    this.outerSubscribe = this.props.playbackPosition$$.subscribe(
-      (playbackPosition$) => {
-        this.setState({isPlaying: true})
+    this
+      .outerSubscribe = this.props.playbackPosition$$.subscribe(
+      playbackPosition$ => {
+        this.setState({ isPlaying: true });
 
         this.innerSubscribe = playbackPosition$.subscribe({
           next: this.updatePlaybackPosition.bind(this),
@@ -438,40 +438,51 @@ export default class PianoRoll extends React.Component {
     const totalBeats = Math.floor(songLength + 8);
 
     return (
-      <div className='piano-roll'>
-        <div className='row-labels'>
-        <div className='song-duration'>
-          <span ref={this.bindPlaybackPosition}/> / {songLength.toFixed(2)}
-        </div>
-        {
-          mapAllKeys((props) => (
+      <div className="piano-roll">
+        <div className="row-labels">
+          <div className="song-duration">
+            <span ref={this.bindPlaybackPosition} /> / {songLength.toFixed(2)}
+          </div>
+          {mapAllKeys(props => (
             <NoteLabel
-              className={this.props.playing[noteToString(props)] ? 'playing' : null}
+              className={
+                this.props.playing[noteToString(props)] ? "playing" : null
+              }
               note={noteToString(props)}
-              key={noteToString(props)} />
-          ))
-        }
+              key={noteToString(props)}
+            />
+          ))}
         </div>
-        <div className='horizontal-scroller' ref={this.bindScroller}>
+        <div className="horizontal-scroller" ref={this.bindScroller}>
           <Timeline
-              totalBeats={totalBeats}
-              playbackStartPosition={this.props.playbackStartPosition}
-              onChangePlaybackStartPosition={this.props.onChangePlaybackStartPosition} />
-
-          <TouchableArea className='note-wrapper' ref={this.bindTouchableArea} style={{width: beatToWidth(totalBeats)}}>
-            <Grid cellsPerBeat={this.props.cellsPerBeat} totalBeats={totalBeats} />
-            <div>
-            {
-              this.props.notes.map((note, i) => (
-                <div className='note touchable'
-                    key={i}
-                    data-note={note[0]}
-                    data-beat={note[1]}
-                    style={stylesForNote(note)} />
-              ))
+            totalBeats={totalBeats}
+            playbackStartPosition={this.props.playbackStartPosition}
+            onChangePlaybackStartPosition={
+              this.props.onChangePlaybackStartPosition
             }
+          />
+
+          <TouchableArea
+            className="note-wrapper"
+            ref={this.bindTouchableArea}
+            style={{ width: beatToWidth(totalBeats) }}
+          >
+            <Grid
+              cellsPerBeat={this.props.cellsPerBeat}
+              totalBeats={totalBeats}
+            />
+            <div>
+              {this.props.notes.map((note, i) => (
+                <div
+                  className="note touchable"
+                  key={i}
+                  data-note={note[0]}
+                  data-beat={note[1]}
+                  style={stylesForNote(note)}
+                />
+              ))}
             </div>
-            <div className='playhead' ref={this.bindPlayhead} />;
+            <div className="playhead" ref={this.bindPlayhead} />;
           </TouchableArea>
         </div>
       </div>
@@ -480,10 +491,10 @@ export default class PianoRoll extends React.Component {
 }
 
 PianoRoll.propTypes = {
-  notes:                         React.PropTypes.array.isRequired,
-  cellsPerBeat:                  React.PropTypes.number.isRequired,
-  playing:                       React.PropTypes.object.isRequired,
+  notes: React.PropTypes.array.isRequired,
+  cellsPerBeat: React.PropTypes.number.isRequired,
+  playing: React.PropTypes.object.isRequired,
   onChangePlaybackStartPosition: React.PropTypes.func.isRequired,
-  playbackPosition$$:            React.PropTypes.object.isRequired,
-  playbackStartPosition:         React.PropTypes.number,
-}
+  playbackPosition$$: React.PropTypes.object.isRequired,
+  playbackStartPosition: React.PropTypes.number
+};

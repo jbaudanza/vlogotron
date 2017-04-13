@@ -1,23 +1,32 @@
-import {Observable} from 'rxjs/Observable';
-import {songLengthInSeconds} from './song';
+import { Observable } from "rxjs/Observable";
+import { songLengthInSeconds } from "./song";
 
-import {values, pick, sum, mapValues} from 'lodash';
+import { values, pick, sum, mapValues } from "lodash";
 
-import {playCommands$ as midiPlayCommands$} from './midi';
-import {playCommands$ as keyboardPlayCommands$} from './keyboard';
-import {startLivePlaybackEngine, startScriptedPlayback} from './AudioPlaybackEngine';
-import {combine as combinePlayCommands} from './playCommands';
-import {videoClipsForUid, loadAudioBuffersFromVideoClips} from './mediaLoading';
+import { playCommands$ as midiPlayCommands$ } from "./midi";
+import { playCommands$ as keyboardPlayCommands$ } from "./keyboard";
+import {
+  startLivePlaybackEngine,
+  startScriptedPlayback
+} from "./AudioPlaybackEngine";
+import { combine as combinePlayCommands } from "./playCommands";
+import {
+  videoClipsForUid,
+  loadAudioBuffersFromVideoClips
+} from "./mediaLoading";
 
-import {animationFrame} from 'rxjs/scheduler/animationFrame';
-import audioContext from './audioContext';
+import { animationFrame } from "rxjs/scheduler/animationFrame";
+import audioContext from "./audioContext";
 
+import { songs, timestampToBeats, songLengthInBeats } from "./song";
 
-import {songs, timestampToBeats, songLengthInBeats} from './song';
-
-export default function playbackController(params, actions, currentUser$, subscription) {
-  const videoClips$ = videoClipsForUid(params.uid)
-      .publish();
+export default function playbackController(
+  params,
+  actions,
+  currentUser$,
+  subscription
+) {
+  const videoClips$ = videoClipsForUid(params.uid).publish();
 
   subscription.add(videoClips$.connect());
 
@@ -29,9 +38,12 @@ export default function playbackController(params, actions, currentUser$, subscr
   );
 
   // Looks like { [note]: [audioBuffer], ... }
-  const {audioBuffers$, loading$} = loadAudioBuffersFromVideoClips(videoClips$, subscription);
+  const { audioBuffers$, loading$ } = loadAudioBuffersFromVideoClips(
+    videoClips$,
+    subscription
+  );
 
-  const song = songs['mary-had-a-little-lamb'];
+  const song = songs["mary-had-a-little-lamb"];
   const bpm = 120;
   const songLength = songLengthInSeconds(song, bpm);
 
@@ -42,61 +54,79 @@ export default function playbackController(params, actions, currentUser$, subscr
     startPosition$ = Observable.of(0);
   }
 
-  const scriptedPlaybackContext$$ = actions
-    .play$
-    .withLatestFrom(startPosition$, (action, startPosition) => (
+  const scriptedPlaybackContext$$ = actions.play$
+    .withLatestFrom(startPosition$, (action, startPosition) =>
       startScriptedPlayback(
         song,
         bpm,
-        (startPosition || 0),
+        startPosition || 0,
         audioBuffers$,
         actions.pause$
       )
-    )).publish();
+    )
+    .publish();
 
-  const scriptedPlayCommands$$ = scriptedPlaybackContext$$.map(context => context.playCommands$)
+  const scriptedPlayCommands$$ = scriptedPlaybackContext$$.map(
+    context => context.playCommands$
+  );
 
   const isPlaying$ = scriptedPlayCommands$$
-    .switchMap((stream) => (
+    .switchMap(stream =>
       Observable.concat(
         Observable.of(true),
         stream.ignoreElements(),
         Observable.of(false)
       )
-    )).startWith(false);
+    )
+    .startWith(false);
 
-  const playbackPositionInSeconds$ = scriptedPlayCommands$$.switchMap((stream) => (
-    Observable
-      .interval(1000).map(i => i + 1)
-      .startWith(0)
-      .takeUntil(stream.ignoreElements().concatWith(1))
-      .concatWith(0)
-  )).startWith(0);
+  const playbackPositionInSeconds$ = scriptedPlayCommands$$
+    .switchMap(stream =>
+      Observable.interval(1000)
+        .map(i => i + 1)
+        .startWith(0)
+        .takeUntil(stream.ignoreElements().concatWith(1))
+        .concatWith(0)
+    )
+    .startWith(0);
 
-  const playbackPositionInBeats$$ = scriptedPlaybackContext$$.map((context) => (
-    Observable
-      .of(context.playbackStartedAt, animationFrame)
+  const playbackPositionInBeats$$ = scriptedPlaybackContext$$.map(context =>
+    Observable.of(context.playbackStartedAt, animationFrame)
       .repeat()
-      .map((playbackStartedAt) => timestampToBeats(audioContext.currentTime - playbackStartedAt, bpm))
+      .map(playbackStartedAt =>
+        timestampToBeats(audioContext.currentTime - playbackStartedAt, bpm)
+      )
       .filter(beat => beat >= 0)
       .takeWhile(beat => beat < songLengthInBeats(song))
       .takeUntil(context.playCommands$.ignoreElements().concatWith(1))
       .concatWith(0)
       .map(beat => beat + context.startPosition)
-  ));
+  );
 
   // TODO: Do we need to keep refcounts when merging these streams?
   const playCommands$ = Observable.merge(
     scriptedPlayCommands$$.concatAll(),
     startLivePlaybackEngine(audioBuffers$, livePlayCommands$, subscription)
-  )
+  );
 
   // Start up Observables with side-effect
   subscription.add(scriptedPlaybackContext$$.connect());
 
   return Observable.combineLatest(
-    videoClips$.startWith({}), loading$, isPlaying$, playbackPositionInSeconds$, currentUser$, startPosition$,
-    (videoClips, loading, isPlaying, playbackPositionInSeconds, currentUser, playbackStartPosition) => ({
+    videoClips$.startWith({}),
+    loading$,
+    isPlaying$,
+    playbackPositionInSeconds$,
+    currentUser$,
+    startPosition$,
+    (
+      videoClips,
+      loading,
+      isPlaying,
+      playbackPositionInSeconds,
+      currentUser,
+      playbackStartPosition
+    ) => ({
       videoClips,
       isPlaying,
       playbackPositionInSeconds,
@@ -106,9 +136,8 @@ export default function playbackController(params, actions, currentUser$, subscr
       currentUser,
       playCommands$,
       songLength,
-      songTitle: 'Mary had a little lamb',
-      authorName: 'Jonathan Baudanza'
+      songTitle: "Mary had a little lamb",
+      authorName: "Jonathan Baudanza"
     })
   );
 }
-

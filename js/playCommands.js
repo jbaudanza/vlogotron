@@ -2,9 +2,9 @@
 // into one unified stream to control playback.
 export function combine(playCommands$$) {
   return playCommands$$
-      .mergeAll()
-      .scan(reduceMultipleCommandStreams, {refCounts: {}})
-      .map(x => x.command);
+    .mergeAll()
+    .scan(reduceMultipleCommandStreams, { refCounts: {} })
+    .map(x => x.command);
 }
 
 function reduceMultipleCommandStreams(last, command) {
@@ -34,9 +34,7 @@ function reduceMultipleCommandStreams(last, command) {
 }
 
 function adjustRefCount(countObject, key, change) {
-  return Object.assign(
-      {},
-      countObject,
-      {[key]: (countObject[key] || 0) + change}
-  );
+  return Object.assign({}, countObject, {
+    [key]: (countObject[key] || 0) + change
+  });
 }

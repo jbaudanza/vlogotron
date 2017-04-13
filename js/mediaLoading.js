@@ -1,15 +1,24 @@
-import {Observable} from 'rxjs/Observable';
+import { Observable } from "rxjs/Observable";
 
-import audioContext from './audioContext';
+import audioContext from "./audioContext";
 
-import {getArrayBuffer} from './http';
+import { getArrayBuffer } from "./http";
 
 import {
-  pickBy, keys, includes, clone, omit, forEach, values, pick, sum, mapValues, identity
-} from 'lodash';
+  pickBy,
+  keys,
+  includes,
+  clone,
+  omit,
+  forEach,
+  values,
+  pick,
+  sum,
+  mapValues,
+  identity
+} from "lodash";
 
-import promiseFromTemplate from './promiseFromTemplate';
-
+import promiseFromTemplate from "./promiseFromTemplate";
 
 /*
   Emits objects that look like:
@@ -22,18 +31,18 @@ import promiseFromTemplate from './promiseFromTemplate';
   }
 */
 export function videoClipsForUid(uid) {
-  const eventsRef = firebase.database().ref('video-clip-events').child(uid);
-  const videosRef = firebase.storage().ref('video-clips').child(uid);
+  const eventsRef = firebase.database().ref("video-clip-events").child(uid);
+  const videosRef = firebase.storage().ref("video-clips").child(uid);
 
-  return Observable
-      .fromEvent(eventsRef.orderByKey(), 'value')
-      .map(mapEventSnapshotToActiveClipIds)
-      .scan(reduceClipIdsToPromises.bind(null, videosRef), {promises: {}})
-      .switchMap((obj) => (
-          Observable
-            .merge(...gatherPromises(obj))
-            .reduce((acc, obj) => Object.assign({}, acc, obj), {})
-      ));
+  return Observable.fromEvent(eventsRef.orderByKey(), "value")
+    .map(mapEventSnapshotToActiveClipIds)
+    .scan(reduceClipIdsToPromises.bind(null, videosRef), { promises: {} })
+    .switchMap(obj =>
+      Observable.merge(...gatherPromises(obj)).reduce(
+        (acc, obj) => Object.assign({}, acc, obj),
+        {}
+      )
+    );
 }
 
 function gatherPromises(obj) {
@@ -51,36 +60,36 @@ export function loadAudioBuffersFromVideoClips(videoClips$, subscription) {
     .scan((acc, obj) => Object.assign({}, acc, obj), {})
     .publishReplay();
 
-  const http$ = loadingContext$
-    .flatMap(c => (
-      Observable.from(values(pick(c.httpMap, c.newUrls)))
-    ));
+  const http$ = loadingContext$.flatMap(c =>
+    Observable.from(values(pick(c.httpMap, c.newUrls)))
+  );
 
   const loading$ = http$
-      .flatMap((http) => Observable.of(+1).concat(http.response.then(r => -1)))
-      .scan((i, j) => i + j, 0)
-      .map((count) => count > 0)
-      .startWith(true);
+    .flatMap(http => Observable.of(+1).concat(http.response.then(r => -1)))
+    .scan((i, j) => i + j, 0)
+    .map(count => count > 0)
+    .startWith(true);
 
   subscription.add(audioBuffers$.connect());
 
-  return {loading$, audioBuffers$};
+  return { loading$, audioBuffers$ };
 }
 
-const formats = ['webm', 'mp4', 'ogv'];
-
+const formats = ["webm", "mp4", "ogv"];
 
 function reduceClipIdsToPromises(ref, acc, clipIds) {
   const next = {
     clipIds: clipIds,
-    promises: {},
+    promises: {}
   };
 
   forEach(clipIds, (clipId, note) => {
     if (clipId in acc.promises) {
       next.promises[clipId] = acc.promises[clipId];
     } else {
-      next.promises[clipId] = mapClipIdToPromise(ref, clipId).then((result) => ({[note]: result}));
+      next.promises[clipId] = mapClipIdToPromise(ref, clipId).then(result => ({
+        [note]: result
+      }));
     }
   });
 
@@ -89,17 +98,17 @@ function reduceClipIdsToPromises(ref, acc, clipIds) {
 
 function mapClipIdToPromise(ref, clipId) {
   function urlFor(clipId, suffix) {
-    return ref.child(clipId + suffix).getDownloadURL()
+    return ref.child(clipId + suffix).getDownloadURL();
   }
 
   return promiseFromTemplate({
     clipId: clipId,
     sources: formats.map(format => ({
-      src: urlFor(clipId, '.' + format),
+      src: urlFor(clipId, "." + format),
       type: "video/" + format
     })),
-    poster: urlFor(clipId, '.png'),
-    audioUrl: urlFor(clipId, '-audio.mp4')
+    poster: urlFor(clipId, ".png"),
+    audioUrl: urlFor(clipId, "-audio.mp4")
   });
 }
 
@@ -112,10 +121,10 @@ function mapEventSnapshotToActiveClipIds(snapshot) {
   // simulate a reduce() call because firebase doesn't have one.
   snapshot.forEach(function(child) {
     const event = child.val();
-    acc = reduceEventsToVideoClipState(acc, event)
+    acc = reduceEventsToVideoClipState(acc, event);
   });
 
-  return pickBy(acc.uploadedNotes, (v) => includes(acc.transcodedClips, v));
+  return pickBy(acc.uploadedNotes, v => includes(acc.transcodedClips, v));
 }
 
 function reduceEventsToVideoClipState(acc, event) {
@@ -123,31 +132,36 @@ function reduceEventsToVideoClipState(acc, event) {
 
   // All new notes should have an octave. Some legacy ones don't
   if (event.note && !note.match(/\d$/)) {
-    note += '4';
+    note += "4";
   }
 
-  if (event.type === 'uploaded') {
-    const uploadedNotes = Object.assign({}, acc.uploadedNotes, {[note]: event.clipId});
-    return Object.assign({}, acc, {uploadedNotes});
+  if (event.type === "uploaded") {
+    const uploadedNotes = Object.assign({}, acc.uploadedNotes, {
+      [note]: event.clipId
+    });
+    return Object.assign({}, acc, { uploadedNotes });
   }
 
-  if (event.type === 'cleared') {
+  if (event.type === "cleared") {
     const uploadedNotes = omit(acc.uploadedNotes, note);
-    return Object.assign({}, acc, {uploadedNotes});
+    return Object.assign({}, acc, { uploadedNotes });
   }
 
-  if (event.type === 'transcoded') {
-    return Object.assign({}, acc, {transcodedClips: acc.transcodedClips.concat(event.clipId)});
+  if (event.type === "transcoded") {
+    return Object.assign({}, acc, {
+      transcodedClips: acc.transcodedClips.concat(event.clipId)
+    });
   }
 
   return acc;
 }
 
-
 function decodeAudioData(arraybuffer) {
   // Safari doesn't support the Promise syntax for decodeAudioData, so we need
   // to make the promise ourselves.
-  return new Promise(audioContext.decodeAudioData.bind(audioContext, arraybuffer));
+  return new Promise(
+    audioContext.decodeAudioData.bind(audioContext, arraybuffer)
+  );
 }
 
 export function getAudioBuffer(url) {
@@ -168,9 +182,7 @@ function reduceToAudioBuffers(acc, noteToUrlMap) {
     if (!next.httpMap[url]) {
       const http = getAudioBuffer(url);
 
-      next.promises.push(
-        http.audioBuffer.then(buffer => ({[note]: buffer}))
-      );
+      next.promises.push(http.audioBuffer.then(buffer => ({ [note]: buffer })));
       next.progressList.push(http.progress);
       next.newUrls.push(url);
 
@@ -179,8 +191,8 @@ function reduceToAudioBuffers(acc, noteToUrlMap) {
   });
 
   next.active = values(noteToUrlMap)
-      .map(url => next.httpMap[url])
-      .filter(identity)
+    .map(url => next.httpMap[url])
+    .filter(identity);
 
   return next;
 }

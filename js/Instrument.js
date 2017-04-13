@@ -1,63 +1,59 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React from "react";
+import ReactDOM from "react-dom";
 
+import { Observable } from "rxjs/Observable";
+import { Subject } from "rxjs/Subject";
+import { Subscription } from "rxjs/Subscription";
 
-import {Observable} from 'rxjs/Observable';
-import {Subject} from 'rxjs/Subject';
-import {Subscription} from 'rxjs/Subscription';
+import VideoGrid from "./VideoGrid";
+import PianoRollWrapper from "./PianoRollWrapper";
+import Link from "./Link";
+import { bindAll, omit, includes, identity, remove, times } from "lodash";
+import { findIndex, filter, concat } from "lodash";
 
-import VideoGrid from './VideoGrid';
-import PianoRollWrapper from './PianoRollWrapper';
-import Link from './Link';
-import {bindAll, omit, includes, identity, remove, times} from 'lodash';
-import {findIndex, filter, concat} from 'lodash';
+import VideoClipStore from "./VideoClipStore";
+import { startRecording } from "./RecordingStore";
+import { playCommands$ as scriptedPlayCommands$ } from "./VideoClipStore";
+import { startPlayback, audioLoading$, getAudioBuffer } from "./VideoClipStore";
 
-import VideoClipStore from './VideoClipStore';
-import {startRecording} from './RecordingStore';
-import {playCommands$ as scriptedPlayCommands$} from './VideoClipStore';
-import {startPlayback, audioLoading$, getAudioBuffer} from './VideoClipStore';
+import { findParentNode } from "./domutils";
 
-import {findParentNode} from './domutils';
-
-import {songs} from './song';
-
+import { songs } from "./song";
 
 // TODO: This is duplicated in VideoClipStore
 function startCountdown(countdownSeconds, interval) {
   return Observable.interval(interval)
-      .take(countdownSeconds)
-      .map(x => countdownSeconds - x - 1)
-      .filter(x => x > 0) // Leave out the last 0 value
-      .startWith(countdownSeconds)
-      .share();
+    .take(countdownSeconds)
+    .map(x => countdownSeconds - x - 1)
+    .filter(x => x > 0) // Leave out the last 0 value
+    .startWith(countdownSeconds)
+    .share();
 }
-
 
 function SongPlaybackButton(props) {
   return (
-    <Link className='play-button' onClick={props.onClick}>
+    <Link className="play-button" onClick={props.onClick}>
       <svg version="1.1" width="40px" height="40px">
-        <use xlinkHref={props.isPlaying ? '#pause-marks' : '#play-arrow'} />
+        <use xlinkHref={props.isPlaying ? "#pause-marks" : "#play-arrow"} />
       </svg>
-      <span className='song-title'>
+      <span className="song-title">
         {props.title}
       </span>
     </Link>
   );
 }
 
-
 function reduceEditsToSong(song, edit) {
   function matcher(edit, note) {
     return note[0] === edit.note && note[1] === edit.beat;
   }
 
-  switch(edit.action) {
-    case 'create':
+  switch (edit.action) {
+    case "create":
       return concat(song, [[edit.note, edit.beat, edit.duration]]);
-    case 'delete':
-      return filter(song, (note) => !matcher(edit, note));
-    case 'move':
+    case "delete":
+      return filter(song, note => !matcher(edit, note));
+    case "move":
       const index = findIndex(song, matcher.bind(null, edit.from));
       if (index !== -1) {
         const oldDuration = song[index][2];
@@ -73,21 +69,26 @@ function reduceEditsToSong(song, edit) {
   }
 }
 
-const metronomeBuffer = getAudioBuffer('/metronome.mp3').audioBuffer;
+const metronomeBuffer = getAudioBuffer("/metronome.mp3").audioBuffer;
 
 export default class Instrument extends React.Component {
   constructor() {
     super();
-    bindAll(this,
-      'onClear', 'onClickPlay', 'onClickRecord', 'bindPianoRoll',
-      'bindVideoGrid', 'onChangePlaybackStartPosition'
+    bindAll(
+      this,
+      "onClear",
+      "onClickPlay",
+      "onClickRecord",
+      "bindPianoRoll",
+      "bindVideoGrid",
+      "onChangePlaybackStartPosition"
     );
 
     this.state = {
       recording: null,
       playing: {},
       playbackStartPosition: null,
-      currentSong: songs['marry-had-a-little-lamb']
+      currentSong: songs["marry-had-a-little-lamb"]
     };
   }
 
@@ -96,19 +97,21 @@ export default class Instrument extends React.Component {
   }
 
   onChangePlaybackStartPosition(value) {
-    this.setState({playbackStartPosition: value});
+    this.setState({ playbackStartPosition: value });
   }
 
   bindVideoGrid(component) {
-    this.subscription.add(component.playCommands$$.subscribe((stream$) => {
-      this.playCommands$.next(stream$)
-    }));
+    this.subscription.add(
+      component.playCommands$$.subscribe(stream$ => {
+        this.playCommands$.next(stream$);
+      })
+    );
   }
 
   bindPianoRoll(component) {
     component.edits$
       .scan(reduceEditsToSong, this.state.currentSong)
-      .subscribe((v) => this.setState({currentSong: v}));
+      .subscribe(v => this.setState({ currentSong: v }));
   }
 
   componentWillMount() {
@@ -122,13 +125,17 @@ export default class Instrument extends React.Component {
 
     this.videoClipStore = new VideoClipStore(this.playCommands$);
 
-    this.subscription.add(this.videoClipStore.videoClips$.subscribe((obj) => {
-      this.setState({videoClips: obj})
-    }));
+    this.subscription.add(
+      this.videoClipStore.videoClips$.subscribe(obj => {
+        this.setState({ videoClips: obj });
+      })
+    );
 
-    this.subscription.add(audioLoading$.subscribe((value) => {
-      this.setState({loading: value})
-    }));
+    this.subscription.add(
+      audioLoading$.subscribe(value => {
+        this.setState({ loading: value });
+      })
+    );
   }
 
   onClear(note) {
@@ -141,21 +148,21 @@ export default class Instrument extends React.Component {
 
     const result = startRecording(note, stopSignal$);
 
-    this.setState({recording: note});
-    stopSignal$.subscribe({complete: () => this.setState({recording: null}) })
+    this.setState({ recording: note });
+    stopSignal$.subscribe({
+      complete: () => this.setState({ recording: null })
+    });
 
-    result.stream.then((stream) => this.setState({stream}));
+    result.stream.then(stream => this.setState({ stream }));
 
-    result.countdown$
-        .takeUntil(stopSignal$)
-        .subscribe({
-          next: (countdown) => this.setState({countdown}),
-          complete: () => this.setState({countdown: null})
-        });
+    result.countdown$.takeUntil(stopSignal$).subscribe({
+      next: countdown => this.setState({ countdown }),
+      complete: () => this.setState({ countdown: null })
+    });
 
     result.media.then(([videoBlob, audioBuffer]) => {
-      this.videoClipStore.addMedia(note, result.clipId, videoBlob, audioBuffer)
-    })
+      this.videoClipStore.addMedia(note, result.clipId, videoBlob, audioBuffer);
+    });
   }
 
   onStop(note) {
@@ -166,14 +173,14 @@ export default class Instrument extends React.Component {
     // TODO: This bpm shouldn't be hardcoded
     const bpm = 120;
     const countdown = 8;
-    const interval = (60/bpm);
+    const interval = 60 / bpm;
 
-    metronomeBuffer.then((buffer) => {
+    metronomeBuffer.then(buffer => {
       const startTime = this.context.audioContext.currentTime + 0.125;
 
-      times(countdown, (i) => {
+      times(countdown, i => {
         const source = this.context.audioContext.createBufferSource();
-        if (i%4 == 0) {
+        if (i % 4 == 0) {
           source.playbackRate.value = 2;
         }
         source.buffer = buffer;
@@ -182,10 +189,9 @@ export default class Instrument extends React.Component {
       });
 
       startCountdown(countdown, interval * 1000).subscribe({
-        next: (x) => this.setState({keyboardCountdown: x}),
-        complete: () => this.setState({keyboardCountdown: null})
+        next: x => this.setState({ keyboardCountdown: x }),
+        complete: () => this.setState({ keyboardCountdown: null })
       });
-
     });
   }
 
@@ -195,9 +201,13 @@ export default class Instrument extends React.Component {
     }
 
     if (this.state.songId !== songId) {
-      const song = (songId === 'current' ? this.state.currentSong : songs[songId]);
+      const song = songId === "current"
+        ? this.state.currentSong
+        : songs[songId];
       const playback = this.videoClipStore.startPlayback(
-          song, (this.state.playbackStartPosition || 0), this.pauseActions$.take(1)
+        song,
+        this.state.playbackStartPosition || 0,
+        this.pauseActions$.take(1)
       );
 
       this.setState({
@@ -205,13 +215,15 @@ export default class Instrument extends React.Component {
         playbackPosition$: playback.position
       });
 
-      playback.finished.then(() => this.setState({songId: null, playbackPosition$: null}));
+      playback.finished.then(() =>
+        this.setState({ songId: null, playbackPosition$: null })
+      );
     }
   }
 
   render() {
     return (
-      <div className='instrument'>
+      <div className="instrument">
         <VideoGrid
           loading={this.state.loading}
           readonly={this.props.readonly}
@@ -221,10 +233,9 @@ export default class Instrument extends React.Component {
           onClear={this.onClear}
           playCommands$={this.videoClipStore.playCommands$}
           ref={this.bindVideoGrid}
-          />
+        />
 
-        {
-          /*
+        {/*
         <PianoRollWrapper
           notes={this.state.currentSong}
           ref={this.bindPianoRoll}
@@ -236,8 +247,7 @@ export default class Instrument extends React.Component {
           onClickRecord={this.onClickRecord}
           countdown={this.state.keyboardCountdown}
           />
-          */
-        }
+          */}
 
         {/*
         <SongPlaybackButton

@@ -1,72 +1,77 @@
-const os = require('os');
-const fs = require('fs');
-const path = require('path');
-const process = require('process');
-const gcs = require('@google-cloud/storage')();
+const os = require("os");
+const fs = require("fs");
+const path = require("path");
+const process = require("process");
+const gcs = require("@google-cloud/storage")();
 
-const ffmpeg = require('fluent-ffmpeg');
-ffmpeg.setFfmpegPath(require('@ffmpeg-installer/ffmpeg').path);
-ffmpeg.setFfprobePath(require('@ffprobe-installer/ffprobe').path);
-
+const ffmpeg = require("fluent-ffmpeg");
+ffmpeg.setFfmpegPath(require("@ffmpeg-installer/ffmpeg").path);
+ffmpeg.setFfprobePath(require("@ffprobe-installer/ffprobe").path);
 
 let jobCount = 0;
 const tempDir = os.tmpdir();
 
 function runTranscodeJob(bucketName, inputStorageName, database) {
-  console.log('Running transcoder on', inputStorageName);
+  console.log("Running transcoder on", inputStorageName);
 
-  const list = inputStorageName.split('/');
+  const list = inputStorageName.split("/");
   const uid = list[1];
   const clipId = list[2];
 
   const filenamePrefix = `transcoder-${process.pid}-${jobCount}`;
 
-  const inputFilename = path.join(tempDir, filenamePrefix + '-input');
+  const inputFilename = path.join(tempDir, filenamePrefix + "-input");
   const outputFilename = path.join(tempDir, filenamePrefix);
 
   jobCount++;
 
   const sourceBucket = gcs.bucket(bucketName);
-  const destinationBucket = gcs.bucket('vlogotron-95daf.appspot.com');
+  const destinationBucket = gcs.bucket("vlogotron-95daf.appspot.com");
 
-  const outputStorageName = 'video-clips/' + uid + '/' + clipId;
+  const outputStorageName = "video-clips/" + uid + "/" + clipId;
 
-  return sourceBucket.file(inputStorageName)
-    .download({destination: inputFilename})
+  return (
+    sourceBucket
+      .file(inputStorageName)
+      .download({ destination: inputFilename })
       .then(() => transcode(inputFilename, tempDir, filenamePrefix))
       // This is kind of a hack. It seems like the ffmpeg process takes a little
       // while to shutdown and close out the file description. So we have to
       // poll to make sure it's ready before uploading.
       .then(() => waitForFileToExist(outputFilename + ".png"))
       .then(function() {
-        console.log('Transcoding finished');
-        const extensions = ['.webm', '.mp4', '.ogv', '.png', '-audio.mp4'];
+        console.log("Transcoding finished");
+        const extensions = [".webm", ".mp4", ".ogv", ".png", "-audio.mp4"];
 
-        return Promise.all(extensions.map(function(fmt) {
-          const localFilename = outputFilename + fmt;
-          const options = { destination: outputStorageName + fmt };
+        return Promise.all(
+          extensions.map(function(fmt) {
+            const localFilename = outputFilename + fmt;
+            const options = { destination: outputStorageName + fmt };
 
-          if (fmt === '-audio.mp4') {
-            options.metadata = { contentType: 'audio/mp4' };
-          }
+            if (fmt === "-audio.mp4") {
+              options.metadata = { contentType: "audio/mp4" };
+            }
 
-          return destinationBucket.upload(localFilename, options).then(() => {
-            // The unlink is done asynchronously, and there's no need to wait
-            // for it to finish. Also, errors aren't really important other
-            // than logging.
-            fs.unlink(localFilename, function(err) {
-              if (err) {
-                console.warn('Error unlinking', localFilename, err)
-              }
+            return destinationBucket.upload(localFilename, options).then(() => {
+              // The unlink is done asynchronously, and there's no need to wait
+              // for it to finish. Also, errors aren't really important other
+              // than logging.
+              fs.unlink(localFilename, function(err) {
+                if (err) {
+                  console.warn("Error unlinking", localFilename, err);
+                }
+              });
             });
-          });
-        }));
+          })
+        );
       })
       .then(function() {
-        database.ref('video-clip-events')
+        database
+          .ref("video-clip-events")
           .child(uid)
-          .push({type: 'transcoded', clipId: clipId});
-      });
+          .push({ type: "transcoded", clipId: clipId });
+      })
+  );
 }
 
 function waitForFileToExist(filename) {
@@ -78,7 +83,7 @@ function waitForFileToExist(filename) {
         resolve();
       } else {
         if (--checks === 0) {
-          reject('Timed out waiting for ' + filename);
+          reject("Timed out waiting for " + filename);
         } else {
           setTimeout(() => fs.exists(filename, check), sleepTime);
         }
@@ -94,47 +99,42 @@ function transcode(inputFilename, outputDirectory, baseFilename) {
 
   return new Promise((resolve, reject) => {
     ffmpeg(inputFilename)
-      .output(fullPath + '-audio.mp4')
-      .audioCodec('aac')
+      .output(fullPath + "-audio.mp4")
+      .audioCodec("aac")
       .noVideo()
-      .format('mp4')
-
+      .format("mp4")
       // Note: I left the audio codecs comments out, in case we ever want them
       // for some reason. For now, there's no need to keep audio in the videos
-      .size('?x150')
-      .output(fullPath + '.mp4')
+      .size("?x150")
+      .output(fullPath + ".mp4")
       //.audioCodec('aac')
       .noAudio()
-      .videoCodec('libx264')
-      .format('mp4')
-
-      .output(fullPath +'.webm')
+      .videoCodec("libx264")
+      .format("mp4")
+      .output(fullPath + ".webm")
       //.audioCodec('libvorbis')
       .noAudio()
-      .videoCodec('libvpx')
-      .format('webm')
-
-      .output(fullPath + '.ogv')
+      .videoCodec("libvpx")
+      .format("webm")
+      .output(fullPath + ".ogv")
       //.audioCodec('libvorbis')
       .noAudio()
-      .videoCodec('libtheora')
-      .format('ogv')
-
+      .videoCodec("libtheora")
+      .format("ogv")
       .screenshots({
         count: 1,
-        filename: baseFilename + '.png',
+        filename: baseFilename + ".png",
         folder: outputDirectory,
         timemarks: [0],
-        size: '?x150'
+        size: "?x150"
       })
-
       // .on('start', function(commandLine) {
       //   console.log('Spawned Ffmpeg with command: ' + commandLine);
       // })
-      .on('end', resolve)
-      .on('error', function(error, stdout, stderr) {
-        console.log('stdout', stdout)
-        console.error('stderr', stderr);
+      .on("end", resolve)
+      .on("error", function(error, stdout, stderr) {
+        console.log("stdout", stdout);
+        console.error("stderr", stderr);
         reject(error);
       })
       .run();

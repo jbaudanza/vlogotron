@@ -1,25 +1,25 @@
-import './rxjs-additions';
+import "./rxjs-additions";
 
-import React from 'react';
-import ReactDOM from 'react-dom';
-import {Observable} from 'rxjs/Observable';
-import {Subscription} from 'rxjs/Subscription';
-import {Subject} from 'rxjs/Subject';
+import React from "react";
+import ReactDOM from "react-dom";
+import { Observable } from "rxjs/Observable";
+import { Subscription } from "rxjs/Subscription";
+import { Subject } from "rxjs/Subject";
 
-import {bindAll, fromPairs, forEach} from 'lodash';
+import { bindAll, fromPairs, forEach } from "lodash";
 
-import SvgAssets from './SvgAssets';
+import SvgAssets from "./SvgAssets";
 
-import audioContext from './audioContext';
+import audioContext from "./audioContext";
 
-import {findWrappingLink} from './domutils';
+import { findWrappingLink } from "./domutils";
 
-import './style.scss';
-import {navigate, currentRoute$} from './router';
+import "./style.scss";
+import { navigate, currentRoute$ } from "./router";
 
-import bindComponentToObservable from './bindComponentToObservable';
+import bindComponentToObservable from "./bindComponentToObservable";
 
-const messages = require('messageformat-loader!json-loader!./messages.json');
+const messages = require("messageformat-loader!json-loader!./messages.json");
 
 window.main = function(node) {
   ReactDOM.render(<App />, node);
@@ -28,16 +28,22 @@ window.main = function(node) {
 export const currentUser$ = Observable.create(function(observer) {
   const auth = firebase.auth();
   observer.next(auth.currentUser);
-  firebase.auth().onAuthStateChanged((user) => observer.next(user));
+  firebase.auth().onAuthStateChanged(user => observer.next(user));
 });
-
 
 class App extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'onLogin', 'onNavigate', 'onLogout', 'onClick', 'onRouteChange');
+    bindAll(
+      this,
+      "onLogin",
+      "onNavigate",
+      "onLogout",
+      "onClick",
+      "onRouteChange"
+    );
 
-    this.state = {overlay: null};
+    this.state = { overlay: null };
   }
 
   onClick(event) {
@@ -47,7 +53,7 @@ class App extends React.Component {
       const clickable = findWrappingLink(node);
 
       if (clickable && clickable.host === document.location.host) {
-        this.onNavigate(clickable.getAttribute('href'));
+        this.onNavigate(clickable.getAttribute("href"));
         event.preventDefault();
         event.stopPropagation();
       }
@@ -63,31 +69,35 @@ class App extends React.Component {
 
     this.pageSubscription = new Subscription();
 
-    this.pageActions = fromPairs(route.actions.map(
-      (name) => ([name + '$', new Subject()]))
+    this.pageActions = fromPairs(
+      route.actions.map(name => [name + "$", new Subject()])
     );
 
     const viewState$ = route.controller(
-      route.params, this.pageActions, currentUser$, this.pageSubscription
+      route.params,
+      this.pageActions,
+      currentUser$,
+      this.pageSubscription
     );
 
     this.setState({
       overlay: route.overlay,
       location: route.location,
-      view: (<div/>) // If the controller emits immediately, this div will never be shown.
+      view: <div /> // If the controller emits immediately, this div will never be shown.
     });
 
     this.pageSubscription.add(
-      viewState$.subscribe((viewState) => {
+      viewState$.subscribe(viewState => {
         const View = route.view;
         this.setState({
           view: (
-             <View
-                {...viewState}
-                actions={this.pageActions}
-                onNavigate={this.onNavigate}
-                onLogin={this.onLogin}
-                onLogout={this.onLogout} />
+            <View
+              {...viewState}
+              actions={this.pageActions}
+              onNavigate={this.onNavigate}
+              onLogin={this.onLogin}
+              onLogout={this.onLogout}
+            />
           )
         });
       })
@@ -103,7 +113,7 @@ class App extends React.Component {
   disposePage() {
     if (this.pageSubscription) {
       this.pageSubscription.unsubscribe();
-      forEach(this.pageActions, (subject) => subject.complete());
+      forEach(this.pageActions, subject => subject.complete());
 
       delete this.pageSubscription;
       delete this.pageActions;
@@ -116,7 +126,7 @@ class App extends React.Component {
   }
 
   onLogin(providerString) {
-    const provider = new firebase.auth[providerString + 'AuthProvider']();
+    const provider = new firebase.auth[providerString + "AuthProvider"]();
     firebase.auth().signInWithPopup(provider);
   }
 
@@ -125,7 +135,7 @@ class App extends React.Component {
   }
 
   getChildContext() {
-    return {audioContext, messages};
+    return { audioContext, messages };
   }
 
   render() {
@@ -135,7 +145,8 @@ class App extends React.Component {
       overlay = (
         <Overlay
           onLogin={this.onLogin}
-          onClose={this.state.location.pathname} />
+          onClose={this.state.location.pathname}
+        />
       );
     }
 
@@ -151,5 +162,5 @@ class App extends React.Component {
 
 App.childContextTypes = {
   audioContext: React.PropTypes.object,
-  messages:     React.PropTypes.object
+  messages: React.PropTypes.object
 };

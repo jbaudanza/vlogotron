@@ -24,15 +24,15 @@ export default function promiseFromTemplate(template) {
       let promise;
 
       switch (typeof value) {
-        case 'string':
-        case 'number':
-        case 'undefined':
+        case "string":
+        case "number":
+        case "undefined":
           result[key] = value;
           break;
-        case 'object':
+        case "object":
           if (value == null) {
             result[key] = null;
-          } else if (typeof value.then === 'function') {
+          } else if (typeof value.then === "function") {
             promise = value;
           } else {
             promise = promiseFromTemplate(value);

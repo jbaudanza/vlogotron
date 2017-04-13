@@ -1,7 +1,6 @@
-import React from 'react';
-import {omit} from 'lodash';
-import classNames from 'classnames';
-
+import React from "react";
+import { omit } from "lodash";
+import classNames from "classnames";
 
 class Link extends React.Component {
   constructor(props) {
@@ -16,14 +15,23 @@ class Link extends React.Component {
   }
 
   render() {
-    const enabled = ('enabled' in this.props ? this.props.enabled : true);
-    const className = classNames(this.props.className, {enabled, disabled: !enabled});
+    const enabled = "enabled" in this.props ? this.props.enabled : true;
+    const className = classNames(this.props.className, {
+      enabled,
+      disabled: !enabled
+    });
 
-    const props = omit(this.props, 'onClick', 'children', 'enabled', 'className');
+    const props = omit(
+      this.props,
+      "onClick",
+      "children",
+      "enabled",
+      "className"
+    );
 
     if (this.props.onClick) {
       props.onClick = this.onClick;
-      props.href = '#';
+      props.href = "#";
     }
 
     if (enabled) {
@@ -34,14 +42,16 @@ class Link extends React.Component {
       );
     } else {
       return (
-        <span className={className} {...omit(props, 'onClick', 'href')}>{this.props.children}</span>
+        <span className={className} {...omit(props, "onClick", "href")}>
+          {this.props.children}
+        </span>
       );
     }
   }
 }
 
 React.propTypes = {
-  href:    React.PropTypes.string,
+  href: React.PropTypes.string,
   onClick: React.PropTypes.func,
   enabled: React.PropTypes.bool
 };

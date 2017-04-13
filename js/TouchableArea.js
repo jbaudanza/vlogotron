@@ -1,21 +1,19 @@
-import React from 'react';
+import React from "react";
 
-import {Observable} from 'rxjs/Observable';
-import {Subject} from 'rxjs/Subject';
+import { Observable } from "rxjs/Observable";
+import { Subject } from "rxjs/Subject";
 
+import { bindAll, forEach, identity, find } from "lodash";
 
-import {bindAll, forEach, identity, find} from 'lodash';
+import { findWrappingLink, findWrappingClass } from "./domutils";
 
-import {findWrappingLink, findWrappingClass} from './domutils'
-
-const documentMouseMove$ = Observable.fromEvent(document, 'mousemove');
-const documentMouseUp$ = Observable.fromEvent(document, 'mouseup');
-
+const documentMouseMove$ = Observable.fromEvent(document, "mousemove");
+const documentMouseUp$ = Observable.fromEvent(document, "mouseup");
 
 export default class TouchableArea extends React.Component {
   constructor() {
     super();
-    bindAll(this, 'onMouseDown', 'setRootElement', 'onTouchStart');
+    bindAll(this, "onMouseDown", "setRootElement", "onTouchStart");
     this.touches$$ = new Subject();
   }
 
@@ -38,8 +36,7 @@ export default class TouchableArea extends React.Component {
 
     // Make sure we don't trap an event that was supposed to go to a link
     const link = findWrappingLink(event.target);
-    if (link && link !== el)
-      return;
+    if (link && link !== el) return;
 
     if (el) {
       const stream$ = documentMouseMove$
@@ -56,15 +53,15 @@ export default class TouchableArea extends React.Component {
   setRootElement(node) {
     this.rootElement = node;
 
-    this.touchMove$ = Observable.fromEvent(this.rootElement, 'touchmove');
-    this.touchEnd$ = Observable.fromEvent(this.rootElement, 'touchend');
-    this.touchCancel$ = Observable.fromEvent(this.rootElement, 'touchcancel');
+    this.touchMove$ = Observable.fromEvent(this.rootElement, "touchmove");
+    this.touchEnd$ = Observable.fromEvent(this.rootElement, "touchend");
+    this.touchCancel$ = Observable.fromEvent(this.rootElement, "touchcancel");
   }
 
   onTouchStart(event) {
     let anyHandled = false;
 
-    forEach(event.changedTouches, (touch) => {
+    forEach(event.changedTouches, touch => {
       const el = this.findTouchableElement(touch.target);
 
       if (el) {
@@ -74,21 +71,23 @@ export default class TouchableArea extends React.Component {
 
         function filterTouches(stream$) {
           return stream$
-              .map(e => find(e.changedTouches, t => t.identifier === identifier))
-              .filter(identity)
+            .map(e => find(e.changedTouches, t => t.identifier === identifier))
+            .filter(identity);
         }
 
         const end$ = Observable.merge(
-            filterTouches(this.touchEnd$),
-            filterTouches(this.touchCancel$),
+          filterTouches(this.touchEnd$),
+          filterTouches(this.touchCancel$)
         );
 
         const stream$ = filterTouches(this.touchMove$)
-            .map(t => this.findTouchableElement(
+          .map(t =>
+            this.findTouchableElement(
               // TODO: This might not work http://stackoverflow.com/a/33464547/667069
               document.elementFromPoint(t.clientX, t.clientY)
-            ))
-            .takeUntil(end$);
+            )
+          )
+          .takeUntil(end$);
 
         this.start(el, stream$);
       }
@@ -101,16 +100,18 @@ export default class TouchableArea extends React.Component {
   }
 
   findTouchableElement(el) {
-    return findWrappingClass(el, 'touchable', this.rootElement);
+    return findWrappingClass(el, "touchable", this.rootElement);
   }
 
   render() {
     return (
-      <div ref={this.setRootElement}
-          onTouchStart={this.onTouchStart}
-          onMouseDown={this.onMouseDown}
-          className={this.props.className}
-          style={this.props.style}>
+      <div
+        ref={this.setRootElement}
+        onTouchStart={this.onTouchStart}
+        onMouseDown={this.onMouseDown}
+        className={this.props.className}
+        style={this.props.style}
+      >
         {this.props.children}
       </div>
     );

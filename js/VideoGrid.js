@@ -1,22 +1,19 @@
-import React from 'react';
-import {Observable} from 'rxjs/Observable';
+import React from "react";
+import { Observable } from "rxjs/Observable";
 
-import {omit, bindAll} from 'lodash';
+import { omit, bindAll } from "lodash";
 
-import TouchableArea from './TouchableArea';
-import VideoCell from './VideoCell';
+import TouchableArea from "./TouchableArea";
+import VideoCell from "./VideoCell";
 
-import Spin from 'antd/lib/spin';
+import Spin from "antd/lib/spin";
 //import 'antd/lib/spin/style/css';
 
-import './VideoGrid.scss';
+import "./VideoGrid.scss";
 
-
-const notes = [
-  'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
-].map(note => note + '4').concat(['C5', 'C#5', 'D5', 'D#5'])
-
-
+const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+  .map(note => note + "4")
+  .concat(["C5", "C#5", "D5", "D#5"]);
 
 export default class VideoGrid extends React.Component {
   constructor(props) {
@@ -25,7 +22,7 @@ export default class VideoGrid extends React.Component {
       playing: {}
     };
 
-    bindAll(this, 'bindTouchableArea', 'onPlayCommand');
+    bindAll(this, "bindTouchableArea", "onPlayCommand");
   }
 
   componentWillMount() {
@@ -53,32 +50,34 @@ export default class VideoGrid extends React.Component {
   }
 
   onStartPlayback(note, when) {
-    const videoEl = document.getElementById('playback-' + note);
+    const videoEl = document.getElementById("playback-" + note);
     if (videoEl) {
       videoEl.currentTime = 0;
       const promise = videoEl.play();
 
       // Older version of FF don't return a promise
       if (promise) {
-        promise.then(() => {
-          // Try to compensate for any delay in starting the video
-          if (when) {
-            const delta = this.context.audioContext.currentTime - when;
-            if (delta > 0) {
-              videoEl.currentTime = delta;
+        promise
+          .then(() => {
+            // Try to compensate for any delay in starting the video
+            if (when) {
+              const delta = this.context.audioContext.currentTime - when;
+              if (delta > 0) {
+                videoEl.currentTime = delta;
+              }
             }
-          }
-        }).catch(function(e) {
-          // 20 = AbortError.
-          // This can happen if we try to pause playback before it starts. This
-          // can safely be ignored. It results in errors that look like:
-          //
-          //   The play() request was interrupted by a call to pause()
-          //
-          if (e.code !== 20) {
-            throw e;
-          }
-        });
+          })
+          .catch(function(e) {
+            // 20 = AbortError.
+            // This can happen if we try to pause playback before it starts. This
+            // can safely be ignored. It results in errors that look like:
+            //
+            //   The play() request was interrupted by a call to pause()
+            //
+            if (e.code !== 20) {
+              throw e;
+            }
+          });
       }
     }
 
@@ -87,13 +86,13 @@ export default class VideoGrid extends React.Component {
   }
 
   onStopPlayback(note) {
-    const videoEl = document.getElementById('playback-' + note);
+    const videoEl = document.getElementById("playback-" + note);
     if (videoEl) {
       videoEl.pause();
       videoEl.currentTime = 0;
     }
 
-    this.setState({playing: omit(this.state.playing, note)});
+    this.setState({ playing: omit(this.state.playing, note) });
   }
 
   propsForCell(note) {
@@ -144,24 +143,24 @@ export default class VideoGrid extends React.Component {
     }
 
     if (touchableArea) {
-      this.playCommands$$ = touchableArea.touches$$.map((touch) => (
+      this.playCommands$$ = touchableArea.touches$$.map(touch =>
         touch.movements$
           .startWith(touch.firstEl)
-          .map(x => x ? x.dataset.note : null) // Map to current note
+          .map(x => (x ? x.dataset.note : null)) // Map to current note
           .distinctUntilChanged()
           .concatWith(null)
           .scan(reduceToCommands, {})
-      ))
+      );
     }
   }
 
   render() {
     return (
       <Spin tip="Loading" size="large" spinning={this.props.loading}>
-        <TouchableArea className='video-container' ref={this.bindTouchableArea}>
-        {
-          notes.map((note) => <VideoCell key={note} {...this.propsForCell(note)} />)
-        }
+        <TouchableArea className="video-container" ref={this.bindTouchableArea}>
+          {notes.map(note => (
+            <VideoCell key={note} {...this.propsForCell(note)} />
+          ))}
         </TouchableArea>
       </Spin>
     );
@@ -169,17 +168,17 @@ export default class VideoGrid extends React.Component {
 }
 
 VideoGrid.propTypes = {
-  playCommands$:        React.PropTypes.object.isRequired,
-  readonly:             React.PropTypes.bool.isRequired,
-  loading:              React.PropTypes.bool.isRequired,
-  videoClips:           React.PropTypes.object.isRequired,
+  playCommands$: React.PropTypes.object.isRequired,
+  readonly: React.PropTypes.bool.isRequired,
+  loading: React.PropTypes.bool.isRequired,
+  videoClips: React.PropTypes.object.isRequired,
   countdownUntilRecord: React.PropTypes.number,
-  durationRecorded:     React.PropTypes.number,
-  mediaStream:          React.PropTypes.object,
-  onStartRecording:     React.PropTypes.func,
-  onStopRecording:      React.PropTypes.func,
-  onClear:              React.PropTypes.func,
-  noteBeingRecorded:    React.PropTypes.string
+  durationRecorded: React.PropTypes.number,
+  mediaStream: React.PropTypes.object,
+  onStartRecording: React.PropTypes.func,
+  onStopRecording: React.PropTypes.func,
+  onClear: React.PropTypes.func,
+  noteBeingRecorded: React.PropTypes.string
 };
 
 VideoGrid.contextTypes = {
