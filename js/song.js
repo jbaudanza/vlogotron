@@ -1,4 +1,4 @@
-import { max, filter } from "lodash";
+import { concat, filter, findIndex, max } from "lodash";
 
 // Consider encoding this like:
 /*
@@ -102,7 +102,7 @@ export function beatsToTimestamp(beats, bpm) {
 }
 
 export function songLengthInBeats(notes) {
-  return max(notes.map(note => note[1] + note[2]));
+  return max(notes.map(note => note[1] + note[2])) || 0;
 }
 
 export function songLengthInSeconds(notes, bpm) {

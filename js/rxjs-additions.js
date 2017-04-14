@@ -14,6 +14,7 @@ import "rxjs/add/operator/filter";
 import "rxjs/add/operator/first";
 import "rxjs/add/operator/ignoreElements";
 import "rxjs/add/operator/isEmpty";
+import "rxjs/add/operator/last";
 import "rxjs/add/operator/map";
 import "rxjs/add/operator/mapTo";
 import "rxjs/add/operator/mergeAll";

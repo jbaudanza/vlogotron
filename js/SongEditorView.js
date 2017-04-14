@@ -10,11 +10,16 @@ import PianoRollHeader from "./PianoRollHeader";
 
 import { songs } from "./song";
 
-import { bindKey } from "lodash";
+import { bindAll, bindKey } from "lodash";
 
 import "./SongEditorView.scss";
 
 export default class SongEditorView extends React.Component {
+  constructor() {
+    super();
+    bindAll(this, "bindPianoRoll");
+  }
+
   componentWillMount() {
     this.onClickPlay = bindKey(this.props.actions.play$, "next");
     this.onClickPause = bindKey(this.props.actions.pause$, "next");
@@ -22,6 +27,19 @@ export default class SongEditorView extends React.Component {
       this.props.actions.changePlaybackStartPosition$,
       "next"
     );
+  }
+
+  bindPianoRoll(component) {
+    if (component) {
+      this.subscription = component.edits$.subscribe(
+        this.props.actions.editSong$
+      );
+    } else {
+      if (this.subscription) {
+        this.subscription.unsubscribe();
+        delete this.subscription;
+      }
+    }
   }
 
   render() {
@@ -51,7 +69,8 @@ export default class SongEditorView extends React.Component {
             isRecording={false}
           />
           <PianoRoll
-            notes={songs["mary-had-a-little-lamb"]}
+            ref={this.bindPianoRoll}
+            notes={this.props.notes}
             cellsPerBeat={4}
             songLength={this.props.songLength}
             playbackPosition$$={this.props.playbackPositionInBeats$$}

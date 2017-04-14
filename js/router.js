@@ -57,7 +57,13 @@ function mapToRoute(location) {
       view: SongEditorView,
       controller: songEditorController,
       location: location,
-      actions: ["play", "pause", "playCommands$", "changePlaybackStartPosition"]
+      actions: [
+        "play",
+        "pause",
+        "playCommands$",
+        "changePlaybackStartPosition",
+        "editSong"
+      ]
     };
   } else if ((match = location.pathname.match(/\/playback\/([\w-]+)/))) {
     return {
