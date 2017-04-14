@@ -20,9 +20,8 @@ export function startLivePlaybackEngine(
 ) {
   const activeNodes = {};
 
-  const stream$ = playCommands$
-    .withLatestFrom(audioBuffers$, gainNode$)
-    .map(([cmd, audioBuffers, destinationNode]) => {
+  const stream$ = observableWithGainNode(destinationNode =>
+    playCommands$.withLatestFrom(audioBuffers$).map(([cmd, audioBuffers]) => {
       const when = audioContext.currentTime + batchTime;
       if (cmd.play && audioBuffers[cmd.play]) {
         const node = audioContext.createBufferSource();
@@ -38,11 +37,30 @@ export function startLivePlaybackEngine(
 
       return Object.assign({ when }, cmd);
     })
-    .publish();
+  ).publish();
 
   subscription.add(stream$.connect());
 
   return stream$;
+}
+
+class GainNodeResource {
+  constructor() {
+    this.node = audioContext.createGain();
+    this.node.gain.value = 0.9;
+    this.node.connect(audioContext.destination);
+  }
+
+  unsubscribe() {
+    this.node.disconnect();
+  }
+}
+
+function observableWithGainNode(observableFactory) {
+  return Observable.using(
+    () => new GainNodeResource(),
+    resource => observableFactory(resource.node)
+  );
 }
 
 function createGainNode() {
@@ -51,15 +69,6 @@ function createGainNode() {
   node.connect(audioContext.destination);
   return node;
 }
-
-const gainNode$ = Observable.create(function(observer) {
-  const node = createGainNode();
-  observer.next(node);
-
-  return function() {
-    node.disconnect();
-  };
-});
 
 export function startScriptedPlayback(
   song,
@@ -94,60 +103,56 @@ export function startScriptedPlayback(
     ];
   }
 
-  const gainNode = createGainNode();
-
-  function disconnectGainNode() {
-    gainNode.disconnect();
-  }
-
-  const stream$ = playbackSchedule(audioContext)
+  const commandsWithAudioBuffers$ = playbackSchedule(audioContext)
     .scan(makeBeatWindow, [null, 0])
     // TODO: This really should be takeUntil with a predicate function, but
     // that doesn't exist. Right now we're emitting one more than we need to.
     .takeWhile(beatWindow => beatWindow[0] < length)
     .map(mapToNotes)
-    .withLatestFrom(audioBuffers$)
-    .map(([commands, audioBuffers]) => {
-      const events = [];
+    .withLatestFrom(audioBuffers$);
 
-      commands.forEach(command => {
-        const audioBuffer = audioBuffers[command[0]];
+  const stream$ = observableWithGainNode(gainNode =>
+    commandsWithAudioBuffers$
+      .map(([commands, audioBuffers]) => {
+        const events = [];
 
-        let startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
-        const duration = beatsToTimestamp(command[2], bpm);
+        commands.forEach(command => {
+          const audioBuffer = audioBuffers[command[0]];
 
-        if (audioBuffer) {
-          const source = audioContext.createBufferSource();
-          source.buffer = audioBuffer;
-          source.connect(gainNode);
+          let startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
+          const duration = beatsToTimestamp(command[2], bpm);
 
-          let offset;
-          if (audioContext.currentTime > startAt) {
-            offset = audioContext.currentTime - startAt;
-            startAt = 0;
-            console.warn("scheduling playback late.", offset);
+          if (audioBuffer) {
+            const source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(gainNode);
+
+            let offset;
+            if (audioContext.currentTime > startAt) {
+              offset = audioContext.currentTime - startAt;
+              startAt = 0;
+              console.warn("scheduling playback late.", offset);
+            } else {
+              offset = 0;
+            }
+            source.start(startAt, offset, duration);
           } else {
-            offset = 0;
+            console.warn("missing audiobuffer for", command[0]);
           }
-          source.start(startAt, offset, duration);
-        } else {
-          console.warn("missing audiobuffer for", command[0]);
-        }
 
-        events.push({ play: command[0], when: startAt });
-        events.push({ pause: command[0], when: startAt + duration });
-      });
+          events.push({ play: command[0], when: startAt });
+          events.push({ pause: command[0], when: startAt + duration });
+        });
 
-      return events;
-    })
-    .flatMap(events =>
-      Observable.from(events).flatMap(obj =>
-        Observable.of(obj).delay((obj.when - audioContext.currentTime) * 1000)
+        return events;
+      })
+      .flatMap(events =>
+        Observable.from(events).flatMap(obj =>
+          Observable.of(obj).delay((obj.when - audioContext.currentTime) * 1000)
+        )
       )
-    )
-    .takeUntil(playUntil$)
-    .do({ complete: disconnectGainNode })
-    .publish();
+      .takeUntil(playUntil$)
+  ).publish();
 
   // Make this hot right away. We don't need to worry about unsubscribing,
   // because the stream will end when the song is over or playUntil$ fires.
