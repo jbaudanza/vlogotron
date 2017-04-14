@@ -19,6 +19,7 @@ import "rxjs/add/operator/map";
 import "rxjs/add/operator/mapTo";
 import "rxjs/add/operator/mergeAll";
 import "rxjs/add/operator/mergeMap";
+import "rxjs/add/operator/mergeScan";
 import "rxjs/add/operator/partition";
 import "rxjs/add/operator/publish";
 import "rxjs/add/operator/publishReplay";
@@ -37,6 +38,7 @@ import "rxjs/add/operator/withLatestFrom";
 
 import "rxjs/add/observable/combineLatest";
 import "rxjs/add/observable/concat";
+import "rxjs/add/observable/empty";
 import "rxjs/add/observable/from";
 import "rxjs/add/observable/fromEvent";
 import "rxjs/add/observable/fromPromise";
