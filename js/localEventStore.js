@@ -33,34 +33,19 @@ export function writeEvent(event) {
 }
 
 export function readEvents() {
-  // WARNING: All subscriptions are going to use the same subject. So we must
-  // be careful to only subscribe once. I would like to refactor this to come
-  // up with something better.
-  const lastId$ = new BehaviorSubject(0);
+  // There's probably a less-imperative way to write this, but I just want to
+  // get it working. Here are some suggestions from @dorus:
+  //  source.publish(source_ => notifier.switchMap(a => source_.take(1), (a,b) => ({a,b}))) would work too.
+  //  source.combineLatest(notifier, (a,b)=>({a,b})).distinctUntilKeyChanged('a').distinctUntilKeyChanged('b')
+  return Observable.create(function(observer) {
+    let inFlight = false;
+    let shouldQueryAfterFlight = false;
+    let lastId = null;
 
-  /*
-  Alternative suggestions from @dorus:
+    function go(db) {
+      const results$ = queryEvents(db, lastId);
+      inFlight = true;
 
-    source.publish(source_ => notifier.switchMap(a => source_.take(1), (a,b) => ({a,b}))) would work too.
-    source.combineLatest(notifier, (a,b)=>({a,b})).distinctUntilKeyChanged('a').distinctUntilKeyChanged('b')
-  */
-  // TODO: Make sure this handles the case where the database doesn't return any
-  // results for a read signal.
-  return Observable.combineLatest(
-    readSignals$.scan(i => i + 1, 0), // count read signals
-    lastId$,
-    dbPromise,
-    (signalCounter, lastId, db) => ({ signalCounter, lastId, db })
-  )
-    .mergeScan(function(acc, state) {
-      if (shouldEmit(acc, state)) {
-        return Observable.of(state);
-      } else {
-        return Observable.empty();
-      }
-    })
-    .map(state => {
-      const results$ = queryEvents(state.db, state.lastId);
       results$
         .map(cursor => cursor.key)
         .last(
@@ -68,19 +53,44 @@ export function readEvents() {
           null /*resultSelector - unused */,
           null /*defaultValue - this is the one we care about making null*/
         )
-        .filter(x => x != null)
-        .subscribe(x => lastId$.next(x));
+        .subscribe({
+          next(id) {
+            inFlight = false;
 
-      return results$.map(cursor => cursor.value);
+            if (id !== null) {
+              lastId = id;
+            }
+            if (shouldQueryAfterFlight) {
+              shouldQueryAfterFlight = false;
+              go(db);
+            }
+          },
+          error(e) {
+            observer.error(e);
+          }
+        });
+
+      // TODO: consider emitting an array instead of an Observable. don't need to be fancy
+      observer.next(results$.map(cursor => cursor.value));
+    }
+
+    return Observable.combineLatest(
+      dbPromise,
+      readSignals$,
+      (db, ignore) => db
+    ).subscribe({
+      next(db) {
+        if (inFlight) {
+          shouldQueryAfterFlight = true;
+        } else {
+          go(db);
+        }
+      },
+      error(e) {
+        observer.error(e);
+      }
     });
-}
-
-function shouldEmit(lastEmit, currentState) {
-  return (
-    lastEmit == null ||
-    (currentState.signalCounter > lastEmit.signalCounter &&
-      currentState.lastId > lastEmit.lastId)
-  );
+  });
 }
 
 function queryEvents(db, startKey) {
