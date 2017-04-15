@@ -16,7 +16,9 @@ export default function songEditorController(
   subscription.add(dbWrites$.subscribe(writeEvent));
 
   // TODO: pass this to the view somehow
-  const notes$ = readEvents().scan(reduceEditsToSong, []).publish();
+  const notes$ = readEvents().mergeScan((acc, stream$) => (
+    stream$.reduce(reduceEditsToSong, acc)
+  ), []).publish();
 
   subscription.add(notes$.connect());
 

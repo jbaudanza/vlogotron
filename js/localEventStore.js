@@ -71,10 +71,8 @@ export function readEvents() {
         .filter(x => x != null)
         .subscribe(x => lastId$.next(x));
 
-      return results$;
-    })
-    .mergeAll()
-    .map(cursor => cursor.value);
+      return results$.map(cursor => cursor.value);
+    });
 }
 
 function shouldEmit(lastEmit, currentState) {
