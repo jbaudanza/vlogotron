@@ -26,6 +26,17 @@ export default function playbackController(
   currentUser$,
   subscription
 ) {
+  const song$ = Observable.of(songs["mary-had-a-little-lamb"]);
+  return playbackControllerHelper(params, actions, currentUser$, song$, subscription);
+}
+
+export function playbackControllerHelper(
+  params,
+  actions,
+  currentUser$,
+  song$,
+  subscription
+) {
   const videoClips$ = videoClipsForUid(params.uid).publish();
 
   subscription.add(videoClips$.connect());
@@ -43,9 +54,8 @@ export default function playbackController(
     subscription
   );
 
-  const song = songs["mary-had-a-little-lamb"];
   const bpm = 120;
-  const songLength = songLengthInSeconds(song, bpm);
+  const songLength$ = song$.map(song => songLengthInSeconds(song, bpm));
 
   let startPosition$;
   if (actions.changePlaybackStartPosition$) {
@@ -55,7 +65,7 @@ export default function playbackController(
   }
 
   const scriptedPlaybackContext$$ = actions.play$
-    .withLatestFrom(startPosition$, (action, startPosition) =>
+    .withLatestFrom(startPosition$, song$, (action, startPosition, song) =>
       startScriptedPlayback(
         song,
         bpm,
@@ -97,7 +107,7 @@ export default function playbackController(
         timestampToBeats(audioContext.currentTime - playbackStartedAt, bpm)
       )
       .filter(beat => beat >= 0)
-      .takeWhile(beat => beat < songLengthInBeats(song))
+      .takeWhile(beat => beat < songLengthInBeats(context.song))
       .takeUntil(context.playCommands$.ignoreElements().concatWith(1))
       .concatWith(0)
       .map(beat => beat + context.startPosition)
@@ -119,13 +129,17 @@ export default function playbackController(
     playbackPositionInSeconds$,
     currentUser$,
     startPosition$,
+    songLength$,
+    song$,
     (
       videoClips,
       loading,
       isPlaying,
       playbackPositionInSeconds,
       currentUser,
-      playbackStartPosition
+      playbackStartPosition,
+      songLength,
+      song
     ) => ({
       videoClips,
       isPlaying,
@@ -136,6 +150,7 @@ export default function playbackController(
       currentUser,
       playCommands$,
       songLength,
+      notes: song,
       songTitle: "Mary had a little lamb",
       authorName: "Jonathan Baudanza"
     })

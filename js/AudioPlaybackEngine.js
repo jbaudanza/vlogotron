@@ -161,6 +161,7 @@ export function startScriptedPlayback(
   return {
     playbackStartedAt: playbackStartedAt,
     startPosition: startPosition,
+    song: song,
     playCommands$: stream$
   };
 }
