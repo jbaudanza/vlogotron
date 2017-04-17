@@ -4,6 +4,7 @@
   "share-action": "share",
   "save-action": "save",
   "back-action": "back",
+  "select-action": "select",
   "remix-action": "remix",
   "cancel-action": "cancel",
   "next-action": "next",
@@ -16,5 +17,9 @@
   "tips-action": "tips",
   "reset-action": "reset",
   "quarter-notes": "Quarter notes",
+  "whole-notes": "Whole notes",
+  "half-notes": "Half notes",
+  "eighth-notes": "Eigth notes",
+  "sixteenth-notes": "Sixteenth notes",
   "bpm-with-number": "{BPM} bpm"
 }

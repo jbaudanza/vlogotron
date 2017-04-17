@@ -1,6 +1,6 @@
 import { Observable } from "rxjs/Observable";
 
-import {playbackControllerHelper} from "./playbackController";
+import { playbackControllerHelper } from "./playbackController";
 
 import { songLengthInSeconds, reduceEditsToSong } from "./song";
 import { readEvents, writeEvent } from "./localEventStore";
@@ -21,11 +21,20 @@ export default function songEditorController(
 
   subscription.add(notes$.connect());
 
-  return playbackControllerHelper(
+  const cellsPerBeat$ = actions.changeCellsPerBeat$.startWith(4);
+
+  const parentViewState$ = playbackControllerHelper(
     { uid: "b7Z6g5LFN7SiyJpAnxByRmuSHuV2" },
     actions,
     currentUser$,
     notes$,
     subscription
+  );
+
+  return Observable.combineLatest(
+    parentViewState$,
+    cellsPerBeat$,
+    (parentViewState, cellsPerBeat) =>
+      Object.assign({}, parentViewState, { cellsPerBeat })
   );
 }

@@ -62,6 +62,8 @@ function mapToRoute(location) {
         "pause",
         "playCommands$",
         "changePlaybackStartPosition",
+        "changeCellsPerBeat",
+        "changeBpm",
         "editSong"
       ]
     };

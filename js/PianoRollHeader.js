@@ -8,6 +8,7 @@ export default class PianoRollHeader extends React.Component {
   constructor() {
     super();
     this.onClickPlay = this.onClickPlay.bind(this);
+    this.onChangeSelect = this.onChangeSelect.bind(this);
   }
 
   onClickPlay() {
@@ -16,6 +17,10 @@ export default class PianoRollHeader extends React.Component {
     } else {
       this.props.onClickPlay();
     }
+  }
+
+  onChangeSelect(event) {
+    this.props.onChangeCellsPerBeat(parseInt(event.target.value));
   }
 
   render() {
@@ -54,9 +59,21 @@ export default class PianoRollHeader extends React.Component {
           <Link className="action">
             {this.context.messages["reset-action"]()}
           </Link>
-          <Link className="action">
-            {this.context.messages["quarter-notes"]()}
-          </Link>
+          <select
+            className="action"
+            value={this.props.cellsPerBeat}
+            onChange={this.onChangeSelect}
+          >
+            <option value="16">
+              {this.context.messages["sixteenth-notes"]()}
+            </option>
+            <option value="8">{this.context.messages["eighth-notes"]()}</option>
+            <option value="4">
+              {this.context.messages["quarter-notes"]()}
+            </option>
+            <option value="2">{this.context.messages["half-notes"]()}</option>
+            <option value="1">{this.context.messages["whole-notes"]()}</option>
+          </select>
           <Link className="action">
             {this.context.messages["bpm-with-number"]({ BPM: 120 })}
           </Link>
@@ -71,6 +88,8 @@ PianoRollHeader.contextTypes = {
 };
 
 PianoRollHeader.propTypes = {
+  onChangeCellsPerBeat: React.PropTypes.func.isRequired,
+  cellsPerBeat: React.PropTypes.number.isRequired,
   isRecording: React.PropTypes.bool.isRequired,
   isPlaying: React.PropTypes.bool.isRequired,
   onClickPlay: React.PropTypes.func.isRequired,

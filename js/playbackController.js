@@ -27,7 +27,13 @@ export default function playbackController(
   subscription
 ) {
   const song$ = Observable.of(songs["mary-had-a-little-lamb"]);
-  return playbackControllerHelper(params, actions, currentUser$, song$, subscription);
+  return playbackControllerHelper(
+    params,
+    actions,
+    currentUser$,
+    song$,
+    subscription
+  );
 }
 
 export function playbackControllerHelper(

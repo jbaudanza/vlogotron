@@ -1,0 +1,42 @@
+@import './colors';
+
+.choose-song-overlay {
+  .content {
+    height: 431px;
+  }
+
+  ul.song-list {
+    text-align: left;
+    padding: 0;
+    color: $color-charcoal-grey;
+    font-size: 14px;
+    font-weight: 500; // Medium
+    list-style-type: none;
+
+    li {
+      padding: 25px 0;
+      line-height: 21px;
+      border-bottom: solid 1px $color-whitish;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      svg {
+        border: 1px solid $color-purple;
+        border-radius: 25px;
+        float: left;
+        margin-right: 10px;
+      }
+
+      a {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        text-transform: uppercase;
+        color: $color-purple;
+        float: right;
+      }
+    }
+  }
+}

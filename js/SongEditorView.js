@@ -7,6 +7,7 @@ import VideoGrid from "./VideoGrid";
 import LoginOverlay from "./LoginOverlay";
 import PianoRoll from "./PianoRoll";
 import PianoRollHeader from "./PianoRollHeader";
+import ChooseSongOverlay from "./ChooseSongOverlay";
 
 import { songs } from "./song";
 
@@ -25,6 +26,10 @@ export default class SongEditorView extends React.Component {
     this.onClickPause = bindKey(this.props.actions.pause$, "next");
     this.onChangePlaybackStartPosition = bindKey(
       this.props.actions.changePlaybackStartPosition$,
+      "next"
+    );
+    this.onChangeCellsPerBeat = bindKey(
+      this.props.actions.changeCellsPerBeat$,
       "next"
     );
   }
@@ -59,6 +64,10 @@ export default class SongEditorView extends React.Component {
       overlay = <LoginOverlay onLogin={this.props.onLogin} onClose="/" />;
     }
 
+    overlay = (
+      <ChooseSongOverlay />
+    );
+
     const footer = (
       <div className="page-footer">
         <div className="page-footer-content page-footer-with-piano-roll">
@@ -67,11 +76,13 @@ export default class SongEditorView extends React.Component {
             onClickPause={this.onClickPause}
             isPlaying={this.props.isPlaying}
             isRecording={false}
+            cellsPerBeat={this.props.cellsPerBeat}
+            onChangeCellsPerBeat={this.onChangeCellsPerBeat}
           />
           <PianoRoll
             ref={this.bindPianoRoll}
             notes={this.props.notes}
-            cellsPerBeat={4}
+            cellsPerBeat={this.props.cellsPerBeat}
             songLength={this.props.songLength}
             playbackPosition$$={this.props.playbackPositionInBeats$$}
             playing={{}}

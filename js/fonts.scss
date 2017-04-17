@@ -1,0 +1,14 @@
+$font-family:  HKGrotesk, sans-serif;
+
+@mixin define-font($family, $filename, $weight, $style) {
+  @font-face {
+    font-family: $family;
+    src: url("/fonts/#{$filename}.ttf") format('truetype'),
+         url("/fonts/#{$filename}.eot") format('eot'),
+         url("/fonts/#{$filename}.woff") format('woff'),
+         url("/fonts/#{$filename}.woff2") format('woff2'),
+          url("/fonts/#{$filename}.svg#{$filename}") format('svg');
+    font-weight: $weight;
+    font-style: $style;
+  }
+}

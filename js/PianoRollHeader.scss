@@ -41,6 +41,14 @@
     float: right;
   }
 
+  select {
+    background-color: $color-dusk-three;
+    border: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+  }
+
   .left-side {
     overflow: hidden;
     a {

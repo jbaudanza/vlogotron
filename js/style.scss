@@ -1,17 +1,6 @@
-@import 'normalize.css';
-
-@mixin define-font($family, $filename, $weight, $style) {
-  @font-face {
-    font-family: $family;
-    src: url("/fonts/#{$filename}.ttf") format('truetype'),
-         url("/fonts/#{$filename}.eot") format('eot'),
-         url("/fonts/#{$filename}.woff") format('woff'),
-         url("/fonts/#{$filename}.woff2") format('woff2'),
-          url("/fonts/#{$filename}.svg#{$filename}") format('svg');
-    font-weight: $weight;
-    font-style: $style;
-  }
-}
+@import './normalize';
+@import './fonts';
+@import './colors';
 
 @include define-font(HKGrotesk, 'HKGrotesk-Light', 300, normal);
 @include define-font(HKGrotesk, 'HKGrotesk-LightItalic', 300, italic);
@@ -30,12 +19,9 @@
 
 
 body {
-  font-family: HKGrotesk, sans-serif;
+  font-family: $font-family;
 }
 
-
-$active-color: #18BC9C;
-$red-color: #bc1838;
 
 @mixin buttonize($background-color) {
   display: inline-block;
@@ -94,10 +80,6 @@ h3 {
     margin-left: 5px;
     float: left;
   }
-}
-
-.create-button {
-  @include buttonize($active-color);
 }
 
 .login-overlay {
