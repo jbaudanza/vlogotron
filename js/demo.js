@@ -9,13 +9,14 @@ import { Subject } from "rxjs/Subject";
 import { bindAll, fromPairs, forEach } from "lodash";
 
 import SvgAssets from "./SvgAssets";
+import LoginOverlay from "./LoginOverlay";
 
 import audioContext from "./audioContext";
 
 import { findWrappingLink } from "./domutils";
 
 import "./style.scss";
-import { navigate, currentRoute$ } from "./router";
+import { navigate, currentRoute$, currentLocation$ } from "./router";
 
 import bindComponentToObservable from "./bindComponentToObservable";
 
@@ -42,8 +43,6 @@ class App extends React.Component {
       "onClick",
       "onRouteChange"
     );
-
-    this.state = { overlay: null };
   }
 
   onClick(event) {
@@ -62,6 +61,9 @@ class App extends React.Component {
 
   componentWillMount() {
     this.subscription = currentRoute$.subscribe(this.onRouteChange);
+    this.subscription.add(
+      currentLocation$.subscribe(location => this.setState({ location }))
+    );
   }
 
   onRouteChange(route) {
@@ -81,8 +83,6 @@ class App extends React.Component {
     );
 
     this.setState({
-      overlay: route.overlay,
-      location: route.location,
       view: <div /> // If the controller emits immediately, this div will never be shown.
     });
 
@@ -93,6 +93,7 @@ class App extends React.Component {
           view: (
             <View
               {...viewState}
+              location={route.location}
               actions={this.pageActions}
               onNavigate={this.onNavigate}
               onLogin={this.onLogin}
@@ -140,10 +141,10 @@ class App extends React.Component {
 
   render() {
     let overlay;
-    if (this.state.overlay) {
+    if (this.state.location.hash === "#login") {
       const Overlay = this.state.overlay;
       overlay = (
-        <Overlay
+        <LoginOverlay
           onLogin={this.onLogin}
           onClose={this.state.location.pathname}
         />

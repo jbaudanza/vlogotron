@@ -45,12 +45,12 @@ export default class PianoRollHeader extends React.Component {
             </svg>
           </Link>
 
-          <div className="song-chooser">
+          <Link href="/song-editor#choose-song" className="song-chooser">
             <svg version="1.1" width={18} height={16}>
               <use xlinkHref="#svg-soundwave" />
             </svg>
             {this.context.messages["song-chooser-prompt"]()}
-          </div>
+          </Link>
         </div>
         <div className="right-side">
           <Link className="action">

@@ -89,8 +89,14 @@ const happyBirthday = [
 ];
 
 export const songs = {
-  "mary-had-a-little-lamb": maryHadALittleLamb,
-  "happy-birthday": happyBirthday
+  "mary-had-a-little-lamb": {
+    title: "Mary had a Little Lamb",
+    notes: maryHadALittleLamb
+  },
+  "happy-birthday": {
+    title: "Happy Birthday",
+    notes: happyBirthday
+  }
 };
 
 export function timestampToBeats(timestamp, bpm) {

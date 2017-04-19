@@ -9,8 +9,6 @@ import PianoRoll from "./PianoRoll";
 import PianoRollHeader from "./PianoRollHeader";
 import ChooseSongOverlay from "./ChooseSongOverlay";
 
-import { songs } from "./song";
-
 import { bindAll, bindKey } from "lodash";
 
 import "./SongEditorView.scss";
@@ -32,6 +30,7 @@ export default class SongEditorView extends React.Component {
       this.props.actions.changeCellsPerBeat$,
       "next"
     );
+    this.onChooseSong = bindKey(this.props.actions.chooseSong$, "next");
   }
 
   bindPianoRoll(component) {
@@ -60,13 +59,19 @@ export default class SongEditorView extends React.Component {
 
     // TODO: Factor this out from RecordVideosView
     let overlay;
+
     if (!this.props.currentUser) {
       overlay = <LoginOverlay onLogin={this.props.onLogin} onClose="/" />;
     }
 
-    overlay = (
-      <ChooseSongOverlay />
-    );
+    if (this.props.location.hash === "#choose-song") {
+      overlay = (
+        <ChooseSongOverlay
+          onSelect={this.onChooseSong}
+          onClose="/song-editor"
+        />
+      );
+    }
 
     const footer = (
       <div className="page-footer">

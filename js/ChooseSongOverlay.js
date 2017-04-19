@@ -1,11 +1,19 @@
 import React from "react";
 
+import { map } from "lodash";
+
 import Overlay from "./Overlay";
 import Link from "./Link";
+import { songs } from "./song";
 
 import "./ChooseSongOverlay.scss";
 
 class LineItem extends React.Component {
+  constructor(props) {
+    super();
+    this.onSelect = props.onSelect.bind(null, props.song);
+  }
+
   render() {
     return (
       <li>
@@ -13,7 +21,9 @@ class LineItem extends React.Component {
           <use xlinkHref={this.props.isPlaying ? "#svg-pause" : "#svg-play"} />
         </svg>
         {this.props.title}
-        <Link>{this.context.messages["select-action"]()}</Link>
+        <Link onClick={this.onSelect}>
+          {this.context.messages["select-action"]()}
+        </Link>
       </li>
     );
   }
@@ -29,9 +39,9 @@ export default class ChooseSongOverlay extends React.Component {
       <Overlay className="choose-song-overlay" onClose={this.props.onClose}>
         <h1>Choose a song</h1>
         <ul className="song-list">
-          <LineItem title="Happy Birthday" />
-          <LineItem title="Jingle Bells" />
-          <LineItem title="Mary had a little lamb" />
+          {map(songs, song => (
+            <LineItem {...song} onSelect={this.props.onSelect} />
+          ))}
         </ul>
       </Overlay>
     );
@@ -39,6 +49,6 @@ export default class ChooseSongOverlay extends React.Component {
 }
 
 ChooseSongOverlay.propTypes = {
-  onLogin: React.PropTypes.func.isRequired,
+  onSelect: React.PropTypes.func.isRequired,
   onClose: React.PropTypes.string.isRequired
 };

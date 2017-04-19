@@ -6,7 +6,6 @@ import createHistory from "history/createBrowserHistory";
 import PlaybackView from "./PlaybackView";
 import RecordVideosView from "./RecordVideosView";
 import SongEditorView from "./SongEditorView";
-import LoginOverlay from "./LoginOverlay";
 
 import playbackController from "./playbackController";
 import songEditorController from "./songEditorController";
@@ -19,26 +18,18 @@ export function navigate(href) {
   urlHistory.push(href);
 }
 
-function mapToRoute(location) {
+function mapToRoute(pathname) {
   let match;
 
-  // TODO: Overlay should perhaps be a different observable, since it can
-  // change independently of the main route.
-  let overlay;
-  if (location.hash === "#login") {
-    overlay = LoginOverlay;
-  }
-
-  if (location.pathname === "/") {
+  if (pathname === "/") {
     return {
       view: PlaybackView,
       controller: playbackController,
-      overlay: overlay,
       location: location,
       params: { uid: DEFAULT_UID },
       actions: ["play", "pause", "playCommands$"]
     };
-  } else if (location.pathname === "/record-videos") {
+  } else if (pathname === "/record-videos") {
     return {
       controller: recordVideosController,
       location: location,
@@ -52,7 +43,7 @@ function mapToRoute(location) {
         "playCommands$"
       ]
     };
-  } else if (location.pathname === "/song-editor") {
+  } else if (pathname === "/song-editor") {
     return {
       view: SongEditorView,
       controller: songEditorController,
@@ -63,11 +54,12 @@ function mapToRoute(location) {
         "playCommands$",
         "changePlaybackStartPosition",
         "changeCellsPerBeat",
+        "chooseSong",
         "changeBpm",
         "editSong"
       ]
     };
-  } else if ((match = location.pathname.match(/\/playback\/([\w-]+)/))) {
+  } else if ((match = pathname.match(/\/playback\/([\w-]+)/))) {
     return {
       params: { songId: match[1] },
       location: location
@@ -83,9 +75,12 @@ function mapToRoute(location) {
 
 const urlHistory = createHistory();
 
-const currentLocation$ = Observable.create(observer => {
+export const currentLocation$ = Observable.create(observer => {
   observer.next(urlHistory.location);
   return urlHistory.listen(observer.next.bind(observer));
 });
 
-export const currentRoute$ = currentLocation$.map(mapToRoute);
+export const currentRoute$ = currentLocation$
+  .map(location => location.pathname)
+  .distinctUntilChanged()
+  .map(mapToRoute);
