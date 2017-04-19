@@ -121,6 +121,8 @@ export function reduceEditsToSong(song, edit) {
   }
 
   switch (edit.action) {
+    case "clear-all":
+      return []
     case "replace-all":
       return edit.notes;
     case "create":

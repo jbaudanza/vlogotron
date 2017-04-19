@@ -31,6 +31,7 @@ export default class SongEditorView extends React.Component {
       "next"
     );
     this.onChooseSong = this.onChooseSong.bind(this);
+    this.onReset = this.onReset.bind(this);
   }
 
   bindPianoRoll(component) {
@@ -46,8 +47,17 @@ export default class SongEditorView extends React.Component {
     }
   }
 
+  onReset(song) {
+    this.props.actions.editSong$.next({
+      action: 'clear-all'
+    });
+  }
+
   onChooseSong(song) {
-    this.props.actions.chooseSong$.next(song);
+    this.props.actions.editSong$.next({
+      action: 'replace-all',
+      notes: song.notes
+    });
     this.props.onNavigate('/song-editor')
   }
 
@@ -86,6 +96,7 @@ export default class SongEditorView extends React.Component {
             onClickPause={this.onClickPause}
             isPlaying={this.props.isPlaying}
             isRecording={false}
+            onReset={this.onReset}
             cellsPerBeat={this.props.cellsPerBeat}
             onChangeCellsPerBeat={this.onChangeCellsPerBeat}
           />

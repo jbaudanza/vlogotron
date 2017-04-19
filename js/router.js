@@ -54,8 +54,6 @@ function mapToRoute(pathname) {
         "playCommands$",
         "changePlaybackStartPosition",
         "changeCellsPerBeat",
-        "chooseSong",
-        "changeBpm",
         "editSong"
       ]
     };
