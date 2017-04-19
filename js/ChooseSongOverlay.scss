@@ -14,7 +14,7 @@
     list-style-type: none;
 
     li {
-      padding: 25px 0;
+      padding: 18px 0;
       line-height: 21px;
       border-bottom: solid 1px $color-whitish;
 
@@ -31,6 +31,7 @@
 
       a {
         font-size: 11px;
+        text-decoration: none;
         font-weight: 600;
         letter-spacing: 0.2px;
         text-transform: uppercase;
