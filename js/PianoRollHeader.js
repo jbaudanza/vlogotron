@@ -53,8 +53,11 @@ export default class PianoRollHeader extends React.Component {
           </Link>
         </div>
         <div className="right-side">
-          <Link onClick={this.props.onUndo} className="action">
+          <Link enabled={this.props.undoEnabled} onClick={this.props.onUndo} className="action">
             {this.context.messages["undo-action"]()}
+          </Link>
+          <Link enabled={this.props.redoEnabled} onClick={this.props.onRedo} className="action">
+            {this.context.messages["redo-action"]()}
           </Link>
           <Link onClick={this.props.onReset} className="action">
             {this.context.messages["reset-action"]()}
@@ -95,5 +98,7 @@ PianoRollHeader.propTypes = {
   isRecording: React.PropTypes.bool.isRequired,
   isPlaying: React.PropTypes.bool.isRequired,
   onClickPlay: React.PropTypes.func.isRequired,
-  onClickPause: React.PropTypes.func.isRequired
+  onClickPause: React.PropTypes.func.isRequired,
+  undoEnabled: React.PropTypes.bool.isRequired,
+  redoEnabled: React.PropTypes.bool.isRequired
 };

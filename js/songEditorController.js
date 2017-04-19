@@ -58,16 +58,19 @@ export default function songEditorController(
 ) {
   subscription.add(actions.editSong$.subscribe(writeEvent));
 
-  const notes$ = readEvents()
+  const editorState$ = readEvents()
     .mergeScan(
       (acc, stream$) =>
         stream$.reduce(reduceWithUndoStack, acc),
       initialStateForUndoStack
     )
-    .map(o => o.current)
     .publish();
 
-  subscription.add(notes$.connect());
+  const notes$ = editorState$.map(o => o.current);
+  const undoEnabled$ = editorState$.map(o => o.undoStack.length > 0);
+  const redoEnabled$ = editorState$.map(o => o.redoStack.length > 0);
+
+  subscription.add(editorState$.connect());
 
   const cellsPerBeat$ = actions.changeCellsPerBeat$.startWith(4);
 
@@ -82,7 +85,9 @@ export default function songEditorController(
   return Observable.combineLatest(
     parentViewState$,
     cellsPerBeat$,
-    (parentViewState, cellsPerBeat) =>
-      Object.assign({}, parentViewState, { cellsPerBeat })
+    redoEnabled$,
+    undoEnabled$,
+    (parentViewState, cellsPerBeat, redoEnabled, undoEnabled) =>
+      Object.assign({}, parentViewState, { cellsPerBeat, redoEnabled, undoEnabled })
   );
 }

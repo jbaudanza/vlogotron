@@ -107,6 +107,8 @@ export default class SongEditorView extends React.Component {
             onRedo={this.onRedo}
             cellsPerBeat={this.props.cellsPerBeat}
             onChangeCellsPerBeat={this.onChangeCellsPerBeat}
+            undoEnabled={this.props.undoEnabled}
+            redoEnabled={this.props.redoEnabled}
           />
           <PianoRoll
             ref={this.bindPianoRoll}

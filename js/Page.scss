@@ -81,7 +81,7 @@
     }
   }
 
-  a.action, select.action {
+  a.action, select.action, span.action {
     font-size: 11px;
     font-weight: 600; // semi-bold
     padding: 0 15px;
@@ -99,7 +99,7 @@
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: 0.2px;
 
-    &:hover {
+    &:hover.enabled {
       opacity: 1;
     }
 

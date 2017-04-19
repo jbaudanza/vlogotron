@@ -43,6 +43,10 @@
     float: right;
   }
 
+  .action.disabled {
+    opacity: 0.2;
+  }
+
   select {
     background-color: $color-dusk-three;
     border: none;
@@ -62,7 +66,7 @@
     }
   }
 
-  .right-side a {
+  .right-side .action {
     margin-right: 5px;
     margin-left: 5px;
     background-color: $color-dusk-three;

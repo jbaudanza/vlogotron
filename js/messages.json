@@ -15,6 +15,7 @@
   "stop-recording-prompt": "Click to stop recording",
   "user-media-access-error": "We were unable to access your camera and microphone. You may need to adjust your browser permissions.",
   "undo-action": "undo",
+  "redo-action": "redo",
   "reset-action": "reset",
   "quarter-notes": "Quarter notes",
   "whole-notes": "Whole notes",
