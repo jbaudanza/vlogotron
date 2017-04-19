@@ -53,8 +53,8 @@ export default class PianoRollHeader extends React.Component {
           </Link>
         </div>
         <div className="right-side">
-          <Link className="action">
-            {this.context.messages["tips-action"]()}
+          <Link onClick={this.props.onUndo} className="action">
+            {this.context.messages["undo-action"]()}
           </Link>
           <Link onClick={this.props.onReset} className="action">
             {this.context.messages["reset-action"]()}
@@ -90,6 +90,7 @@ PianoRollHeader.contextTypes = {
 PianoRollHeader.propTypes = {
   onChangeCellsPerBeat: React.PropTypes.func.isRequired,
   onReset: React.PropTypes.func.isRequired,
+  onUndo: React.PropTypes.func.isRequired,
   cellsPerBeat: React.PropTypes.number.isRequired,
   isRecording: React.PropTypes.bool.isRequired,
   isPlaying: React.PropTypes.bool.isRequired,

@@ -161,6 +161,29 @@ class Grid extends React.PureComponent {
   }
 }
 
+function drawLinesOnCanvas(canvasEl, totalBeats) {
+  const ctx = canvasEl.getContext("2d");
+
+  const cellWidth = 30;
+
+  function drawLine(x, height) {
+    ctx.beginPath();
+    ctx.moveTo(x, canvasEl.height * height);
+    ctx.lineTo(x, canvasEl.height);
+    ctx.strokeStyle = "#363d69"; // $color-dark-blue-grey
+    ctx.stroke();
+  }
+
+  for (let beat = 0; beat < totalBeats; beat++) {
+    const x = beat * cellWidth * 4;
+    drawLine(x, 0.25);
+
+    for (let i = 1; i < 4; i++) {
+      drawLine(x + i * cellWidth, 0.75);
+    }
+  }
+}
+
 class Timeline extends React.Component {
   constructor() {
     super();
@@ -169,33 +192,18 @@ class Timeline extends React.Component {
 
   bindCanvas(canvasEl) {
     if (canvasEl) {
-      this.drawCanvas(canvasEl);
+      drawLinesOnCanvas(canvasEl, this.props.totalBeats);
       this.setupEventHandler(canvasEl);
+      this.canvasEl = canvasEl;
     } else {
       this.subscription.unsubscribe();
+      delete this.canvasEl;
     }
   }
 
-  drawCanvas(canvasEl) {
-    const ctx = canvasEl.getContext("2d");
-
-    const cellWidth = 30;
-
-    function drawLine(x, height) {
-      ctx.beginPath();
-      ctx.moveTo(x, canvasEl.height * height);
-      ctx.lineTo(x, canvasEl.height);
-      ctx.strokeStyle = "#363d69"; // $color-dark-blue-grey
-      ctx.stroke();
-    }
-
-    for (let beat = 0; beat < this.props.totalBeats; beat++) {
-      const x = beat * cellWidth * 4;
-      drawLine(x, 0.25);
-
-      for (let i = 1; i < 4; i++) {
-        drawLine(x + i * cellWidth, 0.75);
-      }
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.totalBeats !== prevProps.totalBeats && this.canvasEl) {
+      drawLinesOnCanvas(this.canvasEl, this.props.totalBeats);
     }
   }
 

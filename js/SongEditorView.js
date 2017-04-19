@@ -16,7 +16,7 @@ import "./SongEditorView.scss";
 export default class SongEditorView extends React.Component {
   constructor() {
     super();
-    bindAll(this, "bindPianoRoll");
+    bindAll(this, "bindPianoRoll", "onChooseSong", "onReset", "onUndo", "onRedo");
   }
 
   componentWillMount() {
@@ -30,8 +30,6 @@ export default class SongEditorView extends React.Component {
       this.props.actions.changeCellsPerBeat$,
       "next"
     );
-    this.onChooseSong = this.onChooseSong.bind(this);
-    this.onReset = this.onReset.bind(this);
   }
 
   bindPianoRoll(component) {
@@ -47,18 +45,26 @@ export default class SongEditorView extends React.Component {
     }
   }
 
-  onReset(song) {
+  onReset() {
     this.props.actions.editSong$.next({
-      action: 'clear-all'
+      action: "clear-all"
     });
+  }
+
+  onRedo() {
+    this.props.actions.editSong$.next({action: 'redo'});
+  }
+
+  onUndo() {
+    this.props.actions.editSong$.next({action: 'undo'});
   }
 
   onChooseSong(song) {
     this.props.actions.editSong$.next({
-      action: 'replace-all',
+      action: "replace-all",
       notes: song.notes
     });
-    this.props.onNavigate('/song-editor')
+    this.props.onNavigate("/song-editor");
   }
 
   render() {
@@ -97,6 +103,8 @@ export default class SongEditorView extends React.Component {
             isPlaying={this.props.isPlaying}
             isRecording={false}
             onReset={this.onReset}
+            onUndo={this.onUndo}
+            onRedo={this.onRedo}
             cellsPerBeat={this.props.cellsPerBeat}
             onChangeCellsPerBeat={this.onChangeCellsPerBeat}
           />
