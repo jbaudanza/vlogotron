@@ -30,7 +30,7 @@ export default class SongEditorView extends React.Component {
       this.props.actions.changeCellsPerBeat$,
       "next"
     );
-    this.onChooseSong = bindKey(this.props.actions.chooseSong$, "next");
+    this.onChooseSong = this.onChooseSong.bind(this);
   }
 
   bindPianoRoll(component) {
@@ -44,6 +44,11 @@ export default class SongEditorView extends React.Component {
         delete this.subscription;
       }
     }
+  }
+
+  onChooseSong(song) {
+    this.props.actions.chooseSong$.next(song);
+    this.props.onNavigate('/song-editor')
   }
 
   render() {
