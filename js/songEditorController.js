@@ -6,6 +6,8 @@ import { last } from "lodash";
 import { songLengthInSeconds, reduceEditsToSong } from "./song";
 import { readEvents, writeEvent } from "./localEventStore";
 
+const messages = require("messageformat-loader!json-loader!./messages.json");
+
 function reduceWithUndoStack(acc, edit) {
   if (edit.action === "undo") {
     if (acc.undoStack.length === 0) {
@@ -39,13 +41,13 @@ function reduceWithUndoStack(acc, edit) {
     return {
       current: next,
       undoStack: acc.undoStack.concat([acc.current]),
-      redoStack: acc.redoStack
+      redoStack: [] // Reset the redo stack when a new action occurs
     };
   }
 }
 
 const initialStateForUndoStack = {
-  current: [],
+  current: { notes: [], bpm: 120, title: messages["default-song-title"]() },
   undoStack: [],
   redoStack: []
 };
@@ -60,13 +62,13 @@ export default function songEditorController(
 
   const editorState$ = readEvents()
     .mergeScan(
-      (acc, stream$) =>
-        stream$.reduce(reduceWithUndoStack, acc),
+      (acc, stream$) => stream$.reduce(reduceWithUndoStack, acc),
       initialStateForUndoStack
     )
     .publish();
 
-  const notes$ = editorState$.map(o => o.current);
+  const notes$ = editorState$.map(o => o.current.notes);
+  const bpm$ = editorState$.map(o => o.current.bpm).distinctUntilChanged();
   const undoEnabled$ = editorState$.map(o => o.undoStack.length > 0);
   const redoEnabled$ = editorState$.map(o => o.redoStack.length > 0);
 
@@ -79,6 +81,7 @@ export default function songEditorController(
     actions,
     currentUser$,
     notes$,
+    bpm$,
     subscription
   );
 
@@ -88,6 +91,10 @@ export default function songEditorController(
     redoEnabled$,
     undoEnabled$,
     (parentViewState, cellsPerBeat, redoEnabled, undoEnabled) =>
-      Object.assign({}, parentViewState, { cellsPerBeat, redoEnabled, undoEnabled })
+      Object.assign({}, parentViewState, {
+        cellsPerBeat,
+        redoEnabled,
+        undoEnabled
+      })
   );
 }

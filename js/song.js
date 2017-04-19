@@ -115,7 +115,7 @@ export function songLengthInSeconds(notes, bpm) {
   return beatsToTimestamp(songLengthInBeats(notes), bpm);
 }
 
-export function reduceEditsToSong(song, edit) {
+export function reduceEditsToNotes(notes, edit) {
   function matcher(edit, note) {
     return note[0] === edit.note && note[1] === edit.beat;
   }
@@ -126,21 +126,34 @@ export function reduceEditsToSong(song, edit) {
     case "replace-all":
       return edit.notes;
     case "create":
-      return concat(song, [[edit.note, edit.beat, edit.duration]]);
+      return concat(notes, [[edit.note, edit.beat, edit.duration]]);
     case "delete":
-      return filter(song, note => !matcher(edit, note));
+      return filter(notes, note => !matcher(edit, note));
     case "move":
-      const index = findIndex(song, matcher.bind(null, edit.from));
+      const index = findIndex(notes, matcher.bind(null, edit.from));
       if (index !== -1) {
-        const oldDuration = song[index][2];
+        const oldDuration = notes[index][2];
         return concat(
-          filter(song, (v, i) => i !== index), // remove old note
+          filter(notes, (v, i) => i !== index), // remove old note
           [[edit.to.note, edit.to.beat, oldDuration]] // add new note
         );
       } else {
-        return song;
+        return notes;
       }
     default:
-      return song;
+      return notes;
+  }
+}
+
+export function reduceEditsToSong(song, edit) {
+  switch (edit.action) {
+    case "change-bpm":
+      return Object.assign({}, song, { bpm: edit.bpm });
+    case "change-title":
+      return Object.assign({}, song, { title: edit.title });
+    default:
+      return Object.assign({}, song, {
+        notes: reduceEditsToNotes(song.notes, edit)
+      });
   }
 }

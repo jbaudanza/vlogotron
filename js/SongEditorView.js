@@ -13,10 +13,22 @@ import { bindAll, bindKey } from "lodash";
 
 import "./SongEditorView.scss";
 
+function withObservables(component, events) {
+  return;
+}
+
 export default class SongEditorView extends React.Component {
   constructor() {
     super();
-    bindAll(this, "bindPianoRoll", "onChooseSong", "onReset", "onUndo", "onRedo");
+    bindAll(
+      this,
+      "bindPianoRoll",
+      "onChooseSong",
+      "onReset",
+      "onUndo",
+      "onRedo",
+      "onChangeBpm"
+    );
   }
 
   componentWillMount() {
@@ -52,11 +64,15 @@ export default class SongEditorView extends React.Component {
   }
 
   onRedo() {
-    this.props.actions.editSong$.next({action: 'redo'});
+    this.props.actions.editSong$.next({ action: "redo" });
   }
 
   onUndo() {
-    this.props.actions.editSong$.next({action: 'undo'});
+    this.props.actions.editSong$.next({ action: "undo" });
+  }
+
+  onChangeBpm(bpm) {
+    this.props.actions.editSong$.next({ action: "change-bpm", bpm: bpm });
   }
 
   onChooseSong(song) {
@@ -98,6 +114,8 @@ export default class SongEditorView extends React.Component {
       <div className="page-footer">
         <div className="page-footer-content page-footer-with-piano-roll">
           <PianoRollHeader
+            bpm={this.props.bpm}
+            onChangeBpm={this.onChangeBpm}
             onClickPlay={this.onClickPlay}
             onClickPause={this.onClickPause}
             isPlaying={this.props.isPlaying}

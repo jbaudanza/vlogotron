@@ -1,5 +1,6 @@
 import React from "react";
 
+import { range, bindAll } from "lodash";
 import Link from "./Link";
 
 import "./PianoRollHeader.scss";
@@ -7,8 +8,7 @@ import "./PianoRollHeader.scss";
 export default class PianoRollHeader extends React.Component {
   constructor() {
     super();
-    this.onClickPlay = this.onClickPlay.bind(this);
-    this.onChangeSelect = this.onChangeSelect.bind(this);
+    bindAll(this, "onClickPlay", "onChangeSelect", "onChangeBpm");
   }
 
   onClickPlay() {
@@ -21,6 +21,10 @@ export default class PianoRollHeader extends React.Component {
 
   onChangeSelect(event) {
     this.props.onChangeCellsPerBeat(parseInt(event.target.value));
+  }
+
+  onChangeBpm(event) {
+    this.props.onChangeBpm(parseInt(event.target.value));
   }
 
   render() {
@@ -53,10 +57,18 @@ export default class PianoRollHeader extends React.Component {
           </Link>
         </div>
         <div className="right-side">
-          <Link enabled={this.props.undoEnabled} onClick={this.props.onUndo} className="action">
+          <Link
+            enabled={this.props.undoEnabled}
+            onClick={this.props.onUndo}
+            className="action"
+          >
             {this.context.messages["undo-action"]()}
           </Link>
-          <Link enabled={this.props.redoEnabled} onClick={this.props.onRedo} className="action">
+          <Link
+            enabled={this.props.redoEnabled}
+            onClick={this.props.onRedo}
+            className="action"
+          >
             {this.context.messages["redo-action"]()}
           </Link>
           <Link onClick={this.props.onReset} className="action">
@@ -77,9 +89,17 @@ export default class PianoRollHeader extends React.Component {
             <option value="2">{this.context.messages["half-notes"]()}</option>
             <option value="1">{this.context.messages["whole-notes"]()}</option>
           </select>
-          <Link className="action">
-            {this.context.messages["bpm-with-number"]({ BPM: 120 })}
-          </Link>
+          <select
+            className="action"
+            value={this.props.bpm}
+            onChange={this.onChangeBpm}
+          >
+            {range(60, 190, 10).map(bpm => (
+              <option value={bpm} key={bpm}>
+                {this.context.messages["bpm-with-number"]({ BPM: bpm })}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
     );
@@ -91,6 +111,8 @@ PianoRollHeader.contextTypes = {
 };
 
 PianoRollHeader.propTypes = {
+  bpm: React.PropTypes.number.isRequired,
+  onChangeBpm: React.PropTypes.func.isRequired,
   onChangeCellsPerBeat: React.PropTypes.func.isRequired,
   onReset: React.PropTypes.func.isRequired,
   onUndo: React.PropTypes.func.isRequired,

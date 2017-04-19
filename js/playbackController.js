@@ -32,6 +32,7 @@ export default function playbackController(
     actions,
     currentUser$,
     song$,
+    Observable.of(120),
     subscription
   );
 }
@@ -41,6 +42,7 @@ export function playbackControllerHelper(
   actions,
   currentUser$,
   song$,
+  bpm$,
   subscription
 ) {
   const videoClips$ = videoClipsForUid(params.uid).publish();
@@ -137,6 +139,7 @@ export function playbackControllerHelper(
     startPosition$,
     songLength$,
     song$,
+    bpm$,
     (
       videoClips,
       loading,
@@ -145,7 +148,8 @@ export function playbackControllerHelper(
       currentUser,
       playbackStartPosition,
       songLength,
-      song
+      song,
+      bpm
     ) => ({
       videoClips,
       isPlaying,
@@ -158,7 +162,8 @@ export function playbackControllerHelper(
       songLength,
       notes: song,
       songTitle: "Mary had a little lamb",
-      authorName: "Jonathan Baudanza"
+      authorName: "Jonathan Baudanza",
+      bpm
     })
   );
 }

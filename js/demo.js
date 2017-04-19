@@ -26,7 +26,7 @@ window.main = function(node) {
   ReactDOM.render(<App />, node);
 };
 
-export const currentUser$ = Observable.create(function(observer) {
+const currentUser$ = Observable.create(function(observer) {
   const auth = firebase.auth();
   observer.next(auth.currentUser);
   firebase.auth().onAuthStateChanged(user => observer.next(user));
