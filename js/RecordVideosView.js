@@ -59,6 +59,7 @@ export default class RecordVideosView extends React.Component {
       footer = (
         <PageTextFooter
           text={this.context.messages["record-videos-tip-long"]()}
+          onDismissError={this.onDismissError}
         />
       );
     }

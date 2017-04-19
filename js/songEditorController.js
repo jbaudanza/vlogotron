@@ -11,9 +11,16 @@ export default function songEditorController(
   currentUser$,
   subscription
 ) {
-  const dbWrites$ = actions.editSong$;
 
-  subscription.add(dbWrites$.subscribe(writeEvent));
+  const allEdits$ = Observable.merge(
+    actions.editSong$,
+    actions.chooseSong$.map(action => ({
+      action: 'replace-all',
+      notes: action.notes
+    }))
+  );
+
+  subscription.add(allEdits$.subscribe(writeEvent));
 
   const notes$ = readEvents()
     .mergeScan((acc, stream$) => stream$.reduce(reduceEditsToSong, acc), [])

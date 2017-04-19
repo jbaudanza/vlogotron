@@ -20,7 +20,7 @@ class LineItem extends React.Component {
         <svg version="1.1" width={21} height={21}>
           <use xlinkHref={this.props.isPlaying ? "#svg-pause" : "#svg-play"} />
         </svg>
-        {this.props.title}
+        {this.props.song.title}
         <Link onClick={this.onSelect}>
           {this.context.messages["select-action"]()}
         </Link>
@@ -39,8 +39,8 @@ export default class ChooseSongOverlay extends React.Component {
       <Overlay className="choose-song-overlay" onClose={this.props.onClose}>
         <h1>Choose a song</h1>
         <ul className="song-list">
-          {map(songs, song => (
-            <LineItem {...song} onSelect={this.props.onSelect} />
+          {map(songs, (song, i) => (
+            <LineItem song={song} key={i} onSelect={this.props.onSelect} />
           ))}
         </ul>
       </Overlay>
