@@ -11,9 +11,6 @@ import playbackController from "./playbackController";
 import songEditorController from "./songEditorController";
 import recordVideosController from "./recordVideosController";
 
-// This is the UID that is loaded on the root URL. (It's me, Jon B!)
-const DEFAULT_UID = "b7Z6g5LFN7SiyJpAnxByRmuSHuV2";
-
 export function navigate(href) {
   urlHistory.push(href);
 }
@@ -26,14 +23,14 @@ function mapToRoute(pathname) {
       view: PlaybackView,
       controller: playbackController,
       location: location,
-      params: { uid: DEFAULT_UID },
+      params: {},
       actions: ["play", "pause", "playCommands$"]
     };
   } else if (pathname === "/record-videos") {
     return {
       controller: recordVideosController,
       location: location,
-      params: { uid: DEFAULT_UID },
+      params: {},
       view: RecordVideosView,
       actions: [
         "startRecording",
@@ -67,6 +64,7 @@ function mapToRoute(pathname) {
   } else {
     return {
       actions: [],
+      params: {},
       view: () => <div>Not found</div>,
       location: location
     };

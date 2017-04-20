@@ -56,6 +56,7 @@ export default function songEditorController(
   params,
   actions,
   currentUser$,
+  media,
   subscription
 ) {
   subscription.add(actions.editSong$.subscribe(writeEvent));
@@ -82,6 +83,7 @@ export default function songEditorController(
     currentUser$,
     notes$,
     bpm$,
+    media,
     subscription
   );
 

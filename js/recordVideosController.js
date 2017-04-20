@@ -12,11 +12,6 @@ import { startLivePlaybackEngine } from "./AudioPlaybackEngine";
 import { playCommands$ as midiPlayCommands$ } from "./midi";
 import { playCommands$ as keyboardPlayCommands$ } from "./keyboard";
 
-import {
-  videoClipsForUid,
-  loadAudioBuffersFromVideoClips
-} from "./mediaLoading";
-
 const messages = require("messageformat-loader!json-loader!./messages.json");
 
 // Note: keypress doesn't work for escape key. Need to use keydown.
@@ -34,6 +29,7 @@ export default function recordVideosController(
   params,
   actions,
   currentUser$,
+  mediaStore,
   subscription
 ) {
   const recordingEngine$ = actions.startRecording$
@@ -96,28 +92,16 @@ export default function recordVideosController(
     .scan(reduceToLocalVideoClipStore, {})
     .startWith({});
 
-  const remoteVideoStore$ = currentUser$
-    .switchMap(user => (user ? videoClipsForUid(user.uid) : Observable.of({})))
-    .publish();
-
-  subscription.add(remoteVideoStore$.connect());
-
   const videoClips$ = Observable.combineLatest(
     localVideoStore$,
-    remoteVideoStore$,
+    mediaStore.videoClips$,
     (local, remote) => Object.assign({}, remote, local)
   );
-
-  const audioLoadingContext = loadAudioBuffersFromVideoClips(
-    remoteVideoStore$,
-    subscription
-  );
-  const loading$ = audioLoadingContext.loading$;
 
   // Looks like { [note]: [audioBuffer], ... }
   const audioBuffers$ = Observable.combineLatest(
     localAudioBuffers$,
-    audioLoadingContext.audioBuffers$,
+    mediaStore.audioBuffers$,
     (local, remote) => Object.assign({}, remote, local)
   );
 
@@ -131,7 +115,7 @@ export default function recordVideosController(
     videoClips$.startWith({}),
     recordingState$,
     currentUser$,
-    loading$,
+    mediaStore.loading$,
     (videoClips, recordingState, currentUser, loading) =>
       Object.assign({}, recordingState, {
         playCommands$,

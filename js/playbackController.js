@@ -10,10 +10,6 @@ import {
   startScriptedPlayback
 } from "./AudioPlaybackEngine";
 import { combine as combinePlayCommands } from "./playCommands";
-import {
-  videoClipsForUid,
-  loadAudioBuffersFromVideoClips
-} from "./mediaLoading";
 
 import { animationFrame } from "rxjs/scheduler/animationFrame";
 import audioContext from "./audioContext";
@@ -24,6 +20,7 @@ export default function playbackController(
   params,
   actions,
   currentUser$,
+  media,
   subscription
 ) {
   const song$ = Observable.of(songs["mary-had-a-little-lamb"].notes);
@@ -33,6 +30,7 @@ export default function playbackController(
     currentUser$,
     song$,
     Observable.of(120),
+    media,
     subscription
   );
 }
@@ -43,23 +41,14 @@ export function playbackControllerHelper(
   currentUser$,
   notes$,
   bpm$,
+  media,
   subscription
 ) {
-  const videoClips$ = videoClipsForUid(params.uid).publish();
-
-  subscription.add(videoClips$.connect());
-
   const livePlayCommands$ = combinePlayCommands(
     Observable.merge(
       actions.playCommands$$,
       Observable.of(midiPlayCommands$, keyboardPlayCommands$)
     )
-  );
-
-  // Looks like { [note]: [audioBuffer], ... }
-  const { audioBuffers$, loading$ } = loadAudioBuffersFromVideoClips(
-    videoClips$,
-    subscription
   );
 
   const songLength$ = Observable.combineLatest(notes$, bpm$, (notes, bpm) =>
@@ -79,7 +68,7 @@ export function playbackControllerHelper(
         notes$,
         bpm,
         startPosition || 0,
-        audioBuffers$,
+        media.audioBuffers$,
         actions.pause$
       )
     )
@@ -127,15 +116,19 @@ export function playbackControllerHelper(
   // TODO: Do we need to keep refcounts when merging these streams?
   const playCommands$ = Observable.merge(
     scriptedPlayCommands$$.concatAll(),
-    startLivePlaybackEngine(audioBuffers$, livePlayCommands$, subscription)
+    startLivePlaybackEngine(
+      media.audioBuffers$,
+      livePlayCommands$,
+      subscription
+    )
   );
 
   // Start up Observables with side-effect
   subscription.add(scriptedPlaybackContext$$.connect());
 
   return Observable.combineLatest(
-    videoClips$.startWith({}),
-    loading$,
+    media.videoClips$,
+    media.loading$,
     isPlaying$,
     playbackPositionInSeconds$,
     currentUser$,

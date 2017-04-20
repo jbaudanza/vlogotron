@@ -15,6 +15,8 @@ import audioContext from "./audioContext";
 
 import { findWrappingLink } from "./domutils";
 
+import { mediaStateFromRoute } from "./mediaLoading";
+
 import "./style.scss";
 import { navigate, currentRoute$, currentLocation$ } from "./router";
 
@@ -59,14 +61,27 @@ class App extends React.Component {
     }
   }
 
+  stateObserver(name) {
+    return value => this.setState({ [name]: value });
+  }
+
   componentWillMount() {
-    this.subscription = currentRoute$.subscribe(this.onRouteChange);
-    this.subscription.add(
-      currentLocation$.subscribe(location => this.setState({ location }))
+    const currentPathname$ = currentLocation$.map(o => o.pathname);
+
+    this.globalSubscription = new Subscription();
+
+    const media$ = mediaStateFromRoute(currentPathname$, currentUser$);
+
+    this.globalSubscription.add(
+      currentRoute$.withLatestFrom(media$).subscribe(this.onRouteChange)
+    );
+
+    this.globalSubscription.add(
+      currentLocation$.subscribe(this.stateObserver("location"))
     );
   }
 
-  onRouteChange(route) {
+  onRouteChange([route, media]) {
     this.disposePage();
 
     this.pageSubscription = new Subscription();
@@ -79,6 +94,7 @@ class App extends React.Component {
       route.params,
       this.pageActions,
       currentUser$,
+      media,
       this.pageSubscription
     );
 
@@ -106,7 +122,7 @@ class App extends React.Component {
   }
 
   componentWillUnmount() {
-    this.subscription.unsubscribe();
+    this.globalSubscription.unsubscribe();
 
     this.disposePage();
   }

@@ -1,4 +1,5 @@
 import { Observable } from "rxjs/Observable";
+import { Subscription } from "rxjs/Subscription";
 
 import audioContext from "./audioContext";
 
@@ -20,6 +21,56 @@ import {
 
 import promiseFromTemplate from "./promiseFromTemplate";
 
+// This is the UID that is loaded on the root URL. (It's me, Jon B!)
+const DEFAULT_UID = "b7Z6g5LFN7SiyJpAnxByRmuSHuV2";
+
+export function mediaStateFromRoute(currentPathname$, currentUser$) {
+  return Observable.combineLatest(currentPathname$, currentUser$, mapRouteToUid)
+    .distinctUntilChanged()
+    .switchMap(switchMapFromUid);
+}
+
+function mapRouteToUid(pathname, currentUserId) {
+  console.log("woot", pathname, currentUserId);
+  if (pathname === "/") {
+    return DEFAULT_UID;
+  } else if (pathname === "/record-videos" || pathname === "/song-editor") {
+    // TODO: This is wrong
+    //    return currentUserId;
+    return DEFAULT_UID;
+  } else {
+    return null;
+  }
+}
+
+function switchMapFromUid(uid, subscription) {
+  if (uid == null) {
+    return Observable.of({});
+  } else {
+    return Observable.create(function(observer) {
+      const subscription = new Subscription();
+      console.log("subscribing to media");
+
+      const videoClips$ = videoClipsForUid(uid).publishReplay();
+      subscription.add(videoClips$.connect());
+
+      // Looks like { [note]: [audioBuffer], ... }
+      const { audioBuffers$, loading$ } = loadAudioBuffersFromVideoClips(
+        videoClips$,
+        subscription
+      );
+
+      observer.next({
+        videoClips$,
+        audioBuffers$,
+        loading$
+      });
+
+      return subscription;
+    });
+  }
+}
+
 /*
   Emits objects that look like:
   {
@@ -30,7 +81,7 @@ import promiseFromTemplate from "./promiseFromTemplate";
     }
   }
 */
-export function videoClipsForUid(uid) {
+function videoClipsForUid(uid) {
   const eventsRef = firebase.database().ref("video-clip-events").child(uid);
   const videosRef = firebase.storage().ref("video-clips").child(uid);
 
@@ -42,35 +93,36 @@ export function videoClipsForUid(uid) {
         (acc, obj) => Object.assign({}, acc, obj),
         {}
       )
-    );
+    )
+    .startWith({});
 }
 
 function gatherPromises(obj) {
   return values(pick(obj.promises, values(obj.clipIds)));
 }
 
-export function loadAudioBuffersFromVideoClips(videoClips$, subscription) {
+function loadAudioBuffersFromVideoClips(videoClips$, subscription) {
   const loadingContext$ = videoClips$
     .map(o => mapValues(o, v => v.audioUrl)) // { [note]: [url], ... }
-    .scan(reduceToAudioBuffers, {});
+    .scan(reduceToAudioBuffers, {})
+    .publishReplay();
 
   // Looks like { [note]: [audioBuffer], ... }
   const audioBuffers$ = loadingContext$
     .mergeMap(obj => Observable.merge(...obj.promises))
-    .scan((acc, obj) => Object.assign({}, acc, obj), {})
-    .publishReplay();
+    .scan((acc, obj) => Object.assign({}, acc, obj), {});
 
   const http$ = loadingContext$.flatMap(c =>
     Observable.from(values(pick(c.httpMap, c.newUrls)))
   );
+
+  subscription.add(loadingContext$.connect());
 
   const loading$ = http$
     .flatMap(http => Observable.of(+1).concat(http.response.then(r => -1)))
     .scan((i, j) => i + j, 0)
     .map(count => count > 0)
     .startWith(true);
-
-  subscription.add(audioBuffers$.connect());
 
   return { loading$, audioBuffers$ };
 }
@@ -164,7 +216,7 @@ function decodeAudioData(arraybuffer) {
   );
 }
 
-export function getAudioBuffer(url) {
+function getAudioBuffer(url) {
   const http = getArrayBuffer(url);
   http.audioBuffer = http.response.then(decodeAudioData);
   return http;
