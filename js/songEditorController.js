@@ -3,7 +3,7 @@ import { Observable } from "rxjs/Observable";
 import { playbackControllerHelper } from "./playbackController";
 import { last } from "lodash";
 
-import { songLengthInSeconds, reduceEditsToSong } from "./song";
+import { songLengthInSeconds, reduceEditsToSong, songs } from "./song";
 import { readEvents, writeEvent } from "./localEventStore";
 
 const messages = require("messageformat-loader!json-loader!./messages.json");
@@ -84,6 +84,24 @@ export default function songEditorController(
     bpm$,
     subscription
   );
+
+  /*
+  // XXX: Where does audioBuffers$ come from?
+  const scriptedPlaybackContext$$ = actions.playTemplate$
+    .map(songId => songs[songId])
+    .withLatestFrom(bpm$, (song, bpm) =>
+      startScriptedPlayback(
+        song.notes,
+        bpm,
+        0,
+        audioBuffers$,
+        actions.pauseTemplate$.filter()
+      )
+    )
+    .publish();
+
+  subscription.add(scriptedPlaybackContext$$.connect());
+  */
 
   return Observable.combineLatest(
     parentViewState$,

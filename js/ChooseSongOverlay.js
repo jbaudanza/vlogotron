@@ -10,12 +10,12 @@ import { songs } from "./song";
 
 import "./ChooseSongOverlay.scss";
 
-function noop() {}
-
 class LineItem extends React.Component {
   constructor(props) {
     super();
     this.onSelect = props.onSelect.bind(null, props.song);
+    this.onClickPlay = props.onClickPlay.bind(null, props.songId);
+    this.onClickPause = props.onClickPause.bind(null, props.songId);
   }
 
   render() {
@@ -23,9 +23,9 @@ class LineItem extends React.Component {
       <li>
         <PlayButton
           size={21}
-          isPlaying={false}
-          onClickPlay={noop}
-          onClickPause={noop}
+          isPlaying={this.props.isPlaying}
+          onClickPlay={this.onClickPlay}
+          onClickPause={this.onClickPause}
         />
         {this.props.song.title}
         <Link onClick={this.onSelect}>
@@ -46,8 +46,16 @@ export default class ChooseSongOverlay extends React.Component {
       <Overlay className="choose-song-overlay" onClose={this.props.onClose}>
         <h1>Choose a song</h1>
         <ul className="song-list">
-          {map(songs, (song, i) => (
-            <LineItem song={song} key={i} onSelect={this.props.onSelect} />
+          {map(songs, (song, songId) => (
+            <LineItem
+              song={song}
+              key={songId}
+              songId={songId}
+              isPlaying={this.props.currentlyPlayingTemplate === songId}
+              onSelect={this.props.onSelect}
+              onClickPlay={this.props.onClickPlay}
+              onClickPause={this.props.onClickPause}
+            />
           ))}
         </ul>
       </Overlay>
@@ -56,6 +64,9 @@ export default class ChooseSongOverlay extends React.Component {
 }
 
 ChooseSongOverlay.propTypes = {
+  currentlyPlayingTemplate: React.PropTypes.string,
   onSelect: React.PropTypes.func.isRequired,
-  onClose: React.PropTypes.string.isRequired
+  onClose: React.PropTypes.string.isRequired,
+  onClickPlay: React.PropTypes.func.isRequired,
+  onClickPause: React.PropTypes.func.isRequired
 };

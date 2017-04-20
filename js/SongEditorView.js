@@ -23,11 +23,13 @@ export default class SongEditorView extends React.Component {
     bindAll(
       this,
       "bindPianoRoll",
+      "onChangeBpm",
       "onChooseSong",
-      "onReset",
-      "onUndo",
+      "onClickPauseTemplate",
+      "onClickPlayTemplate",
       "onRedo",
-      "onChangeBpm"
+      "onReset",
+      "onUndo"
     );
   }
 
@@ -61,6 +63,14 @@ export default class SongEditorView extends React.Component {
     this.props.actions.editSong$.next({
       action: "clear-all"
     });
+  }
+
+  onClickPlayTemplate(songId) {
+    this.props.actions.playTemplate$.next(songId);
+  }
+
+  onClickPauseTemplate() {
+    this.props.actions.pauseTemplate$.next(songId);
   }
 
   onRedo() {
@@ -106,6 +116,9 @@ export default class SongEditorView extends React.Component {
         <ChooseSongOverlay
           onSelect={this.onChooseSong}
           onClose="/song-editor"
+          onClickPlay={this.onClickPlayTemplate}
+          onClickPause={this.onClickPauseTemplate}
+          currentlyPlayingTemplate={this.props.currentlyPlayingTemplate}
         />
       );
     }

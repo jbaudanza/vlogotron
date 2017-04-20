@@ -49,12 +49,14 @@ function mapToRoute(pathname) {
       controller: songEditorController,
       location: location,
       actions: [
-        "play",
-        "pause",
-        "playCommands$",
-        "changePlaybackStartPosition",
         "changeCellsPerBeat",
-        "editSong"
+        "changePlaybackStartPosition",
+        "editSong",
+        "pause",
+        "pauseTemplate",
+        "play",
+        "playCommands$",
+        "playTemplate"
       ]
     };
   } else if ((match = pathname.match(/\/playback\/([\w-]+)/))) {
