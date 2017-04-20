@@ -22,11 +22,13 @@
         border-bottom: none;
       }
 
-      svg {
-        border: 1px solid $color-purple;
-        border-radius: 25px;
+      .play-button {
         float: left;
-        margin-right: 10px;
+        svg {
+          border: 1px solid $color-purple;
+          border-radius: 25px;
+          margin-right: 10px;
+        }
       }
 
       a {

@@ -4,9 +4,13 @@ import { map } from "lodash";
 
 import Overlay from "./Overlay";
 import Link from "./Link";
+import PlayButton from './PlayButton';
+
 import { songs } from "./song";
 
 import "./ChooseSongOverlay.scss";
+
+function noop() {}
 
 class LineItem extends React.Component {
   constructor(props) {
@@ -17,9 +21,7 @@ class LineItem extends React.Component {
   render() {
     return (
       <li>
-        <svg version="1.1" width={21} height={21}>
-          <use xlinkHref={this.props.isPlaying ? "#svg-pause" : "#svg-play"} />
-        </svg>
+        <PlayButton size={21} isPlaying={false} onClickPlay={noop} onClickPause={noop} />
         {this.props.song.title}
         <Link onClick={this.onSelect}>
           {this.context.messages["select-action"]()}

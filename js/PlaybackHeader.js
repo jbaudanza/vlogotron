@@ -1,34 +1,21 @@
 import React from "react";
 import Link from "./Link";
 
+import PlayButton from './PlayButton';
+
 function noop() {}
 
 import { formatSeconds } from "./format";
 
 export default class PlaybackHeader extends React.Component {
-  constructor() {
-    super();
-    this.onClickPlay = this.onClickPlay.bind(this);
-  }
-
-  onClickPlay() {
-    if (this.props.isPlaying) {
-      this.props.onClickPause();
-    } else {
-      this.props.onClickPlay();
-    }
-  }
-
   render() {
     return (
       <div className="page-header">
-        <Link onClick={this.onClickPlay} className="play-button">
-          <svg version="1.1" width={32} height={32}>
-            <use
-              xlinkHref={this.props.isPlaying ? "#svg-pause" : "#svg-play"}
-            />
-          </svg>
-        </Link>
+        <PlayButton
+            size={32}
+            onClickPlay={this.props.onClickPlay}
+            onClickPause={this.props.onClickPause}
+            isPlaying={this.props.isPlaying} />
 
         <div className="song-info">
           <div className="top">

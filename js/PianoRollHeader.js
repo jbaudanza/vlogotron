@@ -2,21 +2,14 @@ import React from "react";
 
 import { range, bindAll } from "lodash";
 import Link from "./Link";
+import PlayButton from './PlayButton';
 
 import "./PianoRollHeader.scss";
 
 export default class PianoRollHeader extends React.Component {
   constructor() {
     super();
-    bindAll(this, "onClickPlay", "onChangeSelect", "onChangeBpm");
-  }
-
-  onClickPlay() {
-    if (this.props.isPlaying) {
-      this.props.onClickPause();
-    } else {
-      this.props.onClickPlay();
-    }
+    bindAll(this, "onChangeSelect", "onChangeBpm");
   }
 
   onChangeSelect(event) {
@@ -31,13 +24,7 @@ export default class PianoRollHeader extends React.Component {
     return (
       <div className="piano-roll-header">
         <div className="left-side">
-          <Link onClick={this.onClickPlay} className="play-button">
-            <svg version="1.1" width={28} height={28}>
-              <use
-                xlinkHref={this.props.isPlaying ? "#svg-pause" : "#svg-play"}
-              />
-            </svg>
-          </Link>
+          <PlayButton size={28} isPlaying={this.props.isPlaying} onClickPlay={this.props.onClickPlay} onClickPause={this.props.onClickPause} />
 
           <Link onClick={null} className="record-button">
             <svg version="1.1" width={28} height={28}>
