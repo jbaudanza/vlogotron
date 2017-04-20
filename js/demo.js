@@ -15,7 +15,7 @@ import audioContext from "./audioContext";
 
 import { findWrappingLink } from "./domutils";
 
-import { mediaStateFromRoute } from "./mediaLoading";
+import { loadAudioBuffersFromVideoClips, videoClipsForRoute } from "./mediaLoading";
 
 import "./style.scss";
 import { navigate, currentRoute$, currentLocation$ } from "./router";
@@ -70,10 +70,19 @@ class App extends React.Component {
 
     this.globalSubscription = new Subscription();
 
-    const media$ = mediaStateFromRoute(currentPathname$, currentUser$);
+    const videoClips$ = videoClipsForRoute(currentPathname$, currentUser$).publishReplay();
+    this.globalSubscription.add(videoClips$.connect());
+
+    const audioLoading = loadAudioBuffersFromVideoClips(videoClips$, this.globalSubscription);
+
+    this.media = {
+      videoClips$: videoClips$,
+      audioBuffers$: audioLoading.audioBuffers$,
+      loading$: audioLoading.loading$
+    };
 
     this.globalSubscription.add(
-      currentRoute$.withLatestFrom(media$).subscribe(this.onRouteChange)
+      currentRoute$.subscribe(this.onRouteChange)
     );
 
     this.globalSubscription.add(
@@ -81,7 +90,7 @@ class App extends React.Component {
     );
   }
 
-  onRouteChange([route, media]) {
+  onRouteChange(route) {
     this.disposePage();
 
     this.pageSubscription = new Subscription();
@@ -94,12 +103,12 @@ class App extends React.Component {
       route.params,
       this.pageActions,
       currentUser$,
-      media,
+      this.media,
       this.pageSubscription
     );
 
     this.setState({
-      view: <div /> // If the controller emits immediately, this div will never be shown.
+      view: <div>loading</div> // If the controller emits immediately, this div will never be shown.
     });
 
     this.pageSubscription.add(

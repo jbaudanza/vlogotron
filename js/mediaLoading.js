@@ -30,20 +30,26 @@ export function mediaStateFromRoute(currentPathname$, currentUser$) {
     .switchMap(switchMapFromUid);
 }
 
-function mapRouteToUid(pathname, currentUserId) {
-  console.log("woot", pathname, currentUserId);
+export function videoClipsForRoute(currentPathname$, currentUser$) {
+  return Observable.combineLatest(currentPathname$, currentUser$, mapRouteToUid)
+      .distinctUntilChanged()
+      .switchMap((uid) => uid ? videoClipsForUid(uid) : Observable.of({}));
+}
+
+function mapRouteToUid(pathname, currentUser) {
   if (pathname === "/") {
     return DEFAULT_UID;
   } else if (pathname === "/record-videos" || pathname === "/song-editor") {
-    // TODO: This is wrong
-    //    return currentUserId;
-    return DEFAULT_UID;
+    if (currentUser)
+      return currentUser.uid;
+    else
+      return null;
   } else {
     return null;
   }
 }
 
-function switchMapFromUid(uid, subscription) {
+function switchMapFromUid(uid) {
   if (uid == null) {
     return Observable.of({});
   } else {
@@ -101,7 +107,7 @@ function gatherPromises(obj) {
   return values(pick(obj.promises, values(obj.clipIds)));
 }
 
-function loadAudioBuffersFromVideoClips(videoClips$, subscription) {
+export function loadAudioBuffersFromVideoClips(videoClips$, subscription) {
   const loadingContext$ = videoClips$
     .map(o => mapValues(o, v => v.audioUrl)) // { [note]: [url], ... }
     .scan(reduceToAudioBuffers, {})
