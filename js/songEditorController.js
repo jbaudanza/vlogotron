@@ -65,7 +65,7 @@ export default function songEditorController(
       (acc, stream$) => stream$.reduce(reduceWithUndoStack, acc),
       initialStateForUndoStack
     )
-    .publish();
+    .publishReplay();
 
   const notes$ = editorState$.map(o => o.current.notes);
   const bpm$ = editorState$.map(o => o.current.bpm).distinctUntilChanged();

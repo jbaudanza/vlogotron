@@ -76,11 +76,10 @@ export function playbackControllerHelper(
   const scriptedPlaybackContext$$ = actions.play$
     .withLatestFrom(
       startPosition$,
-      notes$,
       bpm$,
-      (action, startPosition, notes, bpm) =>
+      (action, startPosition, bpm) =>
         startScriptedPlayback(
-          notes,
+          notes$,
           bpm,
           startPosition || 0,
           audioBuffers$,
@@ -123,7 +122,6 @@ export function playbackControllerHelper(
         )
       )
       .filter(beat => beat >= 0)
-      .takeWhile(beat => beat < songLengthInBeats(context.notes))
       .takeUntil(context.playCommands$.ignoreElements().concatWith(1))
       .concatWith(0)
       .map(beat => beat + context.startPosition)

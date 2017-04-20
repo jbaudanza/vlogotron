@@ -71,24 +71,24 @@ function createGainNode() {
 }
 
 export function startScriptedPlayback(
-  notes,
+  notes$,
   bpm,
   startPosition,
   audioBuffers$,
   playUntil$
 ) {
-  const truncatedSong = notes
-    .filter(note => note[1] >= startPosition)
-    .map(note => [note[0], note[1] - startPosition, note[2]]);
+  const truncatedNotes$ = notes$.map((notes) => (
+    notes
+      .filter(note => note[1] >= startPosition)
+      .map(note => [note[0], note[1] - startPosition, note[2]])
+  ));
 
-  function mapToNotes(beatWindow) {
+  function pickNotesForBeatWindow(beatWindow, notes) {
     const [beatFrom, beatTo] = beatWindow;
-    return truncatedSong.filter(
+    return notes.filter(
       note => note[1] >= beatFrom && note[1] < beatTo
     );
   }
-
-  const length = songLengthInBeats(truncatedSong);
 
   // TODO: 125ms is a long time, but using batchTime instead leads to late
   // playbacks. Why is this? Probably because it takes too long for the
@@ -103,12 +103,15 @@ export function startScriptedPlayback(
     ];
   }
 
+  // TODO: If the song isn't going to change, we don't need the playback
+  // scheduler.
   const commandsWithAudioBuffers$ = playbackSchedule(audioContext)
     .scan(makeBeatWindow, [null, 0])
+    .withLatestFrom(truncatedNotes$)
     // TODO: This really should be takeUntil with a predicate function, but
     // that doesn't exist. Right now we're emitting one more than we need to.
-    .takeWhile(beatWindow => beatWindow[0] < length)
-    .map(mapToNotes)
+    .takeWhile(([beatWindow, notes]) => beatWindow[0] < songLengthInBeats(notes))
+    .map(([beatWindow, notes]) => pickNotesForBeatWindow(beatWindow, notes))
     .withLatestFrom(audioBuffers$);
 
   const stream$ = observableWithGainNode(gainNode =>
@@ -161,7 +164,6 @@ export function startScriptedPlayback(
   return {
     playbackStartedAt: playbackStartedAt,
     startPosition: startPosition,
-    notes: notes,
     bpm: bpm,
     playCommands$: stream$
   };
