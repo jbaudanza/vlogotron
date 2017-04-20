@@ -116,13 +116,15 @@ export function loadAudioBuffersFromVideoClips(videoClips$, subscription) {
   // Looks like { [note]: [audioBuffer], ... }
   const audioBuffers$ = loadingContext$
     .mergeMap(obj => Observable.merge(...obj.promises))
-    .scan((acc, obj) => Object.assign({}, acc, obj), {});
+    .scan((acc, obj) => Object.assign({}, acc, obj), {})
+    .publishReplay();
 
   const http$ = loadingContext$.flatMap(c =>
     Observable.from(values(pick(c.httpMap, c.newUrls)))
   );
 
   subscription.add(loadingContext$.connect());
+  subscription.add(audioBuffers$.connect());
 
   const loading$ = http$
     .flatMap(http => Observable.of(+1).concat(http.response.then(r => -1)))

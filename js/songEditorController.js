@@ -81,8 +81,8 @@ export default function songEditorController(
     { uid: "b7Z6g5LFN7SiyJpAnxByRmuSHuV2" },
     actions,
     currentUser$,
-    notes$,
-    bpm$,
+    notes$.startWith([]),
+    bpm$.startWith(120),
     media,
     subscription
   );
@@ -108,8 +108,8 @@ export default function songEditorController(
   return Observable.combineLatest(
     parentViewState$,
     cellsPerBeat$,
-    redoEnabled$,
-    undoEnabled$,
+    redoEnabled$.startWith(false),
+    undoEnabled$.startWith(false),
     (parentViewState, cellsPerBeat, redoEnabled, undoEnabled) =>
       Object.assign({}, parentViewState, {
         cellsPerBeat,
