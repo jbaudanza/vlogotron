@@ -2,7 +2,7 @@ import React from "react";
 
 import { range, bindAll } from "lodash";
 import Link from "./Link";
-import PlayButton from './PlayButton';
+import PlayButton from "./PlayButton";
 
 import "./PianoRollHeader.scss";
 
@@ -24,7 +24,12 @@ export default class PianoRollHeader extends React.Component {
     return (
       <div className="piano-roll-header">
         <div className="left-side">
-          <PlayButton size={28} isPlaying={this.props.isPlaying} onClickPlay={this.props.onClickPlay} onClickPause={this.props.onClickPause} />
+          <PlayButton
+            size={28}
+            isPlaying={this.props.isPlaying}
+            onClickPlay={this.props.onClickPlay}
+            onClickPause={this.props.onClickPause}
+          />
 
           <Link onClick={null} className="record-button">
             <svg version="1.1" width={28} height={28}>

@@ -4,7 +4,7 @@ import { map } from "lodash";
 
 import Overlay from "./Overlay";
 import Link from "./Link";
-import PlayButton from './PlayButton';
+import PlayButton from "./PlayButton";
 
 import { songs } from "./song";
 
@@ -21,7 +21,12 @@ class LineItem extends React.Component {
   render() {
     return (
       <li>
-        <PlayButton size={21} isPlaying={false} onClickPlay={noop} onClickPause={noop} />
+        <PlayButton
+          size={21}
+          isPlaying={false}
+          onClickPlay={noop}
+          onClickPause={noop}
+        />
         {this.props.song.title}
         <Link onClick={this.onSelect}>
           {this.context.messages["select-action"]()}

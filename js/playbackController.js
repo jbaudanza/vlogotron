@@ -74,17 +74,14 @@ export function playbackControllerHelper(
   }
 
   const scriptedPlaybackContext$$ = actions.play$
-    .withLatestFrom(
-      startPosition$,
-      bpm$,
-      (action, startPosition, bpm) =>
-        startScriptedPlayback(
-          notes$,
-          bpm,
-          startPosition || 0,
-          audioBuffers$,
-          actions.pause$
-        )
+    .withLatestFrom(startPosition$, bpm$, (action, startPosition, bpm) =>
+      startScriptedPlayback(
+        notes$,
+        bpm,
+        startPosition || 0,
+        audioBuffers$,
+        actions.pause$
+      )
     )
     .publish();
 

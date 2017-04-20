@@ -13,9 +13,7 @@ const schedule$ = Observable.merge(
    in the future the app should be scheduling audio playback. */
 export function playbackSchedule(audioContext) {
   return schedule$
-    .map(
-      () => audioContext.currentTime + (document.hasFocus() ? 1.0 : 2.0)
-    )
+    .map(() => audioContext.currentTime + (document.hasFocus() ? 1.0 : 2.0))
     .scan(Math.max, audioContext.currentTime)
     .distinctUntilChanged();
 }

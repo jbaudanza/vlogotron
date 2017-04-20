@@ -77,17 +77,15 @@ export function startScriptedPlayback(
   audioBuffers$,
   playUntil$
 ) {
-  const truncatedNotes$ = notes$.map((notes) => (
+  const truncatedNotes$ = notes$.map(notes =>
     notes
       .filter(note => note[1] >= startPosition)
       .map(note => [note[0], note[1] - startPosition, note[2]])
-  ));
+  );
 
   function pickNotesForBeatWindow(beatWindow, notes) {
     const [beatFrom, beatTo] = beatWindow;
-    return notes.filter(
-      note => note[1] >= beatFrom && note[1] < beatTo
-    );
+    return notes.filter(note => note[1] >= beatFrom && note[1] < beatTo);
   }
 
   // TODO: 125ms is a long time, but using batchTime instead leads to late
@@ -110,7 +108,9 @@ export function startScriptedPlayback(
     .withLatestFrom(truncatedNotes$)
     // TODO: This really should be takeUntil with a predicate function, but
     // that doesn't exist. Right now we're emitting one more than we need to.
-    .takeWhile(([beatWindow, notes]) => beatWindow[0] < songLengthInBeats(notes))
+    .takeWhile(
+      ([beatWindow, notes]) => beatWindow[0] < songLengthInBeats(notes)
+    )
     .map(([beatWindow, notes]) => pickNotesForBeatWindow(beatWindow, notes))
     .withLatestFrom(audioBuffers$);
 

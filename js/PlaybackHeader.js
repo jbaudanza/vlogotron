@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "./Link";
 
-import PlayButton from './PlayButton';
+import PlayButton from "./PlayButton";
 
 function noop() {}
 
@@ -12,10 +12,11 @@ export default class PlaybackHeader extends React.Component {
     return (
       <div className="page-header">
         <PlayButton
-            size={32}
-            onClickPlay={this.props.onClickPlay}
-            onClickPause={this.props.onClickPause}
-            isPlaying={this.props.isPlaying} />
+          size={32}
+          onClickPlay={this.props.onClickPlay}
+          onClickPause={this.props.onClickPause}
+          isPlaying={this.props.isPlaying}
+        />
 
         <div className="song-info">
           <div className="top">

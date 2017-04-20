@@ -1,6 +1,6 @@
-import React from 'react';
+import React from "react";
 
-import Link from './Link';
+import Link from "./Link";
 
 export default class PlayButton extends React.Component {
   constructor() {
@@ -20,9 +20,7 @@ export default class PlayButton extends React.Component {
     return (
       <Link onClick={this.onClick} className="play-button">
         <svg version="1.1" width={this.props.size} height={this.props.size}>
-          <use
-            xlinkHref={this.props.isPlaying ? "#svg-pause" : "#svg-play"}
-          />
+          <use xlinkHref={this.props.isPlaying ? "#svg-pause" : "#svg-play"} />
         </svg>
       </Link>
     );
@@ -34,4 +32,4 @@ PlayButton.propTypes = {
   isPlaying: React.PropTypes.bool.isRequired,
   onClickPlay: React.PropTypes.func.isRequired,
   onClickPause: React.PropTypes.func.isRequired
-}
+};
