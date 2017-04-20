@@ -91,11 +91,13 @@ const happyBirthday = [
 export const songs = {
   "mary-had-a-little-lamb": {
     title: "Mary had a Little Lamb",
-    notes: maryHadALittleLamb
+    notes: maryHadALittleLamb,
+    bpm: 120
   },
   "happy-birthday": {
     title: "Happy Birthday",
-    notes: happyBirthday
+    notes: happyBirthday,
+    bpm: 120
   }
 };
 

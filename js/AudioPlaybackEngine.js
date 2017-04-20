@@ -71,13 +71,13 @@ function createGainNode() {
 }
 
 export function startScriptedPlayback(
-  song,
+  notes,
   bpm,
   startPosition,
   audioBuffers$,
   playUntil$
 ) {
-  const truncatedSong = song
+  const truncatedSong = notes
     .filter(note => note[1] >= startPosition)
     .map(note => [note[0], note[1] - startPosition, note[2]]);
 
@@ -161,7 +161,8 @@ export function startScriptedPlayback(
   return {
     playbackStartedAt: playbackStartedAt,
     startPosition: startPosition,
-    song: song,
+    notes: notes,
+    bpm: bpm,
     playCommands$: stream$
   };
 }

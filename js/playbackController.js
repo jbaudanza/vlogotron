@@ -41,7 +41,7 @@ export function playbackControllerHelper(
   params,
   actions,
   currentUser$,
-  song$,
+  notes$,
   bpm$,
   subscription
 ) {
@@ -62,8 +62,9 @@ export function playbackControllerHelper(
     subscription
   );
 
-  const bpm = 120;
-  const songLength$ = song$.map(song => songLengthInSeconds(song, bpm));
+  const songLength$ = Observable.combineLatest(notes$, bpm$, (notes, bpm) =>
+    songLengthInSeconds(notes, bpm)
+  );
 
   let startPosition$;
   if (actions.changePlaybackStartPosition$) {
@@ -73,14 +74,18 @@ export function playbackControllerHelper(
   }
 
   const scriptedPlaybackContext$$ = actions.play$
-    .withLatestFrom(startPosition$, song$, (action, startPosition, song) =>
-      startScriptedPlayback(
-        song,
-        bpm,
-        startPosition || 0,
-        audioBuffers$,
-        actions.pause$
-      )
+    .withLatestFrom(
+      startPosition$,
+      notes$,
+      bpm$,
+      (action, startPosition, notes, bpm) =>
+        startScriptedPlayback(
+          notes,
+          bpm,
+          startPosition || 0,
+          audioBuffers$,
+          actions.pause$
+        )
     )
     .publish();
 
@@ -112,10 +117,13 @@ export function playbackControllerHelper(
     Observable.of(context.playbackStartedAt, animationFrame)
       .repeat()
       .map(playbackStartedAt =>
-        timestampToBeats(audioContext.currentTime - playbackStartedAt, bpm)
+        timestampToBeats(
+          audioContext.currentTime - playbackStartedAt,
+          context.bpm
+        )
       )
       .filter(beat => beat >= 0)
-      .takeWhile(beat => beat < songLengthInBeats(context.song))
+      .takeWhile(beat => beat < songLengthInBeats(context.notes))
       .takeUntil(context.playCommands$.ignoreElements().concatWith(1))
       .concatWith(0)
       .map(beat => beat + context.startPosition)
@@ -138,7 +146,7 @@ export function playbackControllerHelper(
     currentUser$,
     startPosition$,
     songLength$,
-    song$,
+    notes$,
     bpm$,
     (
       videoClips,
@@ -148,7 +156,7 @@ export function playbackControllerHelper(
       currentUser,
       playbackStartPosition,
       songLength,
-      song,
+      notes,
       bpm
     ) => ({
       videoClips,
@@ -160,7 +168,7 @@ export function playbackControllerHelper(
       currentUser,
       playCommands$,
       songLength,
-      notes: song,
+      notes,
       songTitle: "Mary had a little lamb",
       authorName: "Jonathan Baudanza",
       bpm
