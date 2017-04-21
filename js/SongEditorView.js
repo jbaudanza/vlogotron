@@ -69,7 +69,7 @@ export default class SongEditorView extends React.Component {
     this.props.actions.playTemplate$.next(songId);
   }
 
-  onClickPauseTemplate() {
+  onClickPauseTemplate(songId) {
     this.props.actions.pauseTemplate$.next(songId);
   }
 

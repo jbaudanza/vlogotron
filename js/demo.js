@@ -15,7 +15,10 @@ import audioContext from "./audioContext";
 
 import { findWrappingLink } from "./domutils";
 
-import { loadAudioBuffersFromVideoClips, videoClipsForRoute } from "./mediaLoading";
+import {
+  loadAudioBuffersFromVideoClips,
+  videoClipsForRoute
+} from "./mediaLoading";
 
 import "./style.scss";
 import { navigate, currentRoute$, currentLocation$ } from "./router";
@@ -70,10 +73,16 @@ class App extends React.Component {
 
     this.globalSubscription = new Subscription();
 
-    const videoClips$ = videoClipsForRoute(currentPathname$, currentUser$).publishReplay();
+    const videoClips$ = videoClipsForRoute(
+      currentPathname$,
+      currentUser$
+    ).publishReplay();
     this.globalSubscription.add(videoClips$.connect());
 
-    const audioLoading = loadAudioBuffersFromVideoClips(videoClips$, this.globalSubscription);
+    const audioLoading = loadAudioBuffersFromVideoClips(
+      videoClips$,
+      this.globalSubscription
+    );
 
     this.media = {
       videoClips$: videoClips$,
@@ -81,9 +90,7 @@ class App extends React.Component {
       loading$: audioLoading.loading$
     };
 
-    this.globalSubscription.add(
-      currentRoute$.subscribe(this.onRouteChange)
-    );
+    this.globalSubscription.add(currentRoute$.subscribe(this.onRouteChange));
 
     this.globalSubscription.add(
       currentLocation$.subscribe(this.stateObserver("location"))

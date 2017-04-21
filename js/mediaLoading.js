@@ -32,18 +32,16 @@ export function mediaStateFromRoute(currentPathname$, currentUser$) {
 
 export function videoClipsForRoute(currentPathname$, currentUser$) {
   return Observable.combineLatest(currentPathname$, currentUser$, mapRouteToUid)
-      .distinctUntilChanged()
-      .switchMap((uid) => uid ? videoClipsForUid(uid) : Observable.of({}));
+    .distinctUntilChanged()
+    .switchMap(uid => (uid ? videoClipsForUid(uid) : Observable.of({})));
 }
 
 function mapRouteToUid(pathname, currentUser) {
   if (pathname === "/") {
     return DEFAULT_UID;
   } else if (pathname === "/record-videos" || pathname === "/song-editor") {
-    if (currentUser)
-      return currentUser.uid;
-    else
-      return null;
+    if (currentUser) return currentUser.uid;
+    else return null;
   } else {
     return null;
   }

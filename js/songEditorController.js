@@ -5,6 +5,7 @@ import { last } from "lodash";
 
 import { songLengthInSeconds, reduceEditsToSong, songs } from "./song";
 import { readEvents, writeEvent } from "./localEventStore";
+import { startScriptedPlayback } from "./AudioPlaybackEngine";
 
 const messages = require("messageformat-loader!json-loader!./messages.json");
 
@@ -87,34 +88,44 @@ export default function songEditorController(
     subscription
   );
 
-  /*
-  // XXX: Where does audioBuffers$ come from?
-  const scriptedPlaybackContext$$ = actions.playTemplate$
-    .map(songId => songs[songId])
-    .withLatestFrom(bpm$, (song, bpm) =>
-      startScriptedPlayback(
-        song.notes,
+  const currentlyPlayingTemplate$ = actions.playTemplate$
+    .withLatestFrom(bpm$, function(songId, bpm) {
+      const context = startScriptedPlayback(
+        Observable.of(songs[songId].notes),
         bpm,
         0,
-        audioBuffers$,
-        actions.pauseTemplate$.filter()
-      )
-    )
+        media.audioBuffers$,
+        Observable.merge(actions.pauseTemplate$, actions.playTemplate$).take(1)
+      );
+
+      return Observable.merge(
+        Observable.of(songId),
+        context.playCommands$.ignoreElements().concatWith(null)
+      );
+    })
+    .switch()
     .publish();
 
-  subscription.add(scriptedPlaybackContext$$.connect());
-  */
+  subscription.add(currentlyPlayingTemplate$.connect());
 
   return Observable.combineLatest(
     parentViewState$,
     cellsPerBeat$,
     redoEnabled$.startWith(false),
     undoEnabled$.startWith(false),
-    (parentViewState, cellsPerBeat, redoEnabled, undoEnabled) =>
+    currentlyPlayingTemplate$.startWith(null),
+    (
+      parentViewState,
+      cellsPerBeat,
+      redoEnabled,
+      undoEnabled,
+      currentlyPlayingTemplate
+    ) =>
       Object.assign({}, parentViewState, {
         cellsPerBeat,
         redoEnabled,
-        undoEnabled
+        undoEnabled,
+        currentlyPlayingTemplate
       })
   );
 }
