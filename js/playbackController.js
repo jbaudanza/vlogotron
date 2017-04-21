@@ -25,7 +25,6 @@ export default function playbackController(
 ) {
   const song$ = Observable.of(songs["mary-had-a-little-lamb"].notes);
   return playbackControllerHelper(
-    params,
     actions,
     currentUser$,
     song$,
@@ -36,7 +35,6 @@ export default function playbackController(
 }
 
 export function playbackControllerHelper(
-  params,
   actions,
   currentUser$,
   notes$,

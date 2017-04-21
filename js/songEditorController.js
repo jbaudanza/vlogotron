@@ -78,7 +78,6 @@ export default function songEditorController(
   const cellsPerBeat$ = actions.changeCellsPerBeat$.startWith(4);
 
   const parentViewState$ = playbackControllerHelper(
-    { uid: "b7Z6g5LFN7SiyJpAnxByRmuSHuV2" },
     actions,
     currentUser$,
     notes$.startWith([]),

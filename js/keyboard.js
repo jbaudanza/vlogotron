@@ -49,7 +49,13 @@ const keyCodeMap = {
   0xba: "D#5" // Semicolon
 };
 
+function notInTextInput(event) {
+  const el = event.target;
+  return el.nodeName !== "INPUT" && el.nodeName !== "TEXTAREA";
+}
+
 export const playCommands$ = keys$
+  .filter(notInTextInput)
   .map(function(event) {
     if (event.repeat) return;
 
