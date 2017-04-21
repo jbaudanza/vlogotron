@@ -125,6 +125,7 @@ class App extends React.Component {
           view: (
             <View
               {...viewState}
+              media={this.media}
               location={route.location}
               actions={this.pageActions}
               onNavigate={this.onNavigate}

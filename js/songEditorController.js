@@ -3,9 +3,8 @@ import { Observable } from "rxjs/Observable";
 import { playbackControllerHelper } from "./playbackController";
 import { last } from "lodash";
 
-import { songLengthInSeconds, reduceEditsToSong, songs } from "./song";
+import { songLengthInSeconds, reduceEditsToSong } from "./song";
 import { readEvents, writeEvent } from "./localEventStore";
-import { startScriptedPlayback } from "./AudioPlaybackEngine";
 
 const messages = require("messageformat-loader!json-loader!./messages.json");
 
@@ -88,44 +87,16 @@ export default function songEditorController(
     subscription
   );
 
-  const currentlyPlayingTemplate$ = actions.playTemplate$
-    .withLatestFrom(bpm$, function(songId, bpm) {
-      const context = startScriptedPlayback(
-        Observable.of(songs[songId].notes),
-        bpm,
-        0,
-        media.audioBuffers$,
-        Observable.merge(actions.pauseTemplate$, actions.playTemplate$).take(1)
-      );
-
-      return Observable.merge(
-        Observable.of(songId),
-        context.playCommands$.ignoreElements().concatWith(null)
-      );
-    })
-    .switch()
-    .publish();
-
-  subscription.add(currentlyPlayingTemplate$.connect());
-
   return Observable.combineLatest(
     parentViewState$,
     cellsPerBeat$,
     redoEnabled$.startWith(false),
     undoEnabled$.startWith(false),
-    currentlyPlayingTemplate$.startWith(null),
-    (
-      parentViewState,
-      cellsPerBeat,
-      redoEnabled,
-      undoEnabled,
-      currentlyPlayingTemplate
-    ) =>
+    (parentViewState, cellsPerBeat, redoEnabled, undoEnabled) =>
       Object.assign({}, parentViewState, {
         cellsPerBeat,
         redoEnabled,
-        undoEnabled,
-        currentlyPlayingTemplate
+        undoEnabled
       })
   );
 }

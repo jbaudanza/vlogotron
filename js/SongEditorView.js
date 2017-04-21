@@ -115,7 +115,9 @@ export default class SongEditorView extends React.Component {
       overlay = (
         <ChooseSongOverlay
           onSelect={this.onChooseSong}
+          media={this.props.media}
           onClose="/song-editor"
+          bpm={this.props.bpm}
           onClickPlay={this.onClickPlayTemplate}
           onClickPause={this.onClickPauseTemplate}
           currentlyPlayingTemplate={this.props.currentlyPlayingTemplate}
