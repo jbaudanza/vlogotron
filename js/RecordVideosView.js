@@ -14,17 +14,10 @@ export default class RecordVideosView extends React.Component {
     bindAll(this, "bindVideoGrid", "onClickLogin");
   }
 
-  componentWillMount() {
-    this.onStartRecording = bindKey(this.props.actions.startRecording$, "next");
-    this.onStopRecording = bindKey(this.props.actions.stopRecording$, "next");
-    this.onDismissError = bindKey(this.props.actions.dismissError$, "next");
-    this.onClearVideoClip = bindKey(this.props.actions.clearVideoClip$, "next");
-  }
-
   bindVideoGrid(component) {
     if (component) {
       this.subscription = component.playCommands$$.subscribe(
-        this.props.actions.playCommands$$
+        this.props.actions.subjects.playCommands$$
       );
     } else {
       if (this.subscription) this.subscription.unsubscribe();
@@ -36,6 +29,8 @@ export default class RecordVideosView extends React.Component {
   }
 
   render() {
+    const callbacks = this.props.actions.callbacks;
+
     const header = (
       <RecordVideosHeader
         songTitle={this.props.songTitle}
@@ -52,14 +47,14 @@ export default class RecordVideosView extends React.Component {
         <PageTextFooter
           error
           text={this.props.error}
-          onDismissError={this.onDismissError}
+          onDismissError={callbacks.onDismissError}
         />
       );
     } else {
       footer = (
         <PageTextFooter
           text={this.context.messages["record-videos-tip-long"]()}
-          onDismissError={this.onDismissError}
+          onDismissError={callbacks.onDismissError}
         />
       );
     }
@@ -85,9 +80,9 @@ export default class RecordVideosView extends React.Component {
           videoClips={this.props.videoClips}
           playCommands$={this.props.playCommands$}
           readonly={false}
-          onStartRecording={this.onStartRecording}
-          onStopRecording={this.onStopRecording}
-          onClear={this.onClearVideoClip}
+          onStartRecording={callbacks.onStartRecording}
+          onStopRecording={callbacks.onStopRecording}
+          onClear={callbacks.onClearVideoClip}
           mediaStream={this.props.mediaStream}
           countdownUntilRecord={this.props.countdownUntilRecord}
           durationRecorded={this.props.durationRecorded}

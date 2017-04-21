@@ -1,9 +1,8 @@
 import React from "react";
 
-import { Subject } from "rxjs/Subject";
 import { Observable } from "rxjs/Observable";
 
-import { map, forEach } from "lodash";
+import { map } from "lodash";
 
 import Overlay from "./Overlay";
 import Link from "./Link";
@@ -13,6 +12,8 @@ import { songs } from "./song";
 import { startScriptedPlayback } from "./AudioPlaybackEngine";
 
 import "./ChooseSongOverlay.scss";
+
+import ReactActions from "./ReactActions";
 
 class LineItem extends React.Component {
   constructor(props) {
@@ -47,14 +48,8 @@ LineItem.contextTypes = {
 export default class ChooseSongOverlay extends React.Component {
   constructor() {
     super();
-    this.actions = {
-      play$: new Subject(),
-      pause$: new Subject(),
-      unmount$: new Subject()
-    };
 
-    this.onClickPause = this.onClickPause.bind(this);
-    this.onClickPlay = this.onClickPlay.bind(this);
+    this.actions = new ReactActions(["play", "pause", "unmount"]);
 
     this.state = {
       currentyPlaying: null
@@ -63,25 +58,15 @@ export default class ChooseSongOverlay extends React.Component {
 
   componentWillMount() {
     this.subscription = chooseTemplateController(
-      this.actions.play$,
-      this.actions.pause$,
-      this.actions.unmount$,
+      this.actions.observables,
       this.props.bpm,
       this.props.media.audioBuffers$
     ).subscribe(currentlyPlaying => this.setState({ currentlyPlaying }));
   }
 
   componentWillUnmount() {
-    this.actions.unmount$.next({});
-    forEach(this.actions, subject => subject.complete());
-  }
-
-  onClickPlay(songId) {
-    this.actions.play$.next(songId);
-  }
-
-  onClickPause(songId) {
-    this.actions.pause$.next(songId);
+    this.actions.callbacks.onUnmount();
+    this.actions.completeAll();
   }
 
   render() {
@@ -96,8 +81,8 @@ export default class ChooseSongOverlay extends React.Component {
               songId={songId}
               isPlaying={this.state.currentlyPlaying === songId}
               onSelect={this.props.onSelect}
-              onClickPlay={this.onClickPlay}
-              onClickPause={this.onClickPause}
+              onClickPlay={this.actions.callbacks.onPlay}
+              onClickPause={this.actions.callbacks.onPause}
             />
           ))}
         </ul>
@@ -106,14 +91,14 @@ export default class ChooseSongOverlay extends React.Component {
   }
 }
 
-function chooseTemplateController(play$, pause$, unmount$, bpm, audioBuffers$) {
-  return play$.switchMap(songId => {
+function chooseTemplateController(actions, bpm, audioBuffers$) {
+  return actions.play$.switchMap(songId => {
     const context = startScriptedPlayback(
       Observable.of(songs[songId].notes),
       bpm,
       0,
       audioBuffers$,
-      Observable.merge(pause$, play$, unmount$).take(1)
+      Observable.merge(actions.pause$, actions.play$, actions.unmount$).take(1)
     );
 
     return Observable.merge(

@@ -12,15 +12,10 @@ export default class PlaybackView extends React.Component {
     bindAll(this, "bindVideoGrid", "onClickLogin");
   }
 
-  componentWillMount() {
-    this.onClickPlay = bindKey(this.props.actions.play$, "next");
-    this.onClickPause = bindKey(this.props.actions.pause$, "next");
-  }
-
   bindVideoGrid(component) {
     if (component) {
       this.subscription = component.playCommands$$.subscribe(
-        this.props.actions.playCommands$$
+        this.props.actions.subjects.playCommands$$
       );
     } else {
       if (this.subscription) this.subscription.unsubscribe();
@@ -40,8 +35,8 @@ export default class PlaybackView extends React.Component {
         songLength={this.props.songLength}
         authorName={this.props.authorName}
         playbackPositionInSeconds={this.props.playbackPositionInSeconds}
-        onClickPlay={this.onClickPlay}
-        onClickPause={this.onClickPause}
+        onClickPlay={this.props.actions.callbacks.onPlay}
+        onClickPause={this.props.actions.callbacks.onPause}
       />
     );
 

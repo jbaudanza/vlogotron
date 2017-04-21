@@ -25,31 +25,16 @@ export default class SongEditorView extends React.Component {
       "bindPianoRoll",
       "onChangeBpm",
       "onChooseSong",
-      "onClickPauseTemplate",
-      "onClickPlayTemplate",
       "onRedo",
       "onReset",
       "onUndo"
     );
   }
 
-  componentWillMount() {
-    this.onClickPlay = bindKey(this.props.actions.play$, "next");
-    this.onClickPause = bindKey(this.props.actions.pause$, "next");
-    this.onChangePlaybackStartPosition = bindKey(
-      this.props.actions.changePlaybackStartPosition$,
-      "next"
-    );
-    this.onChangeCellsPerBeat = bindKey(
-      this.props.actions.changeCellsPerBeat$,
-      "next"
-    );
-  }
-
   bindPianoRoll(component) {
     if (component) {
       this.subscription = component.edits$.subscribe(
-        this.props.actions.editSong$
+        this.props.actions.subjects.editSong$
       );
     } else {
       if (this.subscription) {
@@ -60,33 +45,28 @@ export default class SongEditorView extends React.Component {
   }
 
   onReset() {
-    this.props.actions.editSong$.next({
+    this.props.actions.subjects.editSong$.next({
       action: "clear-all"
     });
   }
 
-  onClickPlayTemplate(songId) {
-    this.props.actions.playTemplate$.next(songId);
-  }
-
-  onClickPauseTemplate(songId) {
-    this.props.actions.pauseTemplate$.next(songId);
-  }
-
   onRedo() {
-    this.props.actions.editSong$.next({ action: "redo" });
+    this.props.actions.subjects.editSong$.next({ action: "redo" });
   }
 
   onUndo() {
-    this.props.actions.editSong$.next({ action: "undo" });
+    this.props.actions.subjects.editSong$.next({ action: "undo" });
   }
 
   onChangeBpm(bpm) {
-    this.props.actions.editSong$.next({ action: "change-bpm", bpm: bpm });
+    this.props.actions.subjects.editSong$.next({
+      action: "change-bpm",
+      bpm: bpm
+    });
   }
 
   onChooseSong(song) {
-    this.props.actions.editSong$.next({
+    this.props.actions.subjects.editSong$.next({
       action: "replace-all",
       notes: song.notes
     });
@@ -118,9 +98,6 @@ export default class SongEditorView extends React.Component {
           media={this.props.media}
           onClose="/song-editor"
           bpm={this.props.bpm}
-          onClickPlay={this.onClickPlayTemplate}
-          onClickPause={this.onClickPauseTemplate}
-          currentlyPlayingTemplate={this.props.currentlyPlayingTemplate}
         />
       );
     }
@@ -131,15 +108,17 @@ export default class SongEditorView extends React.Component {
           <PianoRollHeader
             bpm={this.props.bpm}
             onChangeBpm={this.onChangeBpm}
-            onClickPlay={this.onClickPlay}
-            onClickPause={this.onClickPause}
+            onClickPlay={this.props.actions.callbacks.onPlay}
+            onClickPause={this.props.actions.callbacks.onPause}
             isPlaying={this.props.isPlaying}
             isRecording={false}
             onReset={this.onReset}
             onUndo={this.onUndo}
             onRedo={this.onRedo}
             cellsPerBeat={this.props.cellsPerBeat}
-            onChangeCellsPerBeat={this.onChangeCellsPerBeat}
+            onChangeCellsPerBeat={
+              this.props.actions.callbacks.onChangeCellsPerBeat
+            }
             undoEnabled={this.props.undoEnabled}
             redoEnabled={this.props.redoEnabled}
           />
@@ -151,7 +130,9 @@ export default class SongEditorView extends React.Component {
             playbackPosition$$={this.props.playbackPositionInBeats$$}
             playing={{}}
             playbackStartPosition={this.props.playbackStartPosition}
-            onChangePlaybackStartPosition={this.onChangePlaybackStartPosition}
+            onChangePlaybackStartPosition={
+              this.props.actions.callbacks.onChangePlaybackStartPosition
+            }
           />
         </div>
       </div>

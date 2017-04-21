@@ -50,10 +50,8 @@ function mapToRoute(pathname) {
         "changePlaybackStartPosition",
         "editSong",
         "pause",
-        "pauseTemplate",
         "play",
-        "playCommands$",
-        "playTemplate"
+        "playCommands$"
       ]
     };
   } else if ((match = pathname.match(/\/playback\/([\w-]+)/))) {

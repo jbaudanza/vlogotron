@@ -6,10 +6,12 @@ import { Observable } from "rxjs/Observable";
 import { Subscription } from "rxjs/Subscription";
 import { Subject } from "rxjs/Subject";
 
-import { bindAll, fromPairs, forEach } from "lodash";
+import { bindAll, fromPairs } from "lodash";
 
 import SvgAssets from "./SvgAssets";
 import LoginOverlay from "./LoginOverlay";
+
+import ReactActions from "./ReactActions";
 
 import audioContext from "./audioContext";
 
@@ -102,13 +104,11 @@ class App extends React.Component {
 
     this.pageSubscription = new Subscription();
 
-    this.pageActions = fromPairs(
-      route.actions.map(name => [name + "$", new Subject()])
-    );
+    this.pageActions = new ReactActions(route.actions);
 
     const viewState$ = route.controller(
       route.params,
-      this.pageActions,
+      this.pageActions.observables,
       currentUser$,
       this.media,
       this.pageSubscription
@@ -147,7 +147,7 @@ class App extends React.Component {
   disposePage() {
     if (this.pageSubscription) {
       this.pageSubscription.unsubscribe();
-      forEach(this.pageActions, subject => subject.complete());
+      this.pageActions.completeAll();
 
       delete this.pageSubscription;
       delete this.pageActions;
