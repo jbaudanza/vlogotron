@@ -24,6 +24,7 @@
   "devDependencies": {
     "ava": "^0.17.0",
     "prettier": "^1.0.2",
+    "targaryen": "^3.0.1",
     "webpack-notifier": "^1.5.0"
   },
   "scripts": {

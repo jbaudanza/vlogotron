@@ -1,15 +1,22 @@
 {
   "rules": {
-    "video-clips": {
+    "video-clip-events": {
       "$uid": {
         ".read": true,
         ".write": "$uid === auth.uid"
       }
     },
-    "video-clip-events": {
+    "users": {
       "$uid": {
         ".read": true,
-        ".write": "$uid === auth.uid"
+        ".write": "$uid === auth.uid"        
+      }
+    },
+    "songs": {
+      "$songId": {
+        ".read": "data.child('visibility').val() === 'everyone' || data.child('uid').val() === auth.uid",
+        ".write": "data.exists() ? (data.child('uid').val() === auth.uid) : (auth != null)",
+        ".validate": "newData.child('uid').val() === auth.uid"
       }
     }
   }
