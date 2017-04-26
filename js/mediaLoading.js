@@ -22,21 +22,36 @@ import {
 import promiseFromTemplate from "./promiseFromTemplate";
 
 
-export function mediaForRoute(currentPathname$, currentUser$) {
+export function mediaForRoute(currentPathname$, currentUser$, subscription) {
   const songId$ = Observable.combineLatest(currentPathname$, currentUser$, mapRouteToSongId)
     .switch()
-    .distinctUntilChanged();
+    .distinctUntilChanged()
+    .publishReplay();
 
-  return songId$.switchMap(function(songId) {
+  const song$ = songId$.switchMap((songId) => {
     if (songId != null) {
-      return Observable.fromPromise(songById(songId))
-        .switchMap((song) =>
-          videoClipsForSong(song).map((videoClips) => Object.assign({}, song, {videoClips}))
-        );
+      return songById(songId);
     } else {
       return Observable.of(null);
     }
-  });
+  }).publishReplay();
+
+  const videoClips$ = song$.switchMap((song) => (
+    song ? videoClipsForSong(song) : Observable.of({})
+  )).publishReplay();
+
+  const audioLoading = loadAudioBuffersFromVideoClips(
+    videoClips$, subscription
+  );
+
+  subscription.add(songId$.connect());
+  subscription.add(song$.connect());
+  subscription.add(videoClips$.connect());
+
+  return { songId$, song$, videoClips$,
+      audioBuffers$: audioLoading.audioBuffers$,
+      loading$: audioLoading.loading$
+  };
 }
 
 function songById(songId) {
@@ -108,6 +123,7 @@ export function loadAudioBuffersFromVideoClips(videoClips$, subscription) {
   const audioBuffers$ = loadingContext$
     .mergeMap(obj => Observable.merge(...obj.promises))
     .scan((acc, obj) => Object.assign({}, acc, obj), {})
+    .startWith({})
     .publishReplay();
 
   const http$ = loadingContext$.flatMap(c =>

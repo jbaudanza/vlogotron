@@ -46,29 +46,29 @@ export default function recordVideosController(
   const finalMedia$ = recordingEngine$.switchMap(o => o.media$);
 
   const uploadedEvents$ = finalMedia$
-    .withLatestFrom(currentUser$, (media, currentUser) =>
+    .withLatestFrom(currentUser$, mediaStore.songId$, (media, currentUser, songId) =>
       startUploadTask(
         currentUser.uid,
         media.clipId,
         media.videoBlob
       ).then(() => [
-        currentUser.uid,
+        songId,
         { type: "uploaded", clipId: media.clipId, note: media.note }
       ])
     )
     .mergeAll();
 
   const clearedEvents$ = actions.clearVideoClip$.withLatestFrom(
-    currentUser$,
-    (note, currentUser) => [currentUser.uid, { type: "cleared", note: note }]
+    mediaStore.songId$,
+    (note, songId) => [songId, { type: "cleared", note: note }]
   );
 
   // Store events in firebase
   subscription.add(
     Observable.merge(clearedEvents$, uploadedEvents$).subscribe(function(
-      [uid, event]
+      [songId, event]
     ) {
-      firebase.database().ref("video-clip-events").child(uid).push(event);
+      firebase.database().ref("songs").child(songId).child("events").push(event);
     })
   );
 
@@ -115,14 +115,16 @@ export default function recordVideosController(
     videoClips$.startWith({}),
     recordingState$,
     currentUser$,
+    mediaStore.song$,
     mediaStore.loading$,
-    (videoClips, recordingState, currentUser, loading) =>
+    (videoClips, recordingState, currentUser, song, loading) =>
       Object.assign({}, recordingState, {
         playCommands$,
         currentUser,
         videoClips,
+        song,
         loading,
-        songTitle: messages["default-song-title"]()
+        songTitle: (song ? song.title : null)
       })
   );
 }

@@ -17,11 +17,7 @@ import audioContext from "./audioContext";
 
 import { findWrappingLink } from "./domutils";
 
-import {
-  loadAudioBuffersFromVideoClips,
-  videoClipsForRoute,
-  songForRoute
-} from "./mediaLoading";
+import { mediaForRoute } from "./mediaLoading";
 
 import "./style.scss";
 import { navigate, currentRoute$, currentLocation$ } from "./router";
@@ -76,22 +72,11 @@ class App extends React.Component {
 
     this.globalSubscription = new Subscription();
 
-    const song$ = mediaForRoute(
+    this.media = mediaForRoute(
       currentPathname$,
-      currentUser$
-    ).publishReplay();
-    this.globalSubscription.add(song$.connect());
-
-    const audioLoading = loadAudioBuffersFromVideoClips(
-      videoClips$,
+      currentUser$,
       this.globalSubscription
     );
-
-    this.media = {
-      videoClips$: videoClips$,
-      audioBuffers$: audioLoading.audioBuffers$,
-      loading$: audioLoading.loading$
-    };
 
     this.globalSubscription.add(currentRoute$.subscribe(this.onRouteChange));
 
