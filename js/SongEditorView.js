@@ -81,7 +81,7 @@ export default class SongEditorView extends React.Component {
         secondaryActionLabel={this.context.messages["back-action"]()}
         primaryAction={{ href: "#" }}
         primaryActionLabel={this.context.messages["save-action"]()}
-        onChangeTitle={function( ) {}}
+        onChangeTitle={function() {}}
       />
     );
 

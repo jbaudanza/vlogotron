@@ -46,15 +46,18 @@ export default function recordVideosController(
   const finalMedia$ = recordingEngine$.switchMap(o => o.media$);
 
   const uploadedEvents$ = finalMedia$
-    .withLatestFrom(currentUser$, mediaStore.songId$, (media, currentUser, songId) =>
-      startUploadTask(
-        currentUser.uid,
-        media.clipId,
-        media.videoBlob
-      ).then(() => [
-        songId,
-        { type: "uploaded", clipId: media.clipId, note: media.note }
-      ])
+    .withLatestFrom(
+      currentUser$,
+      mediaStore.songId$,
+      (media, currentUser, songId) =>
+        startUploadTask(
+          currentUser.uid,
+          media.clipId,
+          media.videoBlob
+        ).then(() => [
+          songId,
+          { type: "uploaded", clipId: media.clipId, note: media.note }
+        ])
     )
     .mergeAll();
 
@@ -68,7 +71,12 @@ export default function recordVideosController(
     Observable.merge(clearedEvents$, uploadedEvents$).subscribe(function(
       [songId, event]
     ) {
-      firebase.database().ref("songs").child(songId).child("events").push(event);
+      firebase
+        .database()
+        .ref("songs")
+        .child(songId)
+        .child("events")
+        .push(event);
     })
   );
 
@@ -124,7 +132,7 @@ export default function recordVideosController(
         videoClips,
         song,
         loading,
-        songTitle: (song ? song.title : null)
+        songTitle: song ? song.title : null
       })
   );
 }

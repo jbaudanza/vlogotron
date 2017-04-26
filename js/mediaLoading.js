@@ -21,45 +21,59 @@ import {
 
 import promiseFromTemplate from "./promiseFromTemplate";
 
-
 export function mediaForRoute(currentPathname$, currentUser$, subscription) {
-  const songId$ = Observable.combineLatest(currentPathname$, currentUser$, mapRouteToSongId)
+  const songId$ = Observable.combineLatest(
+    currentPathname$,
+    currentUser$,
+    mapRouteToSongId
+  )
     .switch()
     .distinctUntilChanged()
     .publishReplay();
 
-  const song$ = songId$.switchMap((songId) => {
-    if (songId != null) {
-      return songById(songId);
-    } else {
-      return Observable.of(null);
-    }
-  }).publishReplay();
+  const song$ = songId$
+    .switchMap(songId => {
+      if (songId != null) {
+        return songById(songId);
+      } else {
+        return Observable.of(null);
+      }
+    })
+    .publishReplay();
 
-  const videoClips$ = song$.switchMap((song) => (
-    song ? videoClipsForSong(song) : Observable.of({})
-  )).publishReplay();
+  const videoClips$ = song$
+    .switchMap(song => (song ? videoClipsForSong(song) : Observable.of({})))
+    .publishReplay();
 
   const audioLoading = loadAudioBuffersFromVideoClips(
-    videoClips$, subscription
+    videoClips$,
+    subscription
   );
 
   subscription.add(songId$.connect());
   subscription.add(song$.connect());
   subscription.add(videoClips$.connect());
 
-  return { songId$, song$, videoClips$,
-      audioBuffers$: audioLoading.audioBuffers$,
-      loading$: audioLoading.loading$
+  return {
+    songId$,
+    song$,
+    videoClips$,
+    audioBuffers$: audioLoading.audioBuffers$,
+    loading$: audioLoading.loading$
   };
 }
 
 function songById(songId) {
-  return firebase.database().ref("songs").child(songId).once("value").then((snapshot) => Object.assign({songId}, snapshot.val()))
+  return firebase
+    .database()
+    .ref("songs")
+    .child(songId)
+    .once("value")
+    .then(snapshot => Object.assign({ songId }, snapshot.val()));
 }
 
 function mapRouteToSongId(pathname, currentUser) {
-  const databaseId = '([\w-]+)';
+  const databaseId = "([\w-]+)";
   const songsRe = new RegExp(`^/songs/${databaseId}$`);
   let match;
 
@@ -71,7 +85,7 @@ function mapRouteToSongId(pathname, currentUser) {
     } else {
       return noSong$;
     }
-  } else if (match = songsRe.match(pathname)) {
+  } else if ((match = songsRe.match(pathname))) {
     return Observable.of(match[1]);
   } else {
     return noSong$;
@@ -92,14 +106,14 @@ function videoClipsForSong(song) {
   const songRef = firebase.database().ref("songs").child(song.songId);
   const videosRef = firebase.storage().ref("video-clips").child(song.uid);
 
-  const clipsIds$ = Observable.fromEvent(songRef.child("events"), "value")
-      .map(mapEventSnapshotToActiveClipIds);
+  const clipsIds$ = Observable.fromEvent(songRef.child("events"), "value").map(
+    mapEventSnapshotToActiveClipIds
+  );
 
   return clipsIds$
-    .scan(
-        (acc, clipIds) => reduceClipIdsToPromises(videosRef, acc, clipIds),
-        { promises: {} }
-    )
+    .scan((acc, clipIds) => reduceClipIdsToPromises(videosRef, acc, clipIds), {
+      promises: {}
+    })
     .switchMap(obj =>
       Observable.merge(...gatherPromises(obj)).reduce(
         (acc, obj) => Object.assign({}, acc, obj),
@@ -265,21 +279,21 @@ function reduceToAudioBuffers(acc, noteToUrlMap) {
 }
 
 function findOrCreateWorkspaceSongId(uid) {
-  const workspaceSongIdRef = firebase.database()
-          .ref('users')
-          .child(uid)
-          .child('workspaceSongId');
+  const workspaceSongIdRef = firebase
+    .database()
+    .ref("users")
+    .child(uid)
+    .child("workspaceSongId");
 
-  return workspaceSongIdRef.once('value').then(function(snapshot) {
+  return workspaceSongIdRef.once("value").then(function(snapshot) {
     if (snapshot.exists()) {
       return snapshot.val();
     } else {
-
-      const songRef = firebase.database().ref('songs').push({
-        title: messages['default-song-title'](),
+      const songRef = firebase.database().ref("songs").push({
+        title: messages["default-song-title"](),
         timestamp: firebase.database.ServerValue.TIMESTAMP,
         uid: uid,
-        visibility: 'owner'
+        visibility: "owner"
       });
 
       return songRef.then(function(ref) {
@@ -287,5 +301,5 @@ function findOrCreateWorkspaceSongId(uid) {
         return ref.key;
       });
     }
-  })
+  });
 }
