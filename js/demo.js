@@ -19,7 +19,8 @@ import { findWrappingLink } from "./domutils";
 
 import {
   loadAudioBuffersFromVideoClips,
-  videoClipsForRoute
+  videoClipsForRoute,
+  songForRoute
 } from "./mediaLoading";
 
 import "./style.scss";
@@ -75,11 +76,11 @@ class App extends React.Component {
 
     this.globalSubscription = new Subscription();
 
-    const videoClips$ = videoClipsForRoute(
+    const song$ = mediaForRoute(
       currentPathname$,
       currentUser$
     ).publishReplay();
-    this.globalSubscription.add(videoClips$.connect());
+    this.globalSubscription.add(song$.connect());
 
     const audioLoading = loadAudioBuffersFromVideoClips(
       videoClips$,

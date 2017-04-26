@@ -21,57 +21,45 @@ import {
 
 import promiseFromTemplate from "./promiseFromTemplate";
 
-// This is the UID that is loaded on the root URL. (It's me, Jon B!)
-const DEFAULT_UID = "b7Z6g5LFN7SiyJpAnxByRmuSHuV2";
 
-export function mediaStateFromRoute(currentPathname$, currentUser$) {
-  return Observable.combineLatest(currentPathname$, currentUser$, mapRouteToUid)
-    .distinctUntilChanged()
-    .switchMap(switchMapFromUid);
+export function mediaForRoute(currentPathname$, currentUser$) {
+  const songId$ = Observable.combineLatest(currentPathname$, currentUser$, mapRouteToSongId)
+    .switch()
+    .distinctUntilChanged();
+
+  return songId$.switchMap(function(songId) {
+    if (songId != null) {
+      return Observable.fromPromise(songById(songId))
+        .switchMap((song) =>
+          videoClipsForSong(song).map((videoClips) => Object.assign({}, song, {videoClips}))
+        );
+    } else {
+      return Observable.of(null);
+    }
+  });
 }
 
-export function videoClipsForRoute(currentPathname$, currentUser$) {
-  return Observable.combineLatest(currentPathname$, currentUser$, mapRouteToUid)
-    .distinctUntilChanged()
-    .switchMap(uid => (uid ? videoClipsForUid(uid) : Observable.of({})));
+function songById(songId) {
+  return firebase.database().ref("songs").child(songId).once("value").then((snapshot) => Object.assign({songId}, snapshot.val()))
 }
 
-function mapRouteToUid(pathname, currentUser) {
-  if (pathname === "/") {
-    return DEFAULT_UID;
-  } else if (pathname === "/record-videos" || pathname === "/song-editor") {
-    if (currentUser) return currentUser.uid;
-    else return null;
+function mapRouteToSongId(pathname, currentUser) {
+  const databaseId = '([\w-]+)';
+  const songsRe = new RegExp(`^/songs/${databaseId}$`);
+  let match;
+
+  const noSong$ = Observable.of(null);
+
+  if (pathname === "/record-videos" || pathname === "/song-editor") {
+    if (currentUser) {
+      return noSong$.concat(findOrCreateWorkspaceSongId(currentUser.uid));
+    } else {
+      return noSong$;
+    }
+  } else if (match = songsRe.match(pathname)) {
+    return Observable.of(match[1]);
   } else {
-    return null;
-  }
-}
-
-function switchMapFromUid(uid) {
-  if (uid == null) {
-    return Observable.of({});
-  } else {
-    return Observable.create(function(observer) {
-      const subscription = new Subscription();
-      console.log("subscribing to media");
-
-      const videoClips$ = videoClipsForUid(uid).publishReplay();
-      subscription.add(videoClips$.connect());
-
-      // Looks like { [note]: [audioBuffer], ... }
-      const { audioBuffers$, loading$ } = loadAudioBuffersFromVideoClips(
-        videoClips$,
-        subscription
-      );
-
-      observer.next({
-        videoClips$,
-        audioBuffers$,
-        loading$
-      });
-
-      return subscription;
-    });
+    return noSong$;
   }
 }
 
@@ -85,13 +73,18 @@ function switchMapFromUid(uid) {
     }
   }
 */
-function videoClipsForUid(uid) {
-  const eventsRef = firebase.database().ref("video-clip-events").child(uid);
-  const videosRef = firebase.storage().ref("video-clips").child(uid);
+function videoClipsForSong(song) {
+  const songRef = firebase.database().ref("songs").child(song.songId);
+  const videosRef = firebase.storage().ref("video-clips").child(song.uid);
 
-  return Observable.fromEvent(eventsRef.orderByKey(), "value")
-    .map(mapEventSnapshotToActiveClipIds)
-    .scan(reduceClipIdsToPromises.bind(null, videosRef), { promises: {} })
+  const clipsIds$ = Observable.fromEvent(songRef.child("events"), "value")
+      .map(mapEventSnapshotToActiveClipIds);
+
+  return clipsIds$
+    .scan(
+        (acc, clipIds) => reduceClipIdsToPromises(videosRef, acc, clipIds),
+        { promises: {} }
+    )
     .switchMap(obj =>
       Observable.merge(...gatherPromises(obj)).reduce(
         (acc, obj) => Object.assign({}, acc, obj),
@@ -253,4 +246,30 @@ function reduceToAudioBuffers(acc, noteToUrlMap) {
     .filter(identity);
 
   return next;
+}
+
+function findOrCreateWorkspaceSongId(uid) {
+  const workspaceSongIdRef = firebase.database()
+          .ref('users')
+          .child(uid)
+          .child('workspaceSongId');
+
+  return workspaceSongIdRef.once('value').then(function(snapshot) {
+    if (snapshot.exists()) {
+      return snapshot.val();
+    } else {
+
+      const songRef = firebase.database().ref('songs').push({
+        title: messages['default-song-title'](),
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        uid: uid,
+        visibility: 'owner'
+      });
+
+      return songRef.then(function(ref) {
+        workspaceSongIdRef.set(ref.key);
+        return ref.key;
+      });
+    }
+  })
 }

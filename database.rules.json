@@ -1,15 +1,9 @@
 {
   "rules": {
-    "video-clip-events": {
-      "$uid": {
-        ".read": true,
-        ".write": "$uid === auth.uid"
-      }
-    },
     "users": {
       "$uid": {
         ".read": true,
-        ".write": "$uid === auth.uid"        
+        ".write": "$uid === auth.uid"
       }
     },
     "songs": {
