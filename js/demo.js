@@ -36,6 +36,14 @@ const currentUser$ = Observable.create(function(observer) {
   firebase.auth().onAuthStateChanged(user => observer.next(user));
 });
 
+currentUser$.subscribe(user => {
+  if (user) {
+    const ref = firebase.database().ref("users").child(user.uid);
+    ref.child("displayName").set(user.displayName);
+    ref.child("lastSeenAt").set(firebase.database.ServerValue.TIMESTAMP);
+  }
+});
+
 class App extends React.Component {
   constructor() {
     super();

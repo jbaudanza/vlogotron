@@ -66,7 +66,9 @@ export function mediaForRoute(currentPathname$, currentUser$, subscription) {
 function songById(songId) {
   const ref = firebase.database().ref("songs").child(songId);
 
-  return Observable.fromEvent(ref, 'value').map(snapshot => Object.assign({ songId }, snapshot.val()))
+  return Observable.fromEvent(ref, "value").map(snapshot =>
+    Object.assign({ songId }, snapshot.val())
+  );
 }
 
 const DEFAULT_SONG_ID = "-KiY1cdo1ggMC-p3pG94";

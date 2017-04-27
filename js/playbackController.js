@@ -121,6 +121,14 @@ export function playbackControllerHelper(
     )
   );
 
+  const authorName$ = media.song$.switchMap(song => {
+    if (song) {
+      return displayNameForUid(song.uid);
+    } else {
+      return Observable.empty();
+    }
+  });
+
   // Start up Observables with side-effect
   subscription.add(scriptedPlaybackContext$$.connect());
 
@@ -135,6 +143,7 @@ export function playbackControllerHelper(
     notes$,
     bpm$,
     media.song$,
+    authorName$,
     (
       videoClips,
       loading,
@@ -145,7 +154,8 @@ export function playbackControllerHelper(
       songLength,
       notes,
       bpm,
-      song
+      song,
+      authorName
     ) => ({
       videoClips,
       isPlaying,
@@ -158,8 +168,13 @@ export function playbackControllerHelper(
       songLength,
       notes,
       songTitle: song ? song.title : null,
-      authorName: "Jonathan Baudanza",
+      authorName,
       bpm
     })
   );
+}
+
+function displayNameForUid(uid) {
+  const ref = firebase.database().ref("users").child(uid).child("displayName");
+  return Observable.fromEvent(ref, "value").map(snapshot => snapshot.val());
 }
