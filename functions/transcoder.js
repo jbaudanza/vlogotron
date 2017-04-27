@@ -15,8 +15,7 @@ function runTranscodeJob(bucketName, inputStorageName, database) {
   console.log("Running transcoder on", inputStorageName);
 
   const list = inputStorageName.split("/");
-  const uid = list[1];
-  const clipId = list[2];
+  const clipId = list[1];
 
   const filenamePrefix = `transcoder-${process.pid}-${jobCount}`;
 
@@ -28,7 +27,7 @@ function runTranscodeJob(bucketName, inputStorageName, database) {
   const sourceBucket = gcs.bucket(bucketName);
   const destinationBucket = gcs.bucket("vlogotron-95daf.appspot.com");
 
-  const outputStorageName = "video-clips/" + uid + "/" + clipId;
+  const outputStorageName = "video-clips/" + clipId;
 
   return (
     sourceBucket
@@ -66,10 +65,11 @@ function runTranscodeJob(bucketName, inputStorageName, database) {
         );
       })
       .then(function() {
-        database
-          .ref("video-clip-events")
-          .child(uid)
-          .push({ type: "transcoded", clipId: clipId });
+        database()
+          .ref("video-clips")
+          .child(clipId)
+          .child("transcodedAt")
+          .set(database.ServerValue.TIMESTAMP);
       })
   );
 }

@@ -104,14 +104,16 @@ function mapRouteToSongId(pathname, currentUser) {
 */
 function videoClipsForSong(song) {
   const songRef = firebase.database().ref("songs").child(song.songId);
-  const videosRef = firebase.storage().ref("video-clips").child(song.uid);
+  const storageRef = firebase.storage().ref("video-clips");
 
   const clipsIds$ = Observable.fromEvent(songRef.child("events"), "value").map(
     mapEventSnapshotToActiveClipIds
   );
 
+  // TODO: Need to filter by transcoded ids
+
   return clipsIds$
-    .scan((acc, clipIds) => reduceClipIdsToPromises(videosRef, acc, clipIds), {
+    .scan((acc, clipIds) => reduceClipIdsToPromises(storageRef, acc, clipIds), {
       promises: {}
     })
     .switchMap(obj =>
@@ -121,6 +123,20 @@ function videoClipsForSong(song) {
       )
     )
     .startWith({});
+}
+
+function waitForTranscode(videoClipId) {
+  return Observable.fromEvent(
+    firebase
+      .database()
+      .ref("video-clips")
+      .child(videoClipId)
+      .child("transcodedAt"),
+    "value"
+  )
+    .takeWhile(value => value == null)
+    .ignoreElements()
+    .concatWith(true);
 }
 
 function gatherPromises(obj) {
@@ -194,44 +210,26 @@ function mapClipIdToPromise(ref, clipId) {
 }
 
 function mapEventSnapshotToActiveClipIds(snapshot) {
-  let acc = {
-    uploadedNotes: {},
-    transcodedClips: []
-  };
-
   // simulate a reduce() call because firebase doesn't have one.
+  let acc = {};
   snapshot.forEach(function(child) {
     const event = child.val();
     acc = reduceEventsToVideoClipState(acc, event);
   });
-
-  return pickBy(acc.uploadedNotes, v => includes(acc.transcodedClips, v));
+  return acc;
 }
 
 function reduceEventsToVideoClipState(acc, event) {
   let note = event.note;
 
-  // All new notes should have an octave. Some legacy ones don't
-  if (event.note && !note.match(/\d$/)) {
-    note += "4";
-  }
-
-  if (event.type === "uploaded") {
-    const uploadedNotes = Object.assign({}, acc.uploadedNotes, {
-      [note]: event.clipId
+  if (event.type === "added") {
+    return Object.assign({}, acc, {
+      [note]: event.videoClipId
     });
-    return Object.assign({}, acc, { uploadedNotes });
   }
 
   if (event.type === "cleared") {
-    const uploadedNotes = omit(acc.uploadedNotes, note);
-    return Object.assign({}, acc, { uploadedNotes });
-  }
-
-  if (event.type === "transcoded") {
-    return Object.assign({}, acc, {
-      transcodedClips: acc.transcodedClips.concat(event.clipId)
-    });
+    return omit(acc, note);
   }
 
   return acc;

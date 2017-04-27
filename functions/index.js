@@ -14,7 +14,7 @@ exports.transcodeVideo = functions.storage
         return doTranscodeJob(
           event.data.bucket,
           event.data.name,
-          admin.database()
+          admin.database
         );
       } else {
         console.warn("Received unexpected storage event on ", event.data.name);

@@ -58,9 +58,9 @@ export default function recordVideosController(
             timestamp: firebase.database.ServerValue.TIMESTAMP
           },
           media.videoBlob
-        ).then(clipId => [
+        ).then(videoClipId => [
           songId,
-          { type: "uploaded", clipId: clipId, note: media.note }
+          { type: "added", videoClipId: videoClipId, note: media.note }
         ])
     )
     .mergeAll();
