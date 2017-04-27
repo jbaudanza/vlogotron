@@ -72,6 +72,8 @@ function songById(songId) {
     .then(snapshot => Object.assign({ songId }, snapshot.val()));
 }
 
+const DEFAULT_SONG_ID = "-KiY1cdo1ggMC-p3pG94";
+
 function mapRouteToSongId(pathname, currentUser) {
   const databaseId = "([\w-]+)";
   const songsRe = new RegExp(`^/songs/${databaseId}$`);
@@ -79,13 +81,16 @@ function mapRouteToSongId(pathname, currentUser) {
 
   const noSong$ = Observable.of(null);
 
+  if (pathname === "/") {
+    return Observable.of(DEFAULT_SONG_ID);
+  }
   if (pathname === "/record-videos" || pathname === "/song-editor") {
     if (currentUser) {
       return noSong$.concat(findOrCreateWorkspaceSongId(currentUser.uid));
     } else {
       return noSong$;
     }
-  } else if ((match = songsRe.match(pathname))) {
+  } else if ((match = pathname.match(songsRe))) {
     return Observable.of(match[1]);
   } else {
     return noSong$;

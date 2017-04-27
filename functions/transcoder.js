@@ -33,7 +33,7 @@ function runTranscodeJob(bucketName, inputStorageName, database) {
     sourceBucket
       .file(inputStorageName)
       .download({ destination: inputFilename })
-      .then(() => console.log('Download finished'))
+      .then(() => console.log("Download finished"))
       .then(() => transcode(inputFilename, tempDir, filenamePrefix))
       // This is kind of a hack. It seems like the ffmpeg process takes a little
       // while to shutdown and close out the file description. So we have to

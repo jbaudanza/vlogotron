@@ -134,6 +134,7 @@ export function playbackControllerHelper(
     songLength$,
     notes$,
     bpm$,
+    media.song$,
     (
       videoClips,
       loading,
@@ -143,7 +144,8 @@ export function playbackControllerHelper(
       playbackStartPosition,
       songLength,
       notes,
-      bpm
+      bpm,
+      song
     ) => ({
       videoClips,
       isPlaying,
@@ -155,7 +157,7 @@ export function playbackControllerHelper(
       playCommands$,
       songLength,
       notes,
-      songTitle: "Mary had a little lamb",
+      songTitle: song ? song.title : null,
       authorName: "Jonathan Baudanza",
       bpm
     })
