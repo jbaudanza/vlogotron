@@ -12,6 +12,13 @@
         ".write": "data.exists() ? (data.child('uid').val() === auth.uid) : (auth != null)",
         ".validate": "newData.child('uid').val() === auth.uid"
       }
+    },
+    "video-clips": {
+      "$videoClipId": {
+        ".read": true,
+        ".write": "data.exists() ? (data.child('uid').val() === auth.uid) : (auth != null)",
+        ".validate": "newData.child('uid').val() === auth.uid"
+      }
     }
   }
 }

@@ -6,8 +6,8 @@ service firebase.storage {
     }
   }
   match /b/vlogotron-uploads/o {
-    match /video-clips/{userId}/{allPaths=**} {
-      allow write: if request.auth.uid == userId;
+    match /video-clips/{videoClipId} {
+      allow write: if !resource.exists()
     }
   }
 }

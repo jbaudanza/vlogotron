@@ -1,7 +1,7 @@
 import { Observable } from "rxjs/Observable";
 import { Subject } from "rxjs/Subject";
 
-import { times, sample, omit } from "lodash";
+import { omit } from "lodash";
 
 import audioContext from "./audioContext";
 import { combine as combinePlayCommands } from "./playCommands";
@@ -51,12 +51,16 @@ export default function recordVideosController(
       mediaStore.songId$,
       (media, currentUser, songId) =>
         startUploadTask(
-          currentUser.uid,
-          media.clipId,
+          {
+            uid: currentUser.uid,
+            songId,
+            note: media.note,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+          },
           media.videoBlob
-        ).then(() => [
+        ).then(clipId => [
           songId,
-          { type: "uploaded", clipId: media.clipId, note: media.note }
+          { type: "uploaded", clipId: clipId, note: media.note }
         ])
     )
     .mergeAll();
@@ -137,14 +141,18 @@ export default function recordVideosController(
   );
 }
 
-function startUploadTask(uid, clipId, videoBlob) {
+function startUploadTask(databaseEntry, videoBlob) {
+  const databaseRef = firebase.database().ref("video-clips");
+
   const uploadRef = firebase
     .storage()
-    .refFromURL("gs://vlogotron-uploads/video-clips")
-    .child(uid)
-    .child(clipId);
+    .refFromURL("gs://vlogotron-uploads/video-clips");
 
-  return uploadRef.put(videoBlob);
+  const ref = databaseRef.push(databaseEntry);
+
+  ref.then(() => uploadRef.child(ref.key).put(videoBlob));
+
+  return ref.then(() => ref.key);
 }
 
 function reduceToAudioBufferStore(acc, finalMedia) {
@@ -224,10 +232,7 @@ function runRecordingProcess(mediaStream, note, finish$, abort$) {
     const media$ = Observable.combineLatest(
       result.audioBuffer$,
       result.videoBlob$,
-      (
-        audioBuffer,
-        videoBlob // The clipId only needs to be unique per each user
-      ) => ({ note, videoBlob, audioBuffer, clipId: createRandomString(6) })
+      (audioBuffer, videoBlob) => ({ note, videoBlob, audioBuffer })
     );
 
     return Observable.merge(
@@ -321,9 +326,3 @@ const countdown$ = Observable.interval(1000)
   .map(x => countdownSeconds - x - 1)
   .filter(x => x > 0) // Leave out the last 0 value
   .startWith(countdownSeconds);
-
-function createRandomString(length) {
-  const chars =
-    "abcdefghijklmnopqrstufwxyzABCDEFGHIJKLMNOPQRSTUFWXYZ1234567890";
-  return times(length, () => sample(chars)).join("");
-}
