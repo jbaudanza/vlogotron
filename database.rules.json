@@ -2,8 +2,11 @@
   "rules": {
     "users": {
       "$uid": {
-        ".read": true,
-        ".write": "$uid === auth.uid"
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid",
+        "displayName": {
+          ".read": true
+        }
       }
     },
     "songs": {

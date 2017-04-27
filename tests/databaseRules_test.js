@@ -102,3 +102,49 @@ test('database.rules - reading a song', t => {
   result = database.as({uid: '2'}).read('/songs/2');
   t.true(result.allowed);
 });
+
+test('database.rules - storing user data', t => {
+  const database = targaryen.database(rules, {});
+
+  let result;
+
+  // Anonymous CAN NOT write user data
+  result = database.write('/users/1', {displayName: 'Bob'});
+  t.false(result.allowed);
+
+  // Owner user CAN write user data
+  result = database.as({uid: '1'}).write('/users/1', {displayName: 'Bob'});
+  t.true(result.allowed);
+
+  // Non-owner user CAN NOT write user data
+  result = database.as({uid: '2'}).write('/users/1', {displayName: 'Bob'});
+  t.false(result.allowed);
+});
+
+test('database.rules - reading user data', t => {
+  const data = {
+    users: {
+      '1': {
+        lastSeenAt: 1493270028134,
+        displayName: 'Bob'
+      }
+    }
+  }
+  const database = targaryen.database(rules, data);
+
+  let result;
+
+  // Owner user CAN read all data
+  result = database.as({uid: '1'}).read('/users/1/lastSeenAt');
+  t.true(result.allowed);
+
+  result = database.as({uid: '1'}).read('/users/1/displayName');
+  t.true(result.allowed);
+
+  // Non-owner user CAN ONLY read displayName
+  result = database.as({uid: '2'}).read('/users/1/lastSeenAt');
+  t.false(result.allowed);
+
+  result = database.as({uid: '2'}).read('/users/1/displayName');
+  t.true(result.allowed);
+});
