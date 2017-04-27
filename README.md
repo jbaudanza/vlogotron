@@ -22,9 +22,18 @@
 
     firebase deploy --only functions
 
-    # After every deploy, the memory consumption gets set to 256MB. Go here to set it to 1GB
-    # It also resets the timeout to 60 seconds. We probably want it around 120
+# Rerunning transcoder job
     https://console.cloud.google.com/functions/list?project=vlogotron-95daf
+
+    Under the testing tab, trigger an event that looks like this:
+
+    ```
+    {
+        "name": "video-clips/-Kil1E5ssCvOQg3gtmbE",
+        "bucket": "vlogotron-uploads",
+        "resourceState": "exists"
+    }
+    ```
 
 # Configuring CORS
 
