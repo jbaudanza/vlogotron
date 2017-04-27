@@ -33,6 +33,7 @@ function runTranscodeJob(bucketName, inputStorageName, database) {
     sourceBucket
       .file(inputStorageName)
       .download({ destination: inputFilename })
+      .then(() => console.log('Download finished'))
       .then(() => transcode(inputFilename, tempDir, filenamePrefix))
       // This is kind of a hack. It seems like the ffmpeg process takes a little
       // while to shutdown and close out the file description. So we have to
@@ -52,6 +53,7 @@ function runTranscodeJob(bucketName, inputStorageName, database) {
             }
 
             return destinationBucket.upload(localFilename, options).then(() => {
+              console.log("Finished uploading", fmt);
               // The unlink is done asynchronously, and there's no need to wait
               // for it to finish. Also, errors aren't really important other
               // than logging.

@@ -110,8 +110,6 @@ function videoClipsForSong(song) {
     mapEventSnapshotToActiveClipIds
   );
 
-  // TODO: Need to filter by transcoded ids
-
   return clipsIds$
     .scan((acc, clipIds) => reduceClipIdsToPromises(storageRef, acc, clipIds), {
       promises: {}
@@ -134,9 +132,8 @@ function waitForTranscode(videoClipId) {
       .child("transcodedAt"),
     "value"
   )
-    .takeWhile(value => value == null)
-    .ignoreElements()
-    .concatWith(true);
+    .takeWhile(snapshot => !snapshot.exists())
+    .toPromise();
 }
 
 function gatherPromises(obj) {
@@ -198,14 +195,16 @@ function mapClipIdToPromise(ref, clipId) {
     return ref.child(clipId + suffix).getDownloadURL();
   }
 
-  return promiseFromTemplate({
-    clipId: clipId,
-    sources: formats.map(format => ({
-      src: urlFor(clipId, "." + format),
-      type: "video/" + format
-    })),
-    poster: urlFor(clipId, ".png"),
-    audioUrl: urlFor(clipId, "-audio.mp4")
+  return waitForTranscode(clipId).then(() => {
+    return promiseFromTemplate({
+      clipId: clipId,
+      sources: formats.map(format => ({
+        src: urlFor(clipId, "." + format),
+        type: "video/" + format
+      })),
+      poster: urlFor(clipId, ".png"),
+      audioUrl: urlFor(clipId, "-audio.mp4")
+    });
   });
 }
 
