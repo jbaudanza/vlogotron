@@ -29,10 +29,14 @@ function runTranscodeJob(bucketName, inputStorageName, database) {
 
   const outputStorageName = "video-clips/" + clipId;
 
-  return (
-    sourceBucket
+  function doDownload() {
+    return sourceBucket
       .file(inputStorageName)
-      .download({ destination: inputFilename })
+      .download({ destination: inputFilename });
+  }
+
+  return (
+    doWithRetries(doDownload, 5)
       .then(() => console.log("Download finished"))
       .then(() => transcode(inputFilename, tempDir, filenamePrefix))
       // This is kind of a hack. It seems like the ffmpeg process takes a little
@@ -52,7 +56,11 @@ function runTranscodeJob(bucketName, inputStorageName, database) {
               options.metadata = { contentType: "audio/mp4" };
             }
 
-            return destinationBucket.upload(localFilename, options).then(() => {
+            function doUpload() {
+              return destinationBucket.upload(localFilename, options)
+            }
+
+            return doWithRetries(doUpload, 5).then(() => {
               console.log("Finished uploading", fmt);
               // The unlink is done asynchronously, and there's no need to wait
               // for it to finish. Also, errors aren't really important other
@@ -140,6 +148,24 @@ function transcode(inputFilename, outputDirectory, baseFilename) {
         reject(error);
       })
       .run();
+  });
+}
+
+function waitFor(ms) {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function doWithRetries(fn, retries) {
+  return fn().catch(err => {
+    if (retries === 0) {
+      throw err;
+    } else {
+      console.error(err);
+      console.log("Retrying in 5 seconds");
+      return waitFor(5000).then(() => doWithRetries(fn, retries - 1));
+    }
   });
 }
 
