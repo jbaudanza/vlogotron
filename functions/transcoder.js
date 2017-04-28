@@ -57,7 +57,7 @@ function runTranscodeJob(bucketName, inputStorageName, database) {
             }
 
             function doUpload() {
-              return destinationBucket.upload(localFilename, options)
+              return destinationBucket.upload(localFilename, options);
             }
 
             return doWithRetries(doUpload, 5).then(() => {

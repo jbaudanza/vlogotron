@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@ffprobe-installer/ffprobe": "1.0.8",
     "antd": "^2.7.2",
     "babel-core": "^6.21.0",
     "babel-loader": "^6.2.10",

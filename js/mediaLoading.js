@@ -15,6 +15,7 @@ import {
   values,
   pick,
   sum,
+  map,
   mapValues,
   identity
 } from "lodash";
@@ -110,21 +111,19 @@ function videoClipsForSong(song) {
   const songRef = firebase.database().ref("songs").child(song.songId);
   const storageRef = firebase.storage().ref("video-clips");
 
-  const clipsIds$ = Observable.fromEvent(songRef.child("events"), "value").map(
-    mapEventSnapshotToActiveClipIds
-  );
-
-  return clipsIds$
-    .scan((acc, clipIds) => reduceClipIdsToPromises(storageRef, acc, clipIds), {
-      promises: {}
-    })
-    .switchMap(obj =>
-      Observable.merge(...gatherPromises(obj)).reduce(
-        (acc, obj) => Object.assign({}, acc, obj),
-        {}
-      )
+  const loaders$ = Observable.fromEvent(songRef.child("events"), "child_added")
+    .map(snapshot => snapshot.val())
+    .scan(
+      (acc, event) => reduceEventsToVideoClipUrls(storageRef, acc, event),
+      {}
     )
-    .startWith({});
+    .debounceTime(100); // TODO: Do something cleaner here.
+
+  return loaders$.switchMap((loaders) => {
+    return Observable.merge(
+      ...map(loaders, (observable, note) => observable.map((urls) => ({[note]: urls})))
+    ).scan((acc, o) => Object.assign({}, acc, o))
+  });
 }
 
 function waitForTranscode(videoClipId) {
@@ -137,7 +136,7 @@ function waitForTranscode(videoClipId) {
     "value"
   )
     .takeWhile(snapshot => !snapshot.exists())
-    .toPromise();
+    .ignoreElements();
 }
 
 function gatherPromises(obj) {
@@ -175,32 +174,15 @@ export function loadAudioBuffersFromVideoClips(videoClips$, subscription) {
 
 const formats = ["webm", "mp4", "ogv"];
 
-function reduceClipIdsToPromises(ref, acc, clipIds) {
-  const next = {
-    clipIds: clipIds,
-    promises: {}
-  };
-
-  forEach(clipIds, (clipId, note) => {
-    if (clipId in acc.promises) {
-      next.promises[clipId] = acc.promises[clipId];
-    } else {
-      next.promises[clipId] = mapClipIdToPromise(ref, clipId).then(result => ({
-        [note]: result
-      }));
-    }
-  });
-
-  return next;
-}
-
-function mapClipIdToPromise(ref, clipId) {
+// Return a lazy-observable that emits one object of media URLs and
+// then completes. This could be a promise, but we want it to be lazy.
+function videoClipById(ref, clipId) {
   function urlFor(clipId, suffix) {
     return ref.child(clipId + suffix).getDownloadURL();
   }
 
-  return waitForTranscode(clipId).then(() => {
-    return promiseFromTemplate({
+  const urls$ = Observable.defer(() =>
+    promiseFromTemplate({
       clipId: clipId,
       sources: formats.map(format => ({
         src: urlFor(clipId, "." + format),
@@ -208,26 +190,27 @@ function mapClipIdToPromise(ref, clipId) {
       })),
       poster: urlFor(clipId, ".png"),
       audioUrl: urlFor(clipId, "-audio.mp4")
-    });
-  });
+    })
+  );
+
+  return waitForTranscode(clipId).concat(urls$);
 }
 
-function mapEventSnapshotToActiveClipIds(snapshot) {
-  // simulate a reduce() call because firebase doesn't have one.
-  let acc = {};
+// simulate a reduce() call because firebase doesn't have one.
+function snapshotReduce(snapshot, fn, initial) {
+  let state = initial;
   snapshot.forEach(function(child) {
-    const event = child.val();
-    acc = reduceEventsToVideoClipState(acc, event);
+    state = fn(state, child.val());
   });
-  return acc;
+  return state;
 }
 
-function reduceEventsToVideoClipState(acc, event) {
+function reduceEventsToVideoClipUrls(ref, acc, event) {
   let note = event.note;
 
   if (event.type === "added") {
     return Object.assign({}, acc, {
-      [note]: event.videoClipId
+      [note]: videoClipById(ref, event.videoClipId).publishReplay().refCount()
     });
   }
 

@@ -7,6 +7,7 @@
 import "rxjs/add/operator/catch";
 import "rxjs/add/operator/concat";
 import "rxjs/add/operator/concatAll";
+import "rxjs/add/operator/debounceTime";
 import "rxjs/add/operator/delay";
 import "rxjs/add/operator/distinctUntilChanged";
 import "rxjs/add/operator/do";
@@ -39,6 +40,7 @@ import "rxjs/add/operator/withLatestFrom";
 
 import "rxjs/add/observable/combineLatest";
 import "rxjs/add/observable/concat";
+import "rxjs/add/observable/defer";
 import "rxjs/add/observable/empty";
 import "rxjs/add/observable/from";
 import "rxjs/add/observable/fromEvent";
