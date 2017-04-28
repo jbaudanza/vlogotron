@@ -2,8 +2,8 @@
   "name": "functions",
   "description": "Firebase Functions",
   "dependencies": {
-    "@ffmpeg-installer/ffmpeg": "^1.0.9",
-    "@ffprobe-installer/ffprobe": "^1.0.6",
+    "@ffmpeg-installer/ffmpeg": "1.0.12",
+    "@ffprobe-installer/ffprobe": "1.0.8",
     "@google-cloud/storage": "^1.1.0",
     "firebase": "^3.1",
     "firebase-admin": "^4.1.3",
