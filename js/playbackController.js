@@ -176,5 +176,5 @@ export function playbackControllerHelper(
 
 function displayNameForUid(uid) {
   const ref = firebase.database().ref("users").child(uid).child("displayName");
-  return Observable.fromEvent(ref, "value").map(snapshot => snapshot.val());
+  return Observable.fromFirebaseRef(ref, "value").map(snapshot => snapshot.val());
 }

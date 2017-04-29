@@ -71,3 +71,15 @@ Observable.prototype.debug = function(message) {
 Observable.prototype.concatWith = function(value) {
   return this.concat(Observable.of(value));
 };
+
+// It's tempting to use Observable.fromEvent, but firebase has a unique way to
+// report errors, so we want to use something custom instead.
+Observable.fromFirebaseRef = function(ref, event) {
+  return Observable.create(function(observer) {
+    const handler = observer.next.bind(observer);
+
+    ref.on('value', handler, observer.error.bind(observer));
+
+    return () => ref.off('value', handler);
+  });
+};

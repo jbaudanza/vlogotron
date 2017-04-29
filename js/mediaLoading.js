@@ -69,7 +69,7 @@ export function mediaForRoute(currentPathname$, currentUser$, subscription) {
 function songById(songId) {
   const ref = firebase.database().ref("songs").child(songId);
 
-  return Observable.fromEvent(ref, "value").map(snapshot =>
+  return Observable.fromFirebaseRef(ref, "value").map(snapshot =>
     Object.assign({ songId }, snapshot.val())
   );
 }
@@ -130,7 +130,7 @@ function videoClipsForSong(song) {
 }
 
 function waitForTranscode(videoClipId) {
-  return Observable.fromEvent(
+  return Observable.fromFirebaseRef(
     firebase
       .database()
       .ref("video-clips")
@@ -211,7 +211,7 @@ function snapshotReduce(snapshot, fn, initial) {
 function reduceFirebaseCollection(collectionRef, accFn, initial) {
   const query = collectionRef.orderByKey();
 
-  return Observable.fromEvent(query, "value").first().switchMap(snapshot => {
+  return Observable.fromFirebaseRef(query, "value").first().switchMap(snapshot => {
     let lastKey;
     let acc = initial;
 
@@ -222,11 +222,11 @@ function reduceFirebaseCollection(collectionRef, accFn, initial) {
 
     let rest$;
     if (lastKey) {
-      rest$ = Observable.fromEvent(query.startAt(lastKey), "child_added").skip(
+      rest$ = Observable.fromFirebaseRef(query.startAt(lastKey), "child_added").skip(
         1
       );
     } else {
-      rest$ = Observable.fromEvent(query, "child_added");
+      rest$ = Observable.fromFirebaseRef(query, "child_added");
     }
 
     return rest$.scan(accFn, acc).startWith(acc);
