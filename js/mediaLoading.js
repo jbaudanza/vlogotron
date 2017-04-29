@@ -111,18 +111,19 @@ function videoClipsForSong(song) {
   const songRef = firebase.database().ref("songs").child(song.songId);
   const storageRef = firebase.storage().ref("video-clips");
 
-  const loaders$ = Observable.fromEvent(songRef.child("events"), "child_added")
-    .map(snapshot => snapshot.val())
-    .scan(
-      (acc, event) => reduceEventsToVideoClipUrls(storageRef, acc, event),
-      {}
-    )
-    .debounceTime(100); // TODO: Do something cleaner here.
+  const loaders$ = reduceFirebaseCollection(
+    songRef.child("events"),
+    (acc, event) => reduceEventsToVideoClipUrls(storageRef, acc, event),
+    {}
+  );
 
-  return loaders$.switchMap((loaders) => {
+  return loaders$.switchMap(loaders => {
+    // TODO: This is emitting too many items and causing the video grid to flicker
     return Observable.merge(
-      ...map(loaders, (observable, note) => observable.map((urls) => ({[note]: urls})))
-    ).scan((acc, o) => Object.assign({}, acc, o))
+      ...map(loaders, (observable, note) =>
+        observable.map(urls => ({ [note]: urls }))
+      )
+    ).scan((acc, o) => Object.assign({}, acc, o));
   });
 }
 
@@ -203,6 +204,31 @@ function snapshotReduce(snapshot, fn, initial) {
     state = fn(state, child.val());
   });
   return state;
+}
+
+function reduceFirebaseCollection(collectionRef, accFn, initial) {
+  const query = collectionRef.orderByKey();
+
+  return Observable.fromEvent(query, "value").first().switchMap(snapshot => {
+    let lastKey;
+    let acc = initial;
+
+    snapshot.forEach(function(child) {
+      lastKey = child.key;
+      acc = accFn(acc, child.val());
+    });
+
+    let rest$;
+    if (lastKey) {
+      rest$ = Observable.fromEvent(query.startAt(lastKey), "child_added").skip(
+        1
+      );
+    } else {
+      rest$ = Observable.fromEvent(query, "child_added");
+    }
+
+    return rest$.scan(accFn, acc).startWith(acc);
+  });
 }
 
 function reduceEventsToVideoClipUrls(ref, acc, event) {

@@ -243,7 +243,7 @@ function runRecordingProcess(mediaStream, note, finish$, abort$) {
 
   const processes$ = Observable.concat(countdownWithTone$, startCapturing$)
     .takeUntil(abort$)
-    .publish();
+    .publishReplay();
 
   const viewState$ = processes$
     .filter(obj => "viewState" in obj)

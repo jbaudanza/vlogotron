@@ -7,7 +7,6 @@
 import "rxjs/add/operator/catch";
 import "rxjs/add/operator/concat";
 import "rxjs/add/operator/concatAll";
-import "rxjs/add/operator/debounceTime";
 import "rxjs/add/operator/delay";
 import "rxjs/add/operator/distinctUntilChanged";
 import "rxjs/add/operator/do";
@@ -28,6 +27,7 @@ import "rxjs/add/operator/reduce";
 import "rxjs/add/operator/repeat";
 import "rxjs/add/operator/scan";
 import "rxjs/add/operator/share";
+import "rxjs/add/operator/skip";
 import "rxjs/add/operator/startWith";
 import "rxjs/add/operator/switch";
 import "rxjs/add/operator/switchMap";
