@@ -22,6 +22,8 @@ import {
 
 import promiseFromTemplate from "./promiseFromTemplate";
 
+const messages = require("messageformat-loader!json-loader!./messages.json");
+
 export function mediaForRoute(currentPathname$, currentUser$, subscription) {
   const songId$ = Observable.combineLatest(
     currentPathname$,
