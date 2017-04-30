@@ -1,18 +1,20 @@
 import { Observable } from 'rxjs/Observable';
-import { identity, values } from 'lodash'
+import { identity, values, isEmpty } from 'lodash'
 
 function combineKeyValues(observableFactory, keySelector=identity, resultSelector=identity) {
   return Observable.create((observer) => {
-    const state = {};
+    console.log('starting state machine')
+    const lastValues = {};
+    let accSubscriptions = {};
     let lastInput = null;
 
     function handler(key, value) {
-      state[key] = value;
+      lastValues[key] = value;
       doNext();
     }
 
     function doNext() {
-      observer.next(resultSelector(state, lastInput));
+      observer.next(resultSelector(lastValues, lastInput));
     }
 
     function accumulateSubscriptions(subscriptions, input) {
@@ -24,17 +26,20 @@ function combineKeyValues(observableFactory, keySelector=identity, resultSelecto
         if (key in subscriptions) {
           newSubscriptions[key] = subscriptions[key];
         } else {
-          newSubscriptions[key] = observableFactory(key).subscribe(handler.bind(null, key));
+          const observable = observableFactory(key);
+          const subscription = observable.subscribe(handler.bind(null, key));
+          newSubscriptions[key] = subscription;
         }
       });
 
-      let stateChanged = false
+      let stateChanged = false;
 
       // Remove old subscriptions
       Object.keys(subscriptions).forEach(function(key) {
         if (!(key in newSubscriptions)) {
-          subscriptions[keys].unsubscribe();
-          delete state[key];
+          subscriptions[key].unsubscribe();
+          delete subscriptions[key];
+          delete lastValues[key];
           stateChanged = true;
         }
       });
@@ -46,12 +51,10 @@ function combineKeyValues(observableFactory, keySelector=identity, resultSelecto
       return newSubscriptions;
     }
 
-    let subscriptions = {};
-
-    const subscription = this.subscribe({
+    const sourceSubscription = this.subscribe({
       next(input) {
         lastInput = input;
-        subscriptions = accumulateSubscriptions(subscriptions, input);
+        accSubscriptions = accumulateSubscriptions(accSubscriptions, input);
       },
       error(err) {
         observer.error(err);
@@ -64,11 +67,11 @@ function combineKeyValues(observableFactory, keySelector=identity, resultSelecto
     });
 
     function cleanup() {
-      values(subscriptions).forEach((sub) => sub.unsubscribe())
-      subscription.unsubscribe();
+      values(accSubscriptions).forEach((sub) => sub.unsubscribe())
+      sourceSubscription.unsubscribe();
     }
 
-    return cleanup();
+    return cleanup;
   });
 }
 

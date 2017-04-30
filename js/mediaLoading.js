@@ -44,8 +44,8 @@ export function mediaForRoute(currentPathname$, currentUser$, subscription) {
     })
     .publishReplay();
 
-  const videoClips$ = song$
-    .switchMap(song => (song ? videoClipsForSong(song) : Observable.of({})))
+  const videoClips$ = songId$
+    .switchMap(songId => (songId ? videoClipsForSongId(songId) : Observable.of({})))
     .publishReplay();
 
   const audioLoading = loadAudioBuffersFromVideoClips(
@@ -109,24 +109,31 @@ function mapRouteToSongId(pathname, currentUser) {
     }
   }
 */
-function videoClipsForSong(song) {
-  const songRef = firebase.database().ref("songs").child(song.songId);
+function videoClipsForSongId(songId) {
+  const songRef = firebase.database().ref("songs").child(songId);
   const storageRef = firebase.storage().ref("video-clips");
 
-  const loaders$ = reduceFirebaseCollection(
+  const clipIds$ = reduceFirebaseCollection(
     songRef.child("events"),
-    (acc, event) => reduceEventsToVideoClipUrls(storageRef, acc, event),
+    reduceEventsToVideoClipIds,
     {}
   );
 
-  return loaders$.switchMap(loaders => {
-    // TODO: This is emitting too many items and causing the video grid to flicker
-    return Observable.merge(
-      ...map(loaders, (observable, note) =>
-        observable.map(urls => ({ [note]: urls }))
-      )
-    ).scan((acc, o) => Object.assign({}, acc, o));
-  });
+  function resultSelector(clipIdToObjectMap, noteToClipIdMap) {
+    const result = {};
+    forEach(noteToClipIdMap, (clipId, note) => {
+      if (clipId in clipIdToObjectMap) {
+        result[note] = clipIdToObjectMap[clipId];
+      }
+    });
+    return result;
+  }
+
+  return clipIds$.combineKeyValues(
+    videoClipById.bind(null, storageRef),
+    values, // keySelector
+    resultSelector
+  );
 }
 
 function waitForTranscode(videoClipId) {
@@ -177,8 +184,6 @@ export function loadAudioBuffersFromVideoClips(videoClips$, subscription) {
 
 const formats = ["webm", "mp4", "ogv"];
 
-// Return a lazy-observable that emits one object of media URLs and
-// then completes. This could be a promise, but we want it to be lazy.
 function videoClipById(ref, clipId) {
   function urlFor(clipId, suffix) {
     return ref.child(clipId + suffix).getDownloadURL();
@@ -229,16 +234,16 @@ function reduceFirebaseCollection(collectionRef, accFn, initial) {
       rest$ = Observable.fromFirebaseRef(query, "child_added");
     }
 
-    return rest$.scan(accFn, acc).startWith(acc);
+    return rest$.map(snapshot => snapshot.val()).scan(accFn, acc).startWith(acc);
   });
 }
 
-function reduceEventsToVideoClipUrls(ref, acc, event) {
+function reduceEventsToVideoClipIds(acc, event) {
   let note = event.note;
 
   if (event.type === "added") {
     return Object.assign({}, acc, {
-      [note]: videoClipById(ref, event.videoClipId).publishReplay().refCount()
+      [note]: event.videoClipId
     });
   }
 

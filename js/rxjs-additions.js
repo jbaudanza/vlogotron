@@ -52,6 +52,8 @@ import "rxjs/add/observable/of";
 import "rxjs/add/observable/race";
 import "rxjs/add/observable/using";
 
+import './combineKeyValues'
+
 import { Observable } from "rxjs/Observable";
 
 Observable.prototype.debug = function(message) {
@@ -74,12 +76,12 @@ Observable.prototype.concatWith = function(value) {
 
 // It's tempting to use Observable.fromEvent, but firebase has a unique way to
 // report errors, so we want to use something custom instead.
-Observable.fromFirebaseRef = function(ref, event) {
+Observable.fromFirebaseRef = function(ref, eventType) {
   return Observable.create(function(observer) {
     const handler = observer.next.bind(observer);
 
-    ref.on('value', handler, observer.error.bind(observer));
+    ref.on(eventType, handler, observer.error.bind(observer));
 
-    return () => ref.off('value', handler);
+    return () => ref.off(eventType, handler);
   });
 };
