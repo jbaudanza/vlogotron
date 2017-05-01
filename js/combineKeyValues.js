@@ -3,7 +3,6 @@ import { identity, values, isEmpty } from 'lodash'
 
 function combineKeyValues(observableFactory, keySelector=identity, resultSelector=identity) {
   return Observable.create((observer) => {
-    console.log('starting state machine')
     const lastValues = {};
     let accSubscriptions = {};
     let lastInput = null;
