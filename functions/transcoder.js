@@ -2,6 +2,11 @@ const os = require("os");
 const fs = require("fs");
 const path = require("path");
 const process = require("process");
+
+// We are currently using a forked version of the storage module that disables
+// the forever user-agent.  We should follow this issue and go back to the
+// mainline when appropriate:
+// https://issuetracker.google.com/issues/36667671
 const gcs = require("@google-cloud/storage")();
 
 const ffmpeg = require("fluent-ffmpeg");
