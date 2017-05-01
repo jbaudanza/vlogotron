@@ -2,7 +2,7 @@ import React from "react";
 
 import Page from "./Page";
 import Link from "./Link";
-import RecordVideosHeader from "./RecordVideosHeader";
+import SongEditorHeader from "./SongEditorHeader";
 import VideoGrid from "./VideoGrid";
 import LoginOverlay from "./LoginOverlay";
 import PianoRoll from "./PianoRoll";
@@ -75,7 +75,7 @@ export default class SongEditorView extends React.Component {
 
   render() {
     const header = (
-      <RecordVideosHeader
+      <SongEditorHeader
         songTitle={this.props.songTitle}
         secondaryAction={{ href: "/record-videos" }}
         secondaryActionLabel={this.context.messages["back-action"]()}

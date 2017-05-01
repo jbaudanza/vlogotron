@@ -4,7 +4,7 @@ import { bindAll, bindKey, forEach } from "lodash";
 
 import Page from "./Page";
 import VideoGrid from "./VideoGrid";
-import RecordVideosHeader from "./RecordVideosHeader";
+import SongEditorHeader from "./SongEditorHeader";
 import PageTextFooter from "./PageTextFooter";
 import LoginOverlay from "./LoginOverlay";
 
@@ -32,7 +32,7 @@ export default class RecordVideosView extends React.Component {
     const callbacks = this.props.actions.callbacks;
 
     const header = (
-      <RecordVideosHeader
+      <SongEditorHeader
         songTitle={this.props.songTitle}
         secondaryAction={{ href: "/" }}
         secondaryActionLabel={this.context.messages["cancel-action"]()}

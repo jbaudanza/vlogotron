@@ -4,9 +4,7 @@ import { bindAll } from "lodash";
 
 import Link from "./Link";
 
-// TODO: This name is kind of misleading because this header is also used
-// on the SongEditor page
-export default class RecordVideosHeader extends React.Component {
+export default class SongEditorHeader extends React.Component {
   constructor() {
     super();
 
@@ -54,7 +52,7 @@ export default class RecordVideosHeader extends React.Component {
 
   render() {
     return (
-      <div className="page-header record-videos-header">
+      <div className="page-header song-editor-header">
         <div className="first">
           <Link className="action" {...this.props.secondaryAction}>
             {this.props.secondaryActionLabel}
@@ -89,6 +87,6 @@ export default class RecordVideosHeader extends React.Component {
   }
 }
 
-RecordVideosHeader.propTypes = {
+SongEditorHeader.propTypes = {
   onChangeTitle: React.PropTypes.string.isRequired
 };
