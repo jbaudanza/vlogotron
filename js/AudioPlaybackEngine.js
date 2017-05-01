@@ -7,6 +7,8 @@ import { playbackSchedule } from "./playbackSchedule";
 
 import { songLengthInBeats, beatsToTimestamp, timestampToBeats } from "./song";
 
+var pitchShiftNode = require("pitch-shift-node");
+
 // This is the minimum amount of time we will try to schedule audio in the
 // future. This is based on the following comment by Chris Wilson:
 // https://github.com/WebAudio/web-audio-api/issues/296#issuecomment-257100626
@@ -128,7 +130,12 @@ export function startScriptedPlayback(
           if (audioBuffer) {
             const source = audioContext.createBufferSource();
             source.buffer = audioBuffer;
-            source.connect(gainNode);
+            const pitchRatio = 1.4;
+            const pitchNode = new pitchShiftNode(audioContext, pitchRatio);
+            source.connect(pitchNode);
+            pitchNode.connect(gainNode);
+            //source.playbackRate.value = pitchRatio;
+            //source.connect(gainNode);
 
             let offset;
             if (audioContext.currentTime > startAt) {

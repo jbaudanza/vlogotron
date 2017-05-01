@@ -1482,6 +1482,14 @@ binary-extensions@^1.0.0:
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-1.8.0.tgz#48ec8d16df4377eae5fa5884682480af4d95c774"
 
+bit-twiddle@^1.0.0:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/bit-twiddle/-/bit-twiddle-1.0.2.tgz#0c6c1fabe2b23d17173d9a61b7b7093eb9e1769e"
+
+bit-twiddle@~0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/bit-twiddle/-/bit-twiddle-0.0.2.tgz#c2eaebb952a3b94acc140497e1cdcd2f1a33f58e"
+
 block-stream@*:
   version "0.0.9"
   resolved "https://registry.yarnpkg.com/block-stream/-/block-stream-0.0.9.tgz#13ebfe778a03205cfe03751481ebb4b3300c126a"
@@ -2123,6 +2131,12 @@ currently-unhandled@^0.4.1:
   dependencies:
     array-find-index "^1.0.1"
 
+cwise@~0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/cwise/-/cwise-0.1.2.tgz#0d942d0fff4301b9c367ac0e55f0b945bec09e52"
+  dependencies:
+    falafel "~0.1.6"
+
 dashdash@^1.12.0:
   version "1.14.1"
   resolved "https://registry.yarnpkg.com/dashdash/-/dashdash-1.14.1.tgz#853cfa0f7cbe2fed5de20326b8dd581035f6e2f0"
@@ -2192,6 +2206,16 @@ detect-indent@^4.0.0:
   dependencies:
     repeating "^2.0.0"
 
+detect-pitch@~0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/detect-pitch/-/detect-pitch-0.1.2.tgz#a0fbf1103351487ff7b85dc902ef09cc65a3fb4c"
+  dependencies:
+    bit-twiddle "~0.0.2"
+    ndarray "~0.2.4"
+    ndarray-fft "~0.0.2"
+    ndarray-ops "~0.1.3"
+    typedarray-pool "~0.1.1"
+
 diffie-hellman@^5.0.0:
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/diffie-hellman/-/diffie-hellman-5.0.2.tgz#b5835739270cfe26acf632099fded2a07f209e5e"
@@ -2225,6 +2249,14 @@ draft-js@^0.9.1, draft-js@~0.9.1:
     fbjs "^0.8.3"
     immutable "~3.7.4"
     object-assign "^4.1.0"
+
+dup@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/dup/-/dup-1.0.0.tgz#51fc5ac685f8196469df0b905e934b20af5b4029"
+
+dup@~0.0.0:
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/dup/-/dup-0.0.0.tgz#680c4c51ace6ab9fe3bc6e48d9cab26c0396abd7"
 
 duplexer2@^0.1.4:
   version "0.1.4"
@@ -2314,6 +2346,10 @@ esprima@^2.6.0:
   version "2.7.3"
   resolved "https://registry.yarnpkg.com/esprima/-/esprima-2.7.3.tgz#96e3b70d5779f6ad49cd032673d1c312767ba581"
 
+esprima@~1.0.2:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/esprima/-/esprima-1.0.4.tgz#9f557e08fc3b4d26ece9dd34f8fbf476b62585ad"
+
 esprima@~3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/esprima/-/esprima-3.0.0.tgz#53cf247acda77313e551c3aa2e73342d3fb4f7d9"
@@ -2375,6 +2411,12 @@ extglob@^0.3.1:
 extsprintf@1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.0.2.tgz#e1080e0658e300b06294990cc70e1502235fd550"
+
+falafel@~0.1.6:
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/falafel/-/falafel-0.1.6.tgz#3084cf3d41b59d15c813be6f259557fdc82b0660"
+  dependencies:
+    esprima "~1.0.2"
 
 fastparse@^1.1.1:
   version "1.1.1"
@@ -2487,6 +2529,10 @@ form-data@~2.1.1:
     asynckit "^0.4.0"
     combined-stream "^1.0.5"
     mime-types "^2.1.12"
+
+frame-hop@~0.0.0:
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/frame-hop/-/frame-hop-0.0.0.tgz#a076037f4fd987c7d2c5ce17ebb03901551f6c87"
 
 fs.realpath@^1.0.0:
   version "1.0.0"
@@ -3470,6 +3516,17 @@ micromatch@^2.1.5:
     parse-glob "^3.0.4"
     regex-cache "^0.4.2"
 
+midievents@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/midievents/-/midievents-1.0.1.tgz#f7c8ba7efb657f2c3bc80c2cbd19117234d2cc52"
+
+midifile@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/midifile/-/midifile-1.0.4.tgz#6fe16589967c11eb48ba4cbe25d5755d8c61c10b"
+  dependencies:
+    midievents "^1.0.1"
+    utf-8 "^1.0.0"
+
 miller-rabin@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/miller-rabin/-/miller-rabin-4.0.0.tgz#4a62fb1d42933c05583982f4c716f6fb9e6c6d3d"
@@ -3539,6 +3596,27 @@ multimatch@^2.1.0:
 nan@^2.3.0, nan@^2.3.2:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.5.0.tgz#aa8f1e34531d807e9e27755b234b4a6ec0c152a8"
+
+ndarray-fft@~0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/ndarray-fft/-/ndarray-fft-0.0.2.tgz#820b9bc050ff12dc524f92e85a616a3c455acb8f"
+  dependencies:
+    bit-twiddle "~0.0.2"
+    cwise "~0.1.2"
+    ndarray "~0.2.0"
+    ndarray-ops "~0.1.3"
+    typedarray-pool "0.0.1"
+
+ndarray-ops@~0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/ndarray-ops/-/ndarray-ops-0.1.3.tgz#d9271a035133d74d3227743814fcef38c3452882"
+  dependencies:
+    cwise "~0.1.2"
+    ndarray "~0.2.0"
+
+ndarray@~0.2.0, ndarray@~0.2.4:
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/ndarray/-/ndarray-0.2.4.tgz#3ca49816bc9b10f5a2fa976d0f7628416ba72bf9"
 
 node-emoji@^1.4.1:
   version "1.5.1"
@@ -3780,6 +3858,10 @@ osenv@^0.1.0, osenv@0:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.0"
 
+overlap-add@~0.0.0:
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/overlap-add/-/overlap-add-0.0.0.tgz#271ce561ea895888d25f18e813b54f8b294a07cc"
+
 package-hash@^1.1.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/package-hash/-/package-hash-1.2.0.tgz#003e56cd57b736a6ed6114cc2b81542672770e44"
@@ -3887,6 +3969,22 @@ pinkie@^1.0.0:
 pinkie@^2.0.0:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/pinkie/-/pinkie-2.0.4.tgz#72556b80cfa0d48a974e80e77248e80ed4f7f870"
+
+pitch-shift-node:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/pitch-shift-node/-/pitch-shift-node-0.1.0.tgz#43117a34b5e9fb4c85f02db5c917407ebb144ef5"
+  dependencies:
+    pitch-shift "0.0.0"
+    typedarray-pool "^1.1.0"
+
+pitch-shift@0.0.0:
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/pitch-shift/-/pitch-shift-0.0.0.tgz#d457e490ad0dcc2bd0d48fa78d03001f252b911a"
+  dependencies:
+    detect-pitch "~0.1.2"
+    frame-hop "~0.0.0"
+    overlap-add "~0.0.0"
+    typedarray-pool "~0.1.1"
 
 pkg-conf@^1.0.1:
   version "1.1.3"
@@ -5136,6 +5234,10 @@ string-width@^1.0.1, string-width@^1.0.2:
     is-fullwidth-code-point "^1.0.0"
     strip-ansi "^3.0.0"
 
+string.fromcodepoint@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/string.fromcodepoint/-/string.fromcodepoint-0.2.1.tgz#8d978333c0bc92538f50f383e4888f3e5619d653"
+
 string.prototype.codepointat@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/string.prototype.codepointat/-/string.prototype.codepointat-0.2.0.tgz#6b26e9bd3afcaa7be3b4269b526de1b82000ac78"
@@ -5340,6 +5442,27 @@ type-name@^2.0.1:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/type-name/-/type-name-2.0.2.tgz#efe7d4123d8ac52afff7f40c7e4dec5266008fb4"
 
+typedarray-pool@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/typedarray-pool/-/typedarray-pool-1.1.0.tgz#d114f484801489f53ecab5e8088aa23044f498d9"
+  dependencies:
+    bit-twiddle "^1.0.0"
+    dup "^1.0.0"
+
+typedarray-pool@~0.1.1:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/typedarray-pool/-/typedarray-pool-0.1.2.tgz#c01a4a95d35f05f990f53456b63ff698557d928f"
+  dependencies:
+    bit-twiddle "~0.0.2"
+    dup "~0.0.0"
+
+typedarray-pool@0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/typedarray-pool/-/typedarray-pool-0.0.1.tgz#1491e1575a325a2a25108ff048ae7fc47074386b"
+  dependencies:
+    bit-twiddle "~0.0.2"
+    dup "~0.0.0"
+
 ua-parser-js@^0.7.9:
   version "0.7.12"
   resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-0.7.12.tgz#04c81a99bdd5dc52263ea29d24c6bf8d4818a4bb"
@@ -5416,6 +5539,13 @@ url@^0.11.0:
   dependencies:
     punycode "1.3.2"
     querystring "0.2.0"
+
+utf-8@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/utf-8/-/utf-8-1.0.0.tgz#429c09fb1ac32cebaf565961eda48cb3f4522197"
+  dependencies:
+    string.fromcodepoint "^0.2.1"
+    string.prototype.codepointat "^0.2.0"
 
 util-deprecate@~1.0.1:
   version "1.0.2"
