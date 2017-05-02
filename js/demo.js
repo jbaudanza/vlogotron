@@ -20,7 +20,7 @@ import { findWrappingLink } from "./domutils";
 import { mediaForRoute } from "./mediaLoading";
 
 import "./style.scss";
-import { navigate, currentRoute$, currentLocation$ } from "./router";
+import { navigate, currentLocation$, pathnameToRoute, routeToPageConfig } from "./router";
 
 import bindComponentToObservable from "./bindComponentToObservable";
 
@@ -43,6 +43,12 @@ currentUser$.subscribe(user => {
     ref.child("lastSeenAt").set(firebase.database.ServerValue.TIMESTAMP);
   }
 });
+
+const currentPathname$ = currentLocation$
+  .map(location => location.pathname)
+  .distinctUntilChanged();
+
+const currentRoute$ = currentPathname$.map(pathnameToRoute);
 
 class App extends React.Component {
   constructor() {
@@ -76,8 +82,6 @@ class App extends React.Component {
   }
 
   componentWillMount() {
-    const currentPathname$ = currentLocation$.map(o => o.pathname);
-
     this.globalSubscription = new Subscription();
 
     this.media = mediaForRoute(
@@ -94,13 +98,15 @@ class App extends React.Component {
   }
 
   onRouteChange(route) {
+    const pageConfig = routeToPageConfig(route);
+
     this.disposePage();
 
     this.pageSubscription = new Subscription();
 
-    this.pageActions = new ReactActions(route.actions);
+    this.pageActions = new ReactActions(pageConfig.actions);
 
-    const viewState$ = route.controller(
+    const viewState$ = pageConfig.controller(
       route.params,
       this.pageActions.observables,
       currentUser$,
@@ -114,13 +120,12 @@ class App extends React.Component {
 
     this.pageSubscription.add(
       viewState$.subscribe(viewState => {
-        const View = route.view;
+        const View = pageConfig.view;
         this.setState({
           view: (
             <View
               {...viewState}
               media={this.media}
-              location={route.location}
               actions={this.pageActions}
               onNavigate={this.onNavigate}
               onLogin={this.onLogin}
@@ -178,10 +183,12 @@ class App extends React.Component {
       );
     }
 
+    const view = React.cloneElement(this.state.view, { location: this.state.location });
+
     return (
       <div onClick={this.onClick}>
         <SvgAssets />
-        {this.state.view}
+        {view}
         {overlay}
       </div>
     );

@@ -5,6 +5,8 @@ import audioContext from "./audioContext";
 
 import { getArrayBuffer } from "./http";
 
+import { pathnameToRoute } from "./router";
+
 import {
   pickBy,
   keys,
@@ -79,23 +81,25 @@ function songById(songId) {
 const DEFAULT_SONG_ID = "-KiY1cdo1ggMC-p3pG94";
 
 function mapRouteToSongId(pathname, currentUser) {
-  const noSong$ = Observable.of(null);
+  const null$ = Observable.of(null);
 
-  let match;
-  if (pathname === "/") {
-    return Observable.of(DEFAULT_SONG_ID);
-  }
-  if (pathname === "/record-videos" || pathname === "/note-editor") {
-    if (currentUser) {
-      return noSong$.concat(findOrCreateWorkspaceSongId(currentUser.uid));
-    } else {
-      return noSong$;
+  const route = pathnameToRoute(pathname);
+  if (route) {
+    switch (route.name) {
+      case 'root':
+        return Observable.of(DEFAULT_SONG_ID);
+      case 'record-videos':
+      case 'note-editor':
+        if (currentUser) {
+          return null$.concat(findOrCreateWorkspaceSongId(currentUser.uid));
+        }
+        break;
+      case 'view-song':
+        return Observable.of(route.params.songId);
     }
-  } else if ((match = pathname.match(/^\/songs\/([-\w]+)$/))) {
-    return Observable.of(match[1]);
-  } else {
-    return noSong$;
   }
+
+  return null$;
 }
 
 /*

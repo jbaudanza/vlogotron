@@ -41,7 +41,7 @@ export default class PianoRollHeader extends React.Component {
             </svg>
           </Link>
 
-          <Link href="/song-editor#choose-song" className="song-chooser">
+          <Link href="/note-editor#choose-song" className="song-chooser">
             <svg version="1.1" width={18} height={16}>
               <use xlinkHref="#svg-soundwave" />
             </svg>

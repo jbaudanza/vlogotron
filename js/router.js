@@ -15,62 +15,70 @@ export function navigate(href) {
   urlHistory.push(href);
 }
 
-function mapToRoute(pathname) {
+export function pathnameToRoute(pathname) {
   let match;
 
-  if (pathname === "/") {
-    return {
-      view: PlaybackView,
-      controller: playbackController,
-      location: location,
-      params: {},
-      actions: ["play", "pause", "playCommands$"]
-    };
+  if (pathname === '/') {
+    return { name: 'root', params: {} };
   } else if (pathname === "/record-videos") {
-    return {
-      controller: recordVideosController,
-      location: location,
-      params: {},
-      view: RecordVideosView,
-      actions: [
-        "changeTitle",
-        "startRecording",
-        "stopRecording",
-        "dismissError",
-        "clearVideoClip",
-        "playCommands$"
-      ]
-    };
+    return { name: 'record-videos', params: {} };
   } else if (pathname === "/note-editor") {
-    return {
-      view: NoteEditorView,
-      controller: noteEditorController,
-      location: location,
-      actions: [
-        "changeCellsPerBeat",
-        "changePlaybackStartPosition",
-        "changeTitle",
-        "editSong",
-        "pause",
-        "play",
-        "playCommands$"
-      ]
-    };
+    return { name: 'note-editor', params: {} };
   } else if ((match = pathname.match(/\/songs\/([\w-]+)/))) {
-    return {
-      params: { songId: match[1] },
-      view: PlaybackView,
-      controller: playbackController,
-      location: location,
-      actions: ["pause", "play", "playCommands$"]
-    };
+    return { name: 'view-song', params: {songId: match[1]}};
   } else {
-    return {
-      actions: [],
-      params: {},
-      view: () => <div>Not found</div>,
-      location: location
-    };
+    return { name: 'not-found', params: {}};
+  }
+}
+
+export function routeToPageConfig(route) {
+  switch (route.name) {
+    case 'root':
+      return {
+        view: PlaybackView,
+        controller: playbackController,
+        actions: ["play", "pause", "playCommands$"]
+      };
+    case 'record-videos':
+      return {
+        controller: recordVideosController,
+        view: RecordVideosView,
+        actions: [
+          "changeTitle",
+          "startRecording",
+          "stopRecording",
+          "dismissError",
+          "clearVideoClip",
+          "playCommands$"
+        ]
+      };
+    case 'note-editor':
+      return {
+        view: NoteEditorView,
+        controller: noteEditorController,
+        actions: [
+          "changeCellsPerBeat",
+          "changePlaybackStartPosition",
+          "changeTitle",
+          "editSong",
+          "pause",
+          "play",
+          "playCommands$"
+        ]
+      };
+    case 'view-song':
+      return {
+        view: PlaybackView,
+        controller: playbackController,
+        location: location,
+        actions: ["pause", "play", "playCommands$"]
+      };
+    default:
+      return {
+        actions: [],
+        controller: () => Observable.of({}),
+        view: () => <div>Not found</div>
+      };
   }
 }
 
@@ -80,8 +88,3 @@ export const currentLocation$ = Observable.create(observer => {
   observer.next(urlHistory.location);
   return urlHistory.listen(observer.next.bind(observer));
 });
-
-export const currentRoute$ = currentLocation$
-  .map(location => location.pathname)
-  .distinctUntilChanged()
-  .map(mapToRoute);

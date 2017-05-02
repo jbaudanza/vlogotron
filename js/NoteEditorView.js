@@ -97,7 +97,7 @@ export default class NoteEditorView extends React.Component {
         <ChooseSongOverlay
           onSelect={this.onChooseSong}
           media={this.props.media}
-          onClose="/song-editor"
+          onClose="/note-editor"
           bpm={this.props.bpm}
         />
       );
