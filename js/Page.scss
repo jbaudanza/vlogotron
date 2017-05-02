@@ -271,3 +271,29 @@
     }
   }
 }
+
+.error-page {
+  color: $color-dark;
+  text-align: center;
+
+  .error-code {
+    width: 260px;
+    margin: 0 auto;
+    margin-top: 25px;
+    overflow: hidden;
+
+    span {
+      font-size: 125px;
+    }
+    span, svg {
+      float: left;
+    }
+    svg {
+      fill: $color-dark;
+    }
+  }
+
+  .error-message {
+    font-size: 24px;
+  }
+}

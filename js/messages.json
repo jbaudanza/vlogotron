@@ -22,5 +22,6 @@
   "half-notes": "Half notes",
   "eighth-notes": "Eigth notes",
   "sixteenth-notes": "Sixteenth notes",
-  "bpm-with-number": "{BPM} bpm"
+  "bpm-with-number": "{BPM} bpm",
+  "not-found-error": "The page you're requesting doesn't exist."
 }

@@ -6,6 +6,7 @@ import createHistory from "history/createBrowserHistory";
 import PlaybackView from "./PlaybackView";
 import RecordVideosView from "./RecordVideosView";
 import NoteEditorView from "./NoteEditorView";
+import ErrorView from "./ErrorView";
 
 import playbackController from "./playbackController";
 import noteEditorController from "./noteEditorController";
@@ -77,7 +78,7 @@ export function routeToPageConfig(route) {
       return {
         actions: [],
         controller: () => Observable.of({}),
-        view: () => <div>Not found</div>
+        view: ErrorView
       };
   }
 }
