@@ -79,12 +79,9 @@ function songById(songId) {
 const DEFAULT_SONG_ID = "-KiY1cdo1ggMC-p3pG94";
 
 function mapRouteToSongId(pathname, currentUser) {
-  const databaseId = "([\w-]+)";
-  const songsRe = new RegExp(`^/songs/${databaseId}$`);
-  let match;
-
   const noSong$ = Observable.of(null);
 
+  let match;
   if (pathname === "/") {
     return Observable.of(DEFAULT_SONG_ID);
   }
@@ -94,7 +91,7 @@ function mapRouteToSongId(pathname, currentUser) {
     } else {
       return noSong$;
     }
-  } else if ((match = pathname.match(songsRe))) {
+  } else if ((match = pathname.match(/^\/songs\/([-\w]+)$/))) {
     return Observable.of(match[1]);
   } else {
     return noSong$;

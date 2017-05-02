@@ -56,10 +56,13 @@ function mapToRoute(pathname) {
         "playCommands$"
       ]
     };
-  } else if ((match = pathname.match(/\/playback\/([\w-]+)/))) {
+  } else if ((match = pathname.match(/\/songs\/([\w-]+)/))) {
     return {
       params: { songId: match[1] },
-      location: location
+      view: PlaybackView,
+      controller: playbackController,
+      location: location,
+      actions: ["pause", "play", "playCommands$"]
     };
   } else {
     return {
