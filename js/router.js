@@ -18,28 +18,28 @@ export function navigate(href) {
 export function pathnameToRoute(pathname) {
   let match;
 
-  if (pathname === '/') {
-    return { name: 'root', params: {} };
+  if (pathname === "/") {
+    return { name: "root", params: {} };
   } else if (pathname === "/record-videos") {
-    return { name: 'record-videos', params: {} };
+    return { name: "record-videos", params: {} };
   } else if (pathname === "/note-editor") {
-    return { name: 'note-editor', params: {} };
+    return { name: "note-editor", params: {} };
   } else if ((match = pathname.match(/\/songs\/([\w-]+)/))) {
-    return { name: 'view-song', params: {songId: match[1]}};
+    return { name: "view-song", params: { songId: match[1] } };
   } else {
-    return { name: 'not-found', params: {}};
+    return { name: "not-found", params: {} };
   }
 }
 
 export function routeToPageConfig(route) {
   switch (route.name) {
-    case 'root':
+    case "root":
       return {
         view: PlaybackView,
         controller: playbackController,
         actions: ["play", "pause", "playCommands$"]
       };
-    case 'record-videos':
+    case "record-videos":
       return {
         controller: recordVideosController,
         view: RecordVideosView,
@@ -52,7 +52,7 @@ export function routeToPageConfig(route) {
           "playCommands$"
         ]
       };
-    case 'note-editor':
+    case "note-editor":
       return {
         view: NoteEditorView,
         controller: noteEditorController,
@@ -66,7 +66,7 @@ export function routeToPageConfig(route) {
           "playCommands$"
         ]
       };
-    case 'view-song':
+    case "view-song":
       return {
         view: PlaybackView,
         controller: playbackController,

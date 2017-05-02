@@ -20,7 +20,12 @@ import { findWrappingLink } from "./domutils";
 import { mediaForRoute } from "./mediaLoading";
 
 import "./style.scss";
-import { navigate, currentLocation$, pathnameToRoute, routeToPageConfig } from "./router";
+import {
+  navigate,
+  currentLocation$,
+  pathnameToRoute,
+  routeToPageConfig
+} from "./router";
 
 const messages = require("messageformat-loader!json-loader!./messages.json");
 
@@ -181,7 +186,9 @@ class App extends React.Component {
       );
     }
 
-    const view = React.cloneElement(this.state.view, { location: this.state.location });
+    const view = React.cloneElement(this.state.view, {
+      location: this.state.location
+    });
 
     return (
       <div onClick={this.onClick}>

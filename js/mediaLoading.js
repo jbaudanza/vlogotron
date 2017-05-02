@@ -86,15 +86,15 @@ function mapRouteToSongId(pathname, currentUser) {
   const route = pathnameToRoute(pathname);
   if (route) {
     switch (route.name) {
-      case 'root':
+      case "root":
         return Observable.of(DEFAULT_SONG_ID);
-      case 'record-videos':
-      case 'note-editor':
+      case "record-videos":
+      case "note-editor":
         if (currentUser) {
           return null$.concat(findOrCreateWorkspaceSongId(currentUser.uid));
         }
         break;
-      case 'view-song':
+      case "view-song":
         return Observable.of(route.params.songId);
     }
   }
