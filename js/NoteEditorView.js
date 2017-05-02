@@ -11,13 +11,13 @@ import ChooseSongOverlay from "./ChooseSongOverlay";
 
 import { bindAll, bindKey } from "lodash";
 
-import "./SongEditorView.scss";
+import "./NoteEditorView.scss";
 
 function withObservables(component, events) {
   return;
 }
 
-export default class SongEditorView extends React.Component {
+export default class NoteEditorView extends React.Component {
   constructor() {
     super();
     bindAll(
@@ -147,7 +147,7 @@ export default class SongEditorView extends React.Component {
         sidebarVisible={false}
         header={header}
         footer={footer}
-        className="song-editor-page"
+        className="note-editor-page"
       >
         <VideoGrid
           readonly
@@ -165,6 +165,6 @@ export default class SongEditorView extends React.Component {
   }
 }
 
-SongEditorView.contextTypes = {
+NoteEditorView.contextTypes = {
   messages: React.PropTypes.object.isRequired
 };

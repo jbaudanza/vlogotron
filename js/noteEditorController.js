@@ -53,7 +53,7 @@ const initialStateForUndoStack = {
   redoStack: []
 };
 
-export default function songEditorController(
+export default function noteEditorController(
   params,
   actions,
   currentUser$,
@@ -94,7 +94,7 @@ export default function songEditorController(
     bpm$.startWith(120),
     media,
     subscription
-  );
+  )
 
   return Observable.combineLatest(
     parentViewState$,

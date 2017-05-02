@@ -5,10 +5,10 @@ import createHistory from "history/createBrowserHistory";
 
 import PlaybackView from "./PlaybackView";
 import RecordVideosView from "./RecordVideosView";
-import SongEditorView from "./SongEditorView";
+import NoteEditorView from "./NoteEditorView";
 
 import playbackController from "./playbackController";
-import songEditorController from "./songEditorController";
+import noteEditorController from "./noteEditorController";
 import recordVideosController from "./recordVideosController";
 
 export function navigate(href) {
@@ -41,10 +41,10 @@ function mapToRoute(pathname) {
         "playCommands$"
       ]
     };
-  } else if (pathname === "/song-editor") {
+  } else if (pathname === "/note-editor") {
     return {
-      view: SongEditorView,
-      controller: songEditorController,
+      view: NoteEditorView,
+      controller: noteEditorController,
       location: location,
       actions: [
         "changeCellsPerBeat",

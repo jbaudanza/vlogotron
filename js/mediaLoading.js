@@ -86,7 +86,7 @@ function mapRouteToSongId(pathname, currentUser) {
   if (pathname === "/") {
     return Observable.of(DEFAULT_SONG_ID);
   }
-  if (pathname === "/record-videos" || pathname === "/song-editor") {
+  if (pathname === "/record-videos" || pathname === "/note-editor") {
     if (currentUser) {
       return noSong$.concat(findOrCreateWorkspaceSongId(currentUser.uid));
     } else {

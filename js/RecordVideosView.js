@@ -37,7 +37,7 @@ export default class RecordVideosView extends React.Component {
         onChangeTitle={callbacks.onChangeTitle}
         secondaryAction={{ href: "/" }}
         secondaryActionLabel={this.context.messages["cancel-action"]()}
-        primaryAction={{ href: "/song-editor" }}
+        primaryAction={{ href: "/note-editor" }}
         primaryActionLabel={this.context.messages["next-action"]()}
       />
     );
