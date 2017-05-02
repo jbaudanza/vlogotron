@@ -19,6 +19,7 @@ export default class NoteEditorView extends React.Component {
     bindAll(
       this,
       "bindPianoRoll",
+      "bindVideoGrid",
       "onChangeBpm",
       "onChooseSong",
       "onRedo",
@@ -29,13 +30,26 @@ export default class NoteEditorView extends React.Component {
 
   bindPianoRoll(component) {
     if (component) {
-      this.subscription = component.edits$.subscribe(
+      this.pianoRollSubscription = component.edits$.subscribe(
         this.props.actions.subjects.editSong$
       );
     } else {
-      if (this.subscription) {
-        this.subscription.unsubscribe();
-        delete this.subscription;
+      if (this.pianoRollSubscription) {
+        this.pianoRollSubscription.unsubscribe();
+        delete this.pianoRollSubscription;
+      }
+    }
+  }
+
+  bindVideoGrid(component) {
+    if (component) {
+      this.videoGridSubscription = component.playCommands$$.subscribe(
+        this.props.actions.subjects.playCommands$$
+      );
+    } else {
+      if (this.videoGridSubscription) {
+        this.videoGridSubscription.unsubscribe();
+        delete this.videoGridSubscription;
       }
     }
   }
