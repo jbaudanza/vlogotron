@@ -8,22 +8,19 @@ export function changeTitle(songId, title) {
   if (!isBlank(title)) {
     const event = {
       title: title,
-      type: 'renamed',
+      type: "renamed",
       timestamp: firebase.database.ServerValue.TIMESTAMP
     };
 
     storeEvent(songId, event);
-    songRef(songId).child('title').set(title);
+    songRef(songId).child("title").set(title);
   }
 }
 
 function songRef(songId) {
-  return firebase
-    .database()
-    .ref("songs")
-    .child(songId);
+  return firebase.database().ref("songs").child(songId);
 }
 
 function isBlank(string) {
-  string == null || string.trim() === '';
+  string == null || string.trim() === "";
 }

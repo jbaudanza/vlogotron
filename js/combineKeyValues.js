@@ -1,8 +1,12 @@
-import { Observable } from 'rxjs/Observable';
-import { identity, values, isEmpty } from 'lodash'
+import { Observable } from "rxjs/Observable";
+import { identity, values, isEmpty } from "lodash";
 
-function combineKeyValues(observableFactory, keySelector=identity, resultSelector=identity) {
-  return Observable.create((observer) => {
+function combineKeyValues(
+  observableFactory,
+  keySelector = identity,
+  resultSelector = identity
+) {
+  return Observable.create(observer => {
     const lastValues = {};
     let accSubscriptions = {};
     let lastInput = null;
@@ -21,7 +25,7 @@ function combineKeyValues(observableFactory, keySelector=identity, resultSelecto
       const keys = keySelector(input);
 
       // Add new subscriptions
-      keys.forEach((key) => {
+      keys.forEach(key => {
         if (key in subscriptions) {
           newSubscriptions[key] = subscriptions[key];
         } else {
@@ -66,7 +70,7 @@ function combineKeyValues(observableFactory, keySelector=identity, resultSelecto
     });
 
     function cleanup() {
-      values(accSubscriptions).forEach((sub) => sub.unsubscribe())
+      values(accSubscriptions).forEach(sub => sub.unsubscribe());
       sourceSubscription.unsubscribe();
     }
 

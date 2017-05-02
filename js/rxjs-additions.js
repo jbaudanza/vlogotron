@@ -52,7 +52,7 @@ import "rxjs/add/observable/of";
 import "rxjs/add/observable/race";
 import "rxjs/add/observable/using";
 
-import './combineKeyValues'
+import "./combineKeyValues";
 
 import { Observable } from "rxjs/Observable";
 

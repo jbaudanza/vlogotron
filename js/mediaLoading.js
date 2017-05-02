@@ -45,7 +45,9 @@ export function mediaForRoute(currentPathname$, currentUser$, subscription) {
     .publishReplay();
 
   const videoClips$ = songId$
-    .switchMap(songId => (songId ? videoClipsForSongId(songId) : Observable.of({})))
+    .switchMap(
+      songId => (songId ? videoClipsForSongId(songId) : Observable.of({}))
+    )
     .publishReplay();
 
   const audioLoading = loadAudioBuffersFromVideoClips(
@@ -216,26 +218,32 @@ function snapshotReduce(snapshot, fn, initial) {
 function reduceFirebaseCollection(collectionRef, accFn, initial) {
   const query = collectionRef.orderByKey();
 
-  return Observable.fromFirebaseRef(query, "value").first().switchMap(snapshot => {
-    let lastKey;
-    let acc = initial;
+  return Observable.fromFirebaseRef(query, "value")
+    .first()
+    .switchMap(snapshot => {
+      let lastKey;
+      let acc = initial;
 
-    snapshot.forEach(function(child) {
-      lastKey = child.key;
-      acc = accFn(acc, child.val());
+      snapshot.forEach(function(child) {
+        lastKey = child.key;
+        acc = accFn(acc, child.val());
+      });
+
+      let rest$;
+      if (lastKey) {
+        rest$ = Observable.fromFirebaseRef(
+          query.startAt(lastKey),
+          "child_added"
+        ).skip(1);
+      } else {
+        rest$ = Observable.fromFirebaseRef(query, "child_added");
+      }
+
+      return rest$
+        .map(snapshot => snapshot.val())
+        .scan(accFn, acc)
+        .startWith(acc);
     });
-
-    let rest$;
-    if (lastKey) {
-      rest$ = Observable.fromFirebaseRef(query.startAt(lastKey), "child_added").skip(
-        1
-      );
-    } else {
-      rest$ = Observable.fromFirebaseRef(query, "child_added");
-    }
-
-    return rest$.map(snapshot => snapshot.val()).scan(accFn, acc).startWith(acc);
-  });
 }
 
 function reduceEventsToVideoClipIds(acc, event) {

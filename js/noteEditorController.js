@@ -5,7 +5,7 @@ import { last } from "lodash";
 
 import { songLengthInSeconds, reduceEditsToSong } from "./song";
 import { readEvents, writeEvent } from "./localEventStore";
-import { changeTitle } from './songUpdates';
+import { changeTitle } from "./songUpdates";
 
 const messages = require("messageformat-loader!json-loader!./messages.json");
 
@@ -76,8 +76,7 @@ export default function noteEditorController(
 
   subscription.add(editorState$.connect());
 
-  actions
-    .changeTitle$
+  actions.changeTitle$
     .withLatestFrom(media.songId$)
     .subscribe(function([title, songId]) {
       if (songId != null) {
@@ -94,7 +93,7 @@ export default function noteEditorController(
     bpm$.startWith(120),
     media,
     subscription
-  )
+  );
 
   return Observable.combineLatest(
     parentViewState$,

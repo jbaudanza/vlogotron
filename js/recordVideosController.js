@@ -3,7 +3,7 @@ import { Subject } from "rxjs/Subject";
 
 import { omit } from "lodash";
 
-import { storeEvent, changeTitle } from './songUpdates';
+import { storeEvent, changeTitle } from "./songUpdates";
 
 import audioContext from "./audioContext";
 import { combine as combinePlayCommands } from "./playCommands";
@@ -40,8 +40,7 @@ export default function recordVideosController(
 
   subscription.add(recordingEngine$.connect());
 
-  actions
-    .changeTitle$
+  actions.changeTitle$
     .withLatestFrom(mediaStore.songId$)
     .subscribe(function([title, songId]) {
       if (songId != null) {
@@ -83,9 +82,10 @@ export default function recordVideosController(
 
   // Store events in firebase
   subscription.add(
-    Observable.merge(clearedEvents$, uploadedEvents$).subscribe((
-      [songId, event]
-    ) => {
+    Observable.merge(clearedEvents$, uploadedEvents$).subscribe(([
+      songId,
+      event
+    ]) => {
       storeEvent(songId, event);
     })
   );
