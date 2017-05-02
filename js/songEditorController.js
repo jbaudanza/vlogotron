@@ -5,6 +5,7 @@ import { last } from "lodash";
 
 import { songLengthInSeconds, reduceEditsToSong } from "./song";
 import { readEvents, writeEvent } from "./localEventStore";
+import { changeTitle } from './songUpdates';
 
 const messages = require("messageformat-loader!json-loader!./messages.json");
 
@@ -74,6 +75,15 @@ export default function songEditorController(
   const redoEnabled$ = editorState$.map(o => o.redoStack.length > 0);
 
   subscription.add(editorState$.connect());
+
+  actions
+    .changeTitle$
+    .withLatestFrom(media.songId$)
+    .subscribe(function([title, songId]) {
+      if (songId != null) {
+        changeTitle(songId, title);
+      }
+    });
 
   const cellsPerBeat$ = actions.changeCellsPerBeat$.startWith(4);
 

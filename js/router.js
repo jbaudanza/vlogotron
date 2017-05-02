@@ -49,6 +49,7 @@ function mapToRoute(pathname) {
       actions: [
         "changeCellsPerBeat",
         "changePlaybackStartPosition",
+        "changeTitle",
         "editSong",
         "pause",
         "play",

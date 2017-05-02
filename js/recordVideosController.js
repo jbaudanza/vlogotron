@@ -3,6 +3,8 @@ import { Subject } from "rxjs/Subject";
 
 import { omit } from "lodash";
 
+import { storeEvent, changeTitle } from './songUpdates';
+
 import audioContext from "./audioContext";
 import { combine as combinePlayCommands } from "./playCommands";
 import { start as startCapturing } from "./recording";
@@ -25,10 +27,6 @@ const escapeKey$ = Observable.fromEvent(document, "keydown").filter(
     - durationRecorded should increment every second, not every event callback
  */
 
-function isBlank(string) {
-  string == null || string.trim() === '';
-}
-
 export default function recordVideosController(
   params,
   actions,
@@ -42,35 +40,14 @@ export default function recordVideosController(
 
   subscription.add(recordingEngine$.connect());
 
-  function songRef(songId) {
-    return firebase
-      .database()
-      .ref("songs")
-      .child(songId);
-  }
-
-  function storeEvent(songId, event) {
-    songRef(songId).child("events").push(event);
-  }
-
   actions
     .changeTitle$
     .withLatestFrom(mediaStore.songId$)
     .subscribe(function([title, songId]) {
-      if (songId != null && !isBlank(title)) {
+      if (songId != null) {
         changeTitle(songId, title);
       }
     });
-
-  function changeTitle(songId, title) {
-    const event = {
-      title: title,
-      type: 'renamed',
-      timestamp: firebase.database.ServerValue.TIMESTAMP
-    }
-    storeEvent(songId, event);
-    songRef(songId).child('title').set(title);
-  }
 
   const recordingState$ = Observable.merge(
     recordingEngine$.switchMap(o => o.viewState$),
