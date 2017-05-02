@@ -13,10 +13,6 @@ import { bindAll, bindKey } from "lodash";
 
 import "./NoteEditorView.scss";
 
-function withObservables(component, events) {
-  return;
-}
-
 export default class NoteEditorView extends React.Component {
   constructor() {
     super();

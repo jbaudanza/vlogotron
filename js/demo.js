@@ -22,8 +22,6 @@ import { mediaForRoute } from "./mediaLoading";
 import "./style.scss";
 import { navigate, currentLocation$, pathnameToRoute, routeToPageConfig } from "./router";
 
-import bindComponentToObservable from "./bindComponentToObservable";
-
 const messages = require("messageformat-loader!json-loader!./messages.json");
 
 window.main = function(node) {
