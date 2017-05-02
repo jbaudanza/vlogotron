@@ -11,6 +11,8 @@ import { bindAll, fromPairs } from "lodash";
 import SvgAssets from "./SvgAssets";
 import LoginOverlay from "./LoginOverlay";
 
+import TracksOverlay from "./TracksOverlay";
+
 import ReactActions from "./ReactActions";
 
 import audioContext from "./audioContext";
@@ -182,6 +184,16 @@ class App extends React.Component {
         <LoginOverlay
           onLogin={this.onLogin}
           onClose={this.state.location.pathname}
+        />
+      );
+    }
+    else if (this.state.location.hash === "#tracks") {
+      const Overlay = this.state.overlay;
+      overlay = (
+        <TracksOverlay
+          media={this.props.media}
+          onClose={this.state.location.pathname}
+          bpm={120}
         />
       );
     }
