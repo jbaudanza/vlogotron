@@ -33,6 +33,7 @@ function mapToRoute(pathname) {
       params: {},
       view: RecordVideosView,
       actions: [
+        "changeTitle",
         "startRecording",
         "stopRecording",
         "dismissError",

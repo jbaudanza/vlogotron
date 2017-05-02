@@ -88,5 +88,5 @@ export default class SongEditorHeader extends React.Component {
 }
 
 SongEditorHeader.propTypes = {
-  onChangeTitle: React.PropTypes.string.isRequired
+  onChangeTitle: React.PropTypes.func.isRequired
 };

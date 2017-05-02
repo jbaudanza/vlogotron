@@ -25,6 +25,10 @@ const escapeKey$ = Observable.fromEvent(document, "keydown").filter(
     - durationRecorded should increment every second, not every event callback
  */
 
+function isBlank(string) {
+  string == null || string.trim() === '';
+}
+
 export default function recordVideosController(
   params,
   actions,
@@ -37,6 +41,36 @@ export default function recordVideosController(
     .publish();
 
   subscription.add(recordingEngine$.connect());
+
+  function songRef(songId) {
+    return firebase
+      .database()
+      .ref("songs")
+      .child(songId);
+  }
+
+  function storeEvent(songId, event) {
+    songRef(songId).child("events").push(event);
+  }
+
+  actions
+    .changeTitle$
+    .withLatestFrom(mediaStore.songId$)
+    .subscribe(function([title, songId]) {
+      if (songId != null && !isBlank(title)) {
+        changeTitle(songId, title);
+      }
+    });
+
+  function changeTitle(songId, title) {
+    const event = {
+      title: title,
+      type: 'renamed',
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    }
+    storeEvent(songId, event);
+    songRef(songId).child('title').set(title);
+  }
 
   const recordingState$ = Observable.merge(
     recordingEngine$.switchMap(o => o.viewState$),
@@ -72,15 +106,10 @@ export default function recordVideosController(
 
   // Store events in firebase
   subscription.add(
-    Observable.merge(clearedEvents$, uploadedEvents$).subscribe(function(
+    Observable.merge(clearedEvents$, uploadedEvents$).subscribe((
       [songId, event]
-    ) {
-      firebase
-        .database()
-        .ref("songs")
-        .child(songId)
-        .child("events")
-        .push(event);
+    ) => {
+      storeEvent(songId, event);
     })
   );
 

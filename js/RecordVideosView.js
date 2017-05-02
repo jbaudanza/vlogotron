@@ -34,6 +34,7 @@ export default class RecordVideosView extends React.Component {
     const header = (
       <SongEditorHeader
         songTitle={this.props.songTitle}
+        onChangeTitle={callbacks.onChangeTitle}
         secondaryAction={{ href: "/" }}
         secondaryActionLabel={this.context.messages["cancel-action"]()}
         primaryAction={{ href: "/song-editor" }}
