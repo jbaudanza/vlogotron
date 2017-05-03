@@ -1,0 +1,39 @@
+@import './colors.scss';
+
+$shadow-index: 1;
+
+.overlay {
+  z-index: 999999;
+  position: fixed;
+  top: 65px;
+  bottom: 0;
+  left: 105px;
+  right: 0;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 500; // Medium
+  }
+  h2 {
+    font-size: 13px;
+    font-weight: 500; // Medium
+  }
+
+  .content {
+    text-align: center;
+    position: relative;
+    background-color: $color-purple;
+    color: $color-whitish;
+
+    z-index: $shadow-index + 1;
+    font-size: 14px;
+    padding: 30px;
+    opacity: 1;
+
+    .scroll {
+      overflow-y: auto;
+      height: 100%;
+      width: 100%;
+    }
+  }
+}

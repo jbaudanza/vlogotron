@@ -4,7 +4,7 @@ import { Observable } from "rxjs/Observable";
 
 import { map } from "lodash";
 
-import Overlay from "./Overlay";
+import SideNavOverlay from "./SideNavOverlay";
 import Link from "./Link";
 import PlayButton from "./PlayButton";
 
@@ -12,6 +12,8 @@ import { songs } from "./song";
 import { startScriptedPlayback } from "./AudioPlaybackEngine";
 
 import ReactActions from "./ReactActions";
+
+import "./TracksOverlay.scss";
 
 class LineItem extends React.Component {
   constructor(props) {
@@ -63,7 +65,7 @@ export default class TracksOverlay extends React.Component {
 
   render() {
     return (
-      <Overlay className="choose-song-overlay" onClose={this.props.onClose}>
+      <SideNavOverlay className="tracks-overlay">
         <h1>My Tracks</h1>
         <ul className="song-list">
           {map(songs, (song, songId) => (
@@ -77,12 +79,10 @@ export default class TracksOverlay extends React.Component {
             />
           ))}
         </ul>
-      </Overlay>
+      </SideNavOverlay>
     );
   }
 }
 
 TracksOverlay.propTypes = {
-  bpm: React.PropTypes.number.isRequired,
-  onClose: React.PropTypes.string.isRequired
 };
