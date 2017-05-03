@@ -6,7 +6,7 @@ import { map } from "lodash";
 
 import SideNavOverlay from "./SideNavOverlay";
 import Link from "./Link";
-import PlayButton from "./PlayButton";
+import MoreButton from "./MoreButton";
 
 import { songs } from "./song";
 import { startScriptedPlayback } from "./AudioPlaybackEngine";
@@ -18,18 +18,13 @@ import "./TracksOverlay.scss";
 class LineItem extends React.Component {
   constructor(props) {
     super();
-    this.onClickPlay = props.onClickPlay.bind(null, props.songId);
-    this.onClickPause = props.onClickPause.bind(null, props.songId);
   }
 
   render() {
     return (
       <li>
-        <PlayButton
+        <MoreButton
           size={21}
-          isPlaying={this.props.isPlaying}
-          onClickPlay={this.onClickPlay}
-          onClickPause={this.onClickPause}
         />
         {this.props.song.title}
         <Link>
