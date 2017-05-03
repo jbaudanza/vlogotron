@@ -42,7 +42,7 @@ export default class Page extends React.Component {
               />
               {this.props.isLoggedIn
                 ? <NavLink
-                    href="#tracks"
+                    href={location.hash === "#tracks" ? "#" : "#tracks"}
                     width="32px"
                     height="29px"
                     icon="#svg-sound-wave"
