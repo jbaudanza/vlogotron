@@ -1,7 +1,7 @@
 var WebpackNotifierPlugin = require('webpack-notifier');
 
 module.exports = {
-  entry: './js/demo.js',
+  entry: './js/app.js',
   output: {
     filename: 'public/[name].js',
     path: __dirname

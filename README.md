@@ -14,6 +14,9 @@
 
     npm install -g firebase-tools
     firebase login
+
+    # Build in production mode
+    ./node_modules/.bin/webpack -p
     firebase deploy --except functions
 
 # Transcoder
