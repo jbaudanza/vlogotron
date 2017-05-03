@@ -6,8 +6,11 @@ import { omit, bindAll } from "lodash";
 import TouchableArea from "./TouchableArea";
 import VideoCell from "./VideoCell";
 
-import Spin from "antd/lib/spin";
-//import 'antd/lib/spin/style/css';
+// TODO: This is leftover from when we were using the antd library. This
+// should display a loading animation
+function Spin(props) {
+  return <div>{props.children}</div>;
+}
 
 import "./VideoGrid.scss";
 
