@@ -8,7 +8,6 @@ import { getArrayBuffer } from "./http";
 import { pathnameToRoute } from "./router";
 
 import {
-  pickBy,
   keys,
   includes,
   clone,
