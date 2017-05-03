@@ -5,10 +5,10 @@ import "./SideNavOverlay.scss";
 class SideNavOverlay extends React.Component {
 
   render() {
-    const className = ((this.props.className || "") + " overlay").trim();
+    const className = ((this.props.className || "") + " sidenav").trim();
 
     return (
-      <div id="overlay" className={className}>
+      <div id="sidenav" className={className}>
         <div className="content">
           <div className="scroll">
             {this.props.children}
