@@ -19,8 +19,6 @@ function NavLink(props) {
   );
 }
 
-function noop() {}
-
 export default class Page extends React.Component {
   render() {
     return (
