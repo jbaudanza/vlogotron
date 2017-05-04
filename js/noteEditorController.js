@@ -7,7 +7,7 @@ import { songLengthInSeconds, reduceEditsToSong } from "./song";
 import { readEvents, writeEvent } from "./localEventStore";
 import { changeTitle } from "./songUpdates";
 
-import { updatesForNewSong } from "./localWorkspace";
+import { updatesForNewSong, updatesForNewSongWithUndo } from "./localWorkspace";
 
 const messages = require("messageformat-loader!json-loader!./messages.json");
 
@@ -18,10 +18,10 @@ export default function noteEditorController(
   media,
   subscription
 ) {
-  const editorState$ = updatesForNewSong(
+  const editorState$ = updatesForNewSongWithUndo(
     actions.editSong$,
     subscription
-  ).map(o => ({current: o, undoStack: [], redoStack: []}));
+  );
 
   const notes$ = editorState$.map(o => o.current.notes);
   const bpm$ = editorState$.map(o => o.current.bpm).distinctUntilChanged();

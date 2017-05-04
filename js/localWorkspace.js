@@ -1,6 +1,7 @@
 import { Observable } from "rxjs/Observable";
-import { AnonymousSubject, Subject } from "rxjs/Subject";
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
+
+import StorageSubject from "./StorageSubject";
 
 import { concat, omit, findIndex, filter, identity, last } from "lodash";
 
@@ -12,15 +13,18 @@ const messages = require("messageformat-loader!json-loader!./messages.json");
 // - read from localStorage
 
 export function updatesForNewSong(updateEvents$, subscription) {
-  return updatesForLocalStorage(
-    "vlogotron-new-song",
-    updateEvents$,
-    initialSong,
-    reduceEditsToSong,
-    identity,
-    identity,
-    subscription
+  const key = "vlogotron-new-song";
+  const accFn = reduceEditsToSong;
+
+  const subject$ = new StorageSubject(window.localStorage, key, initialSong);
+
+  subscription.add(
+    updateEvents$
+      .withLatestFrom(subject$, (i, acc) => accFn(acc, i))
+      .subscribe(subject$)
   );
+
+  return subject$.asObservable();
 }
 
 function withUndoStack(value) {
@@ -28,69 +32,22 @@ function withUndoStack(value) {
 }
 
 export function updatesForNewSongWithUndo(updateEvents$, subscription) {
-  return updatesForLocalStorage(
-    "vlogotron-new-song",
-    updateEvents$,
-    initialSong,
-    reduceWithUndoStack,
-    state => state.current,
-    withUndoStack,
-    subscription
-  );
-}
+  const key = "vlogotron-new-song";
+  const accFn = reduceWithUndoStack;
 
-const storageEvents$ = Observable.fromEvent(window, "storage");
+  const storage$ = new StorageSubject(window.localStorage, key, initialSong);
 
-class StorageSubject extends AnonymousSubject {
-  constructor(storageArea, key, initialValue) {
-    const serializeFn = JSON.stringify;
-    const deserializeFn = JSON.parse;
+  return storage$.remoteUpdates$.switchMap(song => {
+    const initial = withUndoStack(song);
+    const withUndoStack$ = updateEvents$.scan(accFn, initial);
 
-    const subject$ = new Subject();
-
-    const first$ = Observable.defer(function() {
-      const value = storageArea.getItem(key);
-      return Observable.of(
-        value == null ? initialValue : deserializeFn(value)
-      );
-    });
-
-    const remoteUpdates$ = storageEvents$
-      .filter(event => event.key === key && event.storageArea === storageArea)
-      .map(event => deserializeFn(event.newValue));
-
-    const observer = {
-      next(value) {
-        storageArea.setItem(key, serializeFn(value));
-        subject$.next(value);
-      }
-    };
-
-    super(
-      /* destination observer */
-      observer,
-      /* source observable */
-      Observable.merge(first$.concat(remoteUpdates$), subject$)
+    return (
+      withUndoStack$
+        // TODO: This is going to be written once for every subscription
+        .do(o => storage$.next(o.current))
+        .startWith(initial)
     );
-  }
-}
-
-function updatesForLocalStorage(
-  key,
-  updateEvents$,
-  initialValue,
-  accFn,
-  storeSelector,
-  fetchSelector,
-  subscription
-) {
-  const subject$ = new StorageSubject(window.localStorage, key, initialValue);
-
-  updateEvents$.withLatestFrom(subject$, (i, acc) =>
-    accFn(fetchSelector(acc), i)
-  ).map(storeSelector).subscribe(subject$);
-
-  return subject$.asObservable().map(fetchSelector);
+  });
 }
 
 function reduceWithUndoStack(acc, edit) {
