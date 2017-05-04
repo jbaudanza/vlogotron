@@ -24,7 +24,16 @@ export default function playbackController(
   subscription
 ) {
   const song$ = Observable.of(songs["mary-had-a-little-lamb"].notes);
-  return playbackControllerHelper(
+
+  const authorName$ = media.song$.switchMap(song => {
+    if (song) {
+      return displayNameForUid(song.uid);
+    } else {
+      return Observable.empty();
+    }
+  });
+
+  const parentView$ = playbackControllerHelper(
     actions,
     currentUser$,
     song$,
@@ -32,6 +41,8 @@ export default function playbackController(
     media,
     subscription
   );
+
+  return Observable.combineLatest(parentView$, authorName$, (parentView, authorName) => Object.assign({}, parentView, {authorName}))
 }
 
 export function playbackControllerHelper(
@@ -121,14 +132,6 @@ export function playbackControllerHelper(
     )
   );
 
-  const authorName$ = media.song$.switchMap(song => {
-    if (song) {
-      return displayNameForUid(song.uid);
-    } else {
-      return Observable.empty();
-    }
-  });
-
   // Start up Observables with side-effect
   subscription.add(scriptedPlaybackContext$$.connect());
 
@@ -143,7 +146,6 @@ export function playbackControllerHelper(
     notes$,
     bpm$,
     media.song$,
-    authorName$,
     (
       videoClips,
       loading,
@@ -155,7 +157,6 @@ export function playbackControllerHelper(
       notes,
       bpm,
       song,
-      authorName
     ) => ({
       videoClips,
       isPlaying,
@@ -168,7 +169,6 @@ export function playbackControllerHelper(
       songLength,
       notes,
       songTitle: song ? song.title : null,
-      authorName,
       bpm
     })
   );
