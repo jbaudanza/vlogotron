@@ -1,0 +1,43 @@
+@import './colors.scss';
+
+$shadow-index: 1;
+
+.sidenav {
+  z-index: 999999;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 100px;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 500; // Medium
+  }
+  h2 {
+    font-size: 13px;
+    font-weight: 500; // Medium
+  }
+
+  .content {
+    text-align: center;
+    position: relative;
+    background-color: $color-purple;
+    color: $color-whitish;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    z-index: $shadow-index + 1;
+    font-size: 14px;
+    padding: 10px;
+    opacity: 1;
+
+    .scroll {
+      overflow-y: auto;
+      height: 100%;
+      width: 300px;
+      left: 0;
+      top: 0;
+    }
+  }
+}

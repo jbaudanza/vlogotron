@@ -19,8 +19,6 @@ function NavLink(props) {
   );
 }
 
-function noop() {}
-
 export default class Page extends React.Component {
   render() {
     return (
@@ -42,7 +40,7 @@ export default class Page extends React.Component {
               />
               {this.props.isLoggedIn
                 ? <NavLink
-                    onClick={noop}
+                    href={location.hash === "#tracks" ? "#" : "#tracks"}
                     width="32px"
                     height="29px"
                     icon="#svg-sound-wave"
