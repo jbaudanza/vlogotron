@@ -27,6 +27,12 @@ class LineItem extends React.Component {
           size={21}
         />
         {this.props.song.title}
+        <br/>
+        <span>
+          Last updated Thu May  4 14:23:14 PDT 2017
+          <br/>
+          PRIVATE
+        </span>
         <Link>
           {this.context.messages["select-action"]()}
         </Link>
