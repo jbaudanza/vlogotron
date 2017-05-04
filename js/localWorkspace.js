@@ -1,4 +1,5 @@
 import { Observable } from "rxjs/Observable";
+import { AnonymousSubject, Subject } from "rxjs/Subject";
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
 
 import { concat, omit, findIndex, filter, identity, last } from "lodash";
@@ -23,7 +24,7 @@ export function updatesForNewSong(updateEvents$, subscription) {
 }
 
 function withUndoStack(value) {
-  return {current: value, undoStack: [], redoStack: []};
+  return { current: value, undoStack: [], redoStack: [] };
 }
 
 export function updatesForNewSongWithUndo(updateEvents$, subscription) {
@@ -32,13 +33,48 @@ export function updatesForNewSongWithUndo(updateEvents$, subscription) {
     updateEvents$,
     initialSong,
     reduceWithUndoStack,
-    (state) => state.current,
+    state => state.current,
     withUndoStack,
     subscription
   );
 }
 
-// TODO: Should we just have this return a subject instead?
+const storageEvents$ = Observable.fromEvent(window, "storage");
+
+class StorageSubject extends AnonymousSubject {
+  constructor(storageArea, key, initialValue) {
+    const serializeFn = JSON.stringify;
+    const deserializeFn = JSON.parse;
+
+    const subject$ = new Subject();
+
+    const first$ = Observable.defer(function() {
+      const value = storageArea.getItem(key);
+      return Observable.of(
+        value == null ? initialValue : deserializeFn(value)
+      );
+    });
+
+    const remoteUpdates$ = storageEvents$
+      .filter(event => event.key === key && event.storageArea === storageArea)
+      .map(event => deserializeFn(event.newValue));
+
+    const observer = {
+      next(value) {
+        storageArea.setItem(key, serializeFn(value));
+        subject$.next(value);
+      }
+    };
+
+    super(
+      /* destination observer */
+      observer,
+      /* source observable */
+      Observable.merge(first$.concat(remoteUpdates$), subject$)
+    );
+  }
+}
+
 function updatesForLocalStorage(
   key,
   updateEvents$,
@@ -48,40 +84,13 @@ function updatesForLocalStorage(
   fetchSelector,
   subscription
 ) {
-  const first$ = Observable.defer(function() {
-    const value = window.localStorage.getItem(key);
-    if (value == null) {
-      return Observable.of(initialValue);
-    } else {
-      return Observable.of(JSON.parse(value));
-    }
-  });
+  const subject$ = new StorageSubject(window.localStorage, key, initialValue);
 
-  const remoteUpdates$ = first$.concat(
-    Observable.fromEvent(window, "storage")
-      .filter(
-        event => event.key === key && event.storageArea === window.localStorage
-      )
-      .map(event => JSON.parse(event.newValue))
-  ).map(fetchSelector);
+  updateEvents$.withLatestFrom(subject$, (i, acc) =>
+    accFn(fetchSelector(acc), i)
+  ).map(storeSelector).subscribe(subject$);
 
-  const acc$ = new BehaviorSubject();
-
-  const localUpdates$ = updateEvents$.withLatestFrom(acc$, (i, acc) =>
-    accFn(acc, i)
-  );
-
-  localUpdates$.subscribe(acc$);
-  remoteUpdates$.subscribe(acc$);
-  subscription.add(acc$);
-
-  subscription.add(
-    localUpdates$.subscribe(value =>
-      window.localStorage.setItem(key, JSON.stringify(storeSelector(value)))
-    )
-  );
-
-  return acc$.asObservable();
+  return subject$.asObservable().map(fetchSelector);
 }
 
 function reduceWithUndoStack(acc, edit) {

@@ -42,7 +42,11 @@ export default function playbackController(
     subscription
   );
 
-  return Observable.combineLatest(parentView$, authorName$, (parentView, authorName) => Object.assign({}, parentView, {authorName}))
+  return Observable.combineLatest(
+    parentView$,
+    authorName$,
+    (parentView, authorName) => Object.assign({}, parentView, { authorName })
+  );
 }
 
 export function playbackControllerHelper(
@@ -156,7 +160,7 @@ export function playbackControllerHelper(
       songLength,
       notes,
       bpm,
-      song,
+      song
     ) => ({
       videoClips,
       isPlaying,
