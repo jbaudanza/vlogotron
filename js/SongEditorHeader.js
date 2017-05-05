@@ -89,7 +89,11 @@ export default class SongEditorHeader extends React.Component {
 }
 
 SongEditorHeader.propTypes = {
-  onChangeTitle: React.PropTypes.func.isRequired
+  onChangeTitle: React.PropTypes.func.isRequired,
+  primaryAction: React.PropTypes.object.isRequired,
+  primaryActionLabel: React.PropTypes.string.isRequired,
+  secondaryAction: React.PropTypes.object.isRequired,
+  secondaryActionLabel: React.PropTypes.string.isRequired
 };
 
 function isBlank(string) {

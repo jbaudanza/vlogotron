@@ -63,7 +63,8 @@ export function routeToPageConfig(route) {
           "editSong",
           "pause",
           "play",
-          "playCommands$"
+          "playCommands$",
+          "save"
         ]
       };
     case "view-song":
