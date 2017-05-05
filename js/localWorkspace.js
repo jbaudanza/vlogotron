@@ -7,13 +7,6 @@ import { concat, omit, findIndex, filter, identity, last } from "lodash";
 
 const messages = require("messageformat-loader!json-loader!./messages.json");
 
-//const demoVideoClips = JSON.parse('{"C4":"-Kil0-yoMiv6MHClkkid","D4":"-Kil0Ge8UybL42MEk0VE","E4":"-Kil0PXJE2nuLWSBpVwg","F4":"-Kil0TMN9v14lJXaIi7i","F#4":"-Kil0kNVaTZxNJXRfEv4","G4":"-Kil0oQp03gPy6JiMXMi","G#4":"-Kil0wLi5KgHVwxEU3TK","A4":"-Kil1-XtoZT3H1Op23Tf","A#4":"-Kil13AfR5IJrojXCrWk","B4":"-Kil15_kUdPOL57NK-eg","C5":"-Kil1AOtU2zDQFpN0n-3","C#5":"-Kil1E5ssCvOQg3gtmbE","D5":"-Kil1Gmwx3k1LMqG-kzc","D#5":"-Kil1PvD-xuJ2JDx7AtW"}');
-
-// TODO:
-// - integrate added/cleared videos record events with note events
-// - save into localStorage
-// - read from localStorage
-
 const subjects = {};
 
 export function subjectFor(key) {
@@ -108,7 +101,6 @@ const initialSong = {
   title: messages["default-song-title"]()
 };
 
-// XXX: Taken from song.js
 function reduceEditsToNotes(notes, edit) {
   function matcher(edit, note) {
     return note[0] === edit.note && note[1] === edit.beat;
