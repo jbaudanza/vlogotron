@@ -354,23 +354,17 @@ export default class PianoRoll extends React.Component {
           );
 
         if (isEmptyCell(event.firstEl)) {
-          const create$ = Observable.of(
-            Object.assign({ action: "create" }, firstBeat, {
-              duration: 1.0 / this.props.cellsPerBeat
-            })
-          );
-
+          const create$ = Observable.of({
+            action: "create",
+            ...firstBeat,
+            duration: 1.0 / this.props.cellsPerBeat
+          });
           return Observable.merge(create$, moves$);
         } else if (isNoteCell(event.firstEl)) {
           const deletes$ = event.movements$
             .isEmpty()
             .filter(identity)
-            .mapTo(
-              Object.assign(
-                { action: "delete" },
-                mapElementToBeat(event.firstEl)
-              )
-            );
+            .mapTo({ action: "delete", ...mapElementToBeat(event.firstEl) });
 
           return Observable.merge(moves$, deletes$);
         } else {

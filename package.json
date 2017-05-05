@@ -23,6 +23,7 @@
   "devDependencies": {
     "ava": "^0.17.0",
     "babel-plugin-lodash": "^3.2.11",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "prettier": "^1.0.2",
     "targaryen": "^3.0.1",
     "webpack-notifier": "^1.5.0"

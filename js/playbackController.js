@@ -45,7 +45,7 @@ export default function playbackController(
   return Observable.combineLatest(
     parentView$,
     authorName$,
-    (parentView, authorName) => Object.assign({}, parentView, { authorName })
+    (parentView, authorName) => ({ ...parentView, authorName })
   );
 }
 

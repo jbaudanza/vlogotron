@@ -8,7 +8,7 @@ import { readEvents, writeEvent } from "./localEventStore";
 
 import { updatesForNewSong, updatesForNewSongWithUndo } from "./localWorkspace";
 
-import {navigate} from './router';
+import { navigate } from "./router";
 
 const messages = require("messageformat-loader!json-loader!./messages.json");
 
@@ -40,13 +40,14 @@ export default function noteEditorController(
   // - possible save snapshots into /events
   // - clear localStorage after a save
   actions.save$
-    .withLatestFrom(media.song$, currentUser$, (ignore, song, user) =>
-      Object.assign({}, song, { uid: user.uid })
-    )
+    .withLatestFrom(media.song$, currentUser$, (ignore, song, user) => ({
+      song,
+      uid: user.uid
+    }))
     .map(convertToFirebaseKeys)
     .subscribe(function(song) {
       const songsRef = firebase.database().ref("songs");
-      songsRef.push(song).then(ref => navigate('/songs/' + ref.key));
+      songsRef.push(song).then(ref => navigate("/songs/" + ref.key));
     });
 
   const saveEnabled$ = Observable.of(true).concat(actions.save$.mapTo(false));
@@ -57,18 +58,19 @@ export default function noteEditorController(
     redoEnabled$.startWith(false),
     undoEnabled$.startWith(false),
     saveEnabled$,
-    (parentViewState, cellsPerBeat, redoEnabled, undoEnabled, saveEnabled) =>
-      Object.assign({}, parentViewState, {
-        cellsPerBeat,
-        redoEnabled,
-        undoEnabled,
-        saveEnabled,
-      })
+    (parentViewState, cellsPerBeat, redoEnabled, undoEnabled, saveEnabled) => ({
+      ...parentViewState,
+      cellsPerBeat,
+      redoEnabled,
+      undoEnabled,
+      saveEnabled
+    })
   );
 }
 
 function convertToFirebaseKeys(song) {
-  return Object.assign({}, song, {
+  return {
+    ...song,
     videoClips: mapKeys(song.videoClips, key => key.replace("#", "sharp"))
-  })
+  };
 }

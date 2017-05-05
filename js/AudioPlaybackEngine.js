@@ -35,7 +35,7 @@ export function startLivePlaybackEngine(
         activeNodes[cmd.pause].stop(when);
       }
 
-      return Object.assign({ when }, cmd);
+      return { when, ...cmd };
     })
   ).publish();
 

@@ -17,7 +17,7 @@ module.exports = {
         loader: 'babel-loader',
         query: {
           presets: [["es2015", { "modules": false }], "react"],
-          plugins: ["lodash"]
+          plugins: ["lodash", "transform-object-rest-spread"]
         }
       },
       {

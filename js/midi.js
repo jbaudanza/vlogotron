@@ -1,12 +1,5 @@
 import { Observable } from "rxjs/Observable";
 
-Object.assign(
-  Observable,
-  require("rxjs/observable/fromEvent"),
-  require("rxjs/observable/fromPromise"),
-  require("rxjs/observable/merge")
-);
-
 import { identity } from "lodash";
 
 const midiAccess$ = Observable.create(function(observer) {

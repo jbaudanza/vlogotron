@@ -97,7 +97,10 @@ export default class NoteEditorView extends React.Component {
         songTitle={this.props.songTitle}
         secondaryAction={{ href: "/record-videos" }}
         secondaryActionLabel={this.context.messages["back-action"]()}
-        primaryAction={{ onClick: this.props.actions.callbacks.onSave, enabled: this.props.saveEnabled }}
+        primaryAction={{
+          onClick: this.props.actions.callbacks.onSave,
+          enabled: this.props.saveEnabled
+        }}
         primaryActionLabel={this.context.messages["save-action"]()}
         onChangeTitle={this.onChangeTitle}
       />

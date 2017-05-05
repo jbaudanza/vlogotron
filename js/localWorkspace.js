@@ -132,21 +132,19 @@ function reduceEditsToNotes(notes, edit) {
 }
 
 function reduceEditsToSong(song, edit) {
-  function update(obj) {
-    return Object.assign({}, song, obj);
-  }
-
   switch (edit.action) {
     case "change-bpm":
-      return update({ bpm: edit.bpm });
+      return { ...song, bpm: edit.bpm };
     case "change-title":
-      return update({ title: edit.title });
+      return { ...song, title: edit.title };
     case "add-video":
-      return update({
-        videoClips: Object.assign({}, song.videoClips, {
+      return {
+        ...song,
+        videoClips: {
+          ...song.videoClips,
           [edit.note]: edit.videoClipId
-        })
-      });
+        }
+      };
     case "remove-video":
       return update({ videoClips: omit(song.videoClips, edit.note) });
     default:

@@ -34,7 +34,8 @@ function reduceMultipleCommandStreams(last, command) {
 }
 
 function adjustRefCount(countObject, key, change) {
-  return Object.assign({}, countObject, {
+  return {
+    ...countObject,
     [key]: (countObject[key] || 0) + change
-  });
+  };
 }

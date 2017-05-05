@@ -97,14 +97,14 @@ export default function recordVideosController(
   const videoClips$ = Observable.combineLatest(
     localVideoStore$,
     mediaStore.videoClips$,
-    (local, remote) => Object.assign({}, remote, local)
+    (local, remote) => ({ ...remote, ...local })
   );
 
   // Looks like { [note]: [audioBuffer], ... }
   const audioBuffers$ = Observable.combineLatest(
     localAudioBuffers$,
     mediaStore.audioBuffers$,
-    (local, remote) => Object.assign({}, remote, local)
+    (local, remote) => ({ ...remote, ...local })
   );
 
   const playCommands$ = startLivePlaybackEngine(
@@ -119,15 +119,15 @@ export default function recordVideosController(
     currentUser$,
     mediaStore.song$,
     mediaStore.loading$,
-    (videoClips, recordingState, currentUser, song, loading) =>
-      Object.assign({}, recordingState, {
-        playCommands$,
-        currentUser,
-        videoClips,
-        song,
-        loading,
-        songTitle: song ? song.title : null
-      })
+    (videoClips, recordingState, currentUser, song, loading) => ({
+      ...recordingState,
+      playCommands$,
+      currentUser,
+      videoClips,
+      song,
+      loading,
+      songTitle: song ? song.title : null
+    })
   );
 }
 
@@ -149,9 +149,10 @@ function reduceToAudioBufferStore(acc, finalMedia) {
   if (finalMedia.cleared) {
     return omit(acc, finalMedia.note);
   } else {
-    return Object.assign({}, acc, {
+    return {
+      ...acc,
       [finalMedia.note]: finalMedia.audioBuffer
-    });
+    };
   }
 }
 
@@ -159,7 +160,8 @@ function reduceToLocalVideoClipStore(acc, obj) {
   if (obj.cleared) {
     return omit(acc, obj.note);
   } else {
-    return Object.assign({}, acc, {
+    return {
+      ...acc,
       [obj.note]: {
         sources: [
           {
@@ -168,7 +170,7 @@ function reduceToLocalVideoClipStore(acc, obj) {
           }
         ]
       }
-    });
+    };
   }
 }
 
@@ -236,9 +238,7 @@ function runRecordingProcess(mediaStream, note, finish$, abort$) {
 
   const viewState$ = processes$
     .filter(obj => "viewState" in obj)
-    .map(obj =>
-      Object.assign({ mediaStream, noteBeingRecorded: note }, obj.viewState)
-    )
+    .map(obj => ({ mediaStream, noteBeingRecorded: note, ...obj.viewState }))
     .concatWith({});
 
   const media$ = processes$.filter(o => o.media).map(o => o.media);

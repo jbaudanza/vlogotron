@@ -59,9 +59,10 @@ export function mediaForRoute(currentPathname$, currentUser$, subscription) {
 function songById(songId) {
   const ref = firebase.database().ref("songs").child(songId);
 
-  return Observable.fromFirebaseRef(ref, "value").map(snapshot =>
-    Object.assign({ songId }, snapshot.val())
-  );
+  return Observable.fromFirebaseRef(ref, "value").map(snapshot => ({
+    songId,
+    ...snapshot.val()
+  }));
 }
 
 const DEFAULT_SONG_ID = "-KiY1cdo1ggMC-p3pG94";
@@ -141,7 +142,7 @@ export function loadAudioBuffersFromVideoClips(videoClips$, subscription) {
   // Looks like { [note]: [audioBuffer], ... }
   const audioBuffers$ = loadingContext$
     .mergeMap(obj => Observable.merge(...obj.promises))
-    .scan((acc, obj) => Object.assign({}, acc, obj), {})
+    .scan((acc, obj) => ({ ...acc, ...obj }), {})
     .startWith({})
     .publishReplay();
 
@@ -227,9 +228,10 @@ function reduceEventsToVideoClipIds(acc, event) {
   let note = event.note;
 
   if (event.type === "added") {
-    return Object.assign({}, acc, {
+    return {
+      ...acc,
       [note]: event.videoClipId
-    });
+    };
   }
 
   if (event.type === "cleared") {
