@@ -57,9 +57,15 @@ export function mediaForRoute(currentPathname$, currentUser$, subscription) {
 }
 
 function songById(songId) {
-  const ref = firebase.database().ref("songs").child(songId);
+  const ref = firebase
+    .database()
+    .ref("songs")
+    .child(songId)
+    .child("revisions")
+    .orderByKey()
+    .limitToLast(1);
 
-  return Observable.fromFirebaseRef(ref, "value").map(snapshot => ({
+  return Observable.fromFirebaseRef(ref, "child_added").map(snapshot => ({
     songId,
     ...snapshot.val()
   }));

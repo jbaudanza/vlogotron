@@ -37,18 +37,14 @@ export default function noteEditorController(
   );
 
   // TODO:
-  // - possible save snapshots into /events
   // - clear localStorage after a save
-  actions.save$
-    .withLatestFrom(media.song$, currentUser$, (ignore, song, user) => ({
-      song,
-      uid: user.uid
-    }))
-    .map(convertToFirebaseKeys)
-    .subscribe(function(song) {
-      const songsRef = firebase.database().ref("songs");
-      songsRef.push(song).then(ref => navigate("/songs/" + ref.key));
-    });
+  actions.save$.withLatestFrom(media.song$, currentUser$).subscribe(([
+    ignore,
+    song,
+    user
+  ]) => {
+    createSong(song, user.uid).then(key => navigate("/songs/" + key));
+  });
 
   const saveEnabled$ = Observable.of(true).concat(actions.save$.mapTo(false));
 
@@ -68,9 +64,31 @@ export default function noteEditorController(
   );
 }
 
+function createSong(song, uid) {
+  const collectionRef = firebase.database().ref("songs");
+
+  const rootObject = {
+    title: song.title,
+    visibility: "everyone",
+    timestamp: firebase.database.ServerValue.TIMESTAMP,
+    uid
+  };
+
+  return collectionRef.push(rootObject).then(songRef => {
+    songRef.child("revisions").push({
+      timestamp: firebase.database.ServerValue.TIMESTAMP,
+      ...convertToFirebaseKeys(song)
+    });
+
+    return songRef.key;
+  });
+}
+
 function convertToFirebaseKeys(song) {
   return {
     ...song,
-    videoClips: mapKeys(song.videoClips, key => key.replace("#", "sharp"))
+    videoClips: mapKeys(song.videoClips, (value, key) =>
+      key.replace("#", "sharp")
+    )
   };
 }
