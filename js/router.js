@@ -47,6 +47,7 @@ export function routeToPageConfig(route) {
         actions: [
           "startRecording",
           "stopRecording",
+          "editSong",
           "dismissError",
           "clearVideoClip",
           "playCommands$"

@@ -36,13 +36,9 @@ export function mediaForRoute(currentPathname$, currentUser$, subscription) {
     .publishReplay();
 
 
-  // XXX: Fix me
-  // const videoClips$ = songId$
-  //   .switchMap(
-  //     songId => (songId ? videoClipsForSongId(songId) : Observable.of({}))
-  //   )
-  //   .publishReplay();
-  const videoClips$ = Observable.of({}).publishReplay();
+  // TODO: This will faill if null
+  const videoClips$ = videoClipsForClipIds(song$.map(o => o.videoClips))
+    .publishReplay();
 
   const audioLoading = loadAudioBuffersFromVideoClips(
     videoClips$,
@@ -99,15 +95,8 @@ function mapRouteToSong(pathname, currentUser) {
     }
   }
 */
-function videoClipsForSongId(songId) {
-  const songRef = firebase.database().ref("songs").child(songId);
+function videoClipsForClipIds(clipIds$) {
   const storageRef = firebase.storage().ref("video-clips");
-
-  const clipIds$ = reduceFirebaseCollection(
-    songRef.child("events"),
-    reduceEventsToVideoClipIds,
-    {}
-  );
 
   function resultSelector(clipIdToObjectMap, noteToClipIdMap) {
     const result = {};

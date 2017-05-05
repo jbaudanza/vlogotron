@@ -11,7 +11,7 @@ import LoginOverlay from "./LoginOverlay";
 export default class RecordVideosView extends React.Component {
   constructor() {
     super();
-    bindAll(this, "bindVideoGrid", "onClickLogin");
+    bindAll(this, "bindVideoGrid", "onClickLogin", "onChangeTitle");
   }
 
   bindVideoGrid(component) {
@@ -24,6 +24,13 @@ export default class RecordVideosView extends React.Component {
     }
   }
 
+  onChangeTitle(title) {
+    this.props.actions.subjects.editSong$.next({
+      action: "change-title",
+      title: title
+    });
+  }
+
   onClickLogin() {
     this.props.onNavigate("#login");
   }
@@ -34,7 +41,7 @@ export default class RecordVideosView extends React.Component {
     const header = (
       <SongEditorHeader
         songTitle={this.props.songTitle}
-        onChangeTitle={callbacks.onChangeTitle}
+        onChangeTitle={this.onChangeTitle}
         secondaryAction={{ href: "/" }}
         secondaryActionLabel={this.context.messages["cancel-action"]()}
         primaryAction={{ href: "/note-editor" }}
