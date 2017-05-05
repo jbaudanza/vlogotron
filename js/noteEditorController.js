@@ -5,7 +5,6 @@ import { last } from "lodash";
 
 import { songLengthInSeconds, reduceEditsToSong } from "./song";
 import { readEvents, writeEvent } from "./localEventStore";
-import { changeTitle } from "./songUpdates";
 
 import { updatesForNewSong, updatesForNewSongWithUndo } from "./localWorkspace";
 
@@ -18,31 +17,22 @@ export default function noteEditorController(
   media,
   subscription
 ) {
+  // XXX: This only needs to return the undo state.
   const editorState$ = updatesForNewSongWithUndo(
     actions.editSong$,
     subscription
   );
 
-  const notes$ = editorState$.map(o => o.current.notes);
-  const bpm$ = editorState$.map(o => o.current.bpm).distinctUntilChanged();
   const undoEnabled$ = editorState$.map(o => o.undoStack.length > 0);
   const redoEnabled$ = editorState$.map(o => o.redoStack.length > 0);
-
-  actions.changeTitle$
-    .withLatestFrom(media.songId$)
-    .subscribe(function([title, songId]) {
-      if (songId != null) {
-        changeTitle(songId, title);
-      }
-    });
 
   const cellsPerBeat$ = actions.changeCellsPerBeat$.startWith(4);
 
   const parentViewState$ = playbackControllerHelper(
     actions,
     currentUser$,
-    notes$.startWith([]),
-    bpm$.startWith(120),
+    media.song$.map(o => o.notes),
+    media.song$.map(o => o.bpm).distinctUntilChanged(),
     media,
     subscription
   );

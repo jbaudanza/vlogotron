@@ -12,6 +12,17 @@ const messages = require("messageformat-loader!json-loader!./messages.json");
 // - save into localStorage
 // - read from localStorage
 
+const subjects = {};
+
+export function subjectFor(key) {
+  // TODO: Is putting these in a global variable the best way?
+  if (!(key in subjects)) {
+    subjects[key] = new StorageSubject(window.localStorage, key, initialSong);
+  }
+
+  return subjects[key];
+}
+
 export function updatesForNewSong(updateEvents$, subscription) {
   const key = "vlogotron-new-song";
   const accFn = reduceEditsToSong;
@@ -35,7 +46,7 @@ export function updatesForNewSongWithUndo(updateEvents$, subscription) {
   const key = "vlogotron-new-song";
   const accFn = reduceWithUndoStack;
 
-  const storage$ = new StorageSubject(window.localStorage, key, initialSong);
+  const storage$ = subjectFor(key);
 
   return storage$.remoteUpdates$.switchMap(song => {
     const initial = withUndoStack(song);

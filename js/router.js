@@ -45,7 +45,6 @@ export function routeToPageConfig(route) {
         controller: recordVideosController,
         view: RecordVideosView,
         actions: [
-          "changeTitle",
           "startRecording",
           "stopRecording",
           "dismissError",
@@ -60,7 +59,6 @@ export function routeToPageConfig(route) {
         actions: [
           "changeCellsPerBeat",
           "changePlaybackStartPosition",
-          "changeTitle",
           "editSong",
           "pause",
           "play",

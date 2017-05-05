@@ -7,15 +7,14 @@ import { getArrayBuffer } from "./http";
 
 import { pathnameToRoute } from "./router";
 
+import { subjectFor } from './localWorkspace';
+
 import {
-  keys,
-  includes,
   clone,
   omit,
   forEach,
   values,
   pick,
-  sum,
   map,
   mapValues,
   identity
@@ -26,42 +25,34 @@ import promiseFromTemplate from "./promiseFromTemplate";
 const messages = require("messageformat-loader!json-loader!./messages.json");
 
 export function mediaForRoute(currentPathname$, currentUser$, subscription) {
-  const songId$ = Observable.combineLatest(
+  const song$ = Observable.combineLatest(
     currentPathname$,
     currentUser$,
-    mapRouteToSongId
+    mapRouteToSong
   )
     .switch()
+    // TODO: I don't think this is really blocking dupes
     .distinctUntilChanged()
     .publishReplay();
 
-  const song$ = songId$
-    .switchMap(songId => {
-      if (songId != null) {
-        return songById(songId);
-      } else {
-        return Observable.of(null);
-      }
-    })
-    .publishReplay();
 
-  const videoClips$ = songId$
-    .switchMap(
-      songId => (songId ? videoClipsForSongId(songId) : Observable.of({}))
-    )
-    .publishReplay();
+  // XXX: Fix me
+  // const videoClips$ = songId$
+  //   .switchMap(
+  //     songId => (songId ? videoClipsForSongId(songId) : Observable.of({}))
+  //   )
+  //   .publishReplay();
+  const videoClips$ = Observable.of({}).publishReplay();
 
   const audioLoading = loadAudioBuffersFromVideoClips(
     videoClips$,
     subscription
   );
 
-  subscription.add(songId$.connect());
   subscription.add(song$.connect());
   subscription.add(videoClips$.connect());
 
   return {
-    songId$,
     song$,
     videoClips$,
     audioBuffers$: audioLoading.audioBuffers$,
@@ -79,22 +70,19 @@ function songById(songId) {
 
 const DEFAULT_SONG_ID = "-KiY1cdo1ggMC-p3pG94";
 
-function mapRouteToSongId(pathname, currentUser) {
+function mapRouteToSong(pathname, currentUser) {
   const null$ = Observable.of(null);
 
   const route = pathnameToRoute(pathname);
   if (route) {
     switch (route.name) {
       case "root":
-        return Observable.of(DEFAULT_SONG_ID);
+        return songById(DEFAULT_SONG_ID);
       case "record-videos":
       case "note-editor":
-        if (currentUser) {
-          return null$.concat(findOrCreateWorkspaceSongId(currentUser.uid));
-        }
-        break;
+        return subjectFor('vlogotron-new-song');
       case "view-song":
-        return Observable.of(route.params.songId);
+        return songById(route.params.songId);
     }
   }
 
@@ -301,30 +289,4 @@ function reduceToAudioBuffers(acc, noteToUrlMap) {
     .filter(identity);
 
   return next;
-}
-
-function findOrCreateWorkspaceSongId(uid) {
-  const workspaceSongIdRef = firebase
-    .database()
-    .ref("users")
-    .child(uid)
-    .child("workspaceSongId");
-
-  return workspaceSongIdRef.once("value").then(function(snapshot) {
-    if (snapshot.exists()) {
-      return snapshot.val();
-    } else {
-      const songRef = firebase.database().ref("songs").push({
-        title: messages["default-song-title"](),
-        timestamp: firebase.database.ServerValue.TIMESTAMP,
-        uid: uid,
-        visibility: "owner"
-      });
-
-      return songRef.then(function(ref) {
-        workspaceSongIdRef.set(ref.key);
-        return ref.key;
-      });
-    }
-  });
 }
