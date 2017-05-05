@@ -23,14 +23,12 @@ class LineItem extends React.Component {
   render() {
     return (
       <li>
-        <MoreButton
-          size={21}
-        />
+        <MoreButton size={21} />
         {this.props.song.title}
-        <br/>
+        <br />
         <span>
           Last updated Thu May  4 14:23:14 PDT 2017
-          <br/>
+          <br />
           PRIVATE
         </span>
         <Link>
@@ -56,8 +54,7 @@ export default class TracksOverlay extends React.Component {
     };
   }
 
-  componentWillMount() {
-  }
+  componentWillMount() {}
 
   componentWillUnmount() {
     this.actions.callbacks.onUnmount();
@@ -85,5 +82,4 @@ export default class TracksOverlay extends React.Component {
   }
 }
 
-TracksOverlay.propTypes = {
-};
+TracksOverlay.propTypes = {};

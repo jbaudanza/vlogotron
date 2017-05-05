@@ -48,27 +48,31 @@ export default function recordVideosController(
   const finalMedia$ = recordingEngine$.switchMap(o => o.media$);
 
   const uploadedEvents$ = finalMedia$
-    .withLatestFrom(
-      currentUser$,
-      (media, currentUser) =>
-        startUploadTask(
-          {
-            uid: currentUser.uid,
-            note: media.note,
-            timestamp: firebase.database.ServerValue.TIMESTAMP
-          },
-          media.videoBlob
-        ).then(videoClipId => (
-          { type: "added", videoClipId: videoClipId, note: media.note }
-        ))
+    .withLatestFrom(currentUser$, (media, currentUser) =>
+      startUploadTask(
+        {
+          uid: currentUser.uid,
+          note: media.note,
+          timestamp: firebase.database.ServerValue.TIMESTAMP
+        },
+        media.videoBlob
+      ).then(videoClipId => ({
+        type: "added",
+        videoClipId: videoClipId,
+        note: media.note
+      }))
     )
     .mergeAll();
 
-  const clearedEvents$ = actions.clearVideoClip$.map(
-    (note) => ({ type: "cleared", note })
-  );
+  const clearedEvents$ = actions.clearVideoClip$.map(note => ({
+    type: "cleared",
+    note
+  }));
 
-  updatesForNewSong(Observable.merge(clearedEvents$, uploadedEvents$, actions.editSong$), subscription);
+  updatesForNewSong(
+    Observable.merge(clearedEvents$, uploadedEvents$, actions.editSong$),
+    subscription
+  );
 
   const clearedMedia$ = actions.clearVideoClip$.map(note => ({
     note,

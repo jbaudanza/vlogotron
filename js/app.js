@@ -186,12 +186,9 @@ class App extends React.Component {
           onClose={this.state.location.pathname}
         />
       );
-    }
-    else if (this.state.location.hash === "#tracks") {
+    } else if (this.state.location.hash === "#tracks") {
       const Overlay = this.state.overlay;
-      overlay = (
-        <TracksOverlay/>
-      );
+      overlay = <TracksOverlay />;
     }
 
     const view = React.cloneElement(this.state.view, {

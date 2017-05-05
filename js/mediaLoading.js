@@ -7,7 +7,7 @@ import { getArrayBuffer } from "./http";
 
 import { pathnameToRoute } from "./router";
 
-import { subjectFor } from './localWorkspace';
+import { subjectFor } from "./localWorkspace";
 
 import {
   clone,
@@ -35,10 +35,10 @@ export function mediaForRoute(currentPathname$, currentUser$, subscription) {
     .distinctUntilChanged()
     .publishReplay();
 
-
   // TODO: This will faill if null
-  const videoClips$ = videoClipsForClipIds(song$.map(o => o.videoClips))
-    .publishReplay();
+  const videoClips$ = videoClipsForClipIds(
+    song$.map(o => o.videoClips)
+  ).publishReplay();
 
   const audioLoading = loadAudioBuffersFromVideoClips(
     videoClips$,
@@ -76,7 +76,7 @@ function mapRouteToSong(pathname, currentUser) {
         return songById(DEFAULT_SONG_ID);
       case "record-videos":
       case "note-editor":
-        return subjectFor('vlogotron-new-song');
+        return subjectFor("vlogotron-new-song");
       case "view-song":
         return songById(route.params.songId);
     }
