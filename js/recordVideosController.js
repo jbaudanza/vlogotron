@@ -57,7 +57,7 @@ export default function recordVideosController(
         },
         media.videoBlob
       ).then(videoClipId => ({
-        type: "added",
+        action: "add-video",
         videoClipId: videoClipId,
         note: media.note
       }))
@@ -65,7 +65,7 @@ export default function recordVideosController(
     .mergeAll();
 
   const clearedEvents$ = actions.clearVideoClip$.map(note => ({
-    type: "cleared",
+    action: "remove-video",
     note
   }));
 
@@ -161,7 +161,6 @@ function reduceToLocalVideoClipStore(acc, obj) {
   } else {
     return Object.assign({}, acc, {
       [obj.note]: {
-        clipId: obj.clipId,
         sources: [
           {
             src: URL.createObjectURL(obj.videoBlob),

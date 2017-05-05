@@ -152,7 +152,7 @@ function reduceEditsToSong(song, edit) {
     case "add-video":
       return update({
         videoClips: Object.assign({}, song.videoClips, {
-          [edit.note]: event.videoClipId
+          [edit.note]: edit.videoClipId
         })
       });
     case "remove-video":
