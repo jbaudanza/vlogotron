@@ -36,6 +36,12 @@ var vlogNotes = [];
 const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
 var noteNum, noteName, oct;
+
+function round (num)
+{
+  return Math.round(num * 100) / 100;
+}
+
 while(event = events.next()) {
   offset += event.delta;
   if(event.type === MIDIEvents.EVENT_MIDI) {
@@ -51,7 +57,7 @@ while(event = events.next()) {
       //2: duration (in beats)
       note[0] = noteName + oct;
       // map time, dividing by ticks per beat
-      note[1] = offset / midiFile.header.getTicksPerBeat();
+      note[1] = round(offset / midiFile.header.getTicksPerBeat());
 
       vlogNotes.push(note);
 
@@ -62,11 +68,11 @@ while(event = events.next()) {
       for (var i = vlogNotes.length - 1; i >= 0; i--) {
         if (vlogNotes[i][0] === (noteName + oct))
         {
-          vlogNotes[i][2] = event.delta / midiFile.header.getTicksPerBeat();
+          vlogNotes[i][2] = round(event.delta / midiFile.header.getTicksPerBeat());
         }
       }
     }
   }
 }
 
-console.log(JSON.stringify(vlogNotes));
+console.log(JSON.stringify(vlogNotes, null, 2));
