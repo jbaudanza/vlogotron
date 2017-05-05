@@ -39,7 +39,8 @@ export default class SongEditorHeader extends React.Component {
       this.setState({ newTitle: null });
     }
 
-    if (event.keyCode === 13) {
+    if (event.keyCode === 13 && !isBlank(this.state.newTitle)) {
+      // enter
       event.preventDefault();
       this.setState({ newTitle: null });
       this.props.onChangeTitle(this.state.newTitle);
@@ -88,5 +89,13 @@ export default class SongEditorHeader extends React.Component {
 }
 
 SongEditorHeader.propTypes = {
-  onChangeTitle: React.PropTypes.func.isRequired
+  onChangeTitle: React.PropTypes.func.isRequired,
+  primaryAction: React.PropTypes.object.isRequired,
+  primaryActionLabel: React.PropTypes.string.isRequired,
+  secondaryAction: React.PropTypes.object.isRequired,
+  secondaryActionLabel: React.PropTypes.string.isRequired
 };
+
+function isBlank(string) {
+  string == null || string.trim() === "";
+}

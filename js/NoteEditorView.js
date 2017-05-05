@@ -22,6 +22,7 @@ export default class NoteEditorView extends React.Component {
       "bindVideoGrid",
       "onChangeBpm",
       "onChooseSong",
+      "onChangeTitle",
       "onRedo",
       "onReset",
       "onUndo"
@@ -75,6 +76,13 @@ export default class NoteEditorView extends React.Component {
     });
   }
 
+  onChangeTitle(title) {
+    this.props.actions.subjects.editSong$.next({
+      action: "change-title",
+      title: title
+    });
+  }
+
   onChooseSong(song) {
     this.props.actions.subjects.editSong$.next({
       action: "replace-all",
@@ -89,9 +97,9 @@ export default class NoteEditorView extends React.Component {
         songTitle={this.props.songTitle}
         secondaryAction={{ href: "/record-videos" }}
         secondaryActionLabel={this.context.messages["back-action"]()}
-        primaryAction={{ href: "#" }}
+        primaryAction={{ onClick: this.props.actions.callbacks.onSave, enabled: this.props.saveEnabled }}
         primaryActionLabel={this.context.messages["save-action"]()}
-        onChangeTitle={this.props.actions.callbacks.onChangeTitle}
+        onChangeTitle={this.onChangeTitle}
       />
     );
 

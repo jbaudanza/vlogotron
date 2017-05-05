@@ -8,14 +8,13 @@ export default class MoreButton extends React.Component {
     this.onClick = this.onClick.bind(this);
   }
 
-  onClick(event) {
-  }
+  onClick(event) {}
 
   render() {
     return (
       <Link onClick={this.onClick} className="more-button">
         <svg version="1.1" width={this.props.size} height={this.props.size}>
-          <use xlinkHref="#svg-ellipsis"/>
+          <use xlinkHref="#svg-ellipsis" />
         </svg>
       </Link>
     );
@@ -23,5 +22,5 @@ export default class MoreButton extends React.Component {
 }
 
 MoreButton.propTypes = {
-  size: React.PropTypes.number.isRequired,
+  size: React.PropTypes.number.isRequired
 };

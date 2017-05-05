@@ -178,11 +178,11 @@ const svgEl = (
     </symbol>
     <symbol id="svg-ellipsis" viewBox="0 0 32 32">
       <g transform="translate(1 1)" fill="none" fillRule="evenodd">
-        <circle cx="11.5" cy="11.5" r="11.5" fill="#FFF" opacity=".179"/>
+        <circle cx="11.5" cy="11.5" r="11.5" fill="#FFF" opacity=".179" />
         <g fill="#4B57A3" transform="translate(4.879 10.455)">
-            <ellipse cx="1.394" cy="1.53" rx="1.394" ry="1.53"/>
-            <ellipse cx="6.984" cy="1.394" rx="1.394" ry="1.394"/>
-            <ellipse cx="12.573" cy="1.53" rx="1.394" ry="1.53"/>
+          <ellipse cx="1.394" cy="1.53" rx="1.394" ry="1.53" />
+          <ellipse cx="6.984" cy="1.394" rx="1.394" ry="1.394" />
+          <ellipse cx="12.573" cy="1.53" rx="1.394" ry="1.53" />
         </g>
       </g>
     </symbol>

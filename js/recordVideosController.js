@@ -3,8 +3,6 @@ import { Subject } from "rxjs/Subject";
 
 import { omit } from "lodash";
 
-import { storeEvent, changeTitle } from "./songUpdates";
-
 import audioContext from "./audioContext";
 import { combine as combinePlayCommands } from "./playCommands";
 import { start as startCapturing } from "./recording";
@@ -13,6 +11,8 @@ import { startLivePlaybackEngine } from "./AudioPlaybackEngine";
 
 import { playCommands$ as midiPlayCommands$ } from "./midi";
 import { playCommands$ as keyboardPlayCommands$ } from "./keyboard";
+
+import { updatesForNewSong } from "./localWorkspace";
 
 const messages = require("messageformat-loader!json-loader!./messages.json");
 
@@ -40,14 +40,6 @@ export default function recordVideosController(
 
   subscription.add(recordingEngine$.connect());
 
-  actions.changeTitle$
-    .withLatestFrom(mediaStore.songId$)
-    .subscribe(function([title, songId]) {
-      if (songId != null) {
-        changeTitle(songId, title);
-      }
-    });
-
   const recordingState$ = Observable.merge(
     recordingEngine$.switchMap(o => o.viewState$),
     actions.dismissError$.mapTo({})
@@ -56,38 +48,30 @@ export default function recordVideosController(
   const finalMedia$ = recordingEngine$.switchMap(o => o.media$);
 
   const uploadedEvents$ = finalMedia$
-    .withLatestFrom(
-      currentUser$,
-      mediaStore.songId$,
-      (media, currentUser, songId) =>
-        startUploadTask(
-          {
-            uid: currentUser.uid,
-            songId,
-            note: media.note,
-            timestamp: firebase.database.ServerValue.TIMESTAMP
-          },
-          media.videoBlob
-        ).then(videoClipId => [
-          songId,
-          { type: "added", videoClipId: videoClipId, note: media.note }
-        ])
+    .withLatestFrom(currentUser$, (media, currentUser) =>
+      startUploadTask(
+        {
+          uid: currentUser.uid,
+          note: media.note,
+          timestamp: firebase.database.ServerValue.TIMESTAMP
+        },
+        media.videoBlob
+      ).then(videoClipId => ({
+        action: "add-video",
+        videoClipId: videoClipId,
+        note: media.note
+      }))
     )
     .mergeAll();
 
-  const clearedEvents$ = actions.clearVideoClip$.withLatestFrom(
-    mediaStore.songId$,
-    (note, songId) => [songId, { type: "cleared", note: note }]
-  );
+  const clearedEvents$ = actions.clearVideoClip$.map(note => ({
+    action: "remove-video",
+    note
+  }));
 
-  // Store events in firebase
-  subscription.add(
-    Observable.merge(clearedEvents$, uploadedEvents$).subscribe(([
-      songId,
-      event
-    ]) => {
-      storeEvent(songId, event);
-    })
+  updatesForNewSong(
+    Observable.merge(clearedEvents$, uploadedEvents$, actions.editSong$),
+    subscription
   );
 
   const clearedMedia$ = actions.clearVideoClip$.map(note => ({
@@ -177,7 +161,6 @@ function reduceToLocalVideoClipStore(acc, obj) {
   } else {
     return Object.assign({}, acc, {
       [obj.note]: {
-        clipId: obj.clipId,
         sources: [
           {
             src: URL.createObjectURL(obj.videoBlob),

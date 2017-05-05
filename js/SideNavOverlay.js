@@ -3,7 +3,6 @@ import React from "react";
 import "./SideNavOverlay.scss";
 
 class SideNavOverlay extends React.Component {
-
   render() {
     const className = ((this.props.className || "") + " sidenav").trim();
 
