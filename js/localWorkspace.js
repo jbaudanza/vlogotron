@@ -5,7 +5,7 @@ import StorageSubject from "./StorageSubject";
 
 import { concat, omit, findIndex, filter, identity, last } from "lodash";
 
-const messages = require("messageformat-loader!json-loader!./messages.json");
+import messages from './messages';
 
 const subjects = {};
 

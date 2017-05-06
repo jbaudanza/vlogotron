@@ -10,7 +10,7 @@ import { updatesForNewSong, updatesForNewSongWithUndo } from "./localWorkspace";
 
 import { navigate } from "./router";
 
-const messages = require("messageformat-loader!json-loader!./messages.json");
+import messages from './messages';
 
 export default function noteEditorController(
   params,

@@ -29,7 +29,7 @@ import {
   routeToPageConfig
 } from "./router";
 
-const messages = require("messageformat-loader!json-loader!./messages.json");
+import messages from './messages';
 
 window.main = function(node) {
   ReactDOM.render(<App />, node);

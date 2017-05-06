@@ -23,7 +23,7 @@ import {
 
 import promiseFromTemplate from "./promiseFromTemplate";
 
-const messages = require("messageformat-loader!json-loader!./messages.json");
+import messages from './messages';
 
 export function mediaForRoute(currentPathname$, subscription) {
   const song$ = currentPathname$
