@@ -25,7 +25,7 @@ import promiseFromTemplate from "./promiseFromTemplate";
 
 const messages = require("messageformat-loader!json-loader!./messages.json");
 
-export function mediaForRoute(currentPathname$, currentUser$, subscription) {
+export function mediaForRoute(currentPathname$, subscription) {
   const song$ = currentPathname$
     .switchMap(mapPathnameToSong)
     // TODO: I don't think this is really blocking dupes
@@ -72,10 +72,22 @@ function songById(songId) {
       songId,
       ...snapshot.val()
     }))
-    .map(convertFromFirebaseKeys);
+    .map(convertFromFirebaseKeys)
+    .map(fillInDefaults);
 }
 
 const DEFAULT_SONG_ID = "-KiY1cdo1ggMC-p3pG94";
+
+function fillInDefaults(song) {
+  const clone = Object.assign({}, song);
+  if (!('videoClips' in song)) {
+    clone.videoClips = {};
+  }
+  if (!('notes' in song)) {
+    clone.notes = [];
+  }
+  return clone;
+}
 
 function convertFromFirebaseKeys(song) {
   return {

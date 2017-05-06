@@ -24,6 +24,11 @@ function combineKeyValues(
       const newSubscriptions = {};
       const keys = keySelector(input);
 
+      if (keys.length === 0) {
+        doNext();
+        return newSubscriptions;
+      }
+
       // Add new subscriptions
       keys.forEach(key => {
         if (key in subscriptions) {

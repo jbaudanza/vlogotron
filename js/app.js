@@ -91,7 +91,6 @@ class App extends React.Component {
 
     this.media = mediaForRoute(
       currentPathname$,
-      currentUser$,
       this.globalSubscription
     );
 
@@ -103,11 +102,11 @@ class App extends React.Component {
   }
 
   onRouteChange(route) {
-    const pageConfig = routeToPageConfig(route);
-
     this.disposePage();
 
     this.pageSubscription = new Subscription();
+
+    const pageConfig = routeToPageConfig(route);
 
     this.pageActions = new ReactActions(pageConfig.actions);
 
