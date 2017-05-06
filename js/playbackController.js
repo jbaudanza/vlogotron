@@ -23,8 +23,6 @@ export default function playbackController(
   media,
   subscription
 ) {
-  const song$ = Observable.of(songs["mary-had-a-little-lamb"].notes);
-
   const authorName$ = media.song$.switchMap(song => {
     if (song) {
       return displayNameForUid(song.uid);
@@ -36,8 +34,8 @@ export default function playbackController(
   const parentView$ = playbackControllerHelper(
     actions,
     currentUser$,
-    song$,
-    Observable.of(120),
+    media.song$.map(o => (o ? o.notes : [])),
+    media.song$.map(o => (o ? o.bpm : 120)).distinctUntilChanged(),
     media,
     subscription
   );

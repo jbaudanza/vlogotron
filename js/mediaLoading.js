@@ -17,6 +17,7 @@ import {
   pick,
   map,
   mapValues,
+  mapKeys,
   identity
 } from "lodash";
 
@@ -25,20 +26,21 @@ import promiseFromTemplate from "./promiseFromTemplate";
 const messages = require("messageformat-loader!json-loader!./messages.json");
 
 export function mediaForRoute(currentPathname$, currentUser$, subscription) {
-  const song$ = Observable.combineLatest(
-    currentPathname$,
-    currentUser$,
-    mapRouteToSong
-  )
-    .switch()
+  const song$ = currentPathname$
+    .switchMap(mapPathnameToSong)
     // TODO: I don't think this is really blocking dupes
     .distinctUntilChanged()
     .publishReplay();
 
-  // TODO: This will faill if null
-  const videoClips$ = videoClipsForClipIds(
-    song$.map(o => o.videoClips)
-  ).publishReplay();
+  const videoClipIds$ = song$.map(function(song) {
+    if (song) {
+      return song.videoClips;
+    } else {
+      return {};
+    }
+  });
+
+  const videoClips$ = videoClipsForClipIds(videoClipIds$).publishReplay();
 
   const audioLoading = loadAudioBuffersFromVideoClips(
     videoClips$,
@@ -65,27 +67,38 @@ function songById(songId) {
     .orderByKey()
     .limitToLast(1);
 
-  return Observable.fromFirebaseRef(ref, "child_added").map(snapshot => ({
-    songId,
-    ...snapshot.val()
-  }));
+  return Observable.fromFirebaseRef(ref, "child_added")
+    .map(snapshot => ({
+      songId,
+      ...snapshot.val()
+    }))
+    .map(convertFromFirebaseKeys);
 }
 
 const DEFAULT_SONG_ID = "-KiY1cdo1ggMC-p3pG94";
 
-function mapRouteToSong(pathname, currentUser) {
+function convertFromFirebaseKeys(song) {
+  return {
+    ...song,
+    videoClips: mapKeys(song.videoClips, (value, key) =>
+      key.replace("sharp", "#")
+    )
+  };
+}
+
+function mapPathnameToSong(pathname) {
   const null$ = Observable.of(null);
 
   const route = pathnameToRoute(pathname);
   if (route) {
     switch (route.name) {
       case "root":
-        return songById(DEFAULT_SONG_ID);
+        return null$.concat(songById(DEFAULT_SONG_ID));
       case "record-videos":
       case "note-editor":
-        return subjectFor("vlogotron-new-song");
+        return null$.concat(subjectFor("vlogotron-new-song"));
       case "view-song":
-        return songById(route.params.songId);
+        return null$.concat(songById(route.params.songId));
     }
   }
 

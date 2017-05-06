@@ -30,8 +30,8 @@ export default function noteEditorController(
   const parentViewState$ = playbackControllerHelper(
     actions,
     currentUser$,
-    media.song$.map(o => o.notes),
-    media.song$.map(o => o.bpm).distinctUntilChanged(),
+    media.song$.map(o => (o ? o.notes : [])),
+    media.song$.map(o => (o ? o.bpm : 120)).distinctUntilChanged(),
     media,
     subscription
   );
@@ -77,7 +77,8 @@ function createSong(song, uid) {
   return collectionRef.push(rootObject).then(songRef => {
     songRef.child("revisions").push({
       timestamp: firebase.database.ServerValue.TIMESTAMP,
-      ...convertToFirebaseKeys(song)
+      ...convertToFirebaseKeys(song),
+      uid
     });
 
     return songRef.key;
