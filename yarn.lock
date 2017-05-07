@@ -2876,6 +2876,13 @@ isstream@~0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/isstream/-/isstream-0.1.2.tgz#47e63f7af55afa6f92e1500e690eb8b8529c099a"
 
+jbaudanza/messageformat-loader#c855f7b7662e3d09bbee5a871b28ff56006b7f79, messageformat-loader@jbaudanza/messageformat-loader#c855f7b7662e3d09bbee5a871b28ff56006b7f79:
+  name messageformat-loader
+  version "0.4.1"
+  resolved "https://codeload.github.com/jbaudanza/messageformat-loader/tar.gz/c855f7b7662e3d09bbee5a871b28ff56006b7f79"
+  dependencies:
+    loader-utils "^0.2.15"
+
 jest-matcher-utils@^19.0.0:
   version "19.0.0"
   resolved "https://registry.yarnpkg.com/jest-matcher-utils/-/jest-matcher-utils-19.0.0.tgz#5ecd9b63565d2b001f61fbf7ec4c7f537964564d"
@@ -3266,12 +3273,6 @@ messageformat:
     messageformat-parser "^1.0.0"
     nopt "~3.0.6"
     reserved-words "^0.1.1"
-
-messageformat-loader:
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/messageformat-loader/-/messageformat-loader-0.4.1.tgz#4a26e72fb9facf16922181bbb10be9dabe72ad51"
-  dependencies:
-    loader-utils "^0.2.15"
 
 messageformat-parser@^1.0.0:
   version "1.0.0"

@@ -28,5 +28,7 @@
   "navigation-my-tracks": "My Tracks",
   "navigation-create-new": "Create New",
   "navigation-logout": "Logout",
-  "navigation-login": "Login"
+  "navigation-login": "Login",
+  "last-updated-date": "Last updated {DATE, date}",
+  "my-tracks-header": "My Tracks"
 }

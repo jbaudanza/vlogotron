@@ -28,5 +28,7 @@
   "navigation-my-tracks": "나의 노래들",
   "navigation-create-new": "새로 만들기",
   "navigation-logout": "로그아웃",
-  "navigation-login": "로그인"
+  "navigation-login": "로그인",
+  "last-updated-date": "Last updated {DATE, date}",
+  "my-tracks-header": "나의 노래들"
 }

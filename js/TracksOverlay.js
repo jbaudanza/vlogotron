@@ -15,6 +15,8 @@ import ReactActions from "./ReactActions";
 
 import "./TracksOverlay.scss";
 
+const lastUpdated = new Date();
+
 class LineItem extends React.Component {
   constructor(props) {
     super();
@@ -27,13 +29,10 @@ class LineItem extends React.Component {
         {this.props.song.title}
         <br />
         <span>
-          Last updated Thu May  4 14:23:14 PDT 2017
+          {this.context.messages["last-updated-date"]({DATE: lastUpdated})}
           <br />
           PRIVATE
         </span>
-        <Link>
-          {this.context.messages["select-action"]()}
-        </Link>
       </li>
     );
   }
@@ -54,8 +53,6 @@ export default class TracksOverlay extends React.Component {
     };
   }
 
-  componentWillMount() {}
-
   componentWillUnmount() {
     this.actions.callbacks.onUnmount();
     this.actions.completeAll();
@@ -64,7 +61,7 @@ export default class TracksOverlay extends React.Component {
   render() {
     return (
       <SideNavOverlay className="tracks-overlay">
-        <h1>My Tracks</h1>
+        <h1>{this.context.messages["my-tracks-header"]()}</h1>
         <ul className="song-list">
           {map(songs, (song, songId) => (
             <LineItem
@@ -81,5 +78,10 @@ export default class TracksOverlay extends React.Component {
     );
   }
 }
+
+TracksOverlay.contextTypes = {
+  messages: React.PropTypes.object.isRequired
+};
+
 
 TracksOverlay.propTypes = {};
