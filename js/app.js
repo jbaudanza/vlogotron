@@ -115,7 +115,8 @@ class App extends React.Component {
       this.pageActions.observables,
       currentUser$,
       this.media,
-      this.pageSubscription
+      this.pageSubscription,
+      this.onNavigate.bind(this)
     );
 
     this.setState({
@@ -158,6 +159,7 @@ class App extends React.Component {
   }
 
   onNavigate(href) {
+    this.disposePage();
     navigate(href);
     document.body.scrollTop = 0;
   }

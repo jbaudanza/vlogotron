@@ -8,8 +8,6 @@ import { readEvents, writeEvent } from "./localEventStore";
 
 import { updatesForNewSong, updatesForNewSongWithUndo } from "./localWorkspace";
 
-import { navigate } from "./router";
-
 import messages from './messages';
 
 export default function noteEditorController(
@@ -17,7 +15,8 @@ export default function noteEditorController(
   actions,
   currentUser$,
   media,
-  subscription
+  subscription,
+  navigateFn
 ) {
   // XXX: This only needs to return the undo state.
   const undoState$ = updatesForNewSongWithUndo(actions.editSong$, subscription);
@@ -43,7 +42,7 @@ export default function noteEditorController(
     song,
     user
   ]) => {
-    createSong(song, user.uid).then(key => navigate("/songs/" + key));
+    createSong(song, user.uid).then(key => navigateFn("/songs/" + key));
   });
 
   const saveEnabled$ = Observable.of(true).concat(actions.save$.mapTo(false));
