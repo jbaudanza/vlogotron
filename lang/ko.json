@@ -22,7 +22,7 @@
   "half-notes": "2분음표",
   "eighth-notes": "8분음표",
   "sixteenth-notes": "16분음표",
-  "bpm-with-number": "심박수",
+  "bpm-with-number": "{BPM} bpm",
   "not-found-error": "파일 또는 디렉터리를 찾을 수 없습니다",
   "navigation-home": "홈",
   "navigation-my-tracks": "나의 노래들",
