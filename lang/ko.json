@@ -6,8 +6,8 @@
   "back-action": "back",
   "select-action": "select",
   "remix-action": "remix",
-  "cancel-action": "cancel",
-  "next-action": "next",
+  "cancel-action": "취소",
+  "next-action": "다음",
   "ok-action": "OK",
   "start-singing-countdown-prompt": "Start singing in",
   "default-song-title": "Untitled Song",
@@ -23,5 +23,10 @@
   "eighth-notes": "Eigth notes",
   "sixteenth-notes": "Sixteenth notes",
   "bpm-with-number": "{BPM} bpm",
-  "not-found-error": "The page you're requesting doesn't exist."
+  "not-found-error": "The page you're requesting doesn't exist.",
+  "navigation-home": "홈",
+  "navigation-my-tracks": "My Tracks",
+  "navigation-create-new": "Create New",
+  "navigation-logout": "로그아웃",
+  "navigation-login": "로그인"
 }

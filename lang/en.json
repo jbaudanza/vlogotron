@@ -23,5 +23,10 @@
   "eighth-notes": "Eigth notes",
   "sixteenth-notes": "Sixteenth notes",
   "bpm-with-number": "{BPM} bpm",
-  "not-found-error": "The page you're requesting doesn't exist."
+  "not-found-error": "The page you're requesting doesn't exist.",
+  "navigation-home": "Home",
+  "navigation-my-tracks": "My Tracks",
+  "navigation-create-new": "Create New",
+  "navigation-logout": "Logout",
+  "navigation-login": "Login"
 }

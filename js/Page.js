@@ -36,7 +36,7 @@ export default class Page extends React.Component {
                 width="33px"
                 height="32px"
                 icon="#svg-home"
-                text="Home"
+                text={this.context.messages['navigation-home']()}
               />
               {this.props.isLoggedIn
                 ? <NavLink
@@ -44,7 +44,7 @@ export default class Page extends React.Component {
                     width="32px"
                     height="29px"
                     icon="#svg-sound-wave"
-                    text="My Tracks"
+                    text={this.context.messages['navigation-my-tracks']()}
                   />
                 : null}
               <NavLink
@@ -52,7 +52,7 @@ export default class Page extends React.Component {
                 width="30px"
                 height="30px"
                 icon="#svg-plus"
-                text="Create New"
+                text={this.context.messages['navigation-create-new']()}
               />
               {this.props.isLoggedIn
                 ? <NavLink
@@ -60,14 +60,14 @@ export default class Page extends React.Component {
                     width="29px"
                     height="27px"
                     icon="#svg-logout"
-                    text="Logout"
+                    text={this.context.messages['navigation-logout']()}
                   />
                 : <NavLink
                     href="#login"
                     width="33px"
                     height="33px"
                     icon="#svg-login"
-                    text="Login"
+                    text={this.context.messages['navigation-login']()}
                   />}
             </div>
           </div>
@@ -84,6 +84,10 @@ export default class Page extends React.Component {
     );
   }
 }
+
+Page.contextTypes = {
+  messages: React.PropTypes.object.isRequired
+};
 
 Page.PropTypes = {
   sidebarVisible: React.PropTypes.bool.isRequired,
