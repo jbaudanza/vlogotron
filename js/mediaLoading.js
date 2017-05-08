@@ -25,12 +25,34 @@ import promiseFromTemplate from "./promiseFromTemplate";
 
 import messages from './messages';
 
-export function mediaForRoute(currentPathname$, subscription) {
-  const song$ = currentPathname$
-    .switchMap(mapPathnameToSong)
-    // TODO: I don't think this is really blocking dupes
-    .distinctUntilChanged()
-    .publishReplay();
+export function mapRouteToSongLocation(route) {
+  switch (route.name) {
+    case "root":
+      return { source: 'database', id: DEFAULT_SONG_ID };
+    case "record-videos":
+    case "note-editor":
+      return { source: 'localStorage', id: 'vlogotron-new-song'};
+    case "view-song":
+      return { source: 'database', id: route.params.songId };
+  }
+  return { source: 'none' };
+}
+
+export function subscribeToSongLocation(songLocation, subscription) {
+  let song$;
+  const null$ = Observable.of(null);
+  switch (songLocation.source) {
+    case 'database':
+      song$ = null$.concat(songById(songLocation.id)).publishReplay();
+      subscription.add(song$.connect());
+      break;
+    case 'localStorage':
+      song$ = null$.concat(subjectFor(songLocation.id)).publishReplay();
+      subscription.add(song$.connect());
+      break;
+    default:
+      song$ = null$;
+  }
 
   const videoClipIds$ = song$.map(function(song) {
     if (song) {

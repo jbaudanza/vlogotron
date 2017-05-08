@@ -6,7 +6,7 @@ import { Observable } from "rxjs/Observable";
 import { Subscription } from "rxjs/Subscription";
 import { Subject } from "rxjs/Subject";
 
-import { bindAll, fromPairs } from "lodash";
+import { bindAll, fromPairs, isEqual } from "lodash";
 
 import SvgAssets from "./SvgAssets";
 import LoginOverlay from "./LoginOverlay";
@@ -19,7 +19,7 @@ import audioContext from "./audioContext";
 
 import { findWrappingLink } from "./domutils";
 
-import { mediaForRoute } from "./mediaLoading";
+import { subscribeToSongLocation, mapRouteToSongLocation } from "./mediaLoading";
 
 import "./style.scss";
 import {
@@ -89,11 +89,6 @@ class App extends React.Component {
   componentWillMount() {
     this.globalSubscription = new Subscription();
 
-    this.media = mediaForRoute(
-      currentPathname$,
-      this.globalSubscription
-    );
-
     this.globalSubscription.add(currentRoute$.subscribe(this.onRouteChange));
 
     this.globalSubscription.add(
@@ -101,8 +96,25 @@ class App extends React.Component {
     );
   }
 
+  unsubscribeMedia() {
+    if (this.mediaSubscription) {
+      this.mediaSubscription.unsubscribe();
+      delete this.mediaSubscription;
+      delete this.media;
+      delete this.songLocation;
+    }
+  }
+
   onRouteChange(route) {
     this.disposePage();
+
+    const songLocation = mapRouteToSongLocation(route);
+    if (this.songLocation == null || !isEqual(this.songLocation, songLocation)) {
+      this.unsubscribeMedia();
+      this.mediaSubscription = new Subscription();
+      this.songLocation = songLocation;
+      this.media = subscribeToSongLocation(songLocation, this.mediaSubscription);
+    }
 
     this.pageSubscription = new Subscription();
 
@@ -144,12 +156,13 @@ class App extends React.Component {
 
   componentWillUnmount() {
     this.globalSubscription.unsubscribe();
-
+    this.unsubscribeMedia();
     this.disposePage();
   }
 
   disposePage() {
     if (this.pageSubscription) {
+      console.log('disposePage')
       this.pageSubscription.unsubscribe();
       this.pageActions.completeAll();
 
