@@ -8,7 +8,8 @@ export function createSong(song, uid) {
   const rootObject = {
     title: song.title,
     visibility: "everyone",
-    timestamp: firebase.database.ServerValue.TIMESTAMP
+    createdAt: firebase.database.ServerValue.TIMESTAMP,
+    updatedAt: firebase.database.ServerValue.TIMESTAMP
   };
 
   return collectionRef.push({...rootObject, uid}).then(songRef => {

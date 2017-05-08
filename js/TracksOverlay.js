@@ -14,13 +14,14 @@ const lastUpdated = new Date();
 
 class LineItem extends React.Component {
   render() {
+    const updatedAt = new Date(this.props.song.updatedAt);
     return (
       <li>
         <MoreButton size={21} />
         {this.props.song.title}
         <br />
         <span>
-          {this.context.messages["last-updated-date"]({ DATE: lastUpdated })}
+          {this.context.messages["last-updated-date"]({ DATE: updatedAt })}
           <br />
           PRIVATE
         </span>
