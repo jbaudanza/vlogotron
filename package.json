@@ -10,7 +10,7 @@
     "json-loader": "^0.5.4",
     "lodash": "^4.17.4",
     "messageformat": "^1.0.2",
-    "messageformat-loader": "jbaudanza/messageformat-loader#c855f7b7662e3d09bbee5a871b28ff56006b7f79",
+    "messageformat-loader": "0.5.0",
     "node-sass": "^4.2.0",
     "prettier": "^1.0.2",
     "react": "^15.4.2",
