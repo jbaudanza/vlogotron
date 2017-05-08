@@ -18,10 +18,6 @@ import "./TracksOverlay.scss";
 const lastUpdated = new Date();
 
 class LineItem extends React.Component {
-  constructor(props) {
-    super();
-  }
-
   render() {
     return (
       <li>
@@ -43,34 +39,16 @@ LineItem.contextTypes = {
 };
 
 export default class TracksOverlay extends React.Component {
-  constructor() {
-    super();
-
-    this.actions = new ReactActions(["play", "pause", "unmount"]);
-
-    this.state = {
-      currentyPlaying: null
-    };
-  }
-
-  componentWillUnmount() {
-    this.actions.callbacks.onUnmount();
-    this.actions.completeAll();
-  }
-
   render() {
     return (
       <SideNavOverlay className="tracks-overlay">
         <h1>{this.context.messages["my-tracks-header"]()}</h1>
         <ul className="song-list">
-          {map(songs, (song, songId) => (
+          {map(this.props.songs, (song, songId) => (
             <LineItem
               song={song}
               key={songId}
               songId={songId}
-              isPlaying={this.state.currentlyPlaying === songId}
-              onClickPlay={this.actions.callbacks.onPlay}
-              onClickPause={this.actions.callbacks.onPause}
             />
           ))}
         </ul>
@@ -83,4 +61,6 @@ TracksOverlay.contextTypes = {
   messages: React.PropTypes.object.isRequired
 };
 
-TracksOverlay.propTypes = {};
+TracksOverlay.propTypes = {
+  songs: React.PropTypes.object.isRequired
+};

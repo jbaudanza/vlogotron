@@ -19,6 +19,8 @@ import audioContext from "./audioContext";
 
 import { findWrappingLink } from "./domutils";
 
+import { updateUser, songsForUser } from "./database";
+
 import {
   subscribeToSongLocation,
   mapRouteToSongLocation
@@ -46,9 +48,15 @@ const currentUser$ = Observable.create(function(observer) {
 
 currentUser$.subscribe(user => {
   if (user) {
-    const ref = firebase.database().ref("users").child(user.uid);
-    ref.child("displayName").set(user.displayName);
-    ref.child("lastSeenAt").set(firebase.database.ServerValue.TIMESTAMP);
+    updateUser(user.uid, user.displayName);
+  }
+});
+
+const myTracks$ = currentUser$.switchMap(user => {
+  if (user) {
+    return songsForUser(user.uid);
+  } else {
+    return Observable.of({});
   }
 });
 
@@ -93,6 +101,8 @@ class App extends React.Component {
     this.globalSubscription = new Subscription();
 
     this.globalSubscription.add(currentRoute$.subscribe(this.onRouteChange));
+
+    this.globalSubscription.add(myTracks$.subscribe((v) => this.setState({myTracks: v})))
 
     this.globalSubscription.add(
       currentLocation$.subscribe(this.stateObserver("location"))
@@ -209,7 +219,7 @@ class App extends React.Component {
       );
     } else if (this.state.location.hash === "#tracks") {
       const Overlay = this.state.overlay;
-      overlay = <TracksOverlay />;
+      overlay = <TracksOverlay songs={this.state.myTracks} />;
     }
 
     const view = React.cloneElement(this.state.view, {

@@ -8,19 +8,26 @@ export function createSong(song, uid) {
   const rootObject = {
     title: song.title,
     visibility: "everyone",
-    timestamp: firebase.database.ServerValue.TIMESTAMP,
-    uid
+    timestamp: firebase.database.ServerValue.TIMESTAMP
   };
 
-  return collectionRef.push(rootObject).then(songRef => {
+  return collectionRef.push({...rootObject, uid}).then(songRef => {
     songRef.child("revisions").push({
       timestamp: firebase.database.ServerValue.TIMESTAMP,
       ...convertToFirebaseKeys(song),
       uid
     });
 
+    firebase.database().ref('users').child(uid).child('songs').child(songRef.key).set(rootObject);
+
     return songRef.key;
   });
+}
+
+export function updateUser(uid, displayName) {
+  const ref = firebase.database().ref("users").child(uid);
+  ref.child("displayName").set(displayName);
+  ref.child("lastSeenAt").set(firebase.database.ServerValue.TIMESTAMP);
 }
 
 export function songById(songId) {
@@ -57,6 +64,11 @@ export function waitForTranscode(videoClipId) {
   )
     .takeWhile(snapshot => !snapshot.exists())
     .ignoreElements();
+}
+
+export function songsForUser(uid) {
+  const ref = firebase.database().ref("users").child(uid).child("songs");
+  return fromFirebaseRef(ref, "value").map(snapshot => snapshot.val());
 }
 
 function createVideoClip(databaseEntry, videoBlob) {
