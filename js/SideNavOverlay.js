@@ -8,6 +8,7 @@ class SideNavOverlay extends React.Component {
 
     return (
       <div id="sidenav" className={className}>
+        <div className="shadow" />
         <div className="content">
           <div className="scroll">
             {this.props.children}

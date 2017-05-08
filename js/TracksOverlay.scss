@@ -2,12 +2,17 @@
 
 .tracks-overlay {
 
+  .content {
+    padding: 12px 19px 18px 25px;
+  }
+
   h1 {
     border-bottom: solid 1px $color-light-purple;
     line-height: 40px;
     margin-top: 0;
     padding-top: 0;
     text-align: left;
+    padding-bottom: 11px;
   }
   ul.song-list {
     text-align: left;
