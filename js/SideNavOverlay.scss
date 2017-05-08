@@ -9,6 +9,13 @@ $shadow-index: 1;
   bottom: 0;
   left: 100px;
 
+  .close-link {
+    display: block;
+    position: absolute;
+    right: 19px;
+    top: 20px;
+  }
+
   h1 {
     font-size: 24px;
     font-weight: 500; // Medium

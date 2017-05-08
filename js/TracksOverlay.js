@@ -37,7 +37,7 @@ LineItem.contextTypes = {
 export default class TracksOverlay extends React.Component {
   render() {
     return (
-      <SideNavOverlay className="tracks-overlay">
+      <SideNavOverlay onClose={this.props.onClose} className="tracks-overlay">
         <h1>{this.context.messages["my-tracks-header"]()}</h1>
         <ul className="song-list">
           {map(this.props.songs, (song, songId) => (

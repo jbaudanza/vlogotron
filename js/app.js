@@ -219,7 +219,7 @@ class App extends React.Component {
       );
     } else if (this.state.location.hash === "#tracks") {
       const Overlay = this.state.overlay;
-      overlay = <TracksOverlay songs={this.state.myTracks} />;
+      overlay = <TracksOverlay songs={this.state.myTracks} onClose="#" />;
     }
 
     const view = React.cloneElement(this.state.view, {
