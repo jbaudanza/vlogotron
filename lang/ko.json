@@ -30,5 +30,8 @@
   "navigation-logout": "로그아웃",
   "navigation-login": "로그인",
   "last-updated-date": "Last updated {DATE, date}",
-  "my-tracks-header": "나의 노래들"
+  "my-tracks-header": "나의 노래들",
+  "permissions-play-and-remix": "public, play and remix",
+  "permissions-play": "public, play-only",
+  "permissions-private": "private"
 }

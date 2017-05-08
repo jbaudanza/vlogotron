@@ -21,11 +21,13 @@ class LineItem extends React.Component {
         <div className="title">
           {this.props.song.title}
         </div>
-        <div className='updated-at'>
+        <div className="updated-at">
           {this.context.messages["last-updated-date"]({ DATE: updatedAt })}
         </div>
-        <div className='permissions'>
-          {this.context.messages["visibility-everyone"]()}
+        <div className="permissions">
+          {this.props.song.visibility === "everyone"
+            ? this.context.messages["permissions-play-and-remix"]()
+            : this.context.messages["permissions-private"]()}
         </div>
       </li>
     );
