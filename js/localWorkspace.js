@@ -5,7 +5,7 @@ import StorageSubject from "./StorageSubject";
 
 import { concat, omit, findIndex, filter, identity, last } from "lodash";
 
-import messages from './messages';
+import messages from "./messages";
 
 const subjects = {};
 

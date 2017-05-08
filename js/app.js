@@ -19,7 +19,10 @@ import audioContext from "./audioContext";
 
 import { findWrappingLink } from "./domutils";
 
-import { subscribeToSongLocation, mapRouteToSongLocation } from "./mediaLoading";
+import {
+  subscribeToSongLocation,
+  mapRouteToSongLocation
+} from "./mediaLoading";
 
 import "./style.scss";
 import {
@@ -29,7 +32,7 @@ import {
   routeToPageConfig
 } from "./router";
 
-import messages from './messages';
+import messages from "./messages";
 
 window.main = function(node) {
   ReactDOM.render(<App />, node);
@@ -109,11 +112,16 @@ class App extends React.Component {
     this.disposePage();
 
     const songLocation = mapRouteToSongLocation(route);
-    if (this.songLocation == null || !isEqual(this.songLocation, songLocation)) {
+    if (
+      this.songLocation == null || !isEqual(this.songLocation, songLocation)
+    ) {
       this.unsubscribeMedia();
       this.mediaSubscription = new Subscription();
       this.songLocation = songLocation;
-      this.media = subscribeToSongLocation(songLocation, this.mediaSubscription);
+      this.media = subscribeToSongLocation(
+        songLocation,
+        this.mediaSubscription
+      );
     }
 
     this.pageSubscription = new Subscription();
@@ -162,7 +170,6 @@ class App extends React.Component {
 
   disposePage() {
     if (this.pageSubscription) {
-      console.log('disposePage')
       this.pageSubscription.unsubscribe();
       this.pageActions.completeAll();
 

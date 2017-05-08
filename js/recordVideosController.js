@@ -14,7 +14,7 @@ import { playCommands$ as keyboardPlayCommands$ } from "./keyboard";
 
 import { updatesForNewSong } from "./localWorkspace";
 
-import messages from './messages';
+import messages from "./messages";
 
 // Note: keypress doesn't work for escape key. Need to use keydown.
 const escapeKey$ = Observable.fromEvent(document, "keydown").filter(

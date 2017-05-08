@@ -29,7 +29,7 @@ class LineItem extends React.Component {
         {this.props.song.title}
         <br />
         <span>
-          {this.context.messages["last-updated-date"]({DATE: lastUpdated})}
+          {this.context.messages["last-updated-date"]({ DATE: lastUpdated })}
           <br />
           PRIVATE
         </span>
@@ -82,6 +82,5 @@ export default class TracksOverlay extends React.Component {
 TracksOverlay.contextTypes = {
   messages: React.PropTypes.object.isRequired
 };
-
 
 TracksOverlay.propTypes = {};

@@ -23,30 +23,30 @@ import {
 
 import promiseFromTemplate from "./promiseFromTemplate";
 
-import messages from './messages';
+import messages from "./messages";
 
 export function mapRouteToSongLocation(route) {
   switch (route.name) {
     case "root":
-      return { source: 'database', id: DEFAULT_SONG_ID };
+      return { source: "database", id: DEFAULT_SONG_ID };
     case "record-videos":
     case "note-editor":
-      return { source: 'localStorage', id: 'vlogotron-new-song'};
+      return { source: "localStorage", id: "vlogotron-new-song" };
     case "view-song":
-      return { source: 'database', id: route.params.songId };
+      return { source: "database", id: route.params.songId };
   }
-  return { source: 'none' };
+  return { source: "none" };
 }
 
 export function subscribeToSongLocation(songLocation, subscription) {
   let song$;
   const null$ = Observable.of(null);
   switch (songLocation.source) {
-    case 'database':
+    case "database":
       song$ = null$.concat(songById(songLocation.id)).publishReplay();
       subscription.add(song$.connect());
       break;
-    case 'localStorage':
+    case "localStorage":
       song$ = null$.concat(subjectFor(songLocation.id)).publishReplay();
       subscription.add(song$.connect());
       break;
@@ -102,10 +102,10 @@ const DEFAULT_SONG_ID = "-KiY1cdo1ggMC-p3pG94";
 
 function fillInDefaults(song) {
   const clone = Object.assign({}, song);
-  if (!('videoClips' in song)) {
+  if (!("videoClips" in song)) {
     clone.videoClips = {};
   }
-  if (!('notes' in song)) {
+  if (!("notes" in song)) {
     clone.notes = [];
   }
   return clone;
@@ -118,25 +118,6 @@ function convertFromFirebaseKeys(song) {
       key.replace("sharp", "#")
     )
   };
-}
-
-function mapPathnameToSong(pathname) {
-  const null$ = Observable.of(null);
-
-  const route = pathnameToRoute(pathname);
-  if (route) {
-    switch (route.name) {
-      case "root":
-        return null$.concat(songById(DEFAULT_SONG_ID));
-      case "record-videos":
-      case "note-editor":
-        return null$.concat(subjectFor("vlogotron-new-song"));
-      case "view-song":
-        return null$.concat(songById(route.params.songId));
-    }
-  }
-
-  return null$;
 }
 
 /*

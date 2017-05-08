@@ -8,7 +8,7 @@ import { readEvents, writeEvent } from "./localEventStore";
 
 import { updatesForNewSong, updatesForNewSongWithUndo } from "./localWorkspace";
 
-import messages from './messages';
+import messages from "./messages";
 
 export default function noteEditorController(
   params,
