@@ -1,12 +1,14 @@
 import { Observable } from "rxjs/Observable";
 
 import { playbackControllerHelper } from "./playbackController";
-import { last, mapKeys } from "lodash";
+import { last } from "lodash";
 
 import { songLengthInSeconds, reduceEditsToSong } from "./song";
 import { readEvents, writeEvent } from "./localEventStore";
 
 import { updatesForNewSong, updatesForNewSongWithUndo } from "./localWorkspace";
+
+import { createSong } from "./database";
 
 import messages from "./messages";
 
@@ -61,34 +63,4 @@ export default function noteEditorController(
       saveEnabled
     })
   );
-}
-
-function createSong(song, uid) {
-  const collectionRef = firebase.database().ref("songs");
-
-  const rootObject = {
-    title: song.title,
-    visibility: "everyone",
-    timestamp: firebase.database.ServerValue.TIMESTAMP,
-    uid
-  };
-
-  return collectionRef.push(rootObject).then(songRef => {
-    songRef.child("revisions").push({
-      timestamp: firebase.database.ServerValue.TIMESTAMP,
-      ...convertToFirebaseKeys(song),
-      uid
-    });
-
-    return songRef.key;
-  });
-}
-
-function convertToFirebaseKeys(song) {
-  return {
-    ...song,
-    videoClips: mapKeys(song.videoClips, (value, key) =>
-      key.replace("#", "sharp")
-    )
-  };
 }

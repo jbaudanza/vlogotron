@@ -13,6 +13,7 @@ import { playCommands$ as midiPlayCommands$ } from "./midi";
 import { playCommands$ as keyboardPlayCommands$ } from "./keyboard";
 
 import { updatesForNewSong } from "./localWorkspace";
+import { createVideoClip } from "./database";
 
 import messages from "./messages";
 
@@ -49,7 +50,7 @@ export default function recordVideosController(
 
   const uploadedEvents$ = finalMedia$
     .withLatestFrom(currentUser$, (media, currentUser) =>
-      startUploadTask(
+      createVideoClip(
         {
           uid: currentUser.uid,
           note: media.note,
@@ -129,20 +130,6 @@ export default function recordVideosController(
       songTitle: song ? song.title : null
     })
   );
-}
-
-function startUploadTask(databaseEntry, videoBlob) {
-  const databaseRef = firebase.database().ref("video-clips");
-
-  const uploadRef = firebase
-    .storage()
-    .refFromURL("gs://vlogotron-uploads/video-clips");
-
-  const ref = databaseRef.push(databaseEntry);
-
-  ref.then(() => uploadRef.child(ref.key).put(videoBlob));
-
-  return ref.then(() => ref.key);
 }
 
 function reduceToAudioBufferStore(acc, finalMedia) {

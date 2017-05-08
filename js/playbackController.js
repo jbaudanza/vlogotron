@@ -16,6 +16,8 @@ import audioContext from "./audioContext";
 
 import { songs, timestampToBeats, songLengthInBeats } from "./song";
 
+import { displayNameForUid } from "./database";
+
 export default function playbackController(
   params,
   actions,
@@ -173,12 +175,5 @@ export function playbackControllerHelper(
       songTitle: song ? song.title : null,
       bpm
     })
-  );
-}
-
-function displayNameForUid(uid) {
-  const ref = firebase.database().ref("users").child(uid).child("displayName");
-  return Observable.fromFirebaseRef(ref, "value").map(snapshot =>
-    snapshot.val()
   );
 }

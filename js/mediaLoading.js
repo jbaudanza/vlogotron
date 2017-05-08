@@ -8,6 +8,7 @@ import { getArrayBuffer } from "./http";
 import { pathnameToRoute } from "./router";
 
 import { subjectFor } from "./localWorkspace";
+import { songById, waitForTranscode } from "./database";
 
 import {
   clone,
@@ -17,7 +18,6 @@ import {
   pick,
   map,
   mapValues,
-  mapKeys,
   identity
 } from "lodash";
 
@@ -80,45 +80,7 @@ export function subscribeToSongLocation(songLocation, subscription) {
   };
 }
 
-function songById(songId) {
-  const ref = firebase
-    .database()
-    .ref("songs")
-    .child(songId)
-    .child("revisions")
-    .orderByKey()
-    .limitToLast(1);
-
-  return Observable.fromFirebaseRef(ref, "child_added")
-    .map(snapshot => ({
-      songId,
-      ...snapshot.val()
-    }))
-    .map(convertFromFirebaseKeys)
-    .map(fillInDefaults);
-}
-
 const DEFAULT_SONG_ID = "-KiY1cdo1ggMC-p3pG94";
-
-function fillInDefaults(song) {
-  const clone = Object.assign({}, song);
-  if (!("videoClips" in song)) {
-    clone.videoClips = {};
-  }
-  if (!("notes" in song)) {
-    clone.notes = [];
-  }
-  return clone;
-}
-
-function convertFromFirebaseKeys(song) {
-  return {
-    ...song,
-    videoClips: mapKeys(song.videoClips, (value, key) =>
-      key.replace("sharp", "#")
-    )
-  };
-}
 
 /*
   Emits objects that look like:
@@ -148,19 +110,6 @@ function videoClipsForClipIds(clipIds$) {
     values, // keySelector
     resultSelector
   );
-}
-
-function waitForTranscode(videoClipId) {
-  return Observable.fromFirebaseRef(
-    firebase
-      .database()
-      .ref("video-clips")
-      .child(videoClipId)
-      .child("transcodedAt"),
-    "value"
-  )
-    .takeWhile(snapshot => !snapshot.exists())
-    .ignoreElements();
 }
 
 function gatherPromises(obj) {
@@ -225,54 +174,6 @@ function snapshotReduce(snapshot, fn, initial) {
     state = fn(state, child.val());
   });
   return state;
-}
-
-function reduceFirebaseCollection(collectionRef, accFn, initial) {
-  const query = collectionRef.orderByKey();
-
-  return Observable.fromFirebaseRef(query, "value")
-    .first()
-    .switchMap(snapshot => {
-      let lastKey;
-      let acc = initial;
-
-      snapshot.forEach(function(child) {
-        lastKey = child.key;
-        acc = accFn(acc, child.val());
-      });
-
-      let rest$;
-      if (lastKey) {
-        rest$ = Observable.fromFirebaseRef(
-          query.startAt(lastKey),
-          "child_added"
-        ).skip(1);
-      } else {
-        rest$ = Observable.fromFirebaseRef(query, "child_added");
-      }
-
-      return rest$
-        .map(snapshot => snapshot.val())
-        .scan(accFn, acc)
-        .startWith(acc);
-    });
-}
-
-function reduceEventsToVideoClipIds(acc, event) {
-  let note = event.note;
-
-  if (event.type === "added") {
-    return {
-      ...acc,
-      [note]: event.videoClipId
-    };
-  }
-
-  if (event.type === "cleared") {
-    return omit(acc, note);
-  }
-
-  return acc;
 }
 
 function decodeAudioData(arraybuffer) {
