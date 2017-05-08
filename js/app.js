@@ -102,7 +102,9 @@ class App extends React.Component {
 
     this.globalSubscription.add(currentRoute$.subscribe(this.onRouteChange));
 
-    this.globalSubscription.add(myTracks$.subscribe((v) => this.setState({myTracks: v})))
+    this.globalSubscription.add(
+      myTracks$.subscribe(v => this.setState({ myTracks: v }))
+    );
 
     this.globalSubscription.add(
       currentLocation$.subscribe(this.stateObserver("location"))

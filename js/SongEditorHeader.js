@@ -39,11 +39,15 @@ export default class SongEditorHeader extends React.Component {
       this.setState({ newTitle: null });
     }
 
-    if (event.keyCode === 13 && !isBlank(this.state.newTitle)) {
-      // enter
+    if (event.keyCode === 13) {
       event.preventDefault();
+
+      const newTitle = this.state.newTitle;
       this.setState({ newTitle: null });
-      this.props.onChangeTitle(this.state.newTitle);
+
+      if (!isBlank(this.state.newTitle)) {
+        this.props.onChangeTitle(this.state.newTitle);
+      }
     }
   }
 
@@ -97,5 +101,5 @@ SongEditorHeader.propTypes = {
 };
 
 function isBlank(string) {
-  string == null || string.trim() === "";
+  return string == null || string.trim() === "";
 }

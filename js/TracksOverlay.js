@@ -17,14 +17,16 @@ class LineItem extends React.Component {
     const updatedAt = new Date(this.props.song.updatedAt);
     return (
       <li>
-        <MoreButton size={21} />
-        {this.props.song.title}
-        <br />
-        <span>
+        <MoreButton size={23} />
+        <div className="title">
+          {this.props.song.title}
+        </div>
+        <div className='updated-at'>
           {this.context.messages["last-updated-date"]({ DATE: updatedAt })}
-          <br />
-          PRIVATE
-        </span>
+        </div>
+        <div className='permissions'>
+          {this.context.messages["visibility-everyone"]()}
+        </div>
       </li>
     );
   }
@@ -41,11 +43,7 @@ export default class TracksOverlay extends React.Component {
         <h1>{this.context.messages["my-tracks-header"]()}</h1>
         <ul className="song-list">
           {map(this.props.songs, (song, songId) => (
-            <LineItem
-              song={song}
-              key={songId}
-              songId={songId}
-            />
+            <LineItem song={song} key={songId} songId={songId} />
           ))}
         </ul>
       </SideNavOverlay>

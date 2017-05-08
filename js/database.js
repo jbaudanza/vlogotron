@@ -12,14 +12,20 @@ export function createSong(song, uid) {
     updatedAt: firebase.database.ServerValue.TIMESTAMP
   };
 
-  return collectionRef.push({...rootObject, uid}).then(songRef => {
+  return collectionRef.push({ ...rootObject, uid }).then(songRef => {
     songRef.child("revisions").push({
       timestamp: firebase.database.ServerValue.TIMESTAMP,
       ...convertToFirebaseKeys(song),
       uid
     });
 
-    firebase.database().ref('users').child(uid).child('songs').child(songRef.key).set(rootObject);
+    firebase
+      .database()
+      .ref("users")
+      .child(uid)
+      .child("songs")
+      .child(songRef.key)
+      .set(rootObject);
 
     return songRef.key;
   });
