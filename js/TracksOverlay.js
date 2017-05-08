@@ -4,20 +4,50 @@ import { map } from "lodash";
 
 import SideNavOverlay from "./SideNavOverlay";
 import Link from "./Link";
-import MoreButton from "./MoreButton";
-
-import ReactActions from "./ReactActions";
 
 import "./TracksOverlay.scss";
 
-const lastUpdated = new Date();
+class PopupMenu extends React.Component {
+  constructor() {
+    super();
+    this.state = { open: false };
+    this.trigger = this.trigger.bind(this);
+  }
+
+  trigger() {
+    this.setState({ open: !this.state.open });
+  }
+
+  render() {
+    return (
+      <div>
+        <Link onClick={this.trigger} className="more-button">
+          <svg version="1.1" width={23} height={23}>
+            <use xlinkHref="#svg-ellipsis" />
+          </svg>
+        </Link>
+
+        {this.state.open
+          ? <div className="popup-menu">
+              <ul>
+                <li>Edit song</li>
+                <li>Share</li>
+                <li>Permissions</li>
+                <li>Delete</li>
+              </ul>
+            </div>
+          : null}
+      </div>
+    );
+  }
+}
 
 class LineItem extends React.Component {
   render() {
     const updatedAt = new Date(this.props.song.updatedAt);
     return (
       <li>
-        <MoreButton size={23} />
+        <PopupMenu />
         <div className="title">
           {this.props.song.title}
         </div>

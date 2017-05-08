@@ -34,7 +34,7 @@
     padding: 0;
     list-style-type: none;
 
-    li {
+    > li {
       padding: 18px 0;
       line-height: 21px;
 
@@ -55,6 +55,30 @@
         font-size: 10px;
         color: $color-light-purple;
       }
+    }
+  }
+
+  .popup-menu {
+    position: absolute;
+    font-size: 13px;
+    padding: 15px;
+    background-color: white;
+    letter-spacing: 0.2px;
+    color: $color-greyish-brown;
+    width: 174px;
+    box-shadow: 0 2px 7px 0 $color-pale-grey;
+    border-radius: 2px;
+
+    ul, li {
+      padding: 0;
+      list-style-type: none;
+    }
+
+    li {
+      margin-top: 5px;
+    }
+    li:first-child {
+      margin-top: 0;
     }
   }
 }
