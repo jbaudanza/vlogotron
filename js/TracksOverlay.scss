@@ -52,10 +52,9 @@
   .popup-menu {
     position: absolute;
     font-size: 13px;
-    padding: 15px;
+    padding: 10px 0;
     background-color: white;
     letter-spacing: 0.2px;
-    color: $color-greyish-brown;
     width: 174px;
     box-shadow: 0 2px 7px 0 $color-pale-grey;
     border-radius: 2px;
@@ -72,11 +71,15 @@
       list-style-type: none;
     }
 
-    li {
-      margin-top: 5px;
-    }
-    li:first-child {
-      margin-top: 0;
+    li > a {
+      display: block;
+      text-decoration: none;
+      color: $color-greyish-brown;
+      padding: 3px 15px;
+
+      &:hover {
+        background-color: $color-pale-grey;
+      }
     }
 
     // arrow pointer

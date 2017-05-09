@@ -55,7 +55,7 @@ class PopupMenu extends React.Component {
           ? <div className="popup-menu">
               <ul>
                 <li>
-                  <Link>
+                  <Link href={"/songs/" + this.props.songId}>
                     <svg className="icon" width={15} height={16}>
                       <use xlinkHref="#svg-pencil-2" />
                     </svg>
@@ -99,7 +99,7 @@ class LineItem extends React.Component {
     const updatedAt = new Date(this.props.song.updatedAt);
     return (
       <li>
-        <PopupMenu />
+        <PopupMenu songId={this.props.song.songId} />
         <div className="title">
           {this.props.song.title}
         </div>

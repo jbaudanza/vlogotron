@@ -1,6 +1,6 @@
 import { Observable } from "rxjs";
 
-import { mapKeys } from "lodash";
+import { mapKeys, mapValues } from "lodash";
 
 export function createSong(song, uid) {
   const collectionRef = firebase.database().ref("songs");
@@ -75,7 +75,9 @@ export function waitForTranscode(videoClipId) {
 
 export function songsForUser(uid) {
   const ref = firebase.database().ref("users").child(uid).child("songs");
-  return fromFirebaseRef(ref, "value").map(snapshot => snapshot.val());
+  return fromFirebaseRef(ref, "value").map(snapshot =>
+    mapValues(snapshot.val(), (value, key) => ({ ...value, songId: key }))
+  );
 }
 
 function createVideoClip(databaseEntry, videoBlob) {
