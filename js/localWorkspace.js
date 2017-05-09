@@ -5,8 +5,6 @@ import StorageSubject from "./StorageSubject";
 
 import { concat, omit, findIndex, filter, identity, last } from "lodash";
 
-import messages from "./messages";
-
 const subjects = {};
 
 export function subjectFor(key) {
@@ -98,7 +96,8 @@ const initialSong = {
   videoClips: {},
   notes: [],
   bpm: 120,
-  title: messages["default-song-title"]()
+  // TODO: Fix me
+  title: 'Untitled Song'//messages["default-song-title"]()
 };
 
 function reduceEditsToNotes(notes, edit) {
