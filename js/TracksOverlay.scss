@@ -11,6 +11,7 @@
 
   .title {
     font-size: 17px;
+    padding-right: 27px; // Make room for "more-button"
   }
   .updated-at {
     font-size: 12px;
@@ -35,6 +36,7 @@
     list-style-type: none;
 
     > li {
+      position: relative;
       padding: 18px 0;
       line-height: 21px;
 
@@ -47,6 +49,12 @@
         color: $color-light-purple;
       }
     }
+  }
+
+  .more-button {
+    position: absolute;
+    right: 0;
+    top: 18px;
   }
 
   .popup-menu {
