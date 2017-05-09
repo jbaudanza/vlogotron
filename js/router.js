@@ -71,7 +71,6 @@ export function routeToPageConfig(route) {
       return {
         view: PlaybackView,
         controller: playbackController,
-        location: location,
         actions: ["pause", "play", "playCommands$"]
       };
     default:

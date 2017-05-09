@@ -191,7 +191,6 @@ class App extends React.Component {
   }
 
   onNavigate(href) {
-    this.disposePage();
     navigate(href);
     document.body.scrollTop = 0;
   }
