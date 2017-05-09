@@ -3,6 +3,8 @@ import React from "react";
 import classNames from "classnames";
 import { omit } from "lodash";
 
+import PopupMenuTrigger from "./PopupMenuTrigger";
+
 import Link from "./Link";
 
 import "./Page.scss";
@@ -70,7 +72,10 @@ export default class Page extends React.Component {
                     text={this.context.messages["navigation-login"]()}
                   />}
             </div>
+            <span>English</span>
           </div>
+
+          <LocaleSelector />
         </div>
 
         <div className="page-vertical-wrapper">
@@ -81,6 +86,23 @@ export default class Page extends React.Component {
           {this.props.footer}
         </div>
       </div>
+    );
+  }
+}
+
+class LocaleSelector extends React.Component {
+  render() {
+    let popup;
+
+    const options = [
+      ['#foo', 'English', {}],
+      ['#foo', 'Korean', {}]
+    ];
+
+    return (
+      <PopupMenuTrigger options={options} className='locale-selector' direction='above'>
+        English
+      </PopupMenuTrigger>
     );
   }
 }
