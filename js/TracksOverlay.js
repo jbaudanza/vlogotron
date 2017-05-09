@@ -10,6 +10,8 @@ import Link from "./Link";
 import "./TracksOverlay.scss";
 
 const documentClick$ = Observable.fromEvent(document, "click");
+const escapeKeys$ = Observable.fromEvent(document, "keydown")
+  .filter(event => event.keyCode === 27)
 
 class PopupMenu extends React.Component {
   constructor() {
@@ -24,7 +26,8 @@ class PopupMenu extends React.Component {
     const open$ = this.triggerAction.filter(x => x === true).switchMap(() => {
       const close$ = Observable.merge(
         this.triggerAction.filter(x => x === false),
-        documentClick$
+        documentClick$,
+        escapeKeys$
       )
         .take(1)
         .mapTo(false);
