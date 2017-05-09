@@ -15,8 +15,6 @@ import { playCommands$ as keyboardPlayCommands$ } from "./keyboard";
 import { updatesForNewSong } from "./localWorkspace";
 import { createVideoClip } from "./database";
 
-import messages from "./messages";
-
 // Note: keypress doesn't work for escape key. Need to use keydown.
 const escapeKey$ = Observable.fromEvent(document, "keydown").filter(
   e => e.keyCode === 27
@@ -176,11 +174,12 @@ function startRecording(note, finish$, abort$) {
       // make sure it's a permissions error and not something else?
       // Or, can we at least catch this error higher up in the observable chain,
       // just after the getUserMedia promise?
-      return {
+      return Observable.of({
         viewState$: Observable.of({
-          error: messages["user-media-access-error"]()
-        })
-      };
+          error: "user-media-access-error"
+        }),
+        media$: Observable.never()
+      });
     });
 }
 

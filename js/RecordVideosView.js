@@ -54,7 +54,7 @@ export default class RecordVideosView extends React.Component {
       footer = (
         <PageTextFooter
           error
-          text={this.props.error}
+          text={this.context.messages[this.props.error]()}
           onDismissError={callbacks.onDismissError}
         />
       );
