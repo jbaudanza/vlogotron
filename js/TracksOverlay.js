@@ -30,10 +30,38 @@ class PopupMenu extends React.Component {
         {this.state.open
           ? <div className="popup-menu">
               <ul>
-                <li>Edit song</li>
-                <li>Share</li>
-                <li>Permissions</li>
-                <li>Delete</li>
+                <li>
+                  <Link>
+                    <svg className="icon" width={15} height={16}>
+                      <use xlinkHref="#svg-pencil-2" />
+                    </svg>
+                    Edit song
+                  </Link>
+                </li>
+                <li>
+                  <Link>
+                    <svg className="icon" width={15} height={15}>
+                      <use xlinkHref="#svg-share" />
+                    </svg>
+                    Share
+                  </Link>
+                </li>
+                <li>
+                  <Link>
+                    <svg className="icon" width={15} height={15}>
+                      <use xlinkHref="#svg-permission" />
+                    </svg>
+                    Permissions
+                  </Link>
+                </li>
+                <li>
+                  <Link>
+                    <svg className="icon" width={15} height={15}>
+                      <use xlinkHref="#svg-delete" />
+                    </svg>
+                    Delete
+                  </Link>
+                </li>
               </ul>
             </div>
           : null}
