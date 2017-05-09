@@ -73,7 +73,6 @@ export function subscribeToSongLocation(
     subscription
   );
 
-  subscription.add(song$.connect());
   subscription.add(videoClips$.connect());
 
   return {

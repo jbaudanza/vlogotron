@@ -76,7 +76,9 @@ function combineKeyValues(
 
     function cleanup() {
       values(accSubscriptions).forEach(sub => sub.unsubscribe());
-      sourceSubscription.unsubscribe();
+      if (sourceSubscription) {
+        sourceSubscription.unsubscribe();
+      }
     }
 
     return cleanup;

@@ -88,7 +88,7 @@ export default class NoteEditorView extends React.Component {
       action: "replace-all",
       notes: song.notes
     });
-    this.props.onNavigate("/song-editor");
+    this.props.onNavigate("/note-editor");
   }
 
   render() {
