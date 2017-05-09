@@ -12,24 +12,40 @@ import playbackController from "./playbackController";
 import noteEditorController from "./noteEditorController";
 import recordVideosController from "./recordVideosController";
 
+import { fromPairs } from "lodash";
+
 export function navigate(href) {
   urlHistory.push(href);
 }
 
-export function pathnameToRoute(pathname) {
-  let match;
+const id = "([\\w-]+)";
 
-  if (pathname === "/") {
-    return { name: "root", params: {} };
-  } else if (pathname === "/record-videos") {
-    return { name: "record-videos", params: {} };
-  } else if (pathname === "/note-editor") {
-    return { name: "note-editor", params: {} };
-  } else if ((match = pathname.match(/\/songs\/([\w-]+)/))) {
-    return { name: "view-song", params: { songId: match[1] } };
-  } else {
-    return { name: "not-found", params: {} };
+const routes = [
+  [`/`, "root"],
+  [`/record-videos`, "record-videos"],
+  [`/note-editor`, "note-editor"],
+  [`/songs/${id}`, "view-song", "songId"]
+];
+
+export function pathnameToRoute(pathname) {
+  for (let i = 0; i < routes.length; i++) {
+    const entry = routes[i];
+
+    const match = pathname.match(new RegExp("^" + entry[0] + "$"));
+
+    if (match) {
+      const params = fromPairs(
+        entry.slice(2).map((key, j) => [key, match[1 + j]])
+      );
+
+      return {
+        name: entry[1],
+        params: params
+      };
+    }
   }
+
+  return { name: "not-found", params: {} };
 }
 
 export function routeToPageConfig(route) {
