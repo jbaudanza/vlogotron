@@ -35,6 +35,9 @@ var vlogNotes = [];
 
 const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
+const minNoteNum = 60, maxNoteNum = 75;
+
+const defaultDuration = 1.0, minDuration = 0.1;
 var noteNum, noteName, oct;
 
 function round (num)
@@ -45,9 +48,21 @@ function round (num)
 while(event = events.next()) {
   offset += event.delta;
   if(event.type === MIDIEvents.EVENT_MIDI) {
-    // map note number to note name
-    //TODO: normalize octave to Vlogotron range?
+    // normalize octave to Vlogotron range
+    //C4 ... D#5
+    //60 ... 75
     noteNum = event.param1;
+    while (noteNum < minNoteNum)
+    {
+      noteNum += 12;
+    }
+
+    while (noteNum > maxNoteNum)
+    {
+      noteNum -= 12;
+    }
+
+    // map note number to note name
     noteName = noteNames[noteNum % 12];
     oct = Math.floor(noteNum / 12) - 1;
     if (event.subtype === MIDIEvents.EVENT_MIDI_NOTE_ON) {
@@ -58,6 +73,8 @@ while(event = events.next()) {
       note[0] = noteName + oct;
       // map time, dividing by ticks per beat
       note[1] = round(offset / midiFile.header.getTicksPerBeat());
+      // set default duration
+      note[2] = defaultDuration;
 
       vlogNotes.push(note);
 
@@ -68,7 +85,11 @@ while(event = events.next()) {
       for (var i = vlogNotes.length - 1; i >= 0; i--) {
         if (vlogNotes[i][0] === (noteName + oct))
         {
-          vlogNotes[i][2] = round(event.delta / midiFile.header.getTicksPerBeat());
+          var dur = round(event.delta / midiFile.header.getTicksPerBeat());
+          if (dur >= minDuration)
+          {
+            vlogNotes[i][2] = dur;
+          }
         }
       }
     }
