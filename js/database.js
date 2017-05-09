@@ -80,7 +80,7 @@ export function songsForUser(uid) {
   );
 }
 
-function createVideoClip(databaseEntry, videoBlob) {
+export function createVideoClip(databaseEntry, videoBlob) {
   const databaseRef = firebase.database().ref("video-clips");
 
   const uploadRef = firebase
