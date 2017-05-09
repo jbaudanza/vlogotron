@@ -146,10 +146,14 @@ function reduceEditsToSong(song, edit) {
         }
       };
     case "remove-video":
-      return update({ videoClips: omit(song.videoClips, edit.note) });
+      return {
+        ...song,
+        videoClips: omit(song.videoClips, edit.note)
+      };
     default:
-      return update({
+      return {
+        ...song,
         notes: reduceEditsToNotes(song.notes, edit)
-      });
+      };
   }
 }

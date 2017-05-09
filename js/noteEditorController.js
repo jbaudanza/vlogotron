@@ -3,7 +3,7 @@ import { Observable } from "rxjs/Observable";
 import { playbackControllerHelper } from "./playbackController";
 import { last } from "lodash";
 
-import { songLengthInSeconds, reduceEditsToSong } from "./song";
+import { songLengthInSeconds } from "./song";
 import { readEvents, writeEvent } from "./localEventStore";
 
 import { updatesForNewSong, updatesForNewSongWithUndo } from "./localWorkspace";
