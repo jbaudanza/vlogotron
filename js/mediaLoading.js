@@ -36,7 +36,7 @@ export function mapRouteToSongLocation(route) {
   return { source: "none" };
 }
 
-export function subscribeToSongLocation(songLocation, subscription) {
+export function subscribeToSongLocation(songLocation, defaultSongTitle, subscription) {
   let song$;
   const null$ = Observable.of(null);
   switch (songLocation.source) {
@@ -45,7 +45,7 @@ export function subscribeToSongLocation(songLocation, subscription) {
       subscription.add(song$.connect());
       break;
     case "localStorage":
-      song$ = null$.concat(subjectFor(songLocation.id)).publishReplay();
+      song$ = null$.concat(subjectFor(songLocation.id, defaultSongTitle)).publishReplay();
       subscription.add(song$.connect());
       break;
     default:

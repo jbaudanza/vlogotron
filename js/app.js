@@ -159,6 +159,7 @@ class App extends React.Component {
       this.songLocation = songLocation;
       this.media = subscribeToSongLocation(
         songLocation,
+        messages[this.state.locale]["default-song-title"](),
         this.mediaSubscription
       );
     }

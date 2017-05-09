@@ -7,10 +7,10 @@ import { concat, omit, findIndex, filter, identity, last } from "lodash";
 
 const subjects = {};
 
-export function subjectFor(key) {
+export function subjectFor(key, defaultSongTitle) {
   // TODO: Is putting these in a global variable the best way?
   if (!(key in subjects)) {
-    subjects[key] = new StorageSubject(window.localStorage, key, initialSong);
+    subjects[key] = new StorageSubject(window.localStorage, key, {...initialSong, title: defaultSongTitle});
   }
 
   return subjects[key];
@@ -95,9 +95,7 @@ function reduceWithUndoStack(acc, edit) {
 const initialSong = {
   videoClips: {},
   notes: [],
-  bpm: 120,
-  // TODO: Fix me
-  title: 'Untitled Song'//messages["default-song-title"]()
+  bpm: 120
 };
 
 function reduceEditsToNotes(notes, edit) {
