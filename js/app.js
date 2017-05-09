@@ -6,7 +6,7 @@ import { Observable } from "rxjs/Observable";
 import { Subscription } from "rxjs/Subscription";
 import { Subject } from "rxjs/Subject";
 
-import { bindAll, fromPairs, isEqual } from "lodash";
+import { bindAll, fromPairs, isEqual, find, includes } from "lodash";
 
 import SvgAssets from "./SvgAssets";
 import LoginOverlay from "./LoginOverlay";
@@ -66,17 +66,44 @@ const currentPathname$ = currentLocation$
 
 const currentRoute$ = currentPathname$.map(pathnameToRoute);
 
+function initializeLocale() {
+  const available = ['en', 'ko'];
+
+  // First, see if the user picked a locale in previous session
+  if ('locale' in localStorage && includes(available, localStorage.locale)) {
+    return localStorage.locale;
+  }
+
+  // This is supported in newer browsers
+  if ('languages' in navigator) {
+    const result = find(navigator.languages, (v) => includes(available, v));
+    if (result)
+      return result;
+  }
+
+  // Default to english
+  return 'en';
+}
+
 class App extends React.Component {
   constructor() {
     super();
     bindAll(
       this,
       "onLogin",
+      "onChangeLocale",
       "onNavigate",
       "onLogout",
       "onClick",
       "onRouteChange"
     );
+
+    this.state = {locale: initializeLocale()};
+  }
+
+  onChangeLocale(locale) {
+    this.setState({locale});
+    localStorage.locale = locale;
   }
 
   onClick(event) {
@@ -163,6 +190,7 @@ class App extends React.Component {
             <View
               {...viewState}
               media={this.media}
+              onChangeLocale={this.onChangeLocale}
               actions={this.pageActions}
               onNavigate={this.onNavigate}
               onLogin={this.onLogin}
@@ -205,7 +233,7 @@ class App extends React.Component {
   }
 
   getChildContext() {
-    return { audioContext, messages };
+    return { audioContext, messages: messages[this.state.locale] };
   }
 
   render() {

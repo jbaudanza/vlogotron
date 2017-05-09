@@ -44,6 +44,7 @@ export default class PlaybackView extends React.Component {
       <Page
         onLogin={this.onClickLogin}
         onLogout={this.props.onLogout}
+        onChangeLocale={this.props.onChangeLocale}
         isLoggedIn={!!this.props.currentUser}
         header={header}
         footer={null}

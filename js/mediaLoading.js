@@ -23,8 +23,6 @@ import {
 
 import promiseFromTemplate from "./promiseFromTemplate";
 
-import messages from "./messages";
-
 export function mapRouteToSongLocation(route) {
   switch (route.name) {
     case "root":

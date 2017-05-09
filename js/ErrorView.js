@@ -5,7 +5,12 @@ import Page from "./Page";
 class ErrorView extends React.Component {
   render() {
     return (
-      <Page sidebarVisible={false} header={<div />} className="error-page">
+      <Page
+        sidebarVisible={false}
+        header={<div />}
+        onChangeLocale={this.props.onChangeLocale}
+        className="error-page"
+      >
         <div className="error-code">
           <span style={{ fontSize: "125px" }}>4</span>
           <svg version="1.1" width={100} height={125}>

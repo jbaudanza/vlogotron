@@ -75,7 +75,13 @@ export default class Page extends React.Component {
             <span>English</span>
           </div>
 
-          <LocaleSelector />
+          <div className="locale-selector">
+            <Link onClick={this.props.onChangeLocale.bind(null, "en")}>
+              En
+            </Link>
+            <span> / </span>
+            <Link onClick={this.props.onChangeLocale.bind(null, "ko")}>한국</Link>
+          </div>
         </div>
 
         <div className="page-vertical-wrapper">
@@ -90,29 +96,13 @@ export default class Page extends React.Component {
   }
 }
 
-class LocaleSelector extends React.Component {
-  render() {
-    let popup;
-
-    const options = [
-      ['#foo', 'English', {}],
-      ['#foo', 'Korean', {}]
-    ];
-
-    return (
-      <PopupMenuTrigger options={options} className='locale-selector' direction='above'>
-        English
-      </PopupMenuTrigger>
-    );
-  }
-}
-
 Page.contextTypes = {
   messages: React.PropTypes.object.isRequired
 };
 
 Page.PropTypes = {
   sidebarVisible: React.PropTypes.bool.isRequired,
+  onChangeLocale: React.PropTypes.func.isRequired,
   header: React.PropTypes.node.isRequired,
   footer: React.PropTypes.node
 };

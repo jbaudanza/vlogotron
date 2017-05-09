@@ -164,6 +164,7 @@ export default class NoteEditorView extends React.Component {
       <Page
         onLogin={this.onClickLogin}
         onLogout={this.props.onLogout}
+        onChangeLocale={this.props.onChangeLocale}
         isLoggedIn={!!this.props.currentUser}
         sidebarVisible={false}
         header={header}

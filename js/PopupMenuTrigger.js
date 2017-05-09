@@ -70,18 +70,13 @@ export default class PopupMenuTrigger extends React.Component {
     let popup;
     if (this.state.showPosition) {
       let where;
-      if (this.props.direction === 'above') {
+      if (this.props.direction === "above") {
         where = pointAbove(this.state.showPosition);
       } else {
         where = pointBelow(this.state.showPosition);
       }
 
-      popup = (
-        <PopupMenu
-          {...where}
-          options={this.props.options}
-        />
-      );
+      popup = <PopupMenu {...where} options={this.props.options} />;
     }
 
     return (

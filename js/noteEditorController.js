@@ -10,8 +10,6 @@ import { updatesForNewSong, updatesForNewSongWithUndo } from "./localWorkspace";
 
 import { createSong } from "./database";
 
-import messages from "./messages";
-
 export default function noteEditorController(
   params,
   actions,
