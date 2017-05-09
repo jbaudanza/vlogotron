@@ -1,27 +1,51 @@
 import React from "react";
+import { Observable } from "rxjs/Observable";
+import { Subject } from "rxjs/Subject";
 
-import { map } from "lodash";
+import { map, bindAll } from "lodash";
 
 import SideNavOverlay from "./SideNavOverlay";
 import Link from "./Link";
 
 import "./TracksOverlay.scss";
 
+const documentClick$ = Observable.fromEvent(document, "click");
+
 class PopupMenu extends React.Component {
   constructor() {
     super();
-    this.state = { open: false };
-    this.trigger = this.trigger.bind(this);
+    this.state = {};
+    this.triggerAction = new Subject();
+
+    this.trigger = this.triggerAction.next.bind(this.triggerAction);
   }
 
-  trigger() {
-    this.setState({ open: !this.state.open });
+  componentWillMount() {
+    const open$ = this.triggerAction.filter(x => x === true).switchMap(() => {
+      const close$ = Observable.merge(
+        this.triggerAction.filter(x => x === false),
+        documentClick$
+      )
+        .take(1)
+        .mapTo(false);
+
+      return Observable.of(true).concat(close$);
+    });
+
+    this.subscription = open$.subscribe(v => this.setState({ open: v }));
+  }
+
+  componentWillUnmount() {
+    this.subscription.unsubscribe();
   }
 
   render() {
     return (
       <div>
-        <Link onClick={this.trigger} className="more-button">
+        <Link
+          onClick={this.trigger.bind(this, !this.state.open)}
+          className="more-button"
+        >
           <svg version="1.1" width={23} height={23}>
             <use xlinkHref="#svg-ellipsis" />
           </svg>
