@@ -10,7 +10,10 @@ const subjects = {};
 export function subjectFor(key, defaultSongTitle) {
   // TODO: Is putting these in a global variable the best way?
   if (!(key in subjects)) {
-    subjects[key] = new StorageSubject(window.localStorage, key, {...initialSong, title: defaultSongTitle});
+    subjects[key] = new StorageSubject(window.localStorage, key, {
+      ...initialSong,
+      title: defaultSongTitle
+    });
   }
 
   return subjects[key];

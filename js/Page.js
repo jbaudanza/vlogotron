@@ -80,7 +80,9 @@ export default class Page extends React.Component {
               En
             </Link>
             <span> / </span>
-            <Link onClick={this.props.onChangeLocale.bind(null, "ko")}>한국</Link>
+            <Link onClick={this.props.onChangeLocale.bind(null, "ko")}>
+              한국어
+            </Link>
           </div>
         </div>
 

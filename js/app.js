@@ -67,22 +67,21 @@ const currentPathname$ = currentLocation$
 const currentRoute$ = currentPathname$.map(pathnameToRoute);
 
 function initializeLocale() {
-  const available = ['en', 'ko'];
+  const available = ["en", "ko"];
 
   // First, see if the user picked a locale in previous session
-  if ('locale' in localStorage && includes(available, localStorage.locale)) {
+  if ("locale" in localStorage && includes(available, localStorage.locale)) {
     return localStorage.locale;
   }
 
   // This is supported in newer browsers
-  if ('languages' in navigator) {
-    const result = find(navigator.languages, (v) => includes(available, v));
-    if (result)
-      return result;
+  if ("languages" in navigator) {
+    const result = find(navigator.languages, v => includes(available, v));
+    if (result) return result;
   }
 
   // Default to english
-  return 'en';
+  return "en";
 }
 
 class App extends React.Component {
@@ -98,11 +97,11 @@ class App extends React.Component {
       "onRouteChange"
     );
 
-    this.state = {locale: initializeLocale()};
+    this.state = { locale: initializeLocale() };
   }
 
   onChangeLocale(locale) {
-    this.setState({locale});
+    this.setState({ locale });
     localStorage.locale = locale;
   }
 
