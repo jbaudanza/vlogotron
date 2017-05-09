@@ -1,97 +1,93 @@
 import React from "react";
 import { Observable } from "rxjs/Observable";
-import { Subject } from "rxjs/Subject";
 
 import { map, bindAll } from "lodash";
+
+import { findWrappingLink } from "./domutils";
 
 import SideNavOverlay from "./SideNavOverlay";
 import Link from "./Link";
 
 import "./TracksOverlay.scss";
 
-const documentClick$ = Observable.fromEvent(document, "click");
-const escapeKeys$ = Observable.fromEvent(document, "keydown")
-  .filter(event => event.keyCode === 27)
+import PopupMenu from "./PopupMenu";
 
-class PopupMenu extends React.Component {
+const documentClick$ = Observable.fromEvent(document, "click");
+const escapeKeys$ = Observable.fromEvent(document, "keydown").filter(
+  event => event.keyCode === 27
+);
+
+function pointBelow(rect) {
+  return {
+    left: rect.left + rect.width / 2,
+    top: rect.top + rect.height
+  };
+}
+
+class PopupMenuTrigger extends React.Component {
   constructor() {
     super();
-    this.state = {};
-    this.triggerAction = new Subject();
+    this.state = { open: false, showPosition: null };
 
-    this.trigger = this.triggerAction.next.bind(this.triggerAction);
-  }
-
-  componentWillMount() {
-    const open$ = this.triggerAction.filter(x => x === true).switchMap(() => {
-      const close$ = Observable.merge(
-        this.triggerAction.filter(x => x === false),
-        documentClick$,
-        escapeKeys$
-      )
-        .take(1)
-        .mapTo(false);
-
-      return Observable.of(true).concat(close$);
-    });
-
-    this.subscription = open$.subscribe(v => this.setState({ open: v }));
+    this.trigger = this.trigger.bind(this);
   }
 
   componentWillUnmount() {
-    this.subscription.unsubscribe();
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+  }
+
+  trigger(event) {
+    if (this.state.showPosition) {
+      close();
+    } else {
+      const el = findWrappingLink(event.target);
+
+      if (el) {
+        this.setState({
+          showPosition: el.getBoundingClientRect()
+        });
+      }
+
+      this.subscription = Observable.merge(documentClick$, escapeKeys$)
+        .take(1)
+        .subscribe(this.close.bind(this));
+    }
+  }
+
+  close() {
+    this.setState({ showPosition: null });
+
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+      delete this.subscription;
+    }
   }
 
   render() {
+    const options = [
+      ["#svg-pencil-2", "Edit Song", { href: "/songs/" + this.props.songId }],
+      ["#svg-share", "Share", {}],
+      ["#svg-permission", "Permissions", {}],
+      ["#svg-delete", "Delete", {}]
+    ];
+
+    let popup;
+    if (this.state.showPosition) {
+      popup = (
+        <PopupMenu {...pointBelow(this.state.showPosition)} options={options} />
+      );
+    }
+
     return (
       <div>
-        <Link
-          onClick={this.trigger.bind(this, !this.state.open)}
-          className="more-button"
-        >
+        <Link onClick={this.trigger} className="more-button">
           <svg version="1.1" width={23} height={23}>
             <use xlinkHref="#svg-ellipsis" />
           </svg>
         </Link>
-
-        {this.state.open
-          ? <div className="popup-menu">
-              <ul>
-                <li>
-                  <Link href={"/songs/" + this.props.songId}>
-                    <svg className="icon" width={15} height={16}>
-                      <use xlinkHref="#svg-pencil-2" />
-                    </svg>
-                    Edit song
-                  </Link>
-                </li>
-                <li>
-                  <Link>
-                    <svg className="icon" width={15} height={15}>
-                      <use xlinkHref="#svg-share" />
-                    </svg>
-                    Share
-                  </Link>
-                </li>
-                <li>
-                  <Link>
-                    <svg className="icon" width={15} height={15}>
-                      <use xlinkHref="#svg-permission" />
-                    </svg>
-                    Permissions
-                  </Link>
-                </li>
-                <li>
-                  <Link>
-                    <svg className="icon" width={15} height={15}>
-                      <use xlinkHref="#svg-delete" />
-                    </svg>
-                    Delete
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          : null}
+        {popup}
       </div>
     );
   }
@@ -102,7 +98,7 @@ class LineItem extends React.Component {
     const updatedAt = new Date(this.props.song.updatedAt);
     return (
       <li>
-        <PopupMenu songId={this.props.song.songId} />
+        <PopupMenuTrigger songId={this.props.song.songId} />
         <div className="title">
           {this.props.song.title}
         </div>
