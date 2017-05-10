@@ -6,12 +6,6 @@ import { omit, bindAll } from "lodash";
 import TouchableArea from "./TouchableArea";
 import VideoCell from "./VideoCell";
 
-// TODO: This is leftover from when we were using the antd library. This
-// should display a loading animation
-function Spin(props) {
-  return <div>{props.children}</div>;
-}
-
 import "./VideoGrid.scss";
 
 const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
@@ -159,13 +153,11 @@ export default class VideoGrid extends React.Component {
 
   render() {
     return (
-      <Spin tip="Loading" size="large" spinning={this.props.loading}>
-        <TouchableArea className="video-container" ref={this.bindTouchableArea}>
-          {notes.map(note => (
-            <VideoCell key={note} {...this.propsForCell(note)} />
-          ))}
-        </TouchableArea>
-      </Spin>
+      <TouchableArea className="video-container" ref={this.bindTouchableArea}>
+        {notes.map(note => (
+          <VideoCell key={note} {...this.propsForCell(note)} />
+        ))}
+      </TouchableArea>
     );
   }
 }
@@ -173,7 +165,6 @@ export default class VideoGrid extends React.Component {
 VideoGrid.propTypes = {
   playCommands$: React.PropTypes.object.isRequired,
   readonly: React.PropTypes.bool.isRequired,
-  loading: React.PropTypes.bool.isRequired,
   videoClips: React.PropTypes.object.isRequired,
   countdownUntilRecord: React.PropTypes.number,
   durationRecorded: React.PropTypes.number,

@@ -40,25 +40,29 @@ export default class PlaybackView extends React.Component {
       />
     );
 
-    return (
-      <Page
-        onLogin={this.onClickLogin}
-        onLogout={this.props.onLogout}
-        onChangeLocale={this.props.onChangeLocale}
-        isLoggedIn={!!this.props.currentUser}
-        header={header}
-        footer={null}
-        sidebarVisible={true}
-      >
-        <VideoGrid
-          readonly
-          loading={this.props.loading}
-          videoClips={this.props.videoClips}
-          playCommands$={this.props.playCommands$}
-          ref={this.bindVideoGrid}
-        />
-      </Page>
-    );
+    if (this.props.loading) {
+      return <div>loading sounds...</div>
+    } else {
+      return (
+        <Page
+          onLogin={this.onClickLogin}
+          onLogout={this.props.onLogout}
+          onChangeLocale={this.props.onChangeLocale}
+          isLoggedIn={!!this.props.currentUser}
+          header={header}
+          footer={null}
+          sidebarVisible={true}
+        >
+          <VideoGrid
+            readonly
+            videoClips={this.props.videoClips}
+            playCommands$={this.props.playCommands$}
+            ref={this.bindVideoGrid}
+          />
+        </Page>
+      );
+
+    }
   }
 }
 

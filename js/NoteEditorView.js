@@ -173,7 +173,6 @@ export default class NoteEditorView extends React.Component {
       >
         <VideoGrid
           readonly
-          loading={this.props.loading}
           videoClips={this.props.videoClips}
           playCommands$={this.props.playCommands$}
           readonly={true}

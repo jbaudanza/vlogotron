@@ -85,7 +85,6 @@ export default class RecordVideosView extends React.Component {
       >
         <VideoGrid
           readonly
-          loading={this.props.loading}
           videoClips={this.props.videoClips}
           playCommands$={this.props.playCommands$}
           readonly={false}
