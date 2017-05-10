@@ -17,7 +17,7 @@ class LineItem extends React.Component {
       [
         "#svg-pencil-2",
         "Edit Song",
-        { href: "/songs/" + this.props.song.songId + "/record-videos"}
+        { href: "/songs/" + this.props.song.songId + "/record-videos" }
       ],
       ["#svg-share", "Share", {}],
       ["#svg-permission", "Permissions", {}],

@@ -18,7 +18,6 @@ export default function noteEditorController(
   subscription,
   navigateFn
 ) {
-
   const undo = updatesForNewSongWithUndo(
     actions.editSong$,
     media.workspace$,

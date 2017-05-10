@@ -51,7 +51,7 @@ export function subscribeToSongLocation(
       subscription.add(song$.connect());
       break;
     case "localStorage":
-      workspace$ = subjectFor(songLocation.id, defaultSongTitle)
+      workspace$ = subjectFor(songLocation.id, defaultSongTitle);
       song$ = null$.concat(workspace$).publishReplay();
       subscription.add(song$.connect());
       break;

@@ -28,7 +28,11 @@ function withUndoStack(value) {
   return { current: value, undoStack: [], redoStack: [] };
 }
 
-export function updatesForNewSongWithUndo(updateEvents$, storage$, subscription) {
+export function updatesForNewSongWithUndo(
+  updateEvents$,
+  storage$,
+  subscription
+) {
   const accFn = reduceWithUndoStack;
 
   const undoState$ = storage$.remoteUpdates$.switchMap(song => {
@@ -44,8 +48,8 @@ export function updatesForNewSongWithUndo(updateEvents$, storage$, subscription)
   });
 
   return {
-    "undoEnabled$": undoState$.map(o => o.undoStack.length > 0).startWith(false),
-    "redoEnabled$": undoState$.map(o => o.redoStack.length > 0).startWith(false)
+    undoEnabled$: undoState$.map(o => o.undoStack.length > 0).startWith(false),
+    redoEnabled$: undoState$.map(o => o.redoStack.length > 0).startWith(false)
   };
 }
 

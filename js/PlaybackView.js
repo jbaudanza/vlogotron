@@ -41,7 +41,7 @@ export default class PlaybackView extends React.Component {
     );
 
     if (this.props.loading) {
-      return <div>loading sounds...</div>
+      return <div>loading sounds...</div>;
     } else {
       return (
         <Page
@@ -61,7 +61,6 @@ export default class PlaybackView extends React.Component {
           />
         </Page>
       );
-
     }
   }
 }
