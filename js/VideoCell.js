@@ -135,7 +135,7 @@ export default class VideoCell extends React.Component {
         {countdownEl}
         {stopActionEl}
         {shadeEl}
-        <NoteLabel note={this.props.note} />
+        <NoteLabel note={this.props.label} />
         {clearEl}
       </div>
     );
@@ -148,6 +148,7 @@ VideoCell.contextTypes = {
 
 VideoCell.propTypes = {
   note: React.PropTypes.string.isRequired,
+  label: React.PropTypes.string.isRequired,
   playing: React.PropTypes.bool.isRequired,
   mediaStream: React.PropTypes.object,
   onStartRecording: React.PropTypes.func,
