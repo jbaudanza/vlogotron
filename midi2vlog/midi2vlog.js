@@ -37,8 +37,16 @@ const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "
 
 const minNoteNum = 60, maxNoteNum = 75;
 
+const midRange = meanNote(minNoteNum, maxNoteNum);
+
 const defaultDuration = 1.0, minDuration = 0.1;
+
 var noteNum, noteName, oct;
+
+function meanNote(min, max)
+{
+  return Math.round((max + min) / 2);
+}
 
 function findRange(events)
 {
@@ -57,7 +65,16 @@ function findRange(events)
       }
     }
   }
-  return {low: min, high: max};
+  return {min: min, max: max};
+}
+
+var range = findRange(events);
+
+var transposition = 0;
+
+if (range.min < minNoteNum || range.max > maxNoteNum)
+{
+  transposition = meanNote(range.min, range.max) - midRange;
 }
 
 function round (num)
@@ -65,14 +82,16 @@ function round (num)
   return Math.round(num * 100) / 100;
 }
 
-
+events = MIDIEvents.createParser(trackEventsChunk);
 while(event = events.next()) {
   offset += event.delta;
   if(event.type === MIDIEvents.EVENT_MIDI) {
     // normalize octave to Vlogotron range
     //C4 ... D#5
     //60 ... 75
-    noteNum = event.param1;
+    noteNum = event.param1 + transposition;
+
+    // if notes still out of range, transpose by octave
     while (noteNum < minNoteNum)
     {
       noteNum += 12;
