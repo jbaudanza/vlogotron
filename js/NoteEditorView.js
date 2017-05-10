@@ -88,7 +88,7 @@ export default class NoteEditorView extends React.Component {
       action: "replace-all",
       notes: song.notes
     });
-    this.props.onNavigate("/note-editor");
+    this.props.onNavigate(this.props.location.pathname);
   }
 
   render() {
@@ -118,7 +118,7 @@ export default class NoteEditorView extends React.Component {
         <ChooseSongOverlay
           onSelect={this.onChooseSong}
           media={this.props.media}
-          onClose="/note-editor"
+          onClose={this.props.location.pathname}
           bpm={this.props.bpm}
         />
       );
