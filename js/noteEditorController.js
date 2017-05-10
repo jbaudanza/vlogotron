@@ -18,11 +18,7 @@ export default function noteEditorController(
   subscription,
   navigateFn
 ) {
-  // XXX: This only needs to return the undo state.
-  const undoState$ = updatesForNewSongWithUndo(actions.editSong$, subscription);
-
-  const undoEnabled$ = undoState$.map(o => o.undoStack.length > 0);
-  const redoEnabled$ = undoState$.map(o => o.redoStack.length > 0);
+  const undo = updatesForNewSongWithUndo(actions.editSong$, subscription);
 
   const cellsPerBeat$ = actions.changeCellsPerBeat$.startWith(4);
 
@@ -50,8 +46,8 @@ export default function noteEditorController(
   return Observable.combineLatest(
     parentViewState$,
     cellsPerBeat$,
-    redoEnabled$.startWith(false),
-    undoEnabled$.startWith(false),
+    undo.redoEnabled$,
+    undo.undoEnabled$,
     saveEnabled$,
     (parentViewState, cellsPerBeat, redoEnabled, undoEnabled, saveEnabled) => ({
       ...parentViewState,

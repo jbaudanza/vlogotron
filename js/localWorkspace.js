@@ -44,7 +44,7 @@ export function updatesForNewSongWithUndo(updateEvents$, subscription) {
 
   const storage$ = subjectFor(key);
 
-  return storage$.remoteUpdates$.switchMap(song => {
+  const undoState$ = storage$.remoteUpdates$.switchMap(song => {
     const initial = withUndoStack(song);
     const withUndoStack$ = updateEvents$.scan(accFn, initial);
 
@@ -55,6 +55,11 @@ export function updatesForNewSongWithUndo(updateEvents$, subscription) {
         .startWith(initial)
     );
   });
+
+  return {
+    "undoEnabled$": undoState$.map(o => o.undoStack.length > 0).startWith(false),
+    "redoEnabled$": undoState$.map(o => o.redoStack.length > 0).startWith(false)
+  };
 }
 
 function reduceWithUndoStack(acc, edit) {
