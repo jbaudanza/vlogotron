@@ -5,25 +5,15 @@ import StorageSubject from "./StorageSubject";
 
 import { concat, omit, findIndex, filter, identity, last } from "lodash";
 
-const subjects = {};
-
 export function subjectFor(key, defaultSongTitle) {
-  // TODO: Is putting these in a global variable the best way?
-  if (!(key in subjects)) {
-    subjects[key] = new StorageSubject(window.localStorage, key, {
-      ...initialSong,
-      title: defaultSongTitle
-    });
-  }
-
-  return subjects[key];
+  return new StorageSubject(window.localStorage, key, {
+    ...initialSong,
+    title: defaultSongTitle
+  });
 }
 
-export function updatesForNewSong(updateEvents$, subscription) {
-  const key = "vlogotron-new-song";
+export function updatesForNewSong(updateEvents$, storage$, subscription) {
   const accFn = reduceEditsToSong;
-
-  const storage$ = subjectFor(key);
 
   subscription.add(
     updateEvents$
@@ -38,11 +28,8 @@ function withUndoStack(value) {
   return { current: value, undoStack: [], redoStack: [] };
 }
 
-export function updatesForNewSongWithUndo(updateEvents$, subscription) {
-  const key = "vlogotron-new-song";
+export function updatesForNewSongWithUndo(updateEvents$, storage$, subscription) {
   const accFn = reduceWithUndoStack;
-
-  const storage$ = subjectFor(key);
 
   const undoState$ = storage$.remoteUpdates$.switchMap(song => {
     const initial = withUndoStack(song);

@@ -70,6 +70,7 @@ export default function recordVideosController(
 
   updatesForNewSong(
     Observable.merge(clearedEvents$, uploadedEvents$, actions.editSong$),
+    mediaStore.workspace$,
     subscription
   );
 

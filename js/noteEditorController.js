@@ -18,7 +18,12 @@ export default function noteEditorController(
   subscription,
   navigateFn
 ) {
-  const undo = updatesForNewSongWithUndo(actions.editSong$, subscription);
+
+  const undo = updatesForNewSongWithUndo(
+    actions.editSong$,
+    media.workspace$,
+    subscription
+  );
 
   const cellsPerBeat$ = actions.changeCellsPerBeat$.startWith(4);
 

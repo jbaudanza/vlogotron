@@ -42,6 +42,8 @@ export function subscribeToSongLocation(
   subscription
 ) {
   let song$;
+  let workspace$;
+
   const null$ = Observable.of(null);
   switch (songLocation.source) {
     case "database":
@@ -49,9 +51,8 @@ export function subscribeToSongLocation(
       subscription.add(song$.connect());
       break;
     case "localStorage":
-      song$ = null$
-        .concat(subjectFor(songLocation.id, defaultSongTitle))
-        .publishReplay();
+      workspace$ = subjectFor(songLocation.id, defaultSongTitle)
+      song$ = null$.concat(workspace$).publishReplay();
       subscription.add(song$.connect());
       break;
     default:
@@ -78,6 +79,7 @@ export function subscribeToSongLocation(
   return {
     song$,
     videoClips$,
+    workspace$,
     audioBuffers$: audioLoading.audioBuffers$,
     loading$: audioLoading.loading$
   };
