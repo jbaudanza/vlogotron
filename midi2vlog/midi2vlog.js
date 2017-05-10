@@ -40,10 +40,31 @@ const minNoteNum = 60, maxNoteNum = 75;
 const defaultDuration = 1.0, minDuration = 0.1;
 var noteNum, noteName, oct;
 
+function findRange(events)
+{
+  var min = 127;
+  var max = 0;
+  while(event = events.next()) {
+    if(event.type === MIDIEvents.EVENT_MIDI) {
+      var noteNum = event.param1;
+      if (noteNum < min)
+      {
+        min = noteNum;
+      }
+      if (noteNum > max)
+      {
+        max = noteNum;
+      }
+    }
+  }
+  return {low: min, high: max};
+}
+
 function round (num)
 {
   return Math.round(num * 100) / 100;
 }
+
 
 while(event = events.next()) {
   offset += event.delta;
