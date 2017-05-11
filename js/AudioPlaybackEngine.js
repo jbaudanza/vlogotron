@@ -128,6 +128,11 @@ export function startScriptedPlayback(
           if (audioBuffer) {
             const source = audioContext.createBufferSource();
             source.buffer = audioBuffer;
+
+            // alter playback rate for sharp notes,
+            // simply use just intonation for now
+            var pitchRatio = command[0].indexOf("#") ? 1.0 : 1.05946;
+            source.playbackRate.value = pitchRatio;
             source.connect(gainNode);
 
             let offset;
@@ -143,8 +148,8 @@ export function startScriptedPlayback(
             console.warn("missing audiobuffer for", command[0]);
           }
 
-          events.push({ play: command[0], when: startAt });
-          events.push({ pause: command[0], when: startAt + duration });
+          events.push({ play: command[0].replace("#", ""), when: startAt });
+          events.push({ pause: command[0].replace("#", ""), when: startAt + duration });
         });
 
         return events;
