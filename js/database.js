@@ -24,8 +24,8 @@ export function createSong(song, uid) {
       .ref("users")
       .child(uid)
       .child("songs")
-      .child(songId)
-      .set(song);
+      .child(songRef.key)
+      .set(rootObject);
 
     return songRef.key;
   });
