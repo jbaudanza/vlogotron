@@ -72,6 +72,7 @@ var range = findRange(events);
 
 var transposition = 0;
 
+// find ideal middle range transposition
 if (range.min < minNoteNum || range.max > maxNoteNum)
 {
   transposition = meanNote(range.min, range.max) - midRange;
@@ -89,9 +90,10 @@ while(event = events.next()) {
     // normalize octave to Vlogotron range
     //C4 ... D#5
     //60 ... 75
-    noteNum = event.param1 + transposition;
+    noteNum = parseInt(event.param1) + transposition;
 
-    // if notes still out of range, transpose by octave
+    // if individual notes still out of range,
+    // transpose each by an octave until in range
     while (noteNum < minNoteNum)
     {
       noteNum += 12;
