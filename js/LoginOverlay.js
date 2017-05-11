@@ -20,7 +20,7 @@ export default class LoginOverlay extends React.Component {
             className="login-button"
           >
             <img
-              src={provider.toLocaleLowerCase() + "-login.svg"}
+              src={"/" + provider.toLocaleLowerCase() + "-login.svg"}
               width="200px"
             />
           </Link>
