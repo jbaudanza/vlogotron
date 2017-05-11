@@ -8,6 +8,7 @@
   "remix-action": "리믹스",
   "cancel-action": "취소",
   "next-action": "다음",
+  "update-action": "update",
   "ok-action": "예",
   "start-singing-countdown-prompt": "노래를 부르기 시작하세요",
   "default-song-title": "무제의 곡",

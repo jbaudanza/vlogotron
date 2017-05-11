@@ -92,16 +92,20 @@ export default class NoteEditorView extends React.Component {
   }
 
   render() {
+    const prevPathname = this.props.location.pathname.replace('/note-editor', '/record-videos');
+
+    const nextLabel = (this.props.newSong ? this.context.messages["save-action"]() : this.context.messages["update-action"]())
+
     const header = (
       <SongEditorHeader
         songTitle={this.props.songTitle}
-        secondaryAction={{ href: "/record-videos" }}
+        secondaryAction={{ href: prevPathname }}
         secondaryActionLabel={this.context.messages["back-action"]()}
         primaryAction={{
           onClick: this.props.actions.callbacks.onSave,
           enabled: this.props.saveEnabled
         }}
-        primaryActionLabel={this.context.messages["save-action"]()}
+        primaryActionLabel={nextLabel}
         onChangeTitle={this.onChangeTitle}
       />
     );

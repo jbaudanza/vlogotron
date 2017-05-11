@@ -38,13 +38,15 @@ export default class RecordVideosView extends React.Component {
   render() {
     const callbacks = this.props.actions.callbacks;
 
+    const nextPathname = this.props.location.pathname.replace('/record-videos', '/note-editor');
+
     const header = (
       <SongEditorHeader
         songTitle={this.props.songTitle}
         onChangeTitle={this.onChangeTitle}
         secondaryAction={{ href: "/" }}
         secondaryActionLabel={this.context.messages["cancel-action"]()}
-        primaryAction={{ href: "/note-editor" }}
+        primaryAction={{ href: nextPathname }}
         primaryActionLabel={this.context.messages["next-action"]()}
       />
     );

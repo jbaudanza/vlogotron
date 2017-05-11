@@ -1,10 +1,10 @@
 import { Observable } from "rxjs";
 
-import { mapKeys, mapValues } from "lodash";
+import { mapKeys, mapValues, omit } from "lodash";
+
+const songsCollectionRef = firebase.database().ref("songs");
 
 export function createSong(song, uid) {
-  const collectionRef = firebase.database().ref("songs");
-
   const rootObject = {
     title: song.title,
     visibility: "everyone",
@@ -12,7 +12,7 @@ export function createSong(song, uid) {
     updatedAt: firebase.database.ServerValue.TIMESTAMP
   };
 
-  return collectionRef.push({ ...rootObject, uid }).then(songRef => {
+  return songsCollectionRef.push({ ...rootObject, uid }).then(songRef => {
     songRef.child("revisions").push({
       timestamp: firebase.database.ServerValue.TIMESTAMP,
       ...convertToFirebaseKeys(song),
@@ -24,11 +24,31 @@ export function createSong(song, uid) {
       .ref("users")
       .child(uid)
       .child("songs")
-      .child(songRef.key)
-      .set(rootObject);
+      .child(songId)
+      .set(song);
 
     return songRef.key;
   });
+}
+
+export function updateSong(song) {
+  const rootRef = songsCollectionRef.child(song.songId);
+
+  const denormalizedRef = firebase
+      .database()
+      .ref("users")
+      .child(song.uid)
+      .child("songs")
+      .child(song.songId);
+
+  [rootRef, denormalizedRef].forEach((ref) => {
+    ref.child("updatedAt").set(firebase.database.ServerValue.TIMESTAMP);
+    ref.child("title").set(song.title);
+  });
+
+  const revision = convertToFirebaseKeys(omit(song, "createdAt", "updatedAt"));
+
+  return rootRef.child("revisions").push(revision).then(ignore => rootRef.key);
 }
 
 export function updateUser(uid, displayName) {

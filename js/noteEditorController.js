@@ -9,7 +9,7 @@ import { readEvents, writeEvent } from "./localEventStore";
 
 import { updatesForNewSong, updatesForNewSongWithUndo } from "./localWorkspace";
 
-import { createSong } from "./database";
+import { createSong, updateSong } from "./database";
 
 export default function noteEditorController(
   params,
@@ -56,7 +56,8 @@ export default function noteEditorController(
     song,
     user
   ]) => {
-    createSong(song, user.uid).then(key => navigateFn("/songs/" + key));
+    const promise = (song.songId ? updateSong(song) : createSong(song, user.uid))
+    promise.then(key => navigateFn("/songs/" + key));
   });
 
   const saveEnabled$ = Observable.of(true).concat(actions.save$.mapTo(false));
@@ -72,7 +73,8 @@ export default function noteEditorController(
       cellsPerBeat,
       redoEnabled,
       undoEnabled,
-      saveEnabled
+      saveEnabled,
+      newSong: (!params.songId)
     })
   );
 }
