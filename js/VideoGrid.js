@@ -8,9 +8,15 @@ import VideoCell from "./VideoCell";
 
 import "./VideoGrid.scss";
 
-const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-  .map(note => note + "4")
-  .concat(["C5", "C#5", "D5", "D#5"]);
+const notes = ["C3", "D3", "E3", "F3",
+               "G3", "A3", "B3", "C4",
+               "D4", "E4", "F4", "G4",
+               "A4", "B4", "C5", "D5"];
+
+const noteLabels = ["DO", "RE", "MI", "FA",
+                    "SO", "LA", "TI", "do",
+                    "re", "mi", "fa", "so",
+                    "la", "ti", "d", "r"]
 
 export default class VideoGrid extends React.Component {
   constructor(props) {
@@ -150,12 +156,11 @@ export default class VideoGrid extends React.Component {
       );
     }
   }
-
   render() {
     return (
       <TouchableArea className="video-container" ref={this.bindTouchableArea}>
-        {notes.map(note => (
-          <VideoCell key={note} {...this.propsForCell(note)} />
+        {notes.map((note, idx) => (
+          <VideoCell key={note} label={noteLabels[idx]} {...this.propsForCell(note)} />
         ))}
       </TouchableArea>
     );

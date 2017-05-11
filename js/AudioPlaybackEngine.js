@@ -120,7 +120,9 @@ export function startScriptedPlayback(
         const events = [];
 
         commands.forEach(command => {
-          const audioBuffer = audioBuffers[command[0]];
+          const isSharp = (command[0].indexOf("#") >= 0);
+          const noteName = command[0].replace("#", "");
+          const audioBuffer = audioBuffers[noteName];
 
           let startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
           const duration = beatsToTimestamp(command[2], bpm);
@@ -128,6 +130,11 @@ export function startScriptedPlayback(
           if (audioBuffer) {
             const source = audioContext.createBufferSource();
             source.buffer = audioBuffer;
+
+            // alter playback rate for sharp notes,
+            // simply use just intonation for now
+            const pitchRatio = isSharp ? 1.05946 : 1.0;
+            source.playbackRate.value = pitchRatio;
             source.connect(gainNode);
 
             let offset;
@@ -143,8 +150,8 @@ export function startScriptedPlayback(
             console.warn("missing audiobuffer for", command[0]);
           }
 
-          events.push({ play: command[0], when: startAt });
-          events.push({ pause: command[0], when: startAt + duration });
+          events.push({ play: noteName, when: startAt });
+          events.push({ pause: noteName, when: startAt + duration });
         });
 
         return events;
