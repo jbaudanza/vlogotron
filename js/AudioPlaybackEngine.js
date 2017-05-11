@@ -120,7 +120,7 @@ export function startScriptedPlayback(
         const events = [];
 
         commands.forEach(command => {
-          const isSharp = (command[0].indexOf("#") >= 0);
+          const isSharp = command[0].indexOf("#") >= 0;
           const noteName = command[0].replace("#", "");
           const audioBuffer = audioBuffers[noteName];
 

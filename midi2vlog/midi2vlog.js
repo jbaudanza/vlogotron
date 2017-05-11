@@ -10,7 +10,7 @@ function toArrayBuffer(buffer) {
   var view = new Uint8Array(ab);
   var i;
 
-  for(i = 0; i < buffer.length; ++i) {
+  for (i = 0; i < buffer.length; ++i) {
     view[i] = buffer[i];
   }
   return ab;
@@ -18,9 +18,7 @@ function toArrayBuffer(buffer) {
 
 // read midi file
 var filename = process.argv[2];
-var midiFile = new MIDIFile(toArrayBuffer(
-    fs.readFileSync(filename)
-  ));
+var midiFile = new MIDIFile(toArrayBuffer(fs.readFileSync(filename)));
 
 // read headers
 midiFile.header.getFormat(); // 0, 1 or 2
@@ -33,8 +31,24 @@ var event;
 var offset = 0;
 var vlogNotes = [];
 
-const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+const noteNames = [
+  "C",
+  "C#",
+  "D",
+  "D#",
+  "E",
+  "F",
+  "F#",
+  "G",
+  "G#",
+  "A",
+  "A#",
+  "B"
+];
 
+// normalize octave to Vlogotron range
+// C3 ... D#5
+// 48 ... 75
 const minNoteNum = 48, maxNoteNum = 75;
 
 const midRange = meanNote(minNoteNum, maxNoteNum);
@@ -43,29 +57,25 @@ const defaultDuration = 1.0, minDuration = 0.1;
 
 var noteNum, noteName, oct;
 
-function meanNote(min, max)
-{
+function meanNote(min, max) {
   return Math.round((max + min) / 2);
 }
 
-function findRange(events)
-{
+function findRange(events) {
   var min = 127;
   var max = 0;
-  while(event = events.next()) {
-    if(event.type === MIDIEvents.EVENT_MIDI) {
+  while ((event = events.next())) {
+    if (event.type === MIDIEvents.EVENT_MIDI) {
       var noteNum = event.param1;
-      if (noteNum < min)
-      {
+      if (noteNum < min) {
         min = noteNum;
       }
-      if (noteNum > max)
-      {
+      if (noteNum > max) {
         max = noteNum;
       }
     }
   }
-  return {min: min, max: max};
+  return { min: min, max: max };
 }
 
 var range = findRange(events);
@@ -73,34 +83,27 @@ var range = findRange(events);
 var transposition = 0;
 
 // find ideal middle range transposition
-if (range.min < minNoteNum || range.max > maxNoteNum)
-{
+if (range.min < minNoteNum || range.max > maxNoteNum) {
   transposition = meanNote(range.min, range.max) - midRange;
 }
 
-function round (num)
-{
+function round(num) {
   return Math.round(num * 100) / 100;
 }
 
 events = MIDIEvents.createParser(trackEventsChunk);
-while(event = events.next()) {
+while ((event = events.next())) {
   offset += event.delta;
-  if(event.type === MIDIEvents.EVENT_MIDI) {
-    // normalize octave to Vlogotron range
-    //C4 ... D#5
-    //60 ... 75
+  if (event.type === MIDIEvents.EVENT_MIDI) {
     noteNum = parseInt(event.param1) + transposition;
 
     // if individual notes still out of range,
     // transpose each by an octave until in range
-    while (noteNum < minNoteNum)
-    {
+    while (noteNum < minNoteNum) {
       noteNum += 12;
     }
 
-    while (noteNum > maxNoteNum)
-    {
+    while (noteNum > maxNoteNum) {
       noteNum -= 12;
     }
 
@@ -119,17 +122,13 @@ while(event = events.next()) {
       note[2] = defaultDuration;
 
       vlogNotes.push(note);
-
     } else if (event.subtype === MIDIEvents.EVENT_MIDI_NOTE_OFF) {
-
       // infer duration
       // look backwards on note off event
       for (var i = vlogNotes.length - 1; i >= 0; i--) {
-        if (vlogNotes[i][0] === (noteName + oct))
-        {
+        if (vlogNotes[i][0] === noteName + oct) {
           var dur = round(event.delta / midiFile.header.getTicksPerBeat());
-          if (dur >= minDuration)
-          {
+          if (dur >= minDuration) {
             vlogNotes[i][2] = dur;
           }
         }

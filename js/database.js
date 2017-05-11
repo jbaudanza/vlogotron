@@ -35,13 +35,13 @@ export function updateSong(song) {
   const rootRef = songsCollectionRef.child(song.songId);
 
   const denormalizedRef = firebase
-      .database()
-      .ref("users")
-      .child(song.uid)
-      .child("songs")
-      .child(song.songId);
+    .database()
+    .ref("users")
+    .child(song.uid)
+    .child("songs")
+    .child(song.songId);
 
-  [rootRef, denormalizedRef].forEach((ref) => {
+  [rootRef, denormalizedRef].forEach(ref => {
     ref.child("updatedAt").set(firebase.database.ServerValue.TIMESTAMP);
     ref.child("title").set(song.title);
   });

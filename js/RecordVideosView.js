@@ -38,7 +38,10 @@ export default class RecordVideosView extends React.Component {
   render() {
     const callbacks = this.props.actions.callbacks;
 
-    const nextPathname = this.props.location.pathname.replace('/record-videos', '/note-editor');
+    const nextPathname = this.props.location.pathname.replace(
+      "/record-videos",
+      "/note-editor"
+    );
 
     const header = (
       <SongEditorHeader

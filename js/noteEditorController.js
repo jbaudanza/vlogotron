@@ -56,7 +56,7 @@ export default function noteEditorController(
     song,
     user
   ]) => {
-    const promise = (song.songId ? updateSong(song) : createSong(song, user.uid))
+    const promise = song.songId ? updateSong(song) : createSong(song, user.uid);
     promise.then(key => navigateFn("/songs/" + key));
   });
 
@@ -74,7 +74,7 @@ export default function noteEditorController(
       redoEnabled,
       undoEnabled,
       saveEnabled,
-      newSong: (!params.songId)
+      newSong: !params.songId
     })
   );
 }

@@ -8,11 +8,13 @@ import VideoCell from "./VideoCell";
 
 import "./VideoGrid.scss";
 
+// prettier-ignore
 const notes = ["C3", "D3", "E3", "F3",
                "G3", "A3", "B3", "C4",
                "D4", "E4", "F4", "G4",
                "A4", "B4", "C5", "D5"];
 
+// prettier-ignore
 const noteLabels = ["DO", "RE", "MI", "FA",
                     "SO", "LA", "TI", "do",
                     "re", "mi", "fa", "so",
@@ -160,7 +162,11 @@ export default class VideoGrid extends React.Component {
     return (
       <TouchableArea className="video-container" ref={this.bindTouchableArea}>
         {notes.map((note, idx) => (
-          <VideoCell key={note} label={noteLabels[idx]} {...this.propsForCell(note)} />
+          <VideoCell
+            key={note}
+            label={noteLabels[idx]}
+            {...this.propsForCell(note)}
+          />
         ))}
       </TouchableArea>
     );
