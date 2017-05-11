@@ -1,15 +1,11 @@
 import { Observable } from "rxjs/Observable";
-import { BehaviorSubject } from "rxjs/BehaviorSubject";
 
 import StorageSubject from "./StorageSubject";
 
 import { concat, omit, findIndex, filter, identity, last } from "lodash";
 
-export function subjectFor(key, defaultSongTitle) {
-  return new StorageSubject(window.localStorage, key, {
-    ...initialSong,
-    title: defaultSongTitle
-  });
+export function subjectFor(key, initialValue) {
+  return new StorageSubject(window.localStorage, key, initialValue);
 }
 
 export function updatesForNewSong(updateEvents$, storage$, subscription) {
@@ -20,8 +16,6 @@ export function updatesForNewSong(updateEvents$, storage$, subscription) {
       .withLatestFrom(storage$, (i, acc) => accFn(acc, i))
       .subscribe(storage$)
   );
-
-  return storage$.asObservable();
 }
 
 function withUndoStack(value) {
@@ -35,21 +29,22 @@ export function updatesForNewSongWithUndo(
 ) {
   const accFn = reduceWithUndoStack;
 
-  const undoState$ = storage$.remoteUpdates$.switchMap(song => {
-    const initial = withUndoStack(song);
-    const withUndoStack$ = updateEvents$.scan(accFn, initial);
+  const undoState$ = storage$.remoteUpdates$
+    .switchMap(song => {
+      const initial = withUndoStack(song);
+      const withUndoStack$ = updateEvents$.scan(accFn, initial);
 
-    return (
-      withUndoStack$
-        // TODO: This is going to be written once for every subscription
+      return withUndoStack$
         .do(o => storage$.next(o.current))
-        .startWith(initial)
-    );
-  });
+        .startWith(initial);
+    })
+    .publishReplay();
+
+  subscription.add(undoState$.connect());
 
   return {
-    undoEnabled$: undoState$.map(o => o.undoStack.length > 0).startWith(false),
-    redoEnabled$: undoState$.map(o => o.redoStack.length > 0).startWith(false)
+    undoEnabled$: undoState$.map(o => o.undoStack.length > 0),
+    redoEnabled$: undoState$.map(o => o.redoStack.length > 0)
   };
 }
 
@@ -90,12 +85,6 @@ function reduceWithUndoStack(acc, edit) {
     };
   }
 }
-
-const initialSong = {
-  videoClips: {},
-  notes: [],
-  bpm: 120
-};
 
 function reduceEditsToNotes(notes, edit) {
   function matcher(edit, note) {

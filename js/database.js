@@ -49,6 +49,7 @@ export function songById(songId) {
   return fromFirebaseRef(ref, "child_added")
     .map(snapshot => ({
       songId,
+      revisionId: snapshot.key,
       ...snapshot.val()
     }))
     .map(convertFromFirebaseKeys)

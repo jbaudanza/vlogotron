@@ -68,10 +68,14 @@ export default function recordVideosController(
     note
   }));
 
-  updatesForNewSong(
-    Observable.merge(clearedEvents$, uploadedEvents$, actions.editSong$),
-    mediaStore.workspace$,
-    subscription
+  subscription.add(
+    mediaStore.workspace$.subscribe(storage$ => {
+      updatesForNewSong(
+        Observable.merge(clearedEvents$, uploadedEvents$, actions.editSong$),
+        storage$,
+        subscription
+      );
+    })
   );
 
   const clearedMedia$ = actions.clearVideoClip$.map(note => ({

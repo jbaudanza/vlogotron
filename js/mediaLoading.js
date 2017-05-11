@@ -29,12 +29,18 @@ export function mapRouteToSongLocation(route) {
       return { source: "database", id: DEFAULT_SONG_ID };
     case "record-videos":
     case "note-editor":
-      return { source: "localStorage", id: "vlogotron-new-song" };
+      return { source: "localStorage", id: route.params.songId };
     case "view-song":
       return { source: "database", id: route.params.songId };
   }
   return { source: "none" };
 }
+
+const initialSong = {
+  videoClips: {},
+  notes: [],
+  bpm: 120
+};
 
 export function subscribeToSongLocation(
   songLocation,
@@ -51,9 +57,25 @@ export function subscribeToSongLocation(
       subscription.add(song$.connect());
       break;
     case "localStorage":
-      workspace$ = subjectFor(songLocation.id, defaultSongTitle);
-      song$ = null$.concat(workspace$).publishReplay();
-      subscription.add(song$.connect());
+      if (songLocation.id) {
+        workspace$ = songById(songLocation.id)
+          .take(1)
+          .map(song => subjectFor(song.revisionId, song))
+          .publishReplay();
+
+        subscription.add(workspace$.connect());
+      } else {
+        const initialValue = {
+          ...initialSong,
+          title: defaultSongTitle
+        };
+        workspace$ = Observable.of(
+          subjectFor("vlogotron-new-track", initialValue)
+        );
+      }
+
+      song$ = null$.concat(workspace$.switch());
+
       break;
     default:
       song$ = null$;

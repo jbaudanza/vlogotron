@@ -1,4 +1,5 @@
 import { Observable } from "rxjs/Observable";
+import { BehaviorSubject } from "rxjs/BehaviorSubject";
 
 import { playbackControllerHelper } from "./playbackController";
 import { last } from "lodash";
@@ -18,18 +19,31 @@ export default function noteEditorController(
   subscription,
   navigateFn
 ) {
-  const undo = updatesForNewSongWithUndo(
-    actions.editSong$,
-    media.workspace$,
-    subscription
-  );
+  const undoEnabled$ = new BehaviorSubject(false);
+  const redoEnabled$ = new BehaviorSubject(false);
+
+  subscription.add(undoEnabled$);
+  subscription.add(redoEnabled$);
+
+  media.workspace$.subscribe(storage$ => {
+    const undo = updatesForNewSongWithUndo(
+      actions.editSong$,
+      storage$,
+      subscription
+    );
+
+    undo.redoEnabled$.subscribe(redoEnabled$);
+    undo.undoEnabled$.subscribe(undoEnabled$);
+  });
 
   const cellsPerBeat$ = actions.changeCellsPerBeat$.startWith(4);
+
+  const notes$ = media.song$.map(o => (o ? o.notes : []));
 
   const parentViewState$ = playbackControllerHelper(
     actions,
     currentUser$,
-    media.song$.map(o => (o ? o.notes : [])),
+    notes$,
     media.song$.map(o => (o ? o.bpm : 120)).distinctUntilChanged(),
     media,
     subscription
@@ -50,8 +64,8 @@ export default function noteEditorController(
   return Observable.combineLatest(
     parentViewState$,
     cellsPerBeat$,
-    undo.redoEnabled$,
-    undo.undoEnabled$,
+    redoEnabled$,
+    undoEnabled$,
     saveEnabled$,
     (parentViewState, cellsPerBeat, redoEnabled, undoEnabled, saveEnabled) => ({
       ...parentViewState,
