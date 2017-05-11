@@ -35,7 +35,7 @@ var vlogNotes = [];
 
 const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
-const minNoteNum = 60, maxNoteNum = 75;
+const minNoteNum = 48, maxNoteNum = 75;
 
 const midRange = meanNote(minNoteNum, maxNoteNum);
 
