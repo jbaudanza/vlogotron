@@ -139,7 +139,8 @@ function mapAllKeys(iter) {
 
   return flatten([
     flatten(mapKeys(5, keys.slice(-2), fn)),
-    flatten(mapKeys(4, keys, fn))
+    flatten(mapKeys(4, keys, fn)),
+    flatten(mapKeys(3, keys, fn))
   ]);
 }
 
@@ -484,7 +485,7 @@ export default class PianoRoll extends React.Component {
                 />
               ))}
             </div>
-            <div className="playhead" ref={this.bindPlayhead} />;
+            <div className="playhead" ref={this.bindPlayhead} />
           </TouchableArea>
         </div>
       </div>
