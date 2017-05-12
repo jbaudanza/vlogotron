@@ -226,7 +226,11 @@ function runRecordingProcess(mediaStream, note, finish$, abort$) {
   // Add a 100ms pause to allow the tone to ramp down
   const pause$ = Observable.timer(110).take(1).ignoreElements();
 
-  const processes$ = Observable.concat(countdownWithTone$, pause$, startCapturing$)
+  const processes$ = Observable.concat(
+    countdownWithTone$,
+    pause$,
+    startCapturing$
+  )
     .takeUntil(abort$)
     .publishReplay();
 

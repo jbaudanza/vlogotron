@@ -23,12 +23,14 @@ export function startLivePlaybackEngine(
   const stream$ = observableWithGainNode(destinationNode =>
     playCommands$.withLatestFrom(audioBuffers$).map(([cmd, audioBuffers]) => {
       const when = audioContext.currentTime + batchTime;
-      if (cmd.play && audioBuffers[cmd.play]) {
-        const node = audioContext.createBufferSource();
-        node.buffer = audioBuffers[cmd.play];
-        node.connect(destinationNode);
-        activeNodes[cmd.play] = node;
-        node.start(when);
+      if (cmd.play) {
+        const [noteName, node] = buildSourceNode(cmd.play, audioBuffers);
+
+        if (node) {
+          node.connect(destinationNode);
+          activeNodes[cmd.play] = node;
+          node.start(when);
+        }
       }
 
       if (cmd.pause && activeNodes[cmd.pause]) {
@@ -68,6 +70,26 @@ function createGainNode() {
   node.gain.value = 0.9;
   node.connect(audioContext.destination);
   return node;
+}
+
+function buildSourceNode(requestedNoteName, audioBuffers) {
+  const isSharp = requestedNoteName.indexOf("#") >= 0;
+  const noteName = requestedNoteName.replace("#", "");
+  const audioBuffer = audioBuffers[noteName];
+
+  if (audioBuffer) {
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+
+    // alter playback rate for sharp notes,
+    // simply use just intonation for now
+    const pitchRatio = isSharp ? 1.05946 : 1.0;
+    source.playbackRate.value = pitchRatio;
+    return [noteName, source];
+  } else {
+    console.warn("missing audiobuffer for", requestedNoteName);
+    return [noteName, null];
+  }
 }
 
 export function startScriptedPlayback(
@@ -120,23 +142,12 @@ export function startScriptedPlayback(
         const events = [];
 
         commands.forEach(command => {
-          const isSharp = command[0].indexOf("#") >= 0;
-          const noteName = command[0].replace("#", "");
-          const audioBuffer = audioBuffers[noteName];
+          const [noteName, source] = buildSourceNode(command[0], audioBuffers);
 
           let startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
           const duration = beatsToTimestamp(command[2], bpm);
 
-          if (audioBuffer) {
-            const source = audioContext.createBufferSource();
-            source.buffer = audioBuffer;
-
-            // alter playback rate for sharp notes,
-            // simply use just intonation for now
-            const pitchRatio = isSharp ? 1.05946 : 1.0;
-            source.playbackRate.value = pitchRatio;
-            source.connect(gainNode);
-
+          if (source) {
             let offset;
             if (audioContext.currentTime > startAt) {
               offset = audioContext.currentTime - startAt;
@@ -145,9 +156,8 @@ export function startScriptedPlayback(
             } else {
               offset = 0;
             }
+            source.connect(gainNode);
             source.start(startAt, offset, duration);
-          } else {
-            console.warn("missing audiobuffer for", command[0]);
           }
 
           events.push({ play: noteName, when: startAt });

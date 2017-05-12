@@ -2,15 +2,9 @@ import { Observable } from "rxjs/Observable";
 
 import { identity } from "lodash";
 
-const midiAccess$ = Observable.create(function(observer) {
-  if (navigator.requestMIDIAccess) {
-    return Observable.fromPromise(navigator.requestMIDIAccess()).subscribe(
-      observer
-    );
-  } else {
-    observer.complete();
-  }
-});
+const midiAccess$ = navigator.requestMIDIAccess
+  ? Observable.defer(() => navigator.requestMIDIAccess())
+  : Observable.empty();
 
 const midiMessages$ = midiAccess$.switchMap(function(midiAccess) {
   const list = [];
