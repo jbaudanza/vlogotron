@@ -11,42 +11,45 @@ const keys$ = Observable.merge(
 );
 
 const codeMap = {
-  KeyA: "C4",
-  KeyW: "C#4",
-  KeyS: "D4",
-  KeyE: "D#4",
-  KeyD: "E4",
-  KeyF: "F4",
-  KeyT: "F#4",
-  KeyG: "G4",
-  KeyY: "G#4",
-  KeyH: "A4",
-  KeyU: "A#4",
-  KeyJ: "B4",
-  KeyK: "C5",
-  KeyO: "C#5",
-  KeyL: "D5",
-  Semicolon: "D#5"
+  KeyA: "C3",
+  KeyW: "C#3",
+  KeyS: "D3",
+  KeyE: "D#3",
+  KeyD: "E3",
+  KeyF: "F3",
+  KeyT: "F#3",
+  KeyG: "G3",
+  KeyY: "G#3",
+  KeyH: "A3",
+  KeyU: "A#3",
+  KeyJ: "B3",
+  KeyK: "C4",
+  KeyO: "C#4",
+  KeyL: "D4",
+  KeyP: "D#4",
+  Semicolon: "E4",
+  Quote: "F4"
 };
 
 // Based off of the table in: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode
 const keyCodeMap = {
-  0x41: "C4", // KeyA
-  0x57: "C#4", // KeyW
-  0x53: "D4", // KeyS
-  0x45: "D#4", // KeyE
-  0x44: "E4", // KeyD
-  0x46: "F4", // KeyF
-  0x54: "F#4", // KeyT
-  0x47: "G4", // KeyG
-  0x59: "G#4", // KeyY
-  0x48: "A4", // KeyH
-  0x55: "A#4", // KeyU
-  0x4a: "B4", // KeyJ,
-  0x4b: "C5", // KeyK,
-  0x4f: "C#5", // KeyO,
-  0x4c: "D5", // KeyL,
-  0xba: "D#5" // Semicolon
+  0x41: "C3", // KeyA
+  0x57: "C#3", // KeyW
+  0x53: "D3", // KeyS
+  0x45: "D#3", // KeyE
+  0x44: "E3", // KeyD
+  0x46: "F3", // KeyF
+  0x54: "F#3", // KeyT
+  0x47: "G3", // KeyG
+  0x59: "G#3", // KeyY
+  0x48: "A3", // KeyH
+  0x55: "A#3", // KeyU
+  0x4a: "B3", // KeyJ,
+  0x4b: "C4", // KeyK,
+  0x4f: "C#4", // KeyO,
+  0x4c: "D4", // KeyL,
+  0xba: "D#4", // Semicolon
+  0xde: "F4" // Quote
 };
 
 function notInTextInput(event) {
