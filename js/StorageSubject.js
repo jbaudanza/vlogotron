@@ -40,5 +40,12 @@ export default class StorageSubject extends AnonymousSubject {
     );
 
     this.remoteUpdates$ = remoteUpdates$;
+    this.storageArea = storageArea;
+    this.key = key;
+
+    this.clear = function() {
+      subject$.complete();
+      delete storageArea[key];
+    };
   }
 }

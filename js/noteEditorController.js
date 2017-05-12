@@ -49,16 +49,17 @@ export default function noteEditorController(
     subscription
   );
 
-  // TODO:
-  // - clear localStorage after a save
-  actions.save$.withLatestFrom(media.song$, currentUser$).subscribe(([
-    ignore,
-    song,
-    user
-  ]) => {
-    const promise = song.songId ? updateSong(song) : createSong(song, user.uid);
-    promise.then(key => navigateFn("/songs/" + key));
-  });
+  actions.save$
+    .withLatestFrom(media.song$, currentUser$, media.workspace$)
+    .subscribe(([ignore, song, user, workspace]) => {
+      const promise = song.songId
+        ? updateSong(song)
+        : createSong(song, user.uid);
+      promise.then(key => {
+        navigateFn("/songs/" + key);
+        workspace.clear();
+      });
+    });
 
   const saveEnabled$ = Observable.of(true).concat(actions.save$.mapTo(false));
 
