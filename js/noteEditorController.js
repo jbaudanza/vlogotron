@@ -16,6 +16,7 @@ export default function noteEditorController(
   actions,
   currentUser$,
   media,
+  firebase,
   subscription,
   navigateFn
 ) {
@@ -53,8 +54,8 @@ export default function noteEditorController(
     .withLatestFrom(media.song$, currentUser$, media.workspace$)
     .subscribe(([ignore, song, user, workspace]) => {
       const promise = song.songId
-        ? updateSong(song)
-        : createSong(song, user.uid);
+        ? updateSong(firebase.database(), song)
+        : createSong(firebase.database(), song, user.uid);
       promise.then(key => {
         navigateFn("/songs/" + key);
         workspace.clear();

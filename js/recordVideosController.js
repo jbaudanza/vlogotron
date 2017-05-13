@@ -31,6 +31,7 @@ export default function recordVideosController(
   actions,
   currentUser$,
   mediaStore,
+  firebase,
   subscription
 ) {
   const recordingEngine$ = actions.startRecording$
@@ -49,6 +50,7 @@ export default function recordVideosController(
   const uploadedEvents$ = finalMedia$
     .withLatestFrom(currentUser$, (media, currentUser) =>
       createVideoClip(
+        firebase.database(),
         {
           uid: currentUser.uid,
           note: media.note,

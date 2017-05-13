@@ -62,20 +62,23 @@ function workspaceForSong(songLocation, song) {
 export function subscribeToSongLocation(
   songLocation,
   defaultSongTitle,
+  firebase,
   subscription
 ) {
   let song$;
   let workspace$;
 
+  const database = firebase.database();
+
   const null$ = Observable.of(null);
   switch (songLocation.source) {
     case "database":
-      song$ = null$.concat(songById(songLocation.id)).publishReplay();
+      song$ = null$.concat(songById(database, songLocation.id)).publishReplay();
       subscription.add(song$.connect());
       break;
     case "localStorage":
       if (songLocation.id) {
-        workspace$ = songById(songLocation.id)
+        workspace$ = songById(database, songLocation.id)
           .take(1)
           .map(song => workspaceForSong(songLocation, song))
           .publishReplay();
@@ -106,7 +109,10 @@ export function subscribeToSongLocation(
     }
   });
 
-  const videoClips$ = videoClipsForClipIds(videoClipIds$).publishReplay();
+  const videoClips$ = videoClipsForClipIds(
+    videoClipIds$,
+    firebase
+  ).publishReplay();
 
   const audioLoading = loadAudioBuffersFromVideoClips(
     videoClips$,
@@ -137,7 +143,7 @@ const DEFAULT_SONG_ID = "-KjtoXV7i2sZ8b_Azl1y";
     }
   }
 */
-function videoClipsForClipIds(clipIds$) {
+function videoClipsForClipIds(clipIds$, firebase) {
   const storageRef = firebase.storage().ref("video-clips");
 
   function resultSelector(clipIdToObjectMap, noteToClipIdMap) {
@@ -151,7 +157,7 @@ function videoClipsForClipIds(clipIds$) {
   }
 
   return clipIds$.combineKeyValues(
-    videoClipById.bind(null, storageRef),
+    videoClipById.bind(null, firebase.database(), storageRef),
     values, // keySelector
     resultSelector
   );
@@ -192,7 +198,7 @@ export function loadAudioBuffersFromVideoClips(videoClips$, subscription) {
 
 const formats = ["webm", "mp4", "ogv"];
 
-function videoClipById(ref, clipId) {
+function videoClipById(database, ref, clipId) {
   function urlFor(clipId, suffix) {
     return ref.child(clipId + suffix).getDownloadURL();
   }
@@ -209,7 +215,7 @@ function videoClipById(ref, clipId) {
     })
   );
 
-  return waitForTranscode(clipId).concat(urls$);
+  return waitForTranscode(database, clipId).concat(urls$);
 }
 
 // simulate a reduce() call because firebase doesn't have one.

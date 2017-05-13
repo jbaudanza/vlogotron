@@ -2,9 +2,11 @@ import { Observable } from "rxjs";
 
 import { mapKeys, mapValues, omit } from "lodash";
 
-const songsCollectionRef = firebase.database().ref("songs");
+import * as firebase from "firebase";
 
-export function createSong(song, uid) {
+export function createSong(database, song, uid) {
+  const songsCollectionRef = database.ref("songs");
+
   const rootObject = {
     title: song.title,
     visibility: "everyone",
@@ -23,8 +25,7 @@ export function createSong(song, uid) {
       uid
     });
 
-    firebase
-      .database()
+    database
       .ref("users")
       .child(uid)
       .child("songs")
@@ -35,11 +36,11 @@ export function createSong(song, uid) {
   });
 }
 
-export function updateSong(song) {
+export function updateSong(database, song) {
+  const songsCollectionRef = database.ref("songs");
   const rootRef = songsCollectionRef.child(song.songId);
 
-  const denormalizedRef = firebase
-    .database()
+  const denormalizedRef = database
     .ref("users")
     .child(song.uid)
     .child("songs")
@@ -55,17 +56,16 @@ export function updateSong(song) {
   return rootRef.child("revisions").push(revision).then(ignore => rootRef.key);
 }
 
-export function updateUser(user) {
-  const ref = firebase.database().ref("users").child(user.uid);
+export function updateUser(database, user) {
+  const ref = database.ref("users").child(user.uid);
   ref.child("displayName").set(user.displayName);
   ref.child("email").set(user.displayName);
   ref.child("providerData").set(user.providerData);
   ref.child("lastSeenAt").set(firebase.database.ServerValue.TIMESTAMP);
 }
 
-export function songById(songId) {
-  const ref = firebase
-    .database()
+export function songById(database, songId) {
+  const ref = database
     .ref("songs")
     .child(songId)
     .child("revisions")
@@ -82,33 +82,29 @@ export function songById(songId) {
     .map(fillInDefaults);
 }
 
-export function displayNameForUid(uid) {
-  const ref = firebase.database().ref("users").child(uid).child("displayName");
+export function displayNameForUid(database, uid) {
+  const ref = database.ref("users").child(uid).child("displayName");
   return fromFirebaseRef(ref, "value").map(snapshot => snapshot.val());
 }
 
-export function waitForTranscode(videoClipId) {
+export function waitForTranscode(database, videoClipId) {
   return fromFirebaseRef(
-    firebase
-      .database()
-      .ref("video-clips")
-      .child(videoClipId)
-      .child("transcodedAt"),
+    database.ref("video-clips").child(videoClipId).child("transcodedAt"),
     "value"
   )
     .takeWhile(snapshot => !snapshot.exists())
     .ignoreElements();
 }
 
-export function songsForUser(uid) {
-  const ref = firebase.database().ref("users").child(uid).child("songs");
+export function songsForUser(database, uid) {
+  const ref = database.ref("users").child(uid).child("songs");
   return fromFirebaseRef(ref, "value").map(snapshot =>
     mapValues(snapshot.val(), (value, key) => ({ ...value, songId: key }))
   );
 }
 
-export function createVideoClip(databaseEntry, videoBlob) {
-  const databaseRef = firebase.database().ref("video-clips");
+export function createVideoClip(database, databaseEntry, videoBlob) {
+  const databaseRef = database.ref("video-clips");
 
   const uploadRef = firebase
     .storage()

@@ -21,6 +21,17 @@ import { findWrappingLink } from "./domutils";
 
 import { updateUser, songsForUser } from "./database";
 
+import * as firebase from "firebase";
+
+const config = {
+  apiKey: "AIzaSyAcTTBS7Wt4JKn7_gsgXy3tck5arZamO6Y",
+  authDomain: "vlogotron-95daf.firebaseapp.com",
+  databaseURL: "https://vlogotron-95daf.firebaseio.com",
+  storageBucket: "vlogotron-95daf.appspot.com",
+  messagingSenderId: "533081791637"
+};
+firebase.initializeApp(config);
+
 import {
   subscribeToSongLocation,
   mapRouteToSongLocation
@@ -48,13 +59,13 @@ const currentUser$ = Observable.create(function(observer) {
 
 currentUser$.subscribe(user => {
   if (user) {
-    updateUser(user);
+    updateUser(firebase.database(), user);
   }
 });
 
 const mySongs$ = currentUser$.switchMap(user => {
   if (user) {
-    return songsForUser(user.uid);
+    return songsForUser(firebase.database(), user.uid);
   } else {
     return Observable.of({});
   }
@@ -159,6 +170,7 @@ class App extends React.Component {
       this.media = subscribeToSongLocation(
         songLocation,
         messages[this.state.locale]["default-song-title"](),
+        firebase,
         this.mediaSubscription
       );
     }
@@ -174,6 +186,7 @@ class App extends React.Component {
       this.pageActions.observables,
       currentUser$,
       this.media,
+      firebase,
       this.pageSubscription,
       this.onNavigate.bind(this)
     );
