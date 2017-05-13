@@ -8,7 +8,7 @@ import SideNavOverlay from "./SideNavOverlay";
 
 import Link from "./Link";
 
-import "./TracksOverlay.scss";
+import "./MySongsOverlay.scss";
 
 class LineItem extends React.Component {
   render() {
@@ -51,11 +51,11 @@ LineItem.contextTypes = {
   messages: React.PropTypes.object.isRequired
 };
 
-export default class TracksOverlay extends React.Component {
+export default class MySongsOverlay extends React.Component {
   render() {
     return (
-      <SideNavOverlay onClose={this.props.onClose} className="tracks-overlay">
-        <h1>{this.context.messages["my-tracks-header"]()}</h1>
+      <SideNavOverlay onClose={this.props.onClose} className="my-songs-overlay">
+        <h1>{this.context.messages["my-songs-header"]()}</h1>
         <ul className="song-list">
           {map(this.props.songs, (song, songId) => (
             <LineItem song={song} key={songId} songId={songId} />
@@ -66,10 +66,10 @@ export default class TracksOverlay extends React.Component {
   }
 }
 
-TracksOverlay.contextTypes = {
+MySongsOverlay.contextTypes = {
   messages: React.PropTypes.object.isRequired
 };
 
-TracksOverlay.propTypes = {
+MySongsOverlay.propTypes = {
   songs: React.PropTypes.object.isRequired
 };

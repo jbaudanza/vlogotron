@@ -11,7 +11,7 @@ import { bindAll, fromPairs, isEqual, find, includes } from "lodash";
 import SvgAssets from "./SvgAssets";
 import LoginOverlay from "./LoginOverlay";
 
-import TracksOverlay from "./TracksOverlay";
+import MySongsOverlay from "./MySongsOverlay";
 
 import ReactActions from "./ReactActions";
 
@@ -52,7 +52,7 @@ currentUser$.subscribe(user => {
   }
 });
 
-const myTracks$ = currentUser$.switchMap(user => {
+const mySongs$ = currentUser$.switchMap(user => {
   if (user) {
     return songsForUser(user.uid);
   } else {
@@ -129,7 +129,7 @@ class App extends React.Component {
     this.globalSubscription.add(currentRoute$.subscribe(this.onRouteChange));
 
     this.globalSubscription.add(
-      myTracks$.subscribe(v => this.setState({ myTracks: v }))
+      mySongs$.subscribe(v => this.setState({ mySongs: v }))
     );
 
     this.globalSubscription.add(
@@ -246,9 +246,9 @@ class App extends React.Component {
           onClose={this.state.location.pathname}
         />
       );
-    } else if (this.state.location.hash === "#tracks") {
+    } else if (this.state.location.hash === "#my-songs") {
       const Overlay = this.state.overlay;
-      overlay = <TracksOverlay songs={this.state.myTracks} onClose="#" />;
+      overlay = <MySongsOverlay songs={this.state.mySongs} onClose="#" />;
     }
 
     const view = React.cloneElement(this.state.view, {
