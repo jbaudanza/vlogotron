@@ -37,31 +37,29 @@ export default class PlaybackView extends React.Component {
         playbackPositionInSeconds={this.props.playbackPositionInSeconds}
         onClickPlay={this.props.actions.callbacks.onPlay}
         onClickPause={this.props.actions.callbacks.onPause}
+        remixAction={{href: `/songs/${this.props.songId}/remix/record-videos`}}
       />
     );
 
-    if (this.props.loading) {
-      return <div>loading sounds...</div>;
-    } else {
-      return (
-        <Page
-          onLogin={this.onClickLogin}
-          onLogout={this.props.onLogout}
-          onChangeLocale={this.props.onChangeLocale}
-          isLoggedIn={!!this.props.currentUser}
-          header={header}
-          footer={null}
-          sidebarVisible={true}
-        >
-          <VideoGrid
-            readonly
-            videoClips={this.props.videoClips}
-            playCommands$={this.props.playCommands$}
-            ref={this.bindVideoGrid}
-          />
-        </Page>
-      );
-    }
+    return (
+      <Page
+        onLogin={this.onClickLogin}
+        onLogout={this.props.onLogout}
+        onChangeLocale={this.props.onChangeLocale}
+        isLoggedIn={!!this.props.currentUser}
+        header={header}
+        footer={null}
+        loading={this.props.loading}
+        sidebarVisible={true}
+      >
+        <VideoGrid
+          readonly
+          videoClips={this.props.videoClips}
+          playCommands$={this.props.playCommands$}
+          ref={this.bindVideoGrid}
+        />
+      </Page>
+    );
   }
 }
 

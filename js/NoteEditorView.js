@@ -178,6 +178,7 @@ export default class NoteEditorView extends React.Component {
         sidebarVisible={false}
         header={header}
         footer={footer}
+        loading={this.props.loading}
         className="note-editor-page"
       >
         <VideoGrid

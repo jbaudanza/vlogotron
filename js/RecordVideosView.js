@@ -86,6 +86,7 @@ export default class RecordVideosView extends React.Component {
         sidebarVisible={false}
         header={header}
         footer={footer}
+        loading={this.props.loading}
         className="record-videos-page"
       >
         <VideoGrid

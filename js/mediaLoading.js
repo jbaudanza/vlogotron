@@ -166,8 +166,8 @@ export function loadAudioBuffersFromVideoClips(videoClips$, subscription) {
   const loading$ = http$
     .flatMap(http => Observable.of(+1).concat(http.response.then(r => -1)))
     .scan((i, j) => i + j, 0)
-    .map(count => count > 0)
-    .startWith(true);
+    .startWith(0)
+    .map(count => count > 0);
 
   return { loading$, audioBuffers$ };
 }
