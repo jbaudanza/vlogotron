@@ -48,7 +48,7 @@ const currentUser$ = Observable.create(function(observer) {
 
 currentUser$.subscribe(user => {
   if (user) {
-    updateUser(user.uid, user.displayName);
+    updateUser(user);
   }
 });
 

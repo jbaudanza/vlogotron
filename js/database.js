@@ -51,9 +51,11 @@ export function updateSong(song) {
   return rootRef.child("revisions").push(revision).then(ignore => rootRef.key);
 }
 
-export function updateUser(uid, displayName) {
-  const ref = firebase.database().ref("users").child(uid);
-  ref.child("displayName").set(displayName);
+export function updateUser(user) {
+  const ref = firebase.database().ref("users").child(user.uid);
+  ref.child("displayName").set(user.displayName);
+  ref.child("email").set(user.displayName);
+  ref.child("providerData").set(user.providerData);
   ref.child("lastSeenAt").set(firebase.database.ServerValue.TIMESTAMP);
 }
 
