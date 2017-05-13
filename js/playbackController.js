@@ -42,10 +42,13 @@ export default function playbackController(
     subscription
   );
 
+  const songId$ = media.song$.map(o => o ? o.songId : null);
+
   return Observable.combineLatest(
     parentView$,
     authorName$,
-    (parentView, authorName) => ({ ...parentView, authorName })
+    songId$,
+    (parentView, authorName, songId) => ({ ...parentView, authorName, songId })
   );
 }
 

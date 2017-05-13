@@ -37,7 +37,7 @@ export default class PlaybackHeader extends React.Component {
           <Link className="action" onClick={noop}>
             {this.context.messages["share-action"]()}
           </Link>
-          <Link className="action" onClick={noop}>
+          <Link className="action" {...this.props.remixAction}>
             {this.context.messages["remix-action"]()}
           </Link>
         </div>
@@ -53,5 +53,6 @@ PlaybackHeader.contextTypes = {
 PlaybackHeader.propTypes = {
   onClickPlay: React.PropTypes.func.isRequired,
   onClickPause: React.PropTypes.func.isRequired,
+  remixAction: React.PropTypes.object.isRequired,
   isPlaying: React.PropTypes.bool.isRequired
 };

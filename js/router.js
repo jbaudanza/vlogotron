@@ -26,7 +26,9 @@ const routes = [
   [`/note-editor`, "note-editor"],
   [`/songs/${id}`, "view-song", "songId"],
   [`/songs/${id}/record-videos`, "record-videos", "songId"],
-  [`/songs/${id}/note-editor`, "note-editor", "songId"]
+  [`/songs/${id}/note-editor`, "note-editor", "songId"],
+  [`/songs/${id}/(remix)/record-videos`, "record-videos", "songId", "remix"],
+  [`/songs/${id}/(remix)/note-editor`, "note-editor", "songId", "remix"]
 ];
 
 export function pathnameToRoute(pathname) {
