@@ -75,7 +75,7 @@ export default function noteEditorController(
       redoEnabled,
       undoEnabled,
       saveEnabled,
-      newSong: (params.remix || !params.songId)
+      newSong: params.remix || !params.songId
     })
   );
 }

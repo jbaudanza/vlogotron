@@ -86,17 +86,15 @@ export default class Page extends React.Component {
           </div>
         </div>
 
-        {this.props.loading ? (
-          <div className="page-vertical-wrapper">Loading sounds</div>
-        ) : (
-          <div className="page-vertical-wrapper">
-            {this.props.header}
-            <div className="page-content">
-              {this.props.children}
-            </div>
-            {this.props.footer}
-          </div>
-        )}
+        {this.props.loading
+          ? <div className="page-vertical-wrapper">Loading sounds</div>
+          : <div className="page-vertical-wrapper">
+              {this.props.header}
+              <div className="page-content">
+                {this.props.children}
+              </div>
+              {this.props.footer}
+            </div>}
       </div>
     );
   }

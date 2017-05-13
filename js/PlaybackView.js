@@ -37,7 +37,9 @@ export default class PlaybackView extends React.Component {
         playbackPositionInSeconds={this.props.playbackPositionInSeconds}
         onClickPlay={this.props.actions.callbacks.onPlay}
         onClickPause={this.props.actions.callbacks.onPause}
-        remixAction={{href: `/songs/${this.props.songId}/remix/record-videos`}}
+        remixAction={{
+          href: `/songs/${this.props.songId}/remix/record-videos`
+        }}
       />
     );
 

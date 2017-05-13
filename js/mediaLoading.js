@@ -29,7 +29,11 @@ export function mapRouteToSongLocation(route) {
       return { source: "database", id: DEFAULT_SONG_ID };
     case "record-videos":
     case "note-editor":
-      return { source: "localStorage", id: route.params.songId, remix: !!route.params.remix};
+      return {
+        source: "localStorage",
+        id: route.params.songId,
+        remix: !!route.params.remix
+      };
     case "view-song":
       return { source: "database", id: route.params.songId };
   }
@@ -42,13 +46,12 @@ const initialSong = {
   bpm: 120
 };
 
-
 function workspaceForSong(songLocation, song) {
   let key;
   if (songLocation.remix) {
     key = "vlogotron-remix-song:" + song.revisionId;
-    const parentSong = {songId: song.songId, revisionId: song.revisionId};
-    song = {...omit(song, 'songId', 'revisionId'), parentSong};
+    const parentSong = { songId: song.songId, revisionId: song.revisionId };
+    song = { ...omit(song, "songId", "revisionId"), parentSong };
   } else {
     key = "vlogotron-edit-song:" + song.revisionId;
   }

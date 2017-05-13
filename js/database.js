@@ -12,7 +12,7 @@ export function createSong(song, uid) {
     updatedAt: firebase.database.ServerValue.TIMESTAMP
   };
 
-  if ('parentSong' in song) {
+  if ("parentSong" in song) {
     rootObject.parentSong = song.parentSong;
   }
 
