@@ -58,11 +58,13 @@ export default class MySongsOverlay extends React.Component {
     return (
       <SideNavOverlay onClose={this.props.onClose} className="my-songs-overlay">
         <h1>{this.context.messages["my-songs-header"]()}</h1>
-        <ul className="song-list">
-          {map(this.props.songs, (song, songId) => (
-            <LineItem song={song} key={songId} songId={songId} />
-          ))}
-        </ul>
+        <div className="scroll">
+          <ul className="song-list">
+            {map(this.props.songs, (song, songId) => (
+              <LineItem song={song} key={songId} songId={songId} />
+            ))}
+          </ul>
+        </div>
       </SideNavOverlay>
     );
   }

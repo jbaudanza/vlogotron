@@ -124,7 +124,8 @@ export function subscribeToSongLocation(
   };
 }
 
-const DEFAULT_SONG_ID = "-KiY1cdo1ggMC-p3pG94";
+// The Entertainer
+const DEFAULT_SONG_ID = "-KjtoXV7i2sZ8b_Azl1y";
 
 /*
   Emits objects that look like:

@@ -16,9 +16,7 @@ class SideNavOverlay extends React.Component {
               <use xlinkHref="#svg-close" fill="white" />
             </svg>
           </Link>
-          <div className="scroll">
-            {this.props.children}
-          </div>
+          {this.props.children}
         </div>
       </div>
     );

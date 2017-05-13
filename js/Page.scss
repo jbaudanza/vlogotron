@@ -233,7 +233,7 @@
   .locale-selector {
     left: 31px;
     bottom: 10px;
-    position: fixed;
+    position: absolute;
     a, span {
       color: $color-blue-grey;
     }
