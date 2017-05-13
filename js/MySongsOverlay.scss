@@ -10,6 +10,10 @@
   }
 
   .title {
+    a {
+      color: white;
+      text-decoration: none;
+    }
     font-size: 17px;
     padding-right: 27px; // Make room for "more-button"
   }

@@ -32,7 +32,9 @@ class LineItem extends React.Component {
           </svg>
         </PopupMenuTrigger>
         <div className="title">
-          {this.props.song.title}
+          <Link href={"/songs/" + this.props.song.songId}>
+            {this.props.song.title}
+          </Link>
         </div>
         <div className="updated-at">
           {this.context.messages["last-updated-date"]({ DATE: updatedAt })}
