@@ -29,7 +29,7 @@ export function mapRouteToSongLocation(route) {
       return { source: "database", id: DEFAULT_SONG_ID };
     case "record-videos":
     case "note-editor":
-      return { source: "localStorage", id: route.params.songId };
+      return { source: "localStorage", id: route.params.songId, remix: !!route.params.remix};
     case "view-song":
       return { source: "database", id: route.params.songId };
   }
@@ -41,6 +41,20 @@ const initialSong = {
   notes: [],
   bpm: 120
 };
+
+
+function workspaceForSong(songLocation, song) {
+  let key;
+  if (songLocation.remix) {
+    key = "vlogotron-remix-song:" + song.revisionId;
+    const parentSong = {songId: song.songId, revisionId: song.revisionId};
+    song = {...omit(song, 'songId', 'revisionId'), parentSong};
+  } else {
+    key = "vlogotron-edit-song:" + song.revisionId;
+  }
+
+  return subjectFor(key, song);
+}
 
 export function subscribeToSongLocation(
   songLocation,
@@ -60,7 +74,7 @@ export function subscribeToSongLocation(
       if (songLocation.id) {
         workspace$ = songById(songLocation.id)
           .take(1)
-          .map(song => subjectFor(song.revisionId, song))
+          .map(song => workspaceForSong(songLocation, song))
           .publishReplay();
 
         subscription.add(workspace$.connect());
@@ -70,7 +84,7 @@ export function subscribeToSongLocation(
           title: defaultSongTitle
         };
         workspace$ = Observable.of(
-          subjectFor("vlogotron-new-track", initialValue)
+          subjectFor("vlogotron-new-song", initialValue)
         );
       }
 

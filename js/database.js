@@ -12,6 +12,10 @@ export function createSong(song, uid) {
     updatedAt: firebase.database.ServerValue.TIMESTAMP
   };
 
+  if ('parentSong' in song) {
+    rootObject.parentSong = song.parentSong;
+  }
+
   return songsCollectionRef.push({ ...rootObject, uid }).then(songRef => {
     songRef.child("revisions").push({
       timestamp: firebase.database.ServerValue.TIMESTAMP,
