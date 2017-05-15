@@ -4,12 +4,11 @@ import { mapKeys, mapValues, omit } from "lodash";
 
 import * as firebase from "firebase";
 
-export function createSong(database, song, uid) {
+export function createSong(database, song) {
   const songsCollectionRef = database.ref("songs");
 
   const rootObject = {
-    title: song.title,
-    visibility: "everyone",
+    ...omit(song, 'notes'),
     createdAt: firebase.database.ServerValue.TIMESTAMP,
     updatedAt: firebase.database.ServerValue.TIMESTAMP
   };
@@ -18,22 +17,38 @@ export function createSong(database, song, uid) {
     rootObject.parentSong = song.parentSong;
   }
 
-  return songsCollectionRef.push({ ...rootObject, uid }).then(songRef => {
+  return songsCollectionRef.push(rootObject).then(songRef => {
     songRef.child("revisions").push({
       timestamp: firebase.database.ServerValue.TIMESTAMP,
-      ...convertToFirebaseKeys(song),
-      uid
+      ...convertToFirebaseKeys(song)
     });
 
-    database
-      .ref("users")
-      .child(uid)
-      .child("songs")
-      .child(songRef.key)
-      .set(rootObject);
+    denormalizedRefsForSong(database, {...song, songId: songRef.key}).forEach((ref) => {
+      ref.set(rootObject);
+    });
 
     return songRef.key;
   });
+}
+
+function denormalizedRefsForSong(database, song) {
+  const refs = [];
+
+  refs.push(
+    database.ref("users").child(song.uid).child("songs").child(song.songId)
+  );
+
+  if (song.parentSong) {
+    refs.push(
+      database
+        .ref("songs")
+        .child(song.parentSong.songId)
+        .child("remixes")
+        .child(song.songId)
+    );
+  }
+
+  return refs;
 }
 
 export function updateSong(database, song) {
@@ -46,7 +61,8 @@ export function updateSong(database, song) {
     .child("songs")
     .child(song.songId);
 
-  [rootRef, denormalizedRef].forEach(ref => {
+  const refs = denormalizedRefsForSong(database, song);
+  refs.concat(rootRef).forEach(ref => {
     ref.child("updatedAt").set(firebase.database.ServerValue.TIMESTAMP);
     ref.child("title").set(song.title);
   });

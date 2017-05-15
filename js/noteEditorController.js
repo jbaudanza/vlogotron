@@ -55,7 +55,7 @@ export default function noteEditorController(
     .subscribe(([ignore, song, user, workspace]) => {
       const promise = song.songId
         ? updateSong(firebase.database(), song)
-        : createSong(firebase.database(), song, user.uid);
+        : createSong(firebase.database(), {...song, uid: user.uid, visibility: 'everyone'});
       promise.then(key => {
         navigateFn("/songs/" + key);
         workspace.clear();

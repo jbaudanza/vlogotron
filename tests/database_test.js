@@ -9,23 +9,50 @@ import {last} from 'lodash';
 
 import {MockFirebaseDatabase, createFirebaseKey} from './helpers/MockFirebase';
 
-test.only('createSong', t => {
+test('createSong', t => {
   const mockdb = new MockFirebaseDatabase();
+
+  const uid = createFirebaseKey();
+  const parentSongId = createFirebaseKey();
 
   const song = {
     title: 'Test song',
-    notes: []
+    notes: [],
+    uid: uid,
+    parentSong: {songId: parentSongId}
   };
 
+  t.plan(3);
+
+  return database.createSong(mockdb, song).then((songId) => {
+    t.is(mockdb.root.songs[songId].title, 'Test song');
+    t.is(mockdb.root.songs[parentSongId].remixes[songId].title, 'Test song');
+    t.is(mockdb.root.users[uid].songs[songId].title, 'Test song');
+  })
+});
+
+test('updateSong', t => {
+  const mockdb = new MockFirebaseDatabase();
+
   const uid = createFirebaseKey();
+  const parentSongId = createFirebaseKey();
 
-  t.plan(1);
+  const song = {
+    title: 'Test song',
+    notes: [],
+    uid: uid,
+    parentSong: {songId: parentSongId}
+  };
 
-  return database.createSong(mockdb, song, 'user-id-abcdefg').then((songId) => {
+  t.plan(3);
 
-    database.songById(mockdb, songId).subscribe(song => {
-      console.log(song)
-    });
-    t.pass();
+  return database.createSong(mockdb, song).then((songId) => {
+    const updatedSong = {...song, title: 'New Title'};
+
+    return database.updateSong(mockdb, updatedSong);
+  }).then((songId) => {
+    t.is(mockdb.root.songs[songId].title, 'New Title');
+    t.is(mockdb.root.songs[parentSongId].remixes[songId].title, 'New Title');
+    t.is(mockdb.root.users[uid].songs[songId].title, 'New Title');
   })
 });
