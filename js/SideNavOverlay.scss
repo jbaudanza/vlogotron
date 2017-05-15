@@ -49,9 +49,11 @@ $shadow-index: 1;
 
     .scroll {
       overflow-y: auto;
-      height: 100%;
       left: 0;
-      top: 0;
+      right: 0;
+      top: 85px;
+      bottom: 0;
+      position: absolute;
     }
   }
 }
