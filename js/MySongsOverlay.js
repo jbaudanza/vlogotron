@@ -11,6 +11,18 @@ import Link from "./Link";
 import "./MySongsOverlay.scss";
 
 class LineItem extends React.Component {
+  constructor() {
+    super();
+    this.onDelete = this.onDelete.bind(this);
+  }
+
+  onDelete() {
+    const b = window.confirm(this.context.messages['delete-song-confirmation']());
+    if (b) {
+      this.props.onDelete(this.props.song);
+    }
+  }
+
   render() {
     const updatedAt = new Date(this.props.song.updatedAt);
     const options = [
@@ -21,7 +33,7 @@ class LineItem extends React.Component {
       ],
       ["#svg-share", "Share", {}],
       ["#svg-permission", "Permissions", {}],
-      ["#svg-delete", "Delete", {}]
+      ["#svg-delete", "Delete", {onClick: this.onDelete}]
     ];
 
     return (
@@ -61,7 +73,7 @@ export default class MySongsOverlay extends React.Component {
         <div className="scroll">
           <ul className="song-list">
             {map(this.props.songs, (song, songId) => (
-              <LineItem song={song} key={songId} songId={songId} />
+              <LineItem song={song} key={songId} songId={songId} onDelete={this.props.onDelete} />
             ))}
           </ul>
         </div>
@@ -75,5 +87,6 @@ MySongsOverlay.contextTypes = {
 };
 
 MySongsOverlay.propTypes = {
-  songs: React.PropTypes.object.isRequired
+  songs: React.PropTypes.object.isRequired,
+  onDelete: React.PropTypes.func.isRequired
 };

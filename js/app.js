@@ -19,7 +19,7 @@ import audioContext from "./audioContext";
 
 import { findWrappingLink } from "./domutils";
 
-import { updateUser, songsForUser } from "./database";
+import { updateUser, songsForUser, deleteSong } from "./database";
 
 import * as firebase from "firebase";
 
@@ -245,6 +245,10 @@ class App extends React.Component {
     firebase.auth().signOut();
   }
 
+  onDelete(song) {
+    deleteSong(firebase.database(), song);
+  }
+
   getChildContext() {
     return { audioContext, messages: messages[this.state.locale] };
   }
@@ -261,7 +265,7 @@ class App extends React.Component {
       );
     } else if (this.state.location.hash === "#my-songs") {
       const Overlay = this.state.overlay;
-      overlay = <MySongsOverlay songs={this.state.mySongs} onClose="#" />;
+      overlay = <MySongsOverlay songs={this.state.mySongs} onClose="#" onDelete={this.onDelete} />;
     }
 
     const view = React.cloneElement(this.state.view, {

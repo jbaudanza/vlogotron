@@ -34,5 +34,6 @@
   "my-songs-header": "나의 노래들",
   "permissions-play-and-remix": "public, play and remix",
   "permissions-play": "public, play-only",
-  "permissions-private": "private"
+  "permissions-private": "private",
+  "delete-song-confirmation": "Are you sure you want to delete this song?"
 }

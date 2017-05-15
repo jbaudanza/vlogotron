@@ -120,7 +120,7 @@ export function waitForTranscode(database, videoClipId) {
 export function songsForUser(database, uid) {
   const ref = database.ref("users").child(uid).child("songs");
   return fromFirebaseRef(ref, "value").map(snapshot =>
-    mapValues(snapshot.val(), (value, key) => ({ ...value, songId: key }))
+    mapValues(snapshot.val(), (value, key) => ({ ...value, songId: key, uid }))
   );
 }
 
