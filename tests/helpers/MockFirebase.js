@@ -72,7 +72,6 @@ class MockFirebaseReference {
   }
 
   set(value) {
-    //console.log('setting', this.key, value)
     const parts = splitPath(this.path);
     let key;
     let object;
@@ -89,6 +88,25 @@ class MockFirebaseReference {
 
     return Promise.resolve(this);
   }
+
+  remove() {
+    const parts = splitPath(this.path);
+    let key;
+    let object;
+
+    if (parts.length === 0) {
+      key = 'root';
+      object = this.db;
+    } else {
+      key = last(parts);
+      object = walkToPath(this.db.root, parts);
+    }
+
+    delete object[key];
+
+    return Promise.resolve(this);
+  }
+
 
   push(value) {
     return this.child(createFirebaseKey()).set(value);

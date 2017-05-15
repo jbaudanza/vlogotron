@@ -8,7 +8,7 @@ export function createSong(database, song) {
   const songsCollectionRef = database.ref("songs");
 
   const rootObject = {
-    ...omit(song, 'notes'),
+    ...omit(song, "notes"),
     createdAt: firebase.database.ServerValue.TIMESTAMP,
     updatedAt: firebase.database.ServerValue.TIMESTAMP
   };
@@ -23,7 +23,10 @@ export function createSong(database, song) {
       ...convertToFirebaseKeys(song)
     });
 
-    denormalizedRefsForSong(database, {...song, songId: songRef.key}).forEach((ref) => {
+    denormalizedRefsForSong(database, {
+      ...song,
+      songId: songRef.key
+    }).forEach(ref => {
       ref.set(rootObject);
     });
 
@@ -52,14 +55,7 @@ function denormalizedRefsForSong(database, song) {
 }
 
 export function updateSong(database, song) {
-  const songsCollectionRef = database.ref("songs");
-  const rootRef = songsCollectionRef.child(song.songId);
-
-  const denormalizedRef = database
-    .ref("users")
-    .child(song.uid)
-    .child("songs")
-    .child(song.songId);
+  const rootRef = database.ref("songs").child(song.songId);
 
   const refs = denormalizedRefsForSong(database, song);
   refs.concat(rootRef).forEach(ref => {
@@ -70,6 +66,15 @@ export function updateSong(database, song) {
   const revision = convertToFirebaseKeys(omit(song, "createdAt", "updatedAt"));
 
   return rootRef.child("revisions").push(revision).then(ignore => rootRef.key);
+}
+
+export function deleteSong(database, song) {
+  const rootRef = database.ref("songs").child(song.songId);
+  rootRef.child("deletedAt").set(firebase.database.ServerValue.TIMESTAMP);
+
+  return Promise.all(
+    denormalizedRefsForSong(database, song).map(ref => ref.remove())
+  ).then(() => song.songId);
 }
 
 export function updateUser(database, user) {

@@ -56,3 +56,27 @@ test('updateSong', t => {
     t.is(mockdb.root.users[uid].songs[songId].title, 'New Title');
   })
 });
+
+test('deleteSong', t => {
+  const mockdb = new MockFirebaseDatabase();
+
+  const uid = createFirebaseKey();
+  const parentSongId = createFirebaseKey();
+
+  const song = {
+    title: 'Test song',
+    notes: [],
+    uid: uid,
+    parentSong: {songId: parentSongId}
+  };
+
+  t.plan(3);
+
+  return database.createSong(mockdb, song).then((songId) => {
+    return database.deleteSong(mockdb, {...song, songId});
+  }).then((songId) => {
+    t.true('deletedAt' in mockdb.root.songs[songId]);
+    t.false(songId in mockdb.root.songs[parentSongId].remixes);
+    t.false(songId in mockdb.root.users[song.uid].songs);
+  })
+});
