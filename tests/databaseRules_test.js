@@ -70,6 +70,11 @@ test('database.rules - reading a song', t => {
       '2': {
         uid: '1',
         visibility: 'everyone'
+      },
+      '3': {
+        uid: '1',
+        visibility: 'everyone',
+        deletedAt: 1494812250852
       }
     }
   };
@@ -101,6 +106,11 @@ test('database.rules - reading a song', t => {
   // Non-Owner user CAN read public song
   result = database.as({uid: '2'}).read('/songs/2');
   t.true(result.allowed);
+
+
+  // A deleted song CAN NOT be read
+  result = database.as({uid: '1'}).read('/songs/3');
+  t.false(result.allowed);
 });
 
 test('database.rules - storing user data', t => {
