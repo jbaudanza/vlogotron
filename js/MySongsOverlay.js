@@ -38,11 +38,6 @@ class LineItem extends React.Component {
 
     return (
       <li>
-        <PopupMenuTrigger options={options} className="more-button">
-          <svg version="1.1" width={23} height={23}>
-            <use xlinkHref="#svg-ellipsis" />
-          </svg>
-        </PopupMenuTrigger>
         <div className="title">
           <Link href={"/songs/" + this.props.song.songId}>
             {this.props.song.title}
@@ -56,6 +51,11 @@ class LineItem extends React.Component {
             ? this.context.messages["permissions-play-and-remix"]()
             : this.context.messages["permissions-private"]()}
         </div>
+        <PopupMenuTrigger options={options} className="more-button">
+          <svg version="1.1" width={23} height={23}>
+            <use xlinkHref="#svg-ellipsis" />
+          </svg>
+        </PopupMenuTrigger>
       </li>
     );
   }
@@ -69,7 +69,9 @@ export default class MySongsOverlay extends React.Component {
   render() {
     return (
       <SideNavOverlay onClose={this.props.onClose} className="my-songs-overlay">
-        <h1>{this.context.messages["my-songs-header"]()}</h1>
+        <div className='header'>
+          <h1>{this.context.messages["my-songs-header"]()}</h1>
+        </div>
         <div className="scroll">
           <ul className="song-list">
             {map(this.props.songs, (song, songId) => (
