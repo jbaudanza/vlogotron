@@ -26,7 +26,7 @@ test('createSong', t => {
 
   return database.createSong(mockdb, song).then((songId) => {
     t.is(mockdb.root.songs[songId].title, 'Test song');
-    t.is(mockdb.root.songs[parentSongId].remixes[songId].title, 'Test song');
+    t.is(mockdb.root.remixes[parentSongId][songId].title, 'Test song');
     t.is(mockdb.root.users[uid].songs[songId].title, 'Test song');
   })
 });
@@ -52,7 +52,7 @@ test('updateSong', t => {
     return database.updateSong(mockdb, updatedSong);
   }).then((songId) => {
     t.is(mockdb.root.songs[songId].title, 'New Title');
-    t.is(mockdb.root.songs[parentSongId].remixes[songId].title, 'New Title');
+    t.is(mockdb.root.remixes[parentSongId][songId].title, 'New Title');
     t.is(mockdb.root.users[uid].songs[songId].title, 'New Title');
   })
 });
@@ -76,7 +76,7 @@ test('deleteSong', t => {
     return database.deleteSong(mockdb, {...song, songId});
   }).then((songId) => {
     t.true('deletedAt' in mockdb.root.songs[songId]);
-    t.false(songId in mockdb.root.songs[parentSongId].remixes);
+    t.false(songId in mockdb.root.remixes[parentSongId]);
     t.false(songId in mockdb.root.users[song.uid].songs);
   })
 });

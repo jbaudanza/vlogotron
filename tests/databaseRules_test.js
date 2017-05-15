@@ -7,7 +7,7 @@ import targaryen from 'targaryen';
 
 const rules = JSON.parse(fs.readFileSync('./database.rules.json'));
 
-test('database.rules - updating a song', t => {
+test('updating a song', t => {
   const data = {
     songs: {
       '1': {
@@ -33,7 +33,7 @@ test('database.rules - updating a song', t => {
   t.true(result.allowed);
 });
 
-test('database.rules - creating a new song', t => {
+test('creating a new song', t => {
   const data = {
     songs: {}
   };
@@ -59,8 +59,29 @@ test('database.rules - creating a new song', t => {
   t.false(result.allowed);
 });
 
+test('writing to remix list', t => {
+  const data = {
+    songs: {'1': {
+      title: 'Parent song',
+      visibility: 'everyone',
+      uid: '1'
+    }}
+  };
+  const database = targaryen.database(rules, data);
 
-test('database.rules - reading a song', t => {
+  const song = {
+    title: 'new title',
+    uid: '2'
+  };
+
+  let result;
+
+  // A user can write to any remix list
+  result = database.as({uid: '2'}).write('/remixes/1/2', song);
+  t.true(result.allowed);
+});
+
+test('reading a song', t => {
   const data = {
     songs: {
       '1': {
@@ -113,7 +134,7 @@ test('database.rules - reading a song', t => {
   t.false(result.allowed);
 });
 
-test('database.rules - storing user data', t => {
+test('storing user data', t => {
   const database = targaryen.database(rules, {});
 
   let result;
@@ -131,7 +152,7 @@ test('database.rules - storing user data', t => {
   t.false(result.allowed);
 });
 
-test('database.rules - reading user data', t => {
+test('reading user data', t => {
   const data = {
     users: {
       '1': {
