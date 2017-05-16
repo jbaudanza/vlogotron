@@ -131,7 +131,7 @@ function readEvents(trackNum) {
         //2: duration (in beats)
         note[0] = noteName + oct;
         // map time, dividing by ticks per beat
-        note[1] = round(offset / midiFile.header.getTicksPerBeat());
+        note[1] = offset / midiFile.header.getTicksPerBeat();
         // set default duration
         note[2] = defaultDuration;
 
@@ -141,7 +141,7 @@ function readEvents(trackNum) {
         // look backwards on note off event
         for (var i = trackNotes.length - 1; i >= 0; i--) {
           if (trackNotes[i][0] === noteName + oct) {
-            var dur = round(event.delta / midiFile.header.getTicksPerBeat());
+            var dur = event.delta / midiFile.header.getTicksPerBeat();
             if (dur >= minDuration) {
               trackNotes[i][2] = dur;
             }
@@ -159,6 +159,7 @@ function sortEvents(a, b) {
   return a[1] - b[1];
 }
 
+
 vlogNotes.sort(sortEvents);
 
 //remove duplicate notes, i.e. ones with identical pitches/start times
@@ -167,6 +168,10 @@ var vlogNotesUnique = [];
 for (var i = 0, l = vlogNotes.length; i < l; i++) {
   var key = vlogNotes[i][0] + "|" + vlogNotes[i][1];
   if (!matches[key]) {
+    // round start time and duration
+    vlogNotes[i][1] = round(vlogNotes[i][1]);
+    vlogNotes[i][2] = round(vlogNotes[i][2]);
+
     vlogNotesUnique.push(vlogNotes[i]);
     matches[key] = true;
   }
