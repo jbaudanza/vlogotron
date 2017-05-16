@@ -140,7 +140,7 @@ class App extends React.Component {
     this.globalSubscription.add(currentRoute$.subscribe(this.onRouteChange));
 
     this.globalSubscription.add(
-      mySongs$.subscribe(v => this.setState({ mySongs: v }))
+      mySongs$.subscribe(this.stateObserver("mySongs"))
     );
 
     this.globalSubscription.add(
