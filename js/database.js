@@ -43,10 +43,7 @@ function denormalizedRefsForSong(database, song) {
 
   if (song.parentSong) {
     refs.push(
-      database
-        .ref("remixes")
-        .child(song.parentSong.songId)
-        .child(song.songId)
+      database.ref("remixes").child(song.parentSong.songId).child(song.songId)
     );
   }
 

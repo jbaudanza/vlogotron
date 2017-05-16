@@ -265,7 +265,13 @@ class App extends React.Component {
       );
     } else if (this.state.location.hash === "#my-songs") {
       const Overlay = this.state.overlay;
-      overlay = <MySongsOverlay songs={this.state.mySongs} onClose="#" onDelete={this.onDelete} />;
+      overlay = (
+        <MySongsOverlay
+          songs={this.state.mySongs}
+          onClose="#"
+          onDelete={this.onDelete}
+        />
+      );
     }
 
     const view = React.cloneElement(this.state.view, {

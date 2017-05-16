@@ -17,7 +17,9 @@ class LineItem extends React.Component {
   }
 
   onDelete() {
-    const b = window.confirm(this.context.messages['delete-song-confirmation']());
+    const b = window.confirm(
+      this.context.messages["delete-song-confirmation"]()
+    );
     if (b) {
       this.props.onDelete(this.props.song);
     }
@@ -33,7 +35,7 @@ class LineItem extends React.Component {
       ],
       ["#svg-share", "Share", {}],
       ["#svg-permission", "Permissions", {}],
-      ["#svg-delete", "Delete", {onClick: this.onDelete}]
+      ["#svg-delete", "Delete", { onClick: this.onDelete }]
     ];
 
     return (
@@ -69,13 +71,18 @@ export default class MySongsOverlay extends React.Component {
   render() {
     return (
       <SideNavOverlay onClose={this.props.onClose} className="my-songs-overlay">
-        <div className='header'>
+        <div className="header">
           <h1>{this.context.messages["my-songs-header"]()}</h1>
         </div>
         <div className="scroll">
           <ul className="song-list">
             {map(this.props.songs, (song, songId) => (
-              <LineItem song={song} key={songId} songId={songId} onDelete={this.props.onDelete} />
+              <LineItem
+                song={song}
+                key={songId}
+                songId={songId}
+                onDelete={this.props.onDelete}
+              />
             ))}
           </ul>
         </div>
