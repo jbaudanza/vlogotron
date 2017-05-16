@@ -18,7 +18,7 @@
     },
     "remixes": {
       "$parentSongId": {
-        "$childSongId$": {
+        "$childSongId": {
           ".read": true,
           ".write": "data.exists() ? (data.child('uid').val() === auth.uid) : (auth != null)",
           ".validate": "newData.child('uid').val() === auth.uid"
