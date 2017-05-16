@@ -1,10 +1,13 @@
 @import './colors';
 
+$menu-background-color: #fff;
+
 .popup-menu {
+
   position: absolute;
   font-size: 13px;
   padding: 10px 0;
-  background-color: white;
+  background-color: $menu-background-color;
   letter-spacing: 0.2px;
   width: 174px;
   box-shadow: 0 2px 7px 0 $color-pale-grey;
@@ -33,9 +36,8 @@
     }
   }
 
-  // arrow pointer
+  // arrow pointer - http://www.cssarrowplease.com/
   &:after {
-    bottom: 100%;
     left: 50%;
     border: solid transparent;
     content: " ";
@@ -44,8 +46,16 @@
     position: absolute;
     pointer-events: none;
     border-color: rgba(255, 255, 255, 0);
-    border-bottom-color: #ffffff;
     border-width: 10px;
     margin-left: -10px;
+  }
+
+  &.pointing-up:after {
+    bottom: 100%;
+    border-bottom-color: $menu-background-color;
+  }
+  &.pointing-down:after {
+    top: 100%;
+    border-top-color: $menu-background-color;
   }
 }
