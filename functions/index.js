@@ -21,3 +21,18 @@ exports.transcodeVideo = functions.storage
       }
     }
   });
+
+exports.accessLog = functions.https.onRequest((req, res) => {
+  console.log('IP: ', req.ip);
+
+  if (req.query.referrer) {
+    console.log('Referrer: ' + req.query.referrer);
+  }
+
+  if (req.get('User-Agent')) {
+    console.log('User-Agent: ' + req.get('User-Agent'));
+  }
+
+  res.setHeader("content-type", "text/javascript");
+  res.status(200).send("true;");
+});

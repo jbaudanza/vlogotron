@@ -7,7 +7,7 @@
     "@google-cloud/storage": "jbaudanza/jbaudanza-google-cloud-storage#65bf4c74326388731f57ce31eac214926aa02084",
     "firebase": "^3.1",
     "firebase-admin": "^4.1.3",
-    "firebase-functions": "https://storage.googleapis.com/firebase-preview-drop/node/firebase-functions/firebase-functions-preview.latest.tar.gz",
+    "firebase-functions": "^0.5.7",
     "fluent-ffmpeg": "^2.1.0"
   }
 }
