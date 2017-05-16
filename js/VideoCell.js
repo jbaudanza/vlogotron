@@ -25,7 +25,9 @@ export default class VideoCell extends React.Component {
   }
 
   onClear() {
-    if (window.confirm("Do you want to remove this clip?")) {
+    if (
+      window.confirm(this.context.messages["delete-video-clip-confirmation"]())
+    ) {
       this.props.onClear();
     }
   }
