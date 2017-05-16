@@ -85,9 +85,12 @@ export default function recordVideosController(
     cleared: true
   }));
 
-  const localAudioBuffers$ = Observable.merge(finalMedia$, clearedMedia$)
-    .scan(reduceToAudioBufferStore, {})
-    .startWith({});
+  subscription.add(
+    clearedMedia$.subscribe(e => mediaStore.clearedEvents$.next(e))
+  );
+  subscription.add(
+    finalMedia$.subscribe(e => mediaStore.recordedMedia$.next(e))
+  );
 
   const livePlayCommands$ = combinePlayCommands(
     Observable.merge(
@@ -96,31 +99,14 @@ export default function recordVideosController(
     )
   );
 
-  const localVideoStore$ = Observable.merge(finalMedia$, clearedMedia$)
-    .scan(reduceToLocalVideoClipStore, {})
-    .startWith({});
-
-  const videoClips$ = Observable.combineLatest(
-    localVideoStore$,
-    mediaStore.videoClips$,
-    (local, remote) => ({ ...remote, ...local })
-  );
-
-  // Looks like { [note]: [audioBuffer], ... }
-  const audioBuffers$ = Observable.combineLatest(
-    localAudioBuffers$,
-    mediaStore.audioBuffers$,
-    (local, remote) => ({ ...remote, ...local })
-  );
-
   const playCommands$ = startLivePlaybackEngine(
-    audioBuffers$,
+    mediaStore.audioBuffers$,
     livePlayCommands$,
     subscription
   );
 
   return Observable.combineLatest(
-    videoClips$.startWith({}),
+    mediaStore.videoClips$,
     recordingState$,
     currentUser$,
     mediaStore.song$,

@@ -1,5 +1,6 @@
 import { Observable } from "rxjs/Observable";
 import { Subscription } from "rxjs/Subscription";
+import { Subject } from "rxjs/Subject";
 
 import audioContext from "./audioContext";
 
@@ -67,13 +68,25 @@ export function subscribeToSongLocation(
 ) {
   let song$;
   let workspace$;
+  let localVideoStore$;
+  let localAudioBuffers$;
+
+  const clearedEvents$ = new Subject();
+  const recordedMedia$ = new Subject();
+
+  subscription.add(clearedEvents$);
+  subscription.add(recordedMedia$);
 
   const database = firebase.database();
 
   const null$ = Observable.of(null);
+  const emptyObject$ = Observable.of({});
+
   switch (songLocation.source) {
     case "database":
       song$ = null$.concat(songById(database, songLocation.id)).publishReplay();
+      localVideoStore$ = emptyObject$;
+      localAudioBuffers$ = emptyObject$;
       subscription.add(song$.connect());
       break;
     case "localStorage":
@@ -94,11 +107,26 @@ export function subscribeToSongLocation(
         );
       }
 
+      localAudioBuffers$ = Observable.merge(recordedMedia$, clearedEvents$)
+        .scan(reduceToLocalAudioBufferStore, {})
+        .startWith({})
+        .publishReplay();
+
+      localVideoStore$ = Observable.merge(recordedMedia$, clearedEvents$)
+        .scan(reduceToLocalVideoClipStore, {})
+        .startWith({})
+        .publishReplay();
+
+      subscription.add(localAudioBuffers$.connect());
+      subscription.add(localVideoStore$.connect());
+
       song$ = null$.concat(workspace$.switch());
 
       break;
     default:
       song$ = null$;
+      localVideoStore$ = emptyObject$;
+      localAudioBuffers$ = emptyObject$;
   }
 
   const videoClipIds$ = song$.map(function(song) {
@@ -109,23 +137,38 @@ export function subscribeToSongLocation(
     }
   });
 
-  const videoClips$ = videoClipsForClipIds(
+  const remoteVideoClips$ = videoClipsForClipIds(
     videoClipIds$,
     firebase
   ).publishReplay();
 
+  const videoClips$ = Observable.combineLatest(
+    localVideoStore$,
+    remoteVideoClips$,
+    (local, remote) => ({ ...remote, ...local })
+  );
+
   const audioLoading = loadAudioBuffersFromVideoClips(
-    videoClips$,
+    remoteVideoClips$,
     subscription
   );
 
-  subscription.add(videoClips$.connect());
+  // Looks like { [note]: [audioBuffer], ... }
+  const audioBuffers$ = Observable.combineLatest(
+    localAudioBuffers$,
+    audioLoading.audioBuffers$,
+    (local, remote) => ({ ...remote, ...local })
+  );
+
+  subscription.add(remoteVideoClips$.connect());
 
   return {
     song$,
     videoClips$,
     workspace$,
-    audioBuffers$: audioLoading.audioBuffers$,
+    audioBuffers$,
+    clearedEvents$,
+    recordedMedia$,
     loading$: audioLoading.loading$
   };
 }
@@ -266,4 +309,34 @@ function reduceToAudioBuffers(acc, noteToUrlMap) {
     .filter(identity);
 
   return next;
+}
+
+function reduceToLocalAudioBufferStore(acc, finalMedia) {
+  if (finalMedia.cleared) {
+    return omit(acc, finalMedia.note);
+  } else {
+    return {
+      ...acc,
+      [finalMedia.note]: finalMedia.audioBuffer
+    };
+  }
+}
+
+// TODO: There should be a corresponding call to URL.revokeObjectURL
+function reduceToLocalVideoClipStore(acc, obj) {
+  if (obj.cleared) {
+    return omit(acc, obj.note);
+  } else {
+    return {
+      ...acc,
+      [obj.note]: {
+        sources: [
+          {
+            src: URL.createObjectURL(obj.videoBlob),
+            type: obj.videoBlob.type
+          }
+        ]
+      }
+    };
+  }
 }
