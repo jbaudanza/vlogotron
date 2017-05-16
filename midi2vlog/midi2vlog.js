@@ -21,14 +21,12 @@ var filename = process.argv[2];
 var midiFile = new MIDIFile(toArrayBuffer(fs.readFileSync(filename)));
 
 // read headers
+//TODO: handle all formats
 midiFile.header.getFormat(); // 0, 1 or 2
-midiFile.header.getTracksCount(); // n
 
-var trackEventsChunk = midiFile.tracks[1].getTrackContent();
-var events = MIDIEvents.createParser(trackEventsChunk);
+const numTracks = midiFile.header.getTracksCount(); // n
 
 var event;
-var offset = 0;
 var vlogNotes = [];
 
 const noteNames = [
@@ -53,7 +51,7 @@ const minNoteNum = 48, maxNoteNum = 75;
 
 const midRange = meanNote(minNoteNum, maxNoteNum);
 
-const defaultDuration = 1.0, minDuration = 0.1;
+const defaultDuration = 0.0, minDuration = 0.0;
 
 var noteNum, noteName, oct;
 
@@ -61,9 +59,15 @@ function meanNote(min, max) {
   return Math.round((max + min) / 2);
 }
 
-function findRange(events) {
+//TODO: find range across _all_ tracks?
+function findRange() {
+  var trackNum = 1;
+  var trackEventsChunk = midiFile.tracks[trackNum].getTrackContent();
+  var events = MIDIEvents.createParser(trackEventsChunk);
+
   var min = 127;
   var max = 0;
+  var event;
   while ((event = events.next())) {
     if (event.type === MIDIEvents.EVENT_MIDI) {
       var noteNum = event.param1;
@@ -78,7 +82,7 @@ function findRange(events) {
   return { min: min, max: max };
 }
 
-var range = findRange(events);
+var range = findRange();
 
 var transposition = 0;
 
@@ -91,50 +95,81 @@ function round(num) {
   return Math.round(num * 100) / 100;
 }
 
-events = MIDIEvents.createParser(trackEventsChunk);
-while ((event = events.next())) {
-  offset += event.delta;
-  if (event.type === MIDIEvents.EVENT_MIDI) {
-    noteNum = parseInt(event.param1) + transposition;
+for (var i = 1; i < numTracks; i++) {
+  vlogNotes = vlogNotes.concat(readEvents(i));
+}
 
-    // if individual notes still out of range,
-    // transpose each by an octave until in range
-    while (noteNum < minNoteNum) {
-      noteNum += 12;
-    }
+function readEvents(trackNum) {
+  var offset = 0;
+  var trackEventsChunk = midiFile.tracks[trackNum].getTrackContent();
+  var events = MIDIEvents.createParser(trackEventsChunk);
+  var trackNotes = [];
+  var event;
 
-    while (noteNum > maxNoteNum) {
-      noteNum -= 12;
-    }
+  while ((event = events.next())) {
+    offset += event.delta;
+    if (event.type === MIDIEvents.EVENT_MIDI) {
+      noteNum = parseInt(event.param1) + transposition;
 
-    // map note number to note name
-    noteName = noteNames[noteNum % 12];
-    oct = Math.floor(noteNum / 12) - 1;
-    if (event.subtype === MIDIEvents.EVENT_MIDI_NOTE_ON) {
-      var note = [];
-      //0: note name
-      //1: beat offset
-      //2: duration (in beats)
-      note[0] = noteName + oct;
-      // map time, dividing by ticks per beat
-      note[1] = round(offset / midiFile.header.getTicksPerBeat());
-      // set default duration
-      note[2] = defaultDuration;
+      // if individual notes still out of range,
+      // transpose each by an octave until in range
+      while (noteNum < minNoteNum) {
+        noteNum += 12;
+      }
 
-      vlogNotes.push(note);
-    } else if (event.subtype === MIDIEvents.EVENT_MIDI_NOTE_OFF) {
-      // infer duration
-      // look backwards on note off event
-      for (var i = vlogNotes.length - 1; i >= 0; i--) {
-        if (vlogNotes[i][0] === noteName + oct) {
-          var dur = round(event.delta / midiFile.header.getTicksPerBeat());
-          if (dur >= minDuration) {
-            vlogNotes[i][2] = dur;
+      while (noteNum > maxNoteNum) {
+        noteNum -= 12;
+      }
+
+      // map note number to note name
+      noteName = noteNames[noteNum % 12];
+      oct = Math.floor(noteNum / 12) - 1;
+      if (event.subtype === MIDIEvents.EVENT_MIDI_NOTE_ON) {
+        var note = [];
+        //0: note name
+        //1: beat offset
+        //2: duration (in beats)
+        note[0] = noteName + oct;
+        // map time, dividing by ticks per beat
+        note[1] = round(offset / midiFile.header.getTicksPerBeat());
+        // set default duration
+        note[2] = defaultDuration;
+
+        trackNotes.push(note);
+      } else if (event.subtype === MIDIEvents.EVENT_MIDI_NOTE_OFF) {
+        // infer duration
+        // look backwards on note off event
+        for (var i = trackNotes.length - 1; i >= 0; i--) {
+          if (trackNotes[i][0] === noteName + oct) {
+            var dur = round(event.delta / midiFile.header.getTicksPerBeat());
+            if (dur >= minDuration) {
+              trackNotes[i][2] = dur;
+            }
           }
         }
       }
     }
   }
+  return trackNotes;
 }
 
-console.log(JSON.stringify(vlogNotes, null, 2));
+//sort events
+function sortEvents(a, b) {
+  // start time is index 1 of event array
+  return a[1] - b[1];
+}
+
+vlogNotes.sort(sortEvents);
+
+//remove duplicate notes, i.e. ones with identical pitches/start times
+var matches = {};
+var vlogNotesUnique = [];
+for (var i = 0, l = vlogNotes.length; i < l; i++) {
+  var key = vlogNotes[i][0] + "|" + vlogNotes[i][1];
+  if (!matches[key]) {
+    vlogNotesUnique.push(vlogNotes[i]);
+    matches[key] = true;
+  }
+}
+
+console.log(JSON.stringify(vlogNotesUnique, null, 2));
