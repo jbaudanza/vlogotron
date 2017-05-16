@@ -391,11 +391,11 @@ export default class PianoRoll extends React.Component {
     }
 
     // Update span text
-    this.playbackPositionSpan.textContent = position.toFixed(2);
+    this.playbackPositionSpan.textContent = position.toFixed(1);
   }
 
   stopPlayback() {
-    this.playbackPositionSpan.textContent = (0.0).toFixed(2);
+    this.playbackPositionSpan.textContent = (0.0).toFixed(1);
     this.scrollerEl.scrollLeft = 0;
     this.playheadEl.style.display = "none";
     this.setState({ isPlaying: false });
@@ -444,7 +444,7 @@ export default class PianoRoll extends React.Component {
       <div className="piano-roll">
         <div className="row-labels">
           <div className="song-duration">
-            <span ref={this.bindPlaybackPosition} /> / {songLength.toFixed(2)}
+            <span ref={this.bindPlaybackPosition} /> / {songLength.toFixed(1)}
           </div>
           {mapAllKeys(props => (
             <NoteLabel
