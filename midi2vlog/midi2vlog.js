@@ -51,7 +51,7 @@ const minNoteNum = 48, maxNoteNum = 75;
 
 const midRange = meanNote(minNoteNum, maxNoteNum);
 
-const defaultDuration = 0.0, minDuration = 0.0;
+const defaultDuration = 0.0, minDuration = 0.4;
 
 var noteNum, noteName, oct;
 
@@ -59,23 +59,25 @@ function meanNote(min, max) {
   return Math.round((max + min) / 2);
 }
 
-//TODO: find range across _all_ tracks?
+// finds midi note range across all tracks
 function findRange() {
-  var trackNum = 1;
-  var trackEventsChunk = midiFile.tracks[trackNum].getTrackContent();
-  var events = MIDIEvents.createParser(trackEventsChunk);
-
   var min = 127;
   var max = 0;
-  var event;
-  while ((event = events.next())) {
-    if (event.type === MIDIEvents.EVENT_MIDI) {
-      var noteNum = event.param1;
-      if (noteNum < min) {
-        min = noteNum;
-      }
-      if (noteNum > max) {
-        max = noteNum;
+  for (var trackNum = 1; trackNum < numTracks; trackNum++) {
+
+    var trackEventsChunk = midiFile.tracks[trackNum].getTrackContent();
+    var events = MIDIEvents.createParser(trackEventsChunk);
+
+    var event;
+    while ((event = events.next())) {
+      if (event.type === MIDIEvents.EVENT_MIDI) {
+        var noteNum = event.param1;
+        if (noteNum < min) {
+          min = noteNum;
+        }
+        if (noteNum > max) {
+          max = noteNum;
+        }
       }
     }
   }
