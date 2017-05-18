@@ -64,7 +64,6 @@ function findRange() {
   var min = 127;
   var max = 0;
   for (var trackNum = 1; trackNum < numTracks; trackNum++) {
-
     var trackEventsChunk = midiFile.tracks[trackNum].getTrackContent();
     var events = MIDIEvents.createParser(trackEventsChunk);
 
@@ -160,7 +159,6 @@ function sortEvents(a, b) {
   // start time is index 1 of event array
   return a[1] - b[1];
 }
-
 
 vlogNotes.sort(sortEvents);
 
