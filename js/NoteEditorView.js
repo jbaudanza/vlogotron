@@ -196,4 +196,4 @@ NoteEditorView.contextTypes = {
 
 NoteEditorView.propTypes = {
   loading: React.PropTypes.object.isRequired
-}
+};

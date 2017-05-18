@@ -97,5 +97,6 @@ Page.contextTypes = {
 Page.PropTypes = {
   sidebarVisible: React.PropTypes.bool.isRequired,
   onChangeLocale: React.PropTypes.func.isRequired,
+  onLogout: React.PropTypes.func.isRequired,
   isLoggedIn: React.PropTypes.bool.isRequired
 };

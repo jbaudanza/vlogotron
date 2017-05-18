@@ -4,9 +4,8 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { Observable } from "rxjs/Observable";
 import { Subscription } from "rxjs/Subscription";
-import { Subject } from "rxjs/Subject";
 
-import { bindAll, fromPairs, isEqual, find, includes } from "lodash";
+import { bindAll, isEqual, find, includes } from "lodash";
 
 import SvgAssets from "./SvgAssets";
 import LoginOverlay from "./LoginOverlay";
@@ -298,6 +297,7 @@ class App extends React.Component {
         <Page
           sidebarVisible={this.state.sidebarVisible}
           onChangeLocale={this.onChangeLocale}
+          onLogout={this.onLogout}
           isLoggedIn={!!this.state.currentUser}
         >
           {view}
