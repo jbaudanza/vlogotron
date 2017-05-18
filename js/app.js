@@ -96,6 +96,14 @@ function initializeLocale() {
   return "en";
 }
 
+const loadingView = (
+  <div className="page-vertical-wrapper">
+    <div className="page-content">
+      loading...
+    </div>
+  </div>
+);
+
 class App extends React.Component {
   constructor() {
     super();
@@ -198,7 +206,7 @@ class App extends React.Component {
 
     this.setState({
       sidebarVisible: pageConfig.sidebarVisible,
-      view: <div>loading</div> // If the controller emits immediately, this div will never be shown.
+      view: loadingView // If the controller emits immediately, this div will never be shown.
     });
 
     this.pageSubscription.add(
