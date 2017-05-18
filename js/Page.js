@@ -3,8 +3,6 @@ import React from "react";
 import classNames from "classnames";
 import { omit } from "lodash";
 
-import PopupMenuTrigger from "./PopupMenuTrigger";
-
 import Link from "./Link";
 
 import "./Page.scss";

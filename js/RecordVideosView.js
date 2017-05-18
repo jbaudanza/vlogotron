@@ -86,7 +86,7 @@ export default class RecordVideosView extends React.Component {
         sidebarVisible={false}
         header={header}
         footer={footer}
-        loading={this.props.loading}
+        loading={false}
         className="record-videos-page"
       >
         <VideoGrid
@@ -94,6 +94,7 @@ export default class RecordVideosView extends React.Component {
           videoClips={this.props.videoClips}
           playCommands$={this.props.playCommands$}
           readonly={false}
+          loading={this.props.loading}
           onStartRecording={callbacks.onStartRecording}
           onStopRecording={callbacks.onStopRecording}
           onClear={callbacks.onClearVideoClip}
@@ -114,7 +115,7 @@ RecordVideosView.contextTypes = {
 };
 
 RecordVideosView.propTypes = {
-  loading: React.PropTypes.bool.isRequired,
+  loading: React.PropTypes.object.isRequired,
   videoClips: React.PropTypes.object.isRequired,
   playCommands$: React.PropTypes.object.isRequired,
   songTitle: React.PropTypes.string.isRequired

@@ -38,6 +38,7 @@ export default class VideoCell extends React.Component {
     let stopActionEl;
     let shadeEl;
     let clearEl;
+    let spinnerEl;
 
     if (this.props.countdown) {
       countdownEl = (
@@ -125,6 +126,14 @@ export default class VideoCell extends React.Component {
       );
     }
 
+    if (this.props.spinner) {
+      spinnerEl = (
+        <svg version="1.1" width="50px" height="50px" className="spinner">
+          <use xlinkHref="#svg-spinner" />
+        </svg>
+      );
+    }
+
     return (
       <div
         className={classNames("video-cell touchable", {
@@ -139,6 +148,7 @@ export default class VideoCell extends React.Component {
         {shadeEl}
         <NoteLabel note={this.props.label} />
         {clearEl}
+        {spinnerEl}
       </div>
     );
   }
@@ -152,6 +162,7 @@ VideoCell.propTypes = {
   note: React.PropTypes.string.isRequired,
   label: React.PropTypes.string.isRequired,
   playing: React.PropTypes.bool.isRequired,
+  spinner: React.PropTypes.bool.isRequired,
   mediaStream: React.PropTypes.object,
   onStartRecording: React.PropTypes.func,
   onStopRecording: React.PropTypes.func,

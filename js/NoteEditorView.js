@@ -178,12 +178,13 @@ export default class NoteEditorView extends React.Component {
         sidebarVisible={false}
         header={header}
         footer={footer}
-        loading={this.props.loading}
+        loading={false}
         className="note-editor-page"
       >
         <VideoGrid
           readonly
           videoClips={this.props.videoClips}
+          loading={this.props.loading}
           playCommands$={this.props.playCommands$}
           readonly={true}
           onClear={this.onClearVideoClip}
@@ -197,5 +198,6 @@ export default class NoteEditorView extends React.Component {
 }
 
 NoteEditorView.contextTypes = {
-  messages: React.PropTypes.object.isRequired
+  messages: React.PropTypes.object.isRequired,
+  loading: React.PropTypes.object.isRequired
 };

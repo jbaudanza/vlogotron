@@ -15,6 +15,12 @@
   // shade doesn't have a z-index
   z-index: 1;
 
+  .spinner {
+    position: absolute;
+    top: 45px;
+    left: 45px;
+  }
+
   .record-status {
     position: absolute;
     left: 5px;

@@ -105,7 +105,8 @@ export default class VideoGrid extends React.Component {
       videoClip: this.props.videoClips[note],
       note: note,
       playing: !!this.state.playing[note],
-      readonly: this.props.readonly
+      readonly: this.props.readonly,
+      spinner: !!this.props.loading[note]
     };
 
     if (!this.props.readonly) {
@@ -183,7 +184,8 @@ VideoGrid.propTypes = {
   onStartRecording: React.PropTypes.func,
   onStopRecording: React.PropTypes.func,
   onClear: React.PropTypes.func,
-  noteBeingRecorded: React.PropTypes.string
+  noteBeingRecorded: React.PropTypes.string,
+  loading: React.PropTypes.object.isRequired
 };
 
 VideoGrid.contextTypes = {

@@ -51,12 +51,13 @@ export default class PlaybackView extends React.Component {
         isLoggedIn={!!this.props.currentUser}
         header={header}
         footer={null}
-        loading={this.props.loading}
+        loading={false}
         sidebarVisible={true}
       >
         <VideoGrid
           readonly
           videoClips={this.props.videoClips}
+          loading={this.props.loading}
           playCommands$={this.props.playCommands$}
           ref={this.bindVideoGrid}
         />
@@ -66,7 +67,7 @@ export default class PlaybackView extends React.Component {
 }
 
 PlaybackView.propTypes = {
-  loading: React.PropTypes.bool.isRequired,
+  loading: React.PropTypes.object.isRequired,
   videoClips: React.PropTypes.object.isRequired,
   playCommands$: React.PropTypes.object.isRequired,
   isPlaying: React.PropTypes.bool.isRequired,

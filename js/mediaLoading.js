@@ -17,6 +17,7 @@ import {
   forEach,
   values,
   pick,
+  pickBy,
   map,
   mapValues,
   identity
@@ -231,10 +232,13 @@ export function loadAudioBuffersFromVideoClips(videoClips$, subscription) {
   subscription.add(audioBuffers$.connect());
 
   const loading$ = http$
-    .flatMap(http => Observable.of(+1).concat(http.response.then(r => -1)))
-    .scan((i, j) => i + j, 0)
-    .startWith(0)
-    .map(count => count > 0);
+    .flatMap(http =>
+      Observable.of({ [http.note]: true }).concat(
+        http.response.then(r => ({ [http.note]: false }))
+      )
+    )
+    .scan((acc, i) => pickBy({ ...acc, ...i }), {})
+    .startWith({});
 
   return { loading$, audioBuffers$ };
 }
@@ -295,6 +299,7 @@ function reduceToAudioBuffers(acc, noteToUrlMap) {
   forEach(noteToUrlMap, (url, note) => {
     if (!next.httpMap[url]) {
       const http = getAudioBuffer(url);
+      http.note = note;
 
       next.promises.push(http.audioBuffer.then(buffer => ({ [note]: buffer })));
       next.progressList.push(http.progress);
