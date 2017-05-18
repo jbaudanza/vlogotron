@@ -16,6 +16,7 @@ export default class PlaybackHeader extends React.Component {
           onClickPlay={this.props.onClickPlay}
           onClickPause={this.props.onClickPause}
           isPlaying={this.props.isPlaying}
+          enabled={!this.props.loading}
         />
 
         <div className="song-info">
@@ -51,6 +52,7 @@ PlaybackHeader.contextTypes = {
 };
 
 PlaybackHeader.propTypes = {
+  loading: React.PropTypes.bool.isRequired,
   onClickPlay: React.PropTypes.func.isRequired,
   onClickPause: React.PropTypes.func.isRequired,
   remixAction: React.PropTypes.object.isRequired,

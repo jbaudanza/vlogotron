@@ -18,7 +18,11 @@ export default class PlayButton extends React.Component {
 
   render() {
     return (
-      <Link onClick={this.onClick} className="play-button">
+      <Link
+        onClick={this.onClick}
+        className="play-button"
+        enabled={this.props.enabled}
+      >
         <svg version="1.1" width={this.props.size} height={this.props.size}>
           <use xlinkHref={this.props.isPlaying ? "#svg-pause" : "#svg-play"} />
         </svg>
@@ -28,6 +32,7 @@ export default class PlayButton extends React.Component {
 }
 
 PlayButton.propTypes = {
+  enabled: React.PropTypes.bool.isRequired,
   size: React.PropTypes.number.isRequired,
   isPlaying: React.PropTypes.bool.isRequired,
   onClickPlay: React.PropTypes.func.isRequired,

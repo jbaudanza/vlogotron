@@ -1,6 +1,6 @@
 import React from "react";
 
-import { bindAll, bindKey } from "lodash";
+import { bindAll, bindKey, isEmpty } from "lodash";
 
 import Page from "./Page";
 import PlaybackHeader from "./PlaybackHeader";
@@ -32,6 +32,7 @@ export default class PlaybackView extends React.Component {
         className="playback-page"
         isPlaying={this.props.isPlaying}
         songTitle={this.props.songTitle}
+        loading={!isEmpty(this.props.loading)}
         songLength={this.props.songLength}
         authorName={this.props.authorName}
         playbackPositionInSeconds={this.props.playbackPositionInSeconds}
