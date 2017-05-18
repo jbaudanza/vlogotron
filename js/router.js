@@ -55,10 +55,12 @@ export function pathnameToRoute(pathname) {
 export function routeToPageConfig(route) {
   switch (route.name) {
     case "root":
+    case "view-song":
       return {
         view: PlaybackView,
         controller: playbackController,
-        actions: ["play", "pause", "playCommands$"]
+        actions: ["play", "pause", "playCommands$"],
+        sidebarVisible: true
       };
     case "record-videos":
       return {
@@ -71,7 +73,8 @@ export function routeToPageConfig(route) {
           "dismissError",
           "clearVideoClip",
           "playCommands$"
-        ]
+        ],
+        sidebarVisible: false
       };
     case "note-editor":
       return {
@@ -85,19 +88,15 @@ export function routeToPageConfig(route) {
           "play",
           "playCommands$",
           "save"
-        ]
-      };
-    case "view-song":
-      return {
-        view: PlaybackView,
-        controller: playbackController,
-        actions: ["pause", "play", "playCommands$"]
+        ],
+        sidebarVisible: false
       };
     default:
       return {
         actions: [],
         controller: () => Observable.of({}),
-        view: ErrorView
+        view: ErrorView,
+        sidebarVisible: true
       };
   }
 }

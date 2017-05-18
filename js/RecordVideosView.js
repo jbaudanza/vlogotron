@@ -2,7 +2,6 @@ import React from "react";
 
 import { bindAll, bindKey, forEach } from "lodash";
 
-import Page from "./Page";
 import VideoGrid from "./VideoGrid";
 import SongEditorHeader from "./SongEditorHeader";
 import PageTextFooter from "./PageTextFooter";
@@ -43,17 +42,6 @@ export default class RecordVideosView extends React.Component {
       "/note-editor"
     );
 
-    const header = (
-      <SongEditorHeader
-        songTitle={this.props.songTitle}
-        onChangeTitle={this.onChangeTitle}
-        secondaryAction={{ href: "/" }}
-        secondaryActionLabel={this.context.messages["cancel-action"]()}
-        primaryAction={{ href: nextPathname }}
-        primaryActionLabel={this.context.messages["next-action"]()}
-      />
-    );
-
     let footer;
     if (this.props.error) {
       footer = (
@@ -78,34 +66,35 @@ export default class RecordVideosView extends React.Component {
     }
 
     return (
-      <Page
-        onLogin={this.onClickLogin}
-        onLogout={this.props.onLogout}
-        onChangeLocale={this.props.onChangeLocale}
-        isLoggedIn={!!this.props.currentUser}
-        sidebarVisible={false}
-        header={header}
-        footer={footer}
-        loading={false}
-        className="record-videos-page"
-      >
-        <VideoGrid
-          readonly
-          videoClips={this.props.videoClips}
-          playCommands$={this.props.playCommands$}
-          readonly={false}
-          loading={this.props.loading}
-          onStartRecording={callbacks.onStartRecording}
-          onStopRecording={callbacks.onStopRecording}
-          onClear={callbacks.onClearVideoClip}
-          mediaStream={this.props.mediaStream}
-          countdownUntilRecord={this.props.countdownUntilRecord}
-          durationRecorded={this.props.durationRecorded}
-          noteBeingRecorded={this.props.noteBeingRecorded}
-          ref={this.bindVideoGrid}
+      <div className="page-vertical-wrapper record-videos-page">
+        <SongEditorHeader
+          songTitle={this.props.songTitle}
+          onChangeTitle={this.onChangeTitle}
+          secondaryAction={{ href: "/" }}
+          secondaryActionLabel={this.context.messages["cancel-action"]()}
+          primaryAction={{ href: nextPathname }}
+          primaryActionLabel={this.context.messages["next-action"]()}
         />
+
+        <div className="page-content">
+          <VideoGrid
+            readonly
+            videoClips={this.props.videoClips}
+            playCommands$={this.props.playCommands$}
+            readonly={false}
+            loading={this.props.loading}
+            onStartRecording={callbacks.onStartRecording}
+            onStopRecording={callbacks.onStopRecording}
+            onClear={callbacks.onClearVideoClip}
+            mediaStream={this.props.mediaStream}
+            countdownUntilRecord={this.props.countdownUntilRecord}
+            durationRecorded={this.props.durationRecorded}
+            noteBeingRecorded={this.props.noteBeingRecorded}
+            ref={this.bindVideoGrid}
+          />
+        </div>
         {overlay}
-      </Page>
+      </div>
     );
   }
 }

@@ -26,6 +26,7 @@ export default class PianoRollHeader extends React.Component {
         <div className="left-side">
           <PlayButton
             size={28}
+            enabled={true}
             isPlaying={this.props.isPlaying}
             onClickPlay={this.props.onClickPlay}
             onClickPause={this.props.onClickPause}

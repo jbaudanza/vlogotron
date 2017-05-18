@@ -84,15 +84,7 @@ export default class Page extends React.Component {
           </div>
         </div>
 
-        {this.props.loading
-          ? <div className="page-vertical-wrapper">Loading sounds</div>
-          : <div className="page-vertical-wrapper">
-              {this.props.header}
-              <div className="page-content">
-                {this.props.children}
-              </div>
-              {this.props.footer}
-            </div>}
+        {this.props.children}
       </div>
     );
   }
@@ -105,7 +97,5 @@ Page.contextTypes = {
 Page.PropTypes = {
   sidebarVisible: React.PropTypes.bool.isRequired,
   onChangeLocale: React.PropTypes.func.isRequired,
-  loading: React.PropTypes.bool.isRequired,
-  header: React.PropTypes.node.isRequired,
-  footer: React.PropTypes.node
+  isLoggedIn: React.PropTypes.bool.isRequired
 };

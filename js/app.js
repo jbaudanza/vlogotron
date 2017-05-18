@@ -14,6 +14,7 @@ import LoginOverlay from "./LoginOverlay";
 import MySongsOverlay from "./MySongsOverlay";
 
 import ReactActions from "./ReactActions";
+import Page from "./Page";
 
 import audioContext from "./audioContext";
 
@@ -144,6 +145,10 @@ class App extends React.Component {
     );
 
     this.globalSubscription.add(
+      currentUser$.subscribe(this.stateObserver("currentUser"))
+    );
+
+    this.globalSubscription.add(
       currentLocation$.subscribe(this.stateObserver("location"))
     );
   }
@@ -192,6 +197,7 @@ class App extends React.Component {
     );
 
     this.setState({
+      sidebarVisible: pageConfig.sidebarVisible,
       view: <div>loading</div> // If the controller emits immediately, this div will never be shown.
     });
 
@@ -281,7 +287,13 @@ class App extends React.Component {
     return (
       <div onClick={this.onClick}>
         <SvgAssets />
-        {view}
+        <Page
+          sidebarVisible={this.state.sidebarVisible}
+          onChangeLocale={this.onChangeLocale}
+          isLoggedIn={!!this.state.currentUser}
+        >
+          {view}
+        </Page>
         {overlay}
       </div>
     );

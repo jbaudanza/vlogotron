@@ -1,6 +1,5 @@
 import React from "react";
 
-import Page from "./Page";
 import Link from "./Link";
 import SongEditorHeader from "./SongEditorHeader";
 import VideoGrid from "./VideoGrid";
@@ -170,29 +169,23 @@ export default class NoteEditorView extends React.Component {
     );
 
     return (
-      <Page
-        onLogin={this.onClickLogin}
-        onLogout={this.props.onLogout}
-        onChangeLocale={this.props.onChangeLocale}
-        isLoggedIn={!!this.props.currentUser}
-        sidebarVisible={false}
-        header={header}
-        footer={footer}
-        loading={false}
-        className="note-editor-page"
-      >
-        <VideoGrid
-          readonly
-          videoClips={this.props.videoClips}
-          loading={this.props.loading}
-          playCommands$={this.props.playCommands$}
-          readonly={true}
-          onClear={this.onClearVideoClip}
-          mediaStream={this.props.mediaStream}
-          ref={this.bindVideoGrid}
-        />
+      <div className="note-editor-page page-vertical-wrapper">
+        {header}
+        <div className="page-content">
+          <VideoGrid
+            readonly
+            videoClips={this.props.videoClips}
+            loading={this.props.loading}
+            playCommands$={this.props.playCommands$}
+            readonly={true}
+            onClear={this.onClearVideoClip}
+            mediaStream={this.props.mediaStream}
+            ref={this.bindVideoGrid}
+          />
+        </div>
+        {footer}
         {overlay}
-      </Page>
+      </div>
     );
   }
 }
