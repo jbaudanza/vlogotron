@@ -191,6 +191,9 @@ export default class NoteEditorView extends React.Component {
 }
 
 NoteEditorView.contextTypes = {
-  messages: React.PropTypes.object.isRequired,
-  loading: React.PropTypes.object.isRequired
+  messages: React.PropTypes.object.isRequired
 };
+
+NoteEditorView.propTypes = {
+  loading: React.PropTypes.object.isRequired
+}
