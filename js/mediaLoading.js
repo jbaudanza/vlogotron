@@ -163,6 +163,14 @@ export function subscribeToSongLocation(
 
   subscription.add(remoteVideoClips$.connect());
 
+  // If we have some local recorded audio buffers, we can remove them
+  // from the list of remove audio buffers being loaded.
+  const loading$ = Observable.combineLatest(
+    audioLoading.loading$,
+    localAudioBuffers$,
+    (remote, local) => pickBy(remote, (value, note) => !(note in local))
+  );
+
   return {
     song$,
     videoClips$,
@@ -170,7 +178,7 @@ export function subscribeToSongLocation(
     audioBuffers$,
     clearedEvents$,
     recordedMedia$,
-    loading$: audioLoading.loading$
+    loading$
   };
 }
 
