@@ -2,6 +2,7 @@ import React from "react";
 
 import { bindAll, bindKey, isEmpty } from "lodash";
 
+import Link from "./Link";
 import PlaybackHeader from "./PlaybackHeader";
 import VideoGrid from "./VideoGrid";
 
@@ -24,6 +25,16 @@ export default class PlaybackView extends React.Component {
   render() {
     return (
       <div className="page-vertical-wrapper">
+
+        <div className="mobile-header">
+          VLOGOTRON
+          <Link href="#" className="navigation-link">
+            <svg version="1.1" width="20px" height="14px">
+              <use xlinkHref="#svg-hamburger" />
+            </svg>
+          </Link>
+        </div>
+
         <PlaybackHeader
           className="playback-page"
           isPlaying={this.props.isPlaying}

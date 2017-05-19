@@ -35,10 +35,10 @@ export default class PlaybackHeader extends React.Component {
         </div>
 
         <div className="actions">
-          <Link className="action" onClick={noop}>
+          <Link className="action share-action" onClick={noop}>
             {this.context.messages["share-action"]()}
           </Link>
-          <Link className="action" {...this.props.remixAction}>
+          <Link className="action remix-action" {...this.props.remixAction}>
             {this.context.messages["remix-action"]()}
           </Link>
         </div>

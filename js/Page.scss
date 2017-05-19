@@ -11,6 +11,10 @@
 
   color: white;
 
+  .mobile-header {
+    display: none;
+  }
+
   .song-editor-header {
     display: flex;
 
@@ -305,5 +309,37 @@
 
   .error-message {
     font-size: 24px;
+  }
+}
+
+
+@media only screen
+and (max-device-width : 667px) {
+  .page {
+    .page-sidebar {
+      display: none;
+    }
+    .page-header .remix-action {
+      display: none;
+    }
+
+    .mobile-header {
+      box-sizing: border-box;
+      display: block;
+      height: 50px;
+      background-color: $color-aqua-blue;
+      padding: 16px;
+
+      .navigation-link {
+        float: right;
+      }
+    }
+
+    .page-content {
+      order: 1;
+    }
+    .page-header{
+      order: 2;
+    }
   }
 }

@@ -236,6 +236,18 @@ const svgEl = (
       </g>
     </svg>
 
+    <symbol id="svg-hamburger" viewBox="0 0 22 14">
+      <g
+        fill="none"
+        fillRule="evenodd"
+        stroke="#FFF"
+        strokeLinecap="square"
+        strokeWidth="2"
+      >
+        <path d="M1.455 1h19.09M1.455 7h19.09M1.455 13h19.09" />
+      </g>
+    </symbol>
+
     <symbol
       id="svg-spinner"
       viewBox="0 0 100 100"
