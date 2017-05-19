@@ -34,12 +34,12 @@ export default class PlaybackView extends React.Component {
       <div className={className}>
 
         <div className="mobile-header">
-          VLOGOTRON
-          <Link href="#" className="navigation-link">
+          <Link href="#nav" className="navigation-link">
             <svg version="1.1" width="20px" height="14px">
               <use xlinkHref="#svg-hamburger" />
             </svg>
           </Link>
+          VLOGOTRON
         </div>
 
         <PlaybackHeader

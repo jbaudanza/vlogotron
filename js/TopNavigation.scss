@@ -1,0 +1,45 @@
+@import './colors';
+
+.top-navigation {
+  .nav-link {
+    position: relative;
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.3px;
+    font-weight: normal;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: $color-blue-grey;
+    svg {
+      fill: $color-blue-grey;
+    }
+
+    &:hover {
+      color: $active-color;
+      svg {
+        fill: $active-color;
+      }
+    }
+
+    span {
+      margin-top: 10px;
+      display: block; 
+    }
+
+    // TODO: All these fixed margins are kind of a hack to match the mockups.
+    // It would be better to assign a fixed height to all the nav-links, and
+    // figure out a consistent margin between each one
+    &:first-child {
+      margin-top: 51px;
+    }
+    &:nth-child(2) {
+      margin-top: 74px;
+    }
+    &:nth-child(3) {
+      margin-top: 78px;
+    }
+    &:nth-child(4) {
+      margin-top: 79px;
+    }
+  }
+}

@@ -38,7 +38,6 @@ $shadow-index: 1;
   .content {
     text-align: center;
     position: relative;
-    background-color: $color-purple;
     color: $color-whitish;
     height: 100%;
     width: 300px;
@@ -54,6 +53,17 @@ $shadow-index: 1;
       top: 85px;
       bottom: 0;
       position: absolute;
+    }
+  }
+}
+
+@media only screen and (max-device-width : 667px) {
+  .sidenav {
+    left: 0;
+    .content {
+      position: fixed;
+      top: 0;
+      left: 0;
     }
   }
 }

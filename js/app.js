@@ -8,9 +8,10 @@ import { Subscription } from "rxjs/Subscription";
 import { bindAll, isEqual, find, includes } from "lodash";
 
 import SvgAssets from "./SvgAssets";
-import LoginOverlay from "./LoginOverlay";
 
+import LoginOverlay from "./LoginOverlay";
 import MySongsOverlay from "./MySongsOverlay";
+import NavOverlay from "./NavOverlay";
 
 import ReactActions from "./ReactActions";
 import Page from "./Page";
@@ -68,11 +69,13 @@ Observable.combineLatest(
   currentUser$.distinctUntilChanged(),
   currentLocation$,
   (user, location) => {
-    if (user && location.hash === '#login') {
+    if (user && location.hash === "#login") {
       return location.pathname;
     }
   }
-).filter(x => x).subscribe(navigate);
+)
+  .filter(x => x)
+  .subscribe(navigate);
 
 const mySongs$ = currentUser$.switchMap(user => {
   if (user) {
@@ -278,9 +281,10 @@ class App extends React.Component {
   }
 
   render() {
+    const isLoggedIn = !!this.state.currentUser;
+
     let overlay;
     if (this.state.location.hash === "#login") {
-      const Overlay = this.state.overlay;
       overlay = (
         <LoginOverlay
           onLogin={this.onLogin}
@@ -288,12 +292,19 @@ class App extends React.Component {
         />
       );
     } else if (this.state.location.hash === "#my-songs") {
-      const Overlay = this.state.overlay;
       overlay = (
         <MySongsOverlay
           songs={this.state.mySongs}
-          onClose="#"
+          onClose={this.state.location.pathname}
           onDelete={this.onDelete}
+        />
+      );
+    } else if (this.state.location.hash === "#nav") {
+      overlay = (
+        <NavOverlay
+          isLoggedIn={isLoggedIn}
+          onLogout={this.onLogout}
+          onClose={this.state.location.pathname}
         />
       );
     }
@@ -309,7 +320,7 @@ class App extends React.Component {
           sidebarVisible={this.state.sidebarVisible}
           onChangeLocale={this.onChangeLocale}
           onLogout={this.onLogout}
-          isLoggedIn={!!this.state.currentUser}
+          isLoggedIn={isLoggedIn}
         >
           {view}
         </Page>

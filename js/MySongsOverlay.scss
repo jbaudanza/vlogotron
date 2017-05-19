@@ -30,6 +30,10 @@
     text-transform: uppercase;
   }
 
+  .content {
+    background-color: $color-purple;
+  }
+
   h1 {
     border-bottom: solid 1px $color-light-purple;
     line-height: 40px;
