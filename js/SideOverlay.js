@@ -1,11 +1,11 @@
 import React from "react";
 import Link from "./Link";
 
-import "./SideNavOverlay.scss";
+import "./SideOverlay.scss";
 
-class SideNavOverlay extends React.Component {
+export default class SideOverlay extends React.Component {
   render() {
-    const className = ((this.props.className || "") + " sidenav").trim();
+    const className = ((this.props.className || "") + " side-overlay").trim();
 
     return (
       <div id="sidenav" className={className}>
@@ -23,8 +23,6 @@ class SideNavOverlay extends React.Component {
   }
 }
 
-SideNavOverlay.propTypes = {
+SideOverlay.propTypes = {
   className: React.PropTypes.string
 };
-
-export default SideNavOverlay;

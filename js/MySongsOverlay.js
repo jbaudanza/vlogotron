@@ -4,7 +4,7 @@ import { Observable } from "rxjs/Observable";
 import { map, bindAll } from "lodash";
 
 import PopupMenuTrigger from "./PopupMenuTrigger";
-import SideNavOverlay from "./SideNavOverlay";
+import SideOverlay from "./SideOverlay";
 
 import Link from "./Link";
 
@@ -70,7 +70,7 @@ LineItem.contextTypes = {
 export default class MySongsOverlay extends React.Component {
   render() {
     return (
-      <SideNavOverlay onClose={this.props.onClose} className="my-songs-overlay">
+      <SideOverlay onClose={this.props.onClose} className="my-songs-overlay">
         <div className="header">
           <h1>{this.context.messages["my-songs-header"]()}</h1>
         </div>
@@ -86,7 +86,7 @@ export default class MySongsOverlay extends React.Component {
             ))}
           </ul>
         </div>
-      </SideNavOverlay>
+      </SideOverlay>
     );
   }
 }

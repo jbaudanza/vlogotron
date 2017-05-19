@@ -2,7 +2,7 @@
 
 $shadow-index: 1;
 
-.sidenav {
+.side-overlay {
   z-index: 999999;
   position: fixed;
   top: 0;
@@ -58,7 +58,7 @@ $shadow-index: 1;
 }
 
 @media only screen and (max-device-width : 667px) {
-  .sidenav {
+  .side-overlay {
     left: 0;
     .content {
       position: fixed;
