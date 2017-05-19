@@ -1,6 +1,7 @@
 import React from "react";
 
 import { bindAll, bindKey, isEmpty } from "lodash";
+import classNames from "classnames";
 
 import Link from "./Link";
 import PlaybackHeader from "./PlaybackHeader";
@@ -23,8 +24,14 @@ export default class PlaybackView extends React.Component {
   }
 
   render() {
+    const loadingAsBool = !isEmpty(this.props.loading);
+
+    const className = classNames("page-vertical-wrapper", {
+      "loading-finished": !loadingAsBool
+    });
+
     return (
-      <div className="page-vertical-wrapper">
+      <div className={className}>
 
         <div className="mobile-header">
           VLOGOTRON
@@ -36,10 +43,9 @@ export default class PlaybackView extends React.Component {
         </div>
 
         <PlaybackHeader
-          className="playback-page"
           isPlaying={this.props.isPlaying}
           songTitle={this.props.songTitle}
-          loading={!isEmpty(this.props.loading)}
+          loading={loadingAsBool}
           songLength={this.props.songLength}
           authorName={this.props.authorName}
           playbackPositionInSeconds={this.props.playbackPositionInSeconds}
@@ -51,6 +57,14 @@ export default class PlaybackView extends React.Component {
         />
 
         <div className="page-content">
+          <div className="instructions">
+            <span className="mobile-text">
+              {this.context.messages["mobile-playback-instructions"]()}
+            </span>
+            <span className="desktop-text">
+              {this.context.messages["desktop-playback-instructions"]()}
+            </span>
+          </div>
           <VideoGrid
             readonly
             videoClips={this.props.videoClips}
@@ -71,4 +85,8 @@ PlaybackView.propTypes = {
   isPlaying: React.PropTypes.bool.isRequired,
   songLength: React.PropTypes.number.isRequired,
   songTitle: React.PropTypes.string.isRequired
+};
+
+PlaybackView.contextTypes = {
+  messages: React.PropTypes.object.isRequired
 };

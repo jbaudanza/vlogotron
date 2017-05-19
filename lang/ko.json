@@ -36,5 +36,7 @@
   "permissions-play": "public, play-only",
   "permissions-private": "private",
   "delete-song-confirmation": "Are you sure you want to delete this song?",
-  "delete-video-clip-confirmation": "Are you sure you want to delete this video clip?"
+  "delete-video-clip-confirmation": "Are you sure you want to delete this video clip?",
+  "mobile-playback-instructions": "Swipe over the videos or press the play button.",
+  "desktop-playback-instructions": "Click the videos, mash the keyboard, or press play."
 }

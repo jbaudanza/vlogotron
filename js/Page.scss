@@ -15,6 +15,21 @@
     display: none;
   }
 
+  .instructions {
+    margin-top: 20px;
+    font-weight: 500; // Medium
+    font-size: 17px;
+    color: $color-blue-grey;
+    text-align: center;
+
+    .mobile-text {
+      display: none;
+    }
+    .desktop-text {
+      display: inline;
+    }
+  }
+
   .song-editor-header {
     display: flex;
 
@@ -312,7 +327,6 @@
   }
 }
 
-
 @media only screen
 and (max-device-width : 667px) {
   .page {
@@ -340,6 +354,15 @@ and (max-device-width : 667px) {
     }
     .page-header{
       order: 2;
+    }
+
+    .instructions {
+      .mobile-text {
+        display: inline;
+      }
+      .desktop-text {
+        display: none;
+      }
     }
   }
 }
