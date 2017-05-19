@@ -63,6 +63,17 @@ currentUser$.subscribe(user => {
   }
 });
 
+// If the user logs in, navigate away from a login dialog
+Observable.combineLatest(
+  currentUser$.distinctUntilChanged(),
+  currentLocation$,
+  (user, location) => {
+    if (user && location.hash === '#login') {
+      return location.pathname;
+    }
+  }
+).filter(x => x).subscribe(navigate);
+
 const mySongs$ = currentUser$.switchMap(user => {
   if (user) {
     return songsForUser(firebase.database(), user.uid);
