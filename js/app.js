@@ -27,7 +27,7 @@ import * as firebase from "firebase";
 
 const config = {
   apiKey: "AIzaSyAcTTBS7Wt4JKn7_gsgXy3tck5arZamO6Y",
-  authDomain: "vlogotron-95daf.firebaseapp.com",
+  authDomain: "www.vlogotron.com",
   databaseURL: "https://vlogotron-95daf.firebaseio.com",
   storageBucket: "vlogotron-95daf.appspot.com",
   messagingSenderId: "533081791637"
