@@ -17,8 +17,11 @@
 
   .spinner {
     position: absolute;
-    top: 45px;
-    left: 45px;
+    top: 50%;
+    left: 50%;
+    margin-left: -25px;
+    margin-top: -25px;
+    display: block;
   }
 
   .record-status {

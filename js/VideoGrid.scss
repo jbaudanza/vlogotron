@@ -3,7 +3,7 @@ $cell-margin: 5px;
 
 $cells-per-row: 4;
 $cell-margin-percentage: 1;
-$cell-size-percentage: (100 - ($cells-per-row - 1) * $cell-margin-percentage) / $cells-per-row;
+$cell-size-percentage: (95 - ($cells-per-row - 1) * $cell-margin-percentage) / $cells-per-row;
 
 .video-cell {
   width: #{$cell-size-percentage}vw;
@@ -13,7 +13,7 @@ $cell-size-percentage: (100 - ($cells-per-row - 1) * $cell-margin-percentage) / 
   margin-right: #{$cell-margin-percentage}vw;
 }
 .video-container {
-  width: 100vw;
+  width: 95vw;
   padding-top: 20px;
   margin: 0 auto;
   overflow: hidden;
