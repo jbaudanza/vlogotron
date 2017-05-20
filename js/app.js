@@ -9,6 +9,7 @@ import { bindAll, isEqual, find, includes } from "lodash";
 
 import SvgAssets from "./SvgAssets";
 
+import SideOverlay from "./SideOverlay";
 import LoginOverlay from "./LoginOverlay";
 import MySongsOverlay from "./MySongsOverlay";
 import NavOverlay from "./NavOverlay";
@@ -284,6 +285,9 @@ class App extends React.Component {
     const isLoggedIn = !!this.state.currentUser;
 
     let overlay;
+    let sideOverlayContent;
+    let sideOverlayClassName;
+
     if (this.state.location.hash === "#login") {
       overlay = (
         <LoginOverlay
@@ -292,21 +296,15 @@ class App extends React.Component {
         />
       );
     } else if (this.state.location.hash === "#my-songs") {
-      overlay = (
-        <MySongsOverlay
-          songs={this.state.mySongs}
-          onClose={this.state.location.pathname}
-          onDelete={this.onDelete}
-        />
+      sideOverlayContent = (
+        <MySongsOverlay songs={this.state.mySongs} onDelete={this.onDelete} />
       );
+      sideOverlayClassName = "my-songs-overlay";
     } else if (this.state.location.hash === "#nav") {
-      overlay = (
-        <NavOverlay
-          isLoggedIn={isLoggedIn}
-          onLogout={this.onLogout}
-          onClose={this.state.location.pathname}
-        />
+      sideOverlayContent = (
+        <NavOverlay isLoggedIn={isLoggedIn} onLogout={this.onLogout} />
       );
+      sideOverlayClassName = "nav-overlay";
     }
 
     const view = React.cloneElement(this.state.view, {
@@ -325,6 +323,13 @@ class App extends React.Component {
           {view}
         </Page>
         {overlay}
+        <SideOverlay
+          className={sideOverlayClassName}
+          visible={!!sideOverlayContent}
+          onClose={this.state.location.pathname}
+        >
+          {sideOverlayContent}
+        </SideOverlay>
       </div>
     );
   }

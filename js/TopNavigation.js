@@ -8,7 +8,7 @@ import "./TopNavigation.scss";
 
 export default class TopNavigation extends React.Component {
   componentWillMount() {
-    this.setState({recordingSupported: ("MediaRecorder" in window)})
+    this.setState({ recordingSupported: "MediaRecorder" in window });
   }
 
   render() {

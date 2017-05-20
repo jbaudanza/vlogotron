@@ -7,7 +7,7 @@ $shadow-index: 1;
   position: fixed;
   top: 0;
   bottom: 0;
-  left: 100px;
+  left: 103px;
 
   .close-link {
     display: block;
@@ -25,11 +25,36 @@ $shadow-index: 1;
     font-weight: 500; // Medium
   }
 
+  $slide-in-duration: 150ms;
+  $content-width: 300px;
+
+  &.side-overlay-visible {
+    .shadow {
+      display: block;
+    }
+    .content-wrapper {
+      width: $content-width;
+      transition: width $slide-in-duration;
+    }
+  }
+
+  .content {
+    width: $content-width;
+  }
+
+  .content-wrapper {
+    transition: width 0s;
+    width: 0;
+    overflow: hidden;
+    height: 100%;
+  }
+
   .shadow {
+    display: none;
     position: fixed;
     top: 0;
     bottom: 0;
-    left: 300px;
+    left: 103px;
     right: 0;
     background-color: $color-dark-three;
     opacity: 0.85;
@@ -40,7 +65,7 @@ $shadow-index: 1;
     position: relative;
     color: $color-whitish;
     height: 100%;
-    width: 300px;
+    overflow: hidden;
 
     z-index: $shadow-index + 1;
     font-size: 14px;
@@ -60,9 +85,7 @@ $shadow-index: 1;
 @media only screen and (max-device-width : 667px) {
   .side-overlay {
     left: 0;
-    .content {
-      position: fixed;
-      top: 0;
+    .shadow {
       left: 0;
     }
   }
