@@ -1,7 +1,7 @@
 import React from "react";
 import { Observable } from "rxjs/Observable";
 
-import { map, bindAll } from "lodash";
+import { map, bindAll, isEmpty } from "lodash";
 
 import PopupMenuTrigger from "./PopupMenuTrigger";
 
@@ -74,8 +74,9 @@ export default class MySongsOverlay extends React.Component {
           <h1>{this.context.messages["my-songs-header"]()}</h1>
         </div>
         <div className="scroll">
-          {this.props.songs.length > 0
-            ? <ul className="song-list">
+          {isEmpty(this.props.songs)
+            ? <div>{this.context.messages["my-songs-empty-list"]()}</div>
+            : <ul className="song-list">
                 {map(this.props.songs, (song, songId) => (
                   <LineItem
                     song={song}
@@ -84,8 +85,7 @@ export default class MySongsOverlay extends React.Component {
                     onDelete={this.props.onDelete}
                   />
                 ))}
-              </ul>
-            : <div>{this.context.messages["my-songs-empty-list"]()}</div>}
+              </ul>}
         </div>
       </div>
     );
