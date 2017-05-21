@@ -74,16 +74,18 @@ export default class MySongsOverlay extends React.Component {
           <h1>{this.context.messages["my-songs-header"]()}</h1>
         </div>
         <div className="scroll">
-          <ul className="song-list">
-            {map(this.props.songs, (song, songId) => (
-              <LineItem
-                song={song}
-                key={songId}
-                songId={songId}
-                onDelete={this.props.onDelete}
-              />
-            ))}
-          </ul>
+          {this.props.songs.length > 0
+            ? <ul className="song-list">
+                {map(this.props.songs, (song, songId) => (
+                  <LineItem
+                    song={song}
+                    key={songId}
+                    songId={songId}
+                    onDelete={this.props.onDelete}
+                  />
+                ))}
+              </ul>
+            : <div>{this.context.messages["my-songs-empty-list"]()}</div>}
         </div>
       </div>
     );
