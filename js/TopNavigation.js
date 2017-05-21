@@ -7,10 +7,6 @@ import { omit } from "lodash";
 import "./TopNavigation.scss";
 
 export default class TopNavigation extends React.Component {
-  componentWillMount() {
-    this.setState({ recordingSupported: "MediaRecorder" in window });
-  }
-
   render() {
     return (
       <div className="top-navigation">
@@ -30,15 +26,13 @@ export default class TopNavigation extends React.Component {
               text={this.context.messages["navigation-my-songs"]()}
             />
           : null}
-        {this.state.recordingSupported
-          ? <NavLink
-              href="/record-videos"
-              width="30px"
-              height="30px"
-              icon="#svg-plus"
-              text={this.context.messages["navigation-create-new"]()}
-            />
-          : null}
+        <NavLink
+          href="/record-videos"
+          width="30px"
+          height="30px"
+          icon="#svg-plus"
+          text={this.context.messages["navigation-create-new"]()}
+        />
         {this.props.isLoggedIn
           ? <NavLink
               onClick={this.props.onLogout}

@@ -263,6 +263,10 @@
   }
 }
 
+.song-author {
+  white-space: nowrap;
+}
+
 .fine-print {
   a, span {
     text-align: center;
@@ -337,4 +341,18 @@ and (max-device-width : 667px) {
       }
     }
   }
+}
+
+.text-blob {
+  width: 80%;
+  margin: 25px auto;
+  padding: 15px;
+  background-color: #fff;
+  border-radius: 1em;
+
+  h3 {
+    margin-top: 0;
+  }
+  color: $color-dark;
+  border: 1px solid $color-dark;
 }

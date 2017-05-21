@@ -118,6 +118,7 @@ export default function recordVideosController(
       videoClips,
       song,
       loading,
+      supported: "MediaRecorder" in window,
       songTitle: song ? song.title : null
     })
   );
