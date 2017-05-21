@@ -18,27 +18,42 @@ export function startLivePlaybackEngine(
   playCommands$,
   subscription
 ) {
-  const activeNodes = {};
+  const active = {};
 
   const stream$ = observableWithGainNode(destinationNode =>
-    playCommands$.withLatestFrom(audioBuffers$).map(([cmd, audioBuffers]) => {
-      const when = audioContext.currentTime + batchTime;
-      if (cmd.play) {
-        const [noteName, node] = buildSourceNode(cmd.play, audioBuffers);
+    playCommands$
+      .withLatestFrom(audioBuffers$)
+      .map(([cmd, audioBuffers]) => {
+        const when = audioContext.currentTime + batchTime;
+        let event = null;
 
-        if (node) {
-          node.connect(destinationNode);
-          activeNodes[cmd.play] = node;
-          node.start(when);
+        if (cmd.play) {
+          const [noteName, node] = buildSourceNode(cmd.play, audioBuffers);
+
+          if (node) {
+            node.connect(destinationNode);
+            const subject = new Subject();
+            active[cmd.play] = { node, subject };
+            node.start(when);
+
+            event = {
+              when,
+              noteName: cmd.play,
+              duration$: subject.asObservable()
+            };
+          }
         }
-      }
 
-      if (cmd.pause && activeNodes[cmd.pause]) {
-        activeNodes[cmd.pause].stop(when);
-      }
+        if (cmd.pause && active[cmd.pause]) {
+          active[cmd.pause].node.stop(when);
+          active[cmd.pause].subject.next({});
+          active[cmd.pause].subject.complete();
+          delete active[cmd.pause];
+        }
 
-      return { when, ...cmd };
-    })
+        return event;
+      })
+      .filter(x => x !== null)
   ).publish();
 
   subscription.add(stream$.connect());
@@ -92,6 +107,17 @@ function buildSourceNode(requestedNoteName, audioBuffers) {
   }
 }
 
+function syncWithAudio(audioContext, when) {
+  return Observable.defer(function() {
+    const result$ = Observable.of(when);
+    if (when < audioContext.currentTime) {
+      return result$;
+    } else {
+      return result$.delay((when - audioContext.currentTime) * 1000);
+    }
+  });
+}
+
 export function startScriptedPlayback(
   notes$,
   bpm,
@@ -138,7 +164,7 @@ export function startScriptedPlayback(
 
   const stream$ = observableWithGainNode(gainNode =>
     commandsWithAudioBuffers$
-      .map(([commands, audioBuffers]) => {
+      .flatMap(([commands, audioBuffers]) => {
         const events = [];
 
         commands.forEach(command => {
@@ -160,17 +186,22 @@ export function startScriptedPlayback(
             source.start(startAt, offset, duration);
           }
 
-          events.push({ play: noteName, when: startAt });
-          events.push({ pause: noteName, when: startAt + duration });
+          const duration$ = syncWithAudio(audioContext, startAt + duration)
+            .ignoreElements()
+            .takeUntil(playUntil$)
+            .concatWith({});
+
+          const event$ = syncWithAudio(audioContext, startAt).map(when => ({
+            noteName,
+            when,
+            duration$
+          }));
+
+          events.push(event$);
         });
 
-        return events;
+        return Observable.merge(...events);
       })
-      .flatMap(events =>
-        Observable.from(events).flatMap(obj =>
-          Observable.of(obj).delay((obj.when - audioContext.currentTime) * 1000)
-        )
-      )
       .takeUntil(playUntil$)
   ).publish();
 

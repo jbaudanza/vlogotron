@@ -1,5 +1,6 @@
 import React from "react";
 import { Observable } from "rxjs/Observable";
+import { Subject } from "rxjs/Subject";
 
 import { omit, bindAll } from "lodash";
 
@@ -31,7 +32,11 @@ export default class VideoGrid extends React.Component {
   }
 
   componentWillMount() {
-    this.subscription = this.props.playCommands$.subscribe(this.onPlayCommand);
+    this.componentWillUnmount$ = new Subject();
+
+    this.props.playCommands$
+      .takeUntil(this.componentWillUnmount$)
+      .subscribe(this.onPlayCommand);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -42,16 +47,16 @@ export default class VideoGrid extends React.Component {
   }
 
   onPlayCommand(command) {
-    if (command.play) {
-      this.onStartPlayback(command.play, command.when);
-    }
-    if (command.pause) {
-      this.onStopPlayback(command.pause);
-    }
+    this.onStartPlayback(command.noteName, command.when);
+
+    command.duration$
+      .takeUntil(this.componentWillUnmount$)
+      .subscribe(() => this.onStopPlayback(command.noteName));
   }
 
   componentWillUnmount() {
-    this.subscription.unsubscribe();
+    this.componentWillUnmount$.next({});
+    this.componentWillUnmount$.complete({});
   }
 
   onStartPlayback(note, when) {
@@ -97,7 +102,8 @@ export default class VideoGrid extends React.Component {
       videoEl.currentTime = 0;
     }
 
-    this.setState({ playing: omit(this.state.playing, note) });
+    this.state.playing[note] = false;
+    this.forceUpdate();
   }
 
   propsForCell(note) {

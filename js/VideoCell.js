@@ -117,7 +117,12 @@ export default class VideoCell extends React.Component {
             onClick={this.props.onStartRecording}
             enabled={!this.props.mediaStream}
           >
-            <svg version="1.1" width="30px" height="59px" className="background">
+            <svg
+              version="1.1"
+              width="30px"
+              height="59px"
+              className="background"
+            >
               <use xlinkHref="#svg-microphone" />
             </svg>
             <span className="tip">
