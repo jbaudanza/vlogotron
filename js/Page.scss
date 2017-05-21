@@ -258,12 +258,15 @@
   .fine-print {
     left: 0;
     right: 0;
-    text-align: center;
     bottom: 10px;
     position: absolute;
-    a, span {
-      color: $color-blue-grey;
-    }
+  }
+}
+
+.fine-print {
+  a, span {
+    text-align: center;
+    color: $color-blue-grey;
   }
 }
 

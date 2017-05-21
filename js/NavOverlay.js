@@ -1,6 +1,7 @@
 import React from "react";
 
 import TopNavigation from "./TopNavigation";
+import FinePrint from "./FinePrint";
 
 import Link from "./Link";
 
@@ -14,6 +15,7 @@ export default class NavOverlay extends React.Component {
           onLogout={this.props.onLogout}
           isLoggedIn={this.props.isLoggedIn}
         />
+        <FinePrint />
       </div>
     );
   }

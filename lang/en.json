@@ -39,5 +39,8 @@
   "delete-video-clip-confirmation": "Are you sure you want to delete this video clip?",
   "mobile-playback-instructions": "Swipe over the videos or press the play button.",
   "desktop-playback-instructions": "Click the videos, mash the keyboard, or press play.",
-  "my-songs-empty-list": "You haven't saved any songs yet."
+  "my-songs-empty-list": "You haven't saved any songs yet.",
+  "terms-of-service-link": "ToS",
+  "privacy-policy-link": "PP",
+  "contact-link": "contact"
 }

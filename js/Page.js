@@ -4,6 +4,7 @@ import classNames from "classnames";
 
 import TopNavigation from "./TopNavigation";
 import Link from "./Link";
+import FinePrint from "./FinePrint";
 
 import "./Page.scss";
 
@@ -36,13 +37,7 @@ export default class Page extends React.Component {
           </div>
           */}
 
-          <div className="fine-print">
-            <a href="/terms_of_service.html">ToS</a>
-            <span> / </span>
-            <a href="/privacy_policy.html">PP</a>
-            <span> / </span>
-            <a href="https://github.com/jbaudanza">contact</a>
-          </div>
+          <FinePrint />
         </div>
 
         {this.props.children}
