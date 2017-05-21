@@ -145,8 +145,15 @@ class App extends React.Component {
     if (node instanceof Node) {
       const clickable = findWrappingLink(node);
 
-      if (clickable && clickable.host === document.location.host) {
-        this.onNavigate(clickable.getAttribute("href"));
+      const href = clickable.getAttribute("href");
+      // Assume that any url that ends with .html is static content that
+      // requires a refresh. This is true for the privacy policy and tos
+      if (
+        clickable &&
+        clickable.host === document.location.host &&
+        !href.endsWith(".html")
+      ) {
+        this.onNavigate(href);
         event.preventDefault();
         event.stopPropagation();
       }

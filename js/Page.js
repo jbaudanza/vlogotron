@@ -24,6 +24,7 @@ export default class Page extends React.Component {
             />
           </div>
 
+          {/*
           <div className="locale-selector">
             <Link onClick={this.props.onChangeLocale.bind(null, "en")}>
               En
@@ -32,6 +33,15 @@ export default class Page extends React.Component {
             <Link onClick={this.props.onChangeLocale.bind(null, "ko")}>
               한국어
             </Link>
+          </div>
+          */}
+
+          <div className="fine-print">
+            <a href="/terms_of_service.html">ToS</a>
+            <span> / </span>
+            <a href="/privacy_policy.html">PP</a>
+            <span> / </span>
+            <a href="https://github.com/jbaudanza">contact</a>
           </div>
         </div>
 

@@ -255,8 +255,10 @@
     }
   }
 
-  .locale-selector {
-    left: 31px;
+  .fine-print {
+    left: 0;
+    right: 0;
+    text-align: center;
     bottom: 10px;
     position: absolute;
     a, span {
