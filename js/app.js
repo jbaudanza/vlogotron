@@ -13,7 +13,6 @@ import SideOverlay from "./SideOverlay";
 import LoginOverlay from "./LoginOverlay";
 import MySongsOverlay from "./MySongsOverlay";
 import NavOverlay from "./NavOverlay";
-import ShareOverlay from "./ShareOverlay";
 
 import ReactActions from "./ReactActions";
 import Page from "./Page";
@@ -311,18 +310,11 @@ class App extends React.Component {
         <NavOverlay isLoggedIn={isLoggedIn} onLogout={this.onLogout} />
       );
       sideOverlayClassName = "nav-overlay";
-    } else if (this.state.location.hash === "#share") {
-      overlay = (
-        <ShareOverlay
-          songId={null}
-          onClose={this.state.location.pathname}
-          url={this.state.origin + this.state.location.pathname}
-        />
-      );
     }
 
     const view = React.cloneElement(this.state.view, {
-      location: this.state.location
+      location: this.state.location,
+      shareUrl: this.state.origin + this.state.location.pathname
     });
 
     return (

@@ -48,6 +48,7 @@ export default class PlaybackView extends React.Component {
           loading={loadingAsBool}
           songLength={this.props.songLength}
           authorName={this.props.authorName}
+          shareUrl={this.props.shareUrl}
           playbackPositionInSeconds={this.props.playbackPositionInSeconds}
           onClickPlay={this.props.actions.callbacks.onPlay}
           onClickPause={this.props.actions.callbacks.onPause}
@@ -84,6 +85,7 @@ PlaybackView.propTypes = {
   playCommands$: React.PropTypes.object.isRequired,
   isPlaying: React.PropTypes.bool.isRequired,
   songLength: React.PropTypes.number.isRequired,
+  shareUrl: React.PropTypes.string.isRequired,
   songTitle: React.PropTypes.string.isRequired
 };
 
