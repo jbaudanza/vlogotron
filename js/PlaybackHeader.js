@@ -3,12 +3,35 @@ import Link from "./Link";
 
 import PlayButton from "./PlayButton";
 
-function noop() {}
-
 import { formatSeconds } from "./format";
+import classNames from "classnames";
+
+import { ShareButtons, generateShareIcon } from "react-share";
+
+const {
+  FacebookShareButton,
+  GooglePlusShareButton,
+  TwitterShareButton
+} = ShareButtons;
+
+const FacebookIcon = generateShareIcon("facebook");
+const TwitterIcon = generateShareIcon("twitter");
+const GooglePlusIcon = generateShareIcon("google");
 
 export default class PlaybackHeader extends React.Component {
+  constructor() {
+    super();
+    this.state = { shareButtonsVisible: false };
+    this.toggleShareButtons = this.toggleShareButtons.bind(this);
+  }
+
+  toggleShareButtons() {
+    this.setState({ shareButtonsVisible: !this.state.shareButtonsVisible });
+  }
+
   render() {
+    const title = "vlogotron: remix my face!";
+
     return (
       <div className="page-header">
         <PlayButton
@@ -35,9 +58,41 @@ export default class PlaybackHeader extends React.Component {
         </div>
 
         <div className="actions">
-          <Link className="action share-action" onClick={noop}>
+          <Link
+            className="action share-action"
+            onClick={this.toggleShareButtons}
+          >
             {this.context.messages["share-action"]()}
           </Link>
+
+          <div
+            className={classNames("share-buttons-wrapper", {
+              visible: this.state.shareButtonsVisible
+            })}
+          >
+            <div className="share-buttons">
+              <FacebookShareButton
+                url={this.props.shareUrl}
+                title={title}
+                className="Share__some-network__share-button"
+              >
+                <FacebookIcon size={25} round />
+              </FacebookShareButton>
+
+              <TwitterShareButton
+                url={this.props.shareUrl}
+                title={title}
+                className="Share__some-network__share-button"
+              >
+                <TwitterIcon size={25} round />
+              </TwitterShareButton>
+
+              <GooglePlusShareButton url={this.props.shareUrl}>
+                <GooglePlusIcon size={25} round />
+              </GooglePlusShareButton>
+            </div>
+          </div>
+
           <Link className="action remix-action" {...this.props.remixAction}>
             {this.context.messages["remix-action"]()}
           </Link>

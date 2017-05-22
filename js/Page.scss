@@ -21,6 +21,40 @@
     display: none;
   }
 
+  $share-buttons-width: 109px;
+  .share-buttons-wrapper {
+    float: left;
+    overflow: hidden;
+    margin: 0;
+    width: 0;
+    transition: width 150ms;
+
+    &.visible {
+      margin: 0 7px;
+      width: $share-buttons-width;
+    }
+  }
+
+  .share-buttons {
+    margin-top: $header-height / 2 - 14px;
+    overflow: hidden;
+    width: $share-buttons-width;
+    background-color: #fff;
+    height: 30px;
+    border-radius: 25px;
+    padding: 2px 9px;
+    box-sizing: border-box;
+
+    .SocialMediaShareButton {
+      float: left;
+      cursor: pointer;
+      margin-left: 7px;
+      &:first-child {
+        margin-left: 0;
+      }
+    }
+  }
+
   .instructions {
     margin-top: 20px;
     font-weight: 500; // Medium
@@ -115,6 +149,8 @@
       margin-top: $header-height / 2 - 14px;
       border: solid 1px white;
       white-space: nowrap;
+      display: block;
+      float: left;
     }
   }
 

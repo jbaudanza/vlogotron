@@ -131,7 +131,7 @@ class App extends React.Component {
       "onRouteChange"
     );
 
-    this.state = { locale: initializeLocale() };
+    this.state = { locale: initializeLocale(), origin: document.origin };
   }
 
   onChangeLocale(locale) {
@@ -235,6 +235,7 @@ class App extends React.Component {
           view: (
             <View
               {...viewState}
+              shareUrl={this.state.origin + this.state.location.pathname}
               media={this.media}
               onChangeLocale={this.onChangeLocale}
               actions={this.pageActions}
@@ -313,7 +314,8 @@ class App extends React.Component {
     }
 
     const view = React.cloneElement(this.state.view, {
-      location: this.state.location
+      location: this.state.location,
+      shareUrl: this.state.origin + this.state.location.pathname
     });
 
     return (
