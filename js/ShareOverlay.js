@@ -20,32 +20,39 @@ const FacebookIcon = generateShareIcon("facebook");
 const TwitterIcon = generateShareIcon("twitter");
 const GooglePlusIcon = generateShareIcon("google");
 
-const shareUrl = window.location;
 //TODO: use song title
 //TODO: correct song link
 const title = "Vlogotron";
+
+function onInputClick(event) {
+  const el = event.target;
+  el.selectionStart = 0;
+  el.selectionEnd = el.value.length;
+}
 
 export default class ShareOverlay extends React.Component {
   render() {
     return (
       <Overlay className="login-overlay" onClose={this.props.onClose}>
         <h1>Share</h1>
+          <form>
+            <input type="text" value={this.props.url} size={50} readOnly onClick={onInputClick}/>
+          </form>
           <div className="Share__container">
             <div className="Share__some-network">
               <FacebookShareButton
-                url={shareUrl}
+                url={this.props.url}
                 title={title}
                 className="Share__some-network__share-button">
                 <FacebookIcon
                   size={32}
                   round />
               </FacebookShareButton>
-
             </div>
 
             <div className="Share__some-network">
               <TwitterShareButton
-                url={shareUrl}
+                url={this.props.url}
                 title={title}
                 className="Share__some-network__share-button">
                 <TwitterIcon
@@ -55,13 +62,12 @@ export default class ShareOverlay extends React.Component {
             </div>
             <div className="Share__some-network">
               <GooglePlusShareButton
-                url={shareUrl}
+                url={this.props.url}
                 className="Share__some-network__share-button">
                 <GooglePlusIcon
                   size={32}
                   round />
               </GooglePlusShareButton>
-
             </div>
           </div>
       </Overlay>

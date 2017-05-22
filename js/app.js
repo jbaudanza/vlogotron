@@ -132,7 +132,7 @@ class App extends React.Component {
       "onRouteChange"
     );
 
-    this.state = { locale: initializeLocale() };
+    this.state = { locale: initializeLocale(), origin: document.origin };
   }
 
   onChangeLocale(locale) {
@@ -316,6 +316,7 @@ class App extends React.Component {
         <ShareOverlay
           songId={null}
           onClose={this.state.location.pathname}
+          url={this.state.origin + this.state.location.pathname}
         />
       );
     }
