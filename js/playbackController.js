@@ -86,7 +86,7 @@ export function playbackControllerHelper(
         bpm,
         startPosition || 0,
         media.audioBuffers$,
-        actions.pause$
+        actions.pause$.concatWith({})
       )
     )
     .publish();

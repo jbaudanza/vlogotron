@@ -29,6 +29,6 @@ export default class ReactActions {
   }
 
   completeAll() {
-    forEach(this.actions, subject => subject.complete());
+    forEach(this.subjects, subject => subject.complete());
   }
 }
