@@ -73,6 +73,9 @@
     text-align: center;
     font-weight: bold;
     font-size: 14px;
+    sub {
+      margin-left: 2px;
+    }
   }
   .countdown-label, .stop-action {
     position: absolute;

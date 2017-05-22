@@ -153,7 +153,7 @@ export default class VideoCell extends React.Component {
         {countdownEl}
         {stopActionEl}
         {shadeEl}
-        <NoteLabel note={this.props.label} />
+        <NoteLabel note={this.props.label} octave={this.props.octave} />
         {clearEl}
         {spinnerEl}
       </div>
@@ -168,6 +168,7 @@ VideoCell.contextTypes = {
 VideoCell.propTypes = {
   note: React.PropTypes.string.isRequired,
   label: React.PropTypes.string.isRequired,
+  octave: React.PropTypes.number.isRequired,
   playing: React.PropTypes.bool.isRequired,
   spinner: React.PropTypes.bool.isRequired,
   mediaStream: React.PropTypes.object,

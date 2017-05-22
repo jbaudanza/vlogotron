@@ -16,10 +16,7 @@ const notes = ["C3", "D3", "E3", "F3",
                "A4", "B4", "C5", "D5"];
 
 // prettier-ignore
-const noteLabels = ["DO", "RE", "MI", "FA",
-                    "SO", "LA", "TI", "do",
-                    "re", "mi", "fa", "so",
-                    "la", "ti", "d", "r"]
+const noteLabels = ["do", "re", "mi", "fa", "so", "la", "ti"];
 
 export default class VideoGrid extends React.Component {
   constructor(props) {
@@ -106,13 +103,15 @@ export default class VideoGrid extends React.Component {
     this.forceUpdate();
   }
 
-  propsForCell(note) {
+  propsForCell(index, note) {
     const props = {
       videoClip: this.props.videoClips[note],
-      note: note,
       playing: !!this.state.playing[note],
+      note: note,
       readonly: this.props.readonly,
-      spinner: !!this.props.loading[note]
+      spinner: !!this.props.loading[note],
+      label: noteLabels[index % noteLabels.length],
+      octave: Math.floor(index / noteLabels.length) + 1
     };
 
     if (!this.props.readonly) {
@@ -168,11 +167,10 @@ export default class VideoGrid extends React.Component {
   render() {
     return (
       <TouchableArea className="video-container" ref={this.bindTouchableArea}>
-        {notes.map((note, idx) => (
+        {notes.map((note, index) => (
           <VideoCell
             key={note}
-            label={noteLabels[idx]}
-            {...this.propsForCell(note)}
+            {...this.propsForCell(index, note)}
           />
         ))}
       </TouchableArea>
