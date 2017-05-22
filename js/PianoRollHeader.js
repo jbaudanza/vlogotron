@@ -32,6 +32,7 @@ export default class PianoRollHeader extends React.Component {
             onClickPause={this.props.onClickPause}
           />
 
+          {/*
           <Link onClick={null} className="record-button">
             <svg version="1.1" width={28} height={28}>
               <use
@@ -41,6 +42,7 @@ export default class PianoRollHeader extends React.Component {
               />
             </svg>
           </Link>
+          */}
 
           <Link href="#choose-song" className="song-chooser">
             <svg version="1.1" width={18} height={16}>
