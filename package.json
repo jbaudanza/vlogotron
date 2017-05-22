@@ -16,6 +16,7 @@
     "prettier": "^1.0.2",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
+    "react-share": "^1.13.2",
     "rxjs": "5.3.0",
     "sass-loader": "^4.1.1",
     "style-loader": "^0.13.1",

@@ -3,8 +3,6 @@ import Link from "./Link";
 
 import PlayButton from "./PlayButton";
 
-function noop() {}
-
 import { formatSeconds } from "./format";
 
 export default class PlaybackHeader extends React.Component {
@@ -35,7 +33,7 @@ export default class PlaybackHeader extends React.Component {
         </div>
 
         <div className="actions">
-          <Link className="action share-action" onClick={noop}>
+          <Link className="action share-action" href="#share">
             {this.context.messages["share-action"]()}
           </Link>
           <Link className="action remix-action" {...this.props.remixAction}>
