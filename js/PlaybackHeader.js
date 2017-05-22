@@ -59,8 +59,10 @@ export default class PlaybackHeader extends React.Component {
 
         <div className="actions">
           <Link
-            className="action share-action"
             onClick={this.toggleShareButtons}
+            className={classNames("action share-action", {
+              "toggled-on": this.state.shareButtonsVisible
+            })}
           >
             {this.context.messages["share-action"]()}
           </Link>
