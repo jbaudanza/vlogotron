@@ -110,13 +110,18 @@ function initializeLocale() {
   return "en";
 }
 
-const loadingView = (
-  <div className="page-vertical-wrapper">
-    <div className="page-content">
-      loading...
+function LoadingView(props) {
+  return (
+    <div className="page-vertical-wrapper">
+      <div className="page-content initial-loading">
+        <svg version="1.1" width="100px" height="100px" className="spinner">
+          <use xlinkHref="#svg-spinner" />
+        </svg>
+        loading...
+      </div>
     </div>
-  </div>
-);
+  );
+}
 
 class App extends React.Component {
   constructor() {
@@ -225,7 +230,7 @@ class App extends React.Component {
 
     this.setState({
       sidebarVisible: pageConfig.sidebarVisible,
-      view: loadingView // If the controller emits immediately, this div will never be shown.
+      view: <LoadingView /> // If the controller emits immediately, this div will never be shown.
     });
 
     this.pageSubscription.add(
