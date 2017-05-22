@@ -42,5 +42,7 @@
   "my-songs-empty-list": "You haven't made any songs yet.",
   "terms-of-service-link": "ToS",
   "privacy-policy-link": "PP",
-  "contact-link": "contact"
+  "contact-link": "contact",
+  "delete-song-action": "Delete Song",
+  "edit-song-action": "Edit Song"
 }

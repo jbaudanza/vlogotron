@@ -235,6 +235,7 @@ class App extends React.Component {
           view: (
             <View
               {...viewState}
+              shareUrl={this.state.origin + this.state.location.pathname}
               media={this.media}
               onChangeLocale={this.onChangeLocale}
               actions={this.pageActions}

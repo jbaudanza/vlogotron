@@ -29,12 +29,14 @@ class LineItem extends React.Component {
     const options = [
       [
         "#svg-pencil-2",
-        "Edit Song",
+        this.context.messages["edit-song-action"](),
         { href: "/songs/" + this.props.song.songId + "/record-videos" }
       ],
-      ["#svg-share", "Share", {}],
-      ["#svg-permission", "Permissions", {}],
-      ["#svg-delete", "Delete", { onClick: this.onDelete }]
+      [
+        "#svg-delete",
+        this.context.messages["delete-song-action"](),
+        { onClick: this.onDelete }
+      ]
     ];
 
     return (
