@@ -236,11 +236,19 @@ class App extends React.Component {
     this.pageSubscription.add(
       viewState$.subscribe(viewState => {
         const View = pageConfig.view;
+
+        let shareUrl;
+        if (this.state.origin && this.state.location) {
+          shareUrl = this.state.origin + this.state.location.pathname;
+        } else {
+          shareUrl = "";
+        }
+
         this.setState({
           view: (
             <View
               {...viewState}
-              shareUrl={this.state.origin + this.state.location.pathname}
+              shareUrl={shareUrl}
               media={this.media}
               onChangeLocale={this.onChangeLocale}
               actions={this.pageActions}
