@@ -104,6 +104,11 @@
     font-size: 17px;
     font-weight: bold;
   }
+
+  &.playing {
+    background-color: $color-purple;
+  }
+
   .empty-video {
     text-align: center;
     display: block;
@@ -112,7 +117,8 @@
 
     svg {
       fill: $color-cloudy-blue;
-      margin-top: 41px;
+      stroke: $color-cloudy-blue;
+      margin-top: 13px;
     }
 
     .tip {
@@ -122,7 +128,7 @@
       display: none;
     }
 
-    &.enabled:hover {
+    &.read-write.enabled:hover {
       background-color: $color-purple;
       padding: 20px;
       box-sizing: border-box;

@@ -4,6 +4,7 @@ import { animationFrame } from "rxjs/scheduler/animationFrame";
 
 import audioContext from "./audioContext";
 import { playbackSchedule } from "./playbackSchedule";
+import { frequencies } from "./frequencies";
 
 import { songLengthInBeats, beatsToTimestamp, timestampToBeats } from "./song";
 
@@ -28,10 +29,9 @@ export function startLivePlaybackEngine(
         let event = null;
 
         if (cmd.play) {
-          const [noteName, node] = buildSourceNode(cmd.play, audioBuffers);
+          const [noteName, node] = buildSourceNode(cmd.play, audioBuffers, destinationNode);
 
           if (node) {
-            node.connect(destinationNode);
             const subject = new Subject();
             active[cmd.play] = { node, subject };
             node.start(when);
@@ -80,30 +80,34 @@ function observableWithGainNode(observableFactory) {
   );
 }
 
-function createGainNode() {
-  const node = audioContext.createGain();
-  node.gain.value = 0.9;
-  node.connect(audioContext.destination);
-  return node;
-}
-
-function buildSourceNode(requestedNoteName, audioBuffers) {
+function buildSourceNode(requestedNoteName, audioBuffers, destinationNode) {
   const isSharp = requestedNoteName.indexOf("#") >= 0;
   const noteName = requestedNoteName.replace("#", "");
+
   const audioBuffer = audioBuffers[noteName];
 
   if (audioBuffer) {
     const source = audioContext.createBufferSource();
     source.buffer = audioBuffer;
+    source.connect(destinationNode);
 
     // alter playback rate for sharp notes,
     // simply use just intonation for now
     const pitchRatio = isSharp ? 1.05946 : 1.0;
     source.playbackRate.value = pitchRatio;
+
     return [noteName, source];
   } else {
-    console.warn("missing audiobuffer for", requestedNoteName);
-    return [noteName, null];
+    const source = audioContext.createOscillator();
+    source.type = "square";
+    source.frequency.value = frequencies[requestedNoteName];
+
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = 0.05;
+    gainNode.connect(destinationNode);
+    source.connect(gainNode);
+
+    return [noteName, source];
   }
 }
 
@@ -168,7 +172,7 @@ export function startScriptedPlayback(
         const events = [];
 
         commands.forEach(command => {
-          const [noteName, source] = buildSourceNode(command[0], audioBuffers);
+          const [noteName, source] = buildSourceNode(command[0], audioBuffers, gainNode);
 
           let startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
           const duration = beatsToTimestamp(command[2], bpm);
@@ -182,8 +186,9 @@ export function startScriptedPlayback(
             } else {
               offset = 0;
             }
-            source.connect(gainNode);
-            source.start(startAt, offset, duration);
+            //source.start(startAt, offset, duration);
+            source.start(startAt);
+            source.stop(startAt + duration);
           }
 
           const duration$ = syncWithAudio(audioContext, startAt + duration)
