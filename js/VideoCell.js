@@ -120,7 +120,7 @@ export default class VideoCell extends React.Component {
         <Link
           className={className}
           onClick={this.props.onStartRecording}
-          enabled={!this.props.mediaStream}
+          enabled={!this.props.mediaStream && !this.props.readonly}
         >
           <svg
             version="1.1"
