@@ -110,27 +110,31 @@ export default class VideoCell extends React.Component {
         }
       }
     } else {
-      if (!this.props.readonly) {
-        videoEl = (
-          <Link
-            className="empty-video"
-            onClick={this.props.onStartRecording}
-            enabled={!this.props.mediaStream}
+      const svgId  = this.props.playing ? "#svg-robot-open" : "#svg-robot-closed";
+      const className = classNames("empty-video", {
+        "readonly": this.props.readonly,
+        "read-write": !this.props.readonly
+      });
+
+      videoEl = (
+        <Link
+          className={className}
+          onClick={this.props.onStartRecording}
+          enabled={!this.props.mediaStream}
+        >
+          <svg
+            version="1.1"
+            width="100px"
+            height="125px"
+            className="background"
           >
-            <svg
-              version="1.1"
-              width="30px"
-              height="59px"
-              className="background"
-            >
-              <use xlinkHref="#svg-microphone" />
-            </svg>
-            <span className="tip">
-              {this.context.messages["record-videos-tip-short"]()}
-            </span>
-          </Link>
-        );
-      }
+            <use xlinkHref={svgId} />
+          </svg>
+          <span className="tip">
+            {this.context.messages["record-videos-tip-short"]()}
+          </span>
+        </Link>
+      );
     }
 
     if (this.props.spinner) {

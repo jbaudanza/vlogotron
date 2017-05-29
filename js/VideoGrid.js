@@ -168,10 +168,7 @@ export default class VideoGrid extends React.Component {
     return (
       <TouchableArea className="video-container" ref={this.bindTouchableArea}>
         {notes.map((note, index) => (
-          <VideoCell
-            key={note}
-            {...this.propsForCell(index, note)}
-          />
+          <VideoCell key={note} {...this.propsForCell(index, note)} />
         ))}
       </TouchableArea>
     );
