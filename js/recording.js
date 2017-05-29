@@ -2,6 +2,17 @@ import { Observable } from "rxjs/Observable";
 
 import audioContext from "./audioContext";
 import encodeWavSync from "./encodeWavSync";
+import detectPitch from "detect-pitch";
+
+function detectPitchEvent(event) {
+  const array = event.inputBuffer.getChannelData(0);
+  const result = detectPitch(array);
+  if (result === 0) {
+    console.log("no pitch")
+  } else {
+    console.log(audioContext.sampleRate / result);
+  }
+}
 
 export function start(mediaStream, finish$, abort$) {
   const takeUntil$ = Observable.merge(finish$, abort$).take(1);
@@ -31,6 +42,7 @@ export function start(mediaStream, finish$, abort$) {
   ).takeUntil(takeUntil$);
 
   const duration$ = audioProcessEvent$
+    .do(detectPitchEvent)
     .map(event => event.inputBuffer.length)
     .scan((i, j) => i + j, 0)
     .map(x => x / audioContext.sampleRate);
