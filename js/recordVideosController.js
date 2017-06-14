@@ -246,7 +246,6 @@ function startTone(note) {
   gainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime + ramp);
   gainNode.connect(audioContext.destination);
 
-  console.log("playing tone for", note, frequencies[note])
   const oscillator = audioContext.createOscillator();
   oscillator.type = "sine";
   oscillator.frequency.value = frequencies[note];

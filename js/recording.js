@@ -8,7 +8,7 @@ function detectPitchEvent(event) {
   const array = event.inputBuffer.getChannelData(0);
   const result = detectPitch(array);
   if (result === 0) {
-    console.log("no pitch")
+    console.log("no pitch");
   } else {
     console.log(audioContext.sampleRate / result);
   }
@@ -42,7 +42,7 @@ export function start(mediaStream, finish$, abort$) {
   ).takeUntil(takeUntil$);
 
   const duration$ = audioProcessEvent$
-    .do(detectPitchEvent)
+    //.do(detectPitchEvent)
     .map(event => event.inputBuffer.length)
     .scan((i, j) => i + j, 0)
     .map(x => x / audioContext.sampleRate);

@@ -110,9 +110,11 @@ export default class VideoCell extends React.Component {
         }
       }
     } else {
-      const svgId  = this.props.playing ? "#svg-robot-open" : "#svg-robot-closed";
+      const svgId = this.props.playing
+        ? "#svg-robot-open"
+        : "#svg-robot-closed";
       const className = classNames("empty-video", {
-        "readonly": this.props.readonly,
+        readonly: this.props.readonly,
         "read-write": !this.props.readonly
       });
 

@@ -29,7 +29,11 @@ export function startLivePlaybackEngine(
         let event = null;
 
         if (cmd.play) {
-          const [noteName, node] = buildSourceNode(cmd.play, audioBuffers, destinationNode);
+          const [noteName, node] = buildSourceNode(
+            cmd.play,
+            audioBuffers,
+            destinationNode
+          );
 
           if (node) {
             const subject = new Subject();
@@ -172,7 +176,11 @@ export function startScriptedPlayback(
         const events = [];
 
         commands.forEach(command => {
-          const [noteName, source] = buildSourceNode(command[0], audioBuffers, gainNode);
+          const [noteName, source] = buildSourceNode(
+            command[0],
+            audioBuffers,
+            gainNode
+          );
 
           let startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
           const duration = beatsToTimestamp(command[2], bpm);
