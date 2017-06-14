@@ -76,7 +76,7 @@ export function deleteSong(database, song) {
 export function updateUser(database, user) {
   const ref = database.ref("users").child(user.uid);
   ref.child("displayName").set(user.displayName);
-  ref.child("email").set(user.displayName);
+  ref.child("email").set(user.email);
   ref.child("providerData").set(user.providerData);
   ref.child("lastSeenAt").set(firebase.database.ServerValue.TIMESTAMP);
 }
