@@ -153,4 +153,11 @@
     // TODO: This magic number might need to change if we change the video sizes
     margin-left: -19%;
   }
+
+  .pitch-guide {
+    position: absolute;
+    bottom: 0;
+    left: 5px;
+    right: 5px;
+  }
 }

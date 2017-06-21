@@ -5,6 +5,7 @@ import { bindAll } from "lodash";
 import classNames from "classnames";
 import Link from "./Link";
 import NoteLabel from "./NoteLabel";
+import PitchGuide from "./PitchGuide";
 
 import { findWrappingLink } from "./domutils";
 import { formatSeconds } from "./format";
@@ -39,6 +40,7 @@ export default class VideoCell extends React.Component {
     let shadeEl;
     let clearEl;
     let spinnerEl;
+    let pitchGuideEl;
 
     if (this.props.countdown) {
       countdownEl = (
@@ -80,6 +82,8 @@ export default class VideoCell extends React.Component {
             </div>
           </Link>
         );
+
+        pitchGuideEl = <PitchGuide />;
       }
     } else if (this.props.videoClip) {
       videoEl = (
@@ -162,6 +166,7 @@ export default class VideoCell extends React.Component {
         <NoteLabel note={this.props.label} octave={this.props.octave} />
         {clearEl}
         {spinnerEl}
+        {pitchGuideEl}
       </div>
     );
   }
