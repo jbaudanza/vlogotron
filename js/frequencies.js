@@ -1,37 +1,54 @@
-// Based off of http://www.phy.mtu.edu/~suits/notefreqs.html
-// TODO: Add the rest, or use the formula described on that page
-export const frequencies = {
-  C3: 130.81,
-  "C#3": 138.59,
-  D3: 146.83,
-  "D#3": 155.56,
-  E3: 164.81,
-  F3: 174.61,
-  "F#3": 185.00,
-  G3: 196.00,
-  "G#3": 207.65,
-  A3: 220.00,
-  "A#3": 233.08,
-  B3: 246.94,
-  C4: 261.63,
-  "C#4": 277.18,
-  D4: 293.66,
-  "D#4": 311.13,
-  E4: 329.63,
-  F4: 349.23,
-  "F#4": 369.99,
-  G4: 392.00,
-  "G#4": 415.30,
-  A4: 440.00,
-  "A#4": 466.16,
-  B4: 493.88,
-  C5: 523.25,
-  "C#5": 554.37,
-  D5: 587.33,
-  "D#5": 622.25,
-  E5: 659.25,
-  F5: 698.46,
-  "F#5": 739.99,
-  G5: 783.99,
-  "G#5": 830.60
+import {mapValues} from 'lodash';
+
+// TODO: We should stop using note labels and use the midi notes directly.
+export const noteLabelsToMidi = {
+  C3: 36,
+  "C#3": 37,
+  D3: 38,
+  "D#3": 39,
+  E3: 40,
+  F3: 41,
+  "F#3": 42,
+  G3: 43,
+  "G#3": 44,
+  A3: 45,
+  "A#3": 46,
+  B3: 47,
+  C4: 48,
+  "C#4": 49,
+  D4: 50,
+  "D#4": 51,
+  E4: 52,
+  F4: 53,
+  "F#4": 54,
+  G4: 55,
+  "G#4": 56,
+  A4: 57,
+  "A#4": 58,
+  B4: 59,
+  C5: 60,
+  "C#5": 61,
+  D5: 62,
+  "D#5": 63,
+  E5: 64,
+  F5: 65,
+  "F#5": 66,
+  G5: 67,
+  "G#5": 68
 };
+
+// Based off of http://www.phy.mtu.edu/~suits/NoteFreqCalcs.html
+const CONST_A = Math.pow(2, 1/12);
+const CONST_LOG_A = Math.log(CONST_A);
+const CONST_F0 = 440; // A4
+const CONST_FIXED_NOTE = 57; // Midi for A4
+
+export function noteToFrequency(note) {
+  return CONST_F0 * Math.pow(CONST_A, note - CONST_FIXED_NOTE);
+}
+
+export function frequencyToNote(frequency) {
+  return CONST_FIXED_NOTE + Math.log(frequency / CONST_F0) / CONST_LOG_A;
+}
+
+export const frequencies = mapValues(noteLabelsToMidi, noteToFrequency);
