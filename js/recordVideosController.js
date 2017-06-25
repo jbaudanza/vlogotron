@@ -14,7 +14,11 @@ import { playCommands$ as keyboardPlayCommands$ } from "./keyboard";
 
 import { updatesForNewSong } from "./localWorkspace";
 import { createVideoClip } from "./database";
-import { frequencies } from "./frequencies";
+import {
+  frequencyToNote,
+  noteToFrequency,
+  noteLabelsToMidi
+} from "./frequencies";
 
 // Note: keypress doesn't work for escape key. Need to use keydown.
 const escapeKey$ = Observable.fromEvent(document, "keydown").filter(
@@ -207,8 +211,32 @@ function runRecordingProcess(mediaStream, note, finish$, abort$) {
       (audioBuffer, videoBlob) => ({ note, videoBlob, audioBuffer })
     );
 
+    const targetMidiNote = normalizeOctave(noteLabelsToMidi[note]);
+    const lowerBound = targetMidiNote - 1;
+    const upperBound = targetMidiNote + 1;
+
+    const pitchCorrection$ = result.pitch$.map(
+      pitch =>
+        (pitch != null
+          ? noteToRange(
+              normalizeOctave(frequencyToNote(pitch)),
+              lowerBound,
+              upperBound
+            )
+          : null)
+    );
+
+    const viewState$ = Observable.combineLatest(
+      result.duration$,
+      pitchCorrection$.startWith(null),
+      (duration, pitchCorrection) => ({
+        durationRecorded: duration,
+        pitchCorrection
+      })
+    );
+
     return Observable.merge(
-      result.duration$.map(d => ({ viewState: { durationRecorded: d } })),
+      viewState$.map(viewState => ({ viewState })),
       media$.map(media => ({ media }))
     ).subscribe(observer);
   });
@@ -248,7 +276,7 @@ function startTone(note) {
 
   const oscillator = audioContext.createOscillator();
   oscillator.type = "sine";
-  oscillator.frequency.value = frequencies[note];
+  oscillator.frequency.value = noteToFrequency(noteLabelsToMidi[note]);
   oscillator.connect(gainNode);
   oscillator.start();
 
@@ -257,6 +285,22 @@ function startTone(note) {
     gainNode.gain.linearRampToValueAtTime(0, stopTime);
     oscillator.stop(stopTime);
   };
+}
+
+function normalizeOctave(midiNote) {
+  return midiNote % 12;
+}
+
+function noteToRange(note, lowerBound, upperBound) {
+  if (note < lowerBound) {
+    return 0;
+  }
+
+  if (note > upperBound) {
+    return 1;
+  }
+
+  return (note - lowerBound) / (upperBound - lowerBound);
 }
 
 const countdownSeconds = 5;

@@ -1,4 +1,4 @@
-import {mapValues} from 'lodash';
+import { mapValues } from "lodash";
 
 // TODO: We should stop using note labels and use the midi notes directly.
 export const noteLabelsToMidi = {
@@ -38,7 +38,7 @@ export const noteLabelsToMidi = {
 };
 
 // Based off of http://www.phy.mtu.edu/~suits/NoteFreqCalcs.html
-const CONST_A = Math.pow(2, 1/12);
+const CONST_A = Math.pow(2, 1 / 12);
 const CONST_LOG_A = Math.log(CONST_A);
 const CONST_F0 = 440; // A4
 const CONST_FIXED_NOTE = 57; // Midi for A4

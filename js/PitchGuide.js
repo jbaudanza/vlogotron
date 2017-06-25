@@ -6,7 +6,6 @@ function SvgMeter(props) {
   const width = props.width;
   const height = 10;
   const dotCount = 18;
-  const position = props.position;
   const middleY = height / 2;
 
   return (
@@ -28,13 +27,15 @@ function SvgMeter(props) {
         strokeWidth="2"
         fill="none"
       />
-      <circle
-        cx={width * position}
-        cy={middleY}
-        r="4"
-        stroke="none"
-        fill="#29bdec"
-      />
+      {props.value == null
+        ? null
+        : <circle
+            cx={width * props.value}
+            cy={middleY}
+            r="4"
+            stroke="none"
+            fill="#29bdec"
+          />}
     </svg>
   );
 }
@@ -65,7 +66,7 @@ export default class PitchGuide extends React.Component {
           <Label>High</Label>
         </LabelWrapper>
         <div>
-          <SvgMeter position={0.24} width={126} height={12} />
+          <SvgMeter value={this.props.value} width={126} height={12} />
         </div>
       </div>
     );

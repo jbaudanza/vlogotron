@@ -127,7 +127,8 @@ export default class VideoGrid extends React.Component {
         Object.assign(props, {
           mediaStream: this.props.mediaStream,
           countdown: this.props.countdownUntilRecord,
-          durationRecorded: this.props.durationRecorded
+          durationRecorded: this.props.durationRecorded,
+          pitchCorrection: this.props.pitchCorrection
         });
       } else {
         props.readonly = true;

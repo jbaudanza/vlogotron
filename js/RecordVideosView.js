@@ -91,6 +91,7 @@ export default class RecordVideosView extends React.Component {
                 countdownUntilRecord={this.props.countdownUntilRecord}
                 durationRecorded={this.props.durationRecorded}
                 noteBeingRecorded={this.props.noteBeingRecorded}
+                pitchCorrection={this.props.pitchCorrection}
                 ref={this.bindVideoGrid}
               />
             : <div className="text-blob">

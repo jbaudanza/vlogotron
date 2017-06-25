@@ -4,13 +4,18 @@ import audioContext from "./audioContext";
 import encodeWavSync from "./encodeWavSync";
 import detectPitch from "detect-pitch";
 
-function detectPitchEvent(event) {
+function mapAudioEventToPitch(event) {
   const array = event.inputBuffer.getChannelData(0);
-  const result = detectPitch(array);
+
+  // This defaults to 0. Setting it to something higher will cause background
+  // noise to return null.
+  const threshold = 0.25;
+
+  const result = detectPitch(array, threshold);
   if (result === 0) {
-    console.log("no pitch");
+    return null;
   } else {
-    console.log(audioContext.sampleRate / result);
+    return audioContext.sampleRate / result;
   }
 }
 
@@ -42,10 +47,11 @@ export function start(mediaStream, finish$, abort$) {
   ).takeUntil(takeUntil$);
 
   const duration$ = audioProcessEvent$
-    //.do(detectPitchEvent)
     .map(event => event.inputBuffer.length)
     .scan((i, j) => i + j, 0)
     .map(x => x / audioContext.sampleRate);
+
+  const pitch$ = audioProcessEvent$.map(mapAudioEventToPitch);
 
   const finishedAudioBuffer$ = audioProcessEvent$
     .map(buffersFromAudioProcessEvent)
@@ -58,7 +64,7 @@ export function start(mediaStream, finish$, abort$) {
     abort$.ignoreElements()
   );
 
-  return { duration$, audioBuffer$, videoBlob$ };
+  return { duration$, audioBuffer$, videoBlob$, pitch$ };
 }
 
 function combineBlobs(list) {
