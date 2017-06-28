@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import classNames from "classnames";
 import TouchableArea from "./TouchableArea";
@@ -84,9 +85,9 @@ export default class PianoKeys extends React.Component {
 }
 
 PianoKeys.propTypes = {
-  playing: React.PropTypes.object.isRequired,
-  orientation: React.PropTypes.oneOf(["horizontal", "vertical"]).isRequired,
-  onTouchStart: React.PropTypes.func.isRequired
+  playing: PropTypes.object.isRequired,
+  orientation: PropTypes.oneOf(["horizontal", "vertical"]).isRequired,
+  onTouchStart: PropTypes.func.isRequired
 };
 
 PianoKeys.defaultProps = {

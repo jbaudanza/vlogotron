@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 import { Observable } from "rxjs/Observable";
@@ -119,5 +120,5 @@ export default class TouchableArea extends React.Component {
 }
 
 TouchableArea.propTypes = {
-  onTouchStart: React.PropTypes.func
+  onTouchStart: PropTypes.func
 };

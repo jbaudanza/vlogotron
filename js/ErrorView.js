@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 class ErrorView extends React.Component {
@@ -22,7 +23,7 @@ class ErrorView extends React.Component {
 }
 
 ErrorView.contextTypes = {
-  messages: React.PropTypes.object.isRequired
+  messages: PropTypes.object.isRequired
 };
 
 export default ErrorView;

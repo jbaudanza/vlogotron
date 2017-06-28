@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import classNames from "classnames";
 
@@ -308,9 +309,9 @@ class Timeline extends React.Component {
 }
 
 Timeline.propTypes = {
-  totalBeats: React.PropTypes.number.isRequired,
-  onChangePlaybackStartPosition: React.PropTypes.func.isRequired,
-  playbackStartPosition: React.PropTypes.number
+  totalBeats: PropTypes.number.isRequired,
+  onChangePlaybackStartPosition: PropTypes.func.isRequired,
+  playbackStartPosition: PropTypes.number
 };
 
 export default class PianoRoll extends React.Component {
@@ -494,10 +495,10 @@ export default class PianoRoll extends React.Component {
 }
 
 PianoRoll.propTypes = {
-  notes: React.PropTypes.array.isRequired,
-  cellsPerBeat: React.PropTypes.number.isRequired,
-  playing: React.PropTypes.object.isRequired,
-  onChangePlaybackStartPosition: React.PropTypes.func.isRequired,
-  playbackPosition$$: React.PropTypes.object.isRequired,
-  playbackStartPosition: React.PropTypes.number
+  notes: PropTypes.array.isRequired,
+  cellsPerBeat: PropTypes.number.isRequired,
+  playing: PropTypes.object.isRequired,
+  onChangePlaybackStartPosition: PropTypes.func.isRequired,
+  playbackPosition$$: PropTypes.object.isRequired,
+  playbackStartPosition: PropTypes.number
 };

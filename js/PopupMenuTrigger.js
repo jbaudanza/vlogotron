@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 import PopupMenu from "./PopupMenu";
@@ -75,5 +76,5 @@ export default class PopupMenuTrigger extends React.Component {
 }
 
 PopupMenuTrigger.propTypes = {
-  options: React.PropTypes.array.isRequired
+  options: PropTypes.array.isRequired
 };

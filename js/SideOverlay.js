@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import Link from "./Link";
 
@@ -30,6 +31,6 @@ export default class SideOverlay extends React.Component {
 }
 
 SideOverlay.propTypes = {
-  className: React.PropTypes.string,
-  visible: React.PropTypes.bool.isRequired
+  className: PropTypes.string,
+  visible: PropTypes.bool.isRequired
 };

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 import Overlay from "./Overlay";
@@ -31,6 +32,6 @@ export default class LoginOverlay extends React.Component {
 }
 
 LoginOverlay.propTypes = {
-  onLogin: React.PropTypes.func.isRequired,
-  onClose: React.PropTypes.string.isRequired
+  onLogin: PropTypes.func.isRequired,
+  onClose: PropTypes.string.isRequired
 };

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 import Link from "./Link";
@@ -63,6 +64,6 @@ export default class PopupMenu extends React.Component {
 }
 
 PopupMenu.propTypes = {
-  options: React.PropTypes.array.isRequired,
-  targetRect: React.PropTypes.object.isRequired
+  options: PropTypes.array.isRequired,
+  targetRect: PropTypes.object.isRequired
 };

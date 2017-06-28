@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { Observable } from "rxjs/Observable";
 import { Subject } from "rxjs/Subject";
@@ -177,19 +178,19 @@ export default class VideoGrid extends React.Component {
 }
 
 VideoGrid.propTypes = {
-  playCommands$: React.PropTypes.object.isRequired,
-  readonly: React.PropTypes.bool.isRequired,
-  videoClips: React.PropTypes.object.isRequired,
-  countdownUntilRecord: React.PropTypes.number,
-  durationRecorded: React.PropTypes.number,
-  mediaStream: React.PropTypes.object,
-  onStartRecording: React.PropTypes.func,
-  onStopRecording: React.PropTypes.func,
-  onClear: React.PropTypes.func,
-  noteBeingRecorded: React.PropTypes.string,
-  loading: React.PropTypes.object.isRequired
+  playCommands$: PropTypes.object.isRequired,
+  readonly: PropTypes.bool.isRequired,
+  videoClips: PropTypes.object.isRequired,
+  countdownUntilRecord: PropTypes.number,
+  durationRecorded: PropTypes.number,
+  mediaStream: PropTypes.object,
+  onStartRecording: PropTypes.func,
+  onStopRecording: PropTypes.func,
+  onClear: PropTypes.func,
+  noteBeingRecorded: PropTypes.string,
+  loading: PropTypes.object.isRequired
 };
 
 VideoGrid.contextTypes = {
-  audioContext: React.PropTypes.object
+  audioContext: PropTypes.object
 };

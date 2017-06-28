@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 import Link from "./Link";
@@ -191,9 +192,9 @@ export default class NoteEditorView extends React.Component {
 }
 
 NoteEditorView.contextTypes = {
-  messages: React.PropTypes.object.isRequired
+  messages: PropTypes.object.isRequired
 };
 
 NoteEditorView.propTypes = {
-  loading: React.PropTypes.object.isRequired
+  loading: PropTypes.object.isRequired
 };

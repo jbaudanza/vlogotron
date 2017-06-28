@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import Link from "./Link";
 
@@ -105,13 +106,13 @@ export default class PlaybackHeader extends React.Component {
 }
 
 PlaybackHeader.contextTypes = {
-  messages: React.PropTypes.object.isRequired
+  messages: PropTypes.object.isRequired
 };
 
 PlaybackHeader.propTypes = {
-  loading: React.PropTypes.bool.isRequired,
-  onClickPlay: React.PropTypes.func.isRequired,
-  onClickPause: React.PropTypes.func.isRequired,
-  remixAction: React.PropTypes.object.isRequired,
-  isPlaying: React.PropTypes.bool.isRequired
+  loading: PropTypes.bool.isRequired,
+  onClickPlay: PropTypes.func.isRequired,
+  onClickPause: PropTypes.func.isRequired,
+  remixAction: PropTypes.object.isRequired,
+  isPlaying: PropTypes.bool.isRequired
 };

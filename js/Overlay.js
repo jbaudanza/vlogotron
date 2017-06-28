@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import Link from "./Link";
 
@@ -43,8 +44,8 @@ class Overlay extends React.Component {
 }
 
 Overlay.propTypes = {
-  onClose: React.PropTypes.string.isRequired,
-  className: React.PropTypes.string
+  onClose: PropTypes.string.isRequired,
+  className: PropTypes.string
 };
 
 export default Overlay;

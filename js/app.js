@@ -1,5 +1,7 @@
 import "./rxjs-additions";
 
+import PropTypes from 'prop-types';
+
 import React from "react";
 import ReactDOM from "react-dom";
 import { Observable } from "rxjs/Observable";
@@ -356,6 +358,6 @@ class App extends React.Component {
 }
 
 App.childContextTypes = {
-  audioContext: React.PropTypes.object,
-  messages: React.PropTypes.object
+  audioContext: PropTypes.object,
+  messages: PropTypes.object
 };

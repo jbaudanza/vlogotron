@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 import { bindAll, bindKey, isEmpty } from "lodash";
@@ -80,15 +81,15 @@ export default class PlaybackView extends React.Component {
 }
 
 PlaybackView.propTypes = {
-  loading: React.PropTypes.object.isRequired,
-  videoClips: React.PropTypes.object.isRequired,
-  playCommands$: React.PropTypes.object.isRequired,
-  isPlaying: React.PropTypes.bool.isRequired,
-  songLength: React.PropTypes.number.isRequired,
-  shareUrl: React.PropTypes.string.isRequired,
-  songTitle: React.PropTypes.string.isRequired
+  loading: PropTypes.object.isRequired,
+  videoClips: PropTypes.object.isRequired,
+  playCommands$: PropTypes.object.isRequired,
+  isPlaying: PropTypes.bool.isRequired,
+  songLength: PropTypes.number.isRequired,
+  shareUrl: PropTypes.string.isRequired,
+  songTitle: PropTypes.string.isRequired
 };
 
 PlaybackView.contextTypes = {
-  messages: React.PropTypes.object.isRequired
+  messages: PropTypes.object.isRequired
 };

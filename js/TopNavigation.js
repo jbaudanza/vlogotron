@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 import Link from "./Link";
@@ -54,12 +55,12 @@ export default class TopNavigation extends React.Component {
 }
 
 TopNavigation.contextTypes = {
-  messages: React.PropTypes.object.isRequired
+  messages: PropTypes.object.isRequired
 };
 
 TopNavigation.PropTypes = {
-  onLogout: React.PropTypes.func.isRequired,
-  isLoggedIn: React.PropTypes.bool.isRequired
+  onLogout: PropTypes.func.isRequired,
+  isLoggedIn: PropTypes.bool.isRequired
 };
 
 function NavLink(props) {

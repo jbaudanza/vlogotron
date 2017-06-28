@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 export default class FinePrint extends React.Component {
@@ -21,5 +22,5 @@ export default class FinePrint extends React.Component {
 }
 
 FinePrint.contextTypes = {
-  messages: React.PropTypes.object.isRequired
+  messages: PropTypes.object.isRequired
 };

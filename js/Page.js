@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 import classNames from "classnames";
@@ -47,12 +48,12 @@ export default class Page extends React.Component {
 }
 
 Page.contextTypes = {
-  messages: React.PropTypes.object.isRequired
+  messages: PropTypes.object.isRequired
 };
 
 Page.PropTypes = {
-  sidebarVisible: React.PropTypes.bool.isRequired,
-  onChangeLocale: React.PropTypes.func.isRequired,
-  onLogout: React.PropTypes.func.isRequired,
-  isLoggedIn: React.PropTypes.bool.isRequired
+  sidebarVisible: PropTypes.bool.isRequired,
+  onChangeLocale: PropTypes.func.isRequired,
+  onLogout: PropTypes.func.isRequired,
+  isLoggedIn: PropTypes.bool.isRequired
 };

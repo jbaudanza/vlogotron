@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 import Link from "./Link";
@@ -32,9 +33,9 @@ export default class PlayButton extends React.Component {
 }
 
 PlayButton.propTypes = {
-  enabled: React.PropTypes.bool.isRequired,
-  size: React.PropTypes.number.isRequired,
-  isPlaying: React.PropTypes.bool.isRequired,
-  onClickPlay: React.PropTypes.func.isRequired,
-  onClickPause: React.PropTypes.func.isRequired
+  enabled: PropTypes.bool.isRequired,
+  size: PropTypes.number.isRequired,
+  isPlaying: PropTypes.bool.isRequired,
+  onClickPlay: PropTypes.func.isRequired,
+  onClickPause: PropTypes.func.isRequired
 };

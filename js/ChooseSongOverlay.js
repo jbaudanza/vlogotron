@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 import { Observable } from "rxjs/Observable";
@@ -42,7 +43,7 @@ class LineItem extends React.Component {
 }
 
 LineItem.contextTypes = {
-  messages: React.PropTypes.object.isRequired
+  messages: PropTypes.object.isRequired
 };
 
 export default class ChooseSongOverlay extends React.Component {
@@ -109,7 +110,7 @@ function chooseTemplateController(actions, bpm, audioBuffers$) {
 }
 
 ChooseSongOverlay.propTypes = {
-  bpm: React.PropTypes.number.isRequired,
-  onSelect: React.PropTypes.func.isRequired,
-  onClose: React.PropTypes.string.isRequired
+  bpm: PropTypes.number.isRequired,
+  onSelect: PropTypes.func.isRequired,
+  onClose: PropTypes.string.isRequired
 };

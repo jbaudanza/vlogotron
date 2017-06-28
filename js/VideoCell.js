@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import ReactDOM from "react-dom";
 
@@ -173,19 +174,19 @@ export default class VideoCell extends React.Component {
 }
 
 VideoCell.contextTypes = {
-  messages: React.PropTypes.object.isRequired
+  messages: PropTypes.object.isRequired
 };
 
 VideoCell.propTypes = {
-  note: React.PropTypes.string.isRequired,
-  label: React.PropTypes.string.isRequired,
-  octave: React.PropTypes.number.isRequired,
-  playing: React.PropTypes.bool.isRequired,
-  spinner: React.PropTypes.bool.isRequired,
-  mediaStream: React.PropTypes.object,
-  onStartRecording: React.PropTypes.func,
-  onStopRecording: React.PropTypes.func,
-  videoClip: React.PropTypes.object,
-  readonly: React.PropTypes.bool,
-  countdown: React.PropTypes.number
+  note: PropTypes.string.isRequired,
+  label: PropTypes.string.isRequired,
+  octave: PropTypes.number.isRequired,
+  playing: PropTypes.bool.isRequired,
+  spinner: PropTypes.bool.isRequired,
+  mediaStream: PropTypes.object,
+  onStartRecording: PropTypes.func,
+  onStopRecording: PropTypes.func,
+  videoClip: PropTypes.object,
+  readonly: PropTypes.bool,
+  countdown: PropTypes.number
 };

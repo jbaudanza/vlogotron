@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 import { bindAll, bindKey, forEach } from "lodash";
@@ -130,12 +131,12 @@ export default class RecordVideosView extends React.Component {
 }
 
 RecordVideosView.contextTypes = {
-  messages: React.PropTypes.object.isRequired
+  messages: PropTypes.object.isRequired
 };
 
 RecordVideosView.propTypes = {
-  loading: React.PropTypes.object.isRequired,
-  videoClips: React.PropTypes.object.isRequired,
-  playCommands$: React.PropTypes.object.isRequired,
-  songTitle: React.PropTypes.string.isRequired
+  loading: PropTypes.object.isRequired,
+  videoClips: PropTypes.object.isRequired,
+  playCommands$: PropTypes.object.isRequired,
+  songTitle: PropTypes.string.isRequired
 };

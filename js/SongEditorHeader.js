@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 import { bindAll } from "lodash";
@@ -93,11 +94,11 @@ export default class SongEditorHeader extends React.Component {
 }
 
 SongEditorHeader.propTypes = {
-  onChangeTitle: React.PropTypes.func.isRequired,
-  primaryAction: React.PropTypes.object.isRequired,
-  primaryActionLabel: React.PropTypes.string.isRequired,
-  secondaryAction: React.PropTypes.object.isRequired,
-  secondaryActionLabel: React.PropTypes.string.isRequired
+  onChangeTitle: PropTypes.func.isRequired,
+  primaryAction: PropTypes.object.isRequired,
+  primaryActionLabel: PropTypes.string.isRequired,
+  secondaryAction: PropTypes.object.isRequired,
+  secondaryActionLabel: PropTypes.string.isRequired
 };
 
 function isBlank(string) {

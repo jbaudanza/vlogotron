@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { omit } from "lodash";
 import classNames from "classnames";
@@ -51,9 +52,9 @@ class Link extends React.Component {
 }
 
 React.propTypes = {
-  href: React.PropTypes.string,
-  onClick: React.PropTypes.func,
-  enabled: React.PropTypes.bool
+  href: PropTypes.string,
+  onClick: PropTypes.func,
+  enabled: PropTypes.bool
 };
 
 export default Link;

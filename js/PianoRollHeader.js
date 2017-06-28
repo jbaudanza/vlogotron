@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 import { range, bindAll } from "lodash";
@@ -102,20 +103,20 @@ export default class PianoRollHeader extends React.Component {
 }
 
 PianoRollHeader.contextTypes = {
-  messages: React.PropTypes.object.isRequired
+  messages: PropTypes.object.isRequired
 };
 
 PianoRollHeader.propTypes = {
-  bpm: React.PropTypes.number.isRequired,
-  onChangeBpm: React.PropTypes.func.isRequired,
-  onChangeCellsPerBeat: React.PropTypes.func.isRequired,
-  onReset: React.PropTypes.func.isRequired,
-  onUndo: React.PropTypes.func.isRequired,
-  cellsPerBeat: React.PropTypes.number.isRequired,
-  isRecording: React.PropTypes.bool.isRequired,
-  isPlaying: React.PropTypes.bool.isRequired,
-  onClickPlay: React.PropTypes.func.isRequired,
-  onClickPause: React.PropTypes.func.isRequired,
-  undoEnabled: React.PropTypes.bool.isRequired,
-  redoEnabled: React.PropTypes.bool.isRequired
+  bpm: PropTypes.number.isRequired,
+  onChangeBpm: PropTypes.func.isRequired,
+  onChangeCellsPerBeat: PropTypes.func.isRequired,
+  onReset: PropTypes.func.isRequired,
+  onUndo: PropTypes.func.isRequired,
+  cellsPerBeat: PropTypes.number.isRequired,
+  isRecording: PropTypes.bool.isRequired,
+  isPlaying: PropTypes.bool.isRequired,
+  onClickPlay: PropTypes.func.isRequired,
+  onClickPause: PropTypes.func.isRequired,
+  undoEnabled: PropTypes.bool.isRequired,
+  redoEnabled: PropTypes.bool.isRequired
 };

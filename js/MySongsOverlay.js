@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import { Observable } from "rxjs/Observable";
 
@@ -65,7 +66,7 @@ class LineItem extends React.Component {
 }
 
 LineItem.contextTypes = {
-  messages: React.PropTypes.object.isRequired
+  messages: PropTypes.object.isRequired
 };
 
 export default class MySongsOverlay extends React.Component {
@@ -95,10 +96,10 @@ export default class MySongsOverlay extends React.Component {
 }
 
 MySongsOverlay.contextTypes = {
-  messages: React.PropTypes.object.isRequired
+  messages: PropTypes.object.isRequired
 };
 
 MySongsOverlay.propTypes = {
-  songs: React.PropTypes.object.isRequired,
-  onDelete: React.PropTypes.func.isRequired
+  songs: PropTypes.object.isRequired,
+  onDelete: PropTypes.func.isRequired
 };

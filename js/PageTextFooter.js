@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 
 import classNames from "classnames";
@@ -33,11 +34,11 @@ export default class PageTextFooter extends React.Component {
 }
 
 PageTextFooter.contextTypes = {
-  messages: React.PropTypes.object.isRequired
+  messages: PropTypes.object.isRequired
 };
 
 PageTextFooter.propTypes = {
-  text: React.PropTypes.string.isRequired,
-  onDismissError: React.PropTypes.func.isRequired,
-  error: React.PropTypes.bool
+  text: PropTypes.string.isRequired,
+  onDismissError: PropTypes.func.isRequired,
+  error: PropTypes.bool
 };
