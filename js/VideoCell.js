@@ -16,7 +16,7 @@ import "./VideoCell.scss";
 export default class VideoCell extends React.Component {
   constructor() {
     super();
-    bindAll(this, "setVideoStream", "onClear");
+    bindAll(this, "setVideoStream", "onClear", "onTrim");
   }
 
   setVideoStream(videoEl) {
@@ -24,6 +24,10 @@ export default class VideoCell extends React.Component {
       videoEl.srcObject = this.props.mediaStream;
       videoEl.play();
     }
+  }
+
+  onTrim() {
+    this.props.onTrim();
   }
 
   onClear() {
@@ -40,6 +44,7 @@ export default class VideoCell extends React.Component {
     let stopActionEl;
     let shadeEl;
     let clearEl;
+    let trimEl;
     let spinnerEl;
     let pitchGuideEl;
 
@@ -112,6 +117,14 @@ export default class VideoCell extends React.Component {
               </svg>
             </Link>
           );
+
+          trimEl = (
+            <Link onClick={this.onTrim} className="trim-button">
+              <svg version="1.1" width="11px" height="11px">
+                <use xlinkHref="#svg-trash" fill="white" />
+              </svg>
+            </Link>
+          );
         }
       }
     } else {
@@ -166,6 +179,7 @@ export default class VideoCell extends React.Component {
         {shadeEl}
         <NoteLabel note={this.props.label} octave={this.props.octave} />
         {clearEl}
+        {trimEl}
         {spinnerEl}
         {pitchGuideEl}
       </div>

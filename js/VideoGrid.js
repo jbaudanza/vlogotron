@@ -119,7 +119,8 @@ export default class VideoGrid extends React.Component {
       Object.assign(props, {
         onStartRecording: this.props.onStartRecording.bind(this, note),
         onStopRecording: this.props.onStopRecording.bind(this, note),
-        onClear: this.props.onClear.bind(this, note)
+        onClear: this.props.onClear.bind(this, note),
+        onTrim: this.props.onTrim.bind(this, note)
       });
     }
 

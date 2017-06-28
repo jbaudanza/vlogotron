@@ -7,11 +7,12 @@ import VideoGrid from "./VideoGrid";
 import SongEditorHeader from "./SongEditorHeader";
 import PageTextFooter from "./PageTextFooter";
 import LoginOverlay from "./LoginOverlay";
+import TrimOverlay from "./TrimOverlay";
 
 export default class RecordVideosView extends React.Component {
   constructor() {
     super();
-    bindAll(this, "bindVideoGrid", "onClickLogin", "onChangeTitle");
+    bindAll(this, "bindVideoGrid", "onChangeTitle", "onTrim");
   }
 
   bindVideoGrid(component) {
@@ -31,8 +32,8 @@ export default class RecordVideosView extends React.Component {
     });
   }
 
-  onClickLogin() {
-    this.props.onNavigate("#login");
+  onTrim(note) {
+    this.props.onNavigate("#trim");
   }
 
   render() {
@@ -66,6 +67,10 @@ export default class RecordVideosView extends React.Component {
       overlay = <LoginOverlay onLogin={this.props.onLogin} onClose="/" />;
     }
 
+    if (this.props.location.hash === "#trim" && this.props.videoClips['C3']) {
+      overlay = <TrimOverlay onClose={this.props.location.pathname} videoClip={this.props.videoClips['C3']} />
+    }
+
     return (
       <div className="page-vertical-wrapper record-videos-page">
         <SongEditorHeader
@@ -88,6 +93,7 @@ export default class RecordVideosView extends React.Component {
                 onStartRecording={callbacks.onStartRecording}
                 onStopRecording={callbacks.onStopRecording}
                 onClear={callbacks.onClearVideoClip}
+                onTrim={this.onTrim}
                 mediaStream={this.props.mediaStream}
                 countdownUntilRecord={this.props.countdownUntilRecord}
                 durationRecorded={this.props.durationRecorded}
