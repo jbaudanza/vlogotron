@@ -67,7 +67,11 @@ export default class RecordVideosView extends React.Component {
       overlay = <LoginOverlay onLogin={this.props.onLogin} onClose="/" />;
     }
 
-    if (this.props.location.hash === "#trim" && this.props.videoClips["C3"]) {
+    if (
+      this.props.location.hash === "#trim" &&
+      this.props.videoClips["C3"] &&
+      this.props.audioBuffers["C3"]
+    ) {
       overlay = (
         <TrimOverlay
           onClose={this.props.location.pathname}
