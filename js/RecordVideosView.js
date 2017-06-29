@@ -1,4 +1,4 @@
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
 import React from "react";
 
 import { bindAll, bindKey, forEach } from "lodash";
@@ -67,8 +67,14 @@ export default class RecordVideosView extends React.Component {
       overlay = <LoginOverlay onLogin={this.props.onLogin} onClose="/" />;
     }
 
-    if (this.props.location.hash === "#trim" && this.props.videoClips['C3']) {
-      overlay = <TrimOverlay onClose={this.props.location.pathname} videoClip={this.props.videoClips['C3']} />
+    if (this.props.location.hash === "#trim" && this.props.videoClips["C3"]) {
+      overlay = (
+        <TrimOverlay
+          onClose={this.props.location.pathname}
+          videoClip={this.props.videoClips["C3"]}
+          audioBuffer={this.props.audioBuffers["C3"]}
+        />
+      );
     }
 
     return (

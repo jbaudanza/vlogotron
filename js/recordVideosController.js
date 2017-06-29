@@ -116,7 +116,8 @@ export default function recordVideosController(
     currentUser$,
     mediaStore.song$,
     mediaStore.loading$,
-    (videoClips, recordingState, currentUser, song, loading) => ({
+    mediaStore.audioBuffers$,
+    (videoClips, recordingState, currentUser, song, loading, audioBuffers) => ({
       ...recordingState,
       playCommands$,
       currentUser,
@@ -124,7 +125,8 @@ export default function recordVideosController(
       song,
       loading,
       supported: "MediaRecorder" in window,
-      songTitle: song ? song.title : null
+      songTitle: song ? song.title : null,
+      audioBuffers
     })
   );
 }

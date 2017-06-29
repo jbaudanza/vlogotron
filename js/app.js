@@ -1,6 +1,6 @@
 import "./rxjs-additions";
 
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
 
 import React from "react";
 import ReactDOM from "react-dom";
