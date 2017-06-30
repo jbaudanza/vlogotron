@@ -39,3 +39,7 @@ PlayButton.propTypes = {
   onClickPlay: PropTypes.func.isRequired,
   onClickPause: PropTypes.func.isRequired
 };
+
+PlayButton.defaultProps = {
+  enabled: true
+};
