@@ -15,6 +15,7 @@ import { startScriptedPlayback } from "./AudioPlaybackEngine";
 import "./ChooseSongOverlay.scss";
 
 import ReactActions from "./ReactActions";
+import createControlledComponent from "./createControlledComponent";
 
 class LineItem extends React.Component {
   constructor(props) {
@@ -46,30 +47,7 @@ LineItem.contextTypes = {
   messages: PropTypes.object.isRequired
 };
 
-export default class ChooseSongOverlay extends React.Component {
-  constructor() {
-    super();
-
-    this.actions = new ReactActions(["play", "pause", "unmount"]);
-
-    this.state = {
-      currentyPlaying: null
-    };
-  }
-
-  componentWillMount() {
-    this.subscription = chooseTemplateController(
-      this.actions.observables,
-      this.props.bpm,
-      this.props.media.audioBuffers$
-    ).subscribe(currentlyPlaying => this.setState({ currentlyPlaying }));
-  }
-
-  componentWillUnmount() {
-    this.actions.callbacks.onUnmount();
-    this.actions.completeAll();
-  }
-
+class ChooseSongOverlay extends React.Component {
   render() {
     return (
       <Overlay className="choose-song-overlay" onClose={this.props.onClose}>
@@ -80,10 +58,10 @@ export default class ChooseSongOverlay extends React.Component {
               song={song}
               key={songId}
               songId={songId}
-              isPlaying={this.state.currentlyPlaying === songId}
+              isPlaying={this.props.currentlyPlaying === songId}
               onSelect={this.props.onSelect}
-              onClickPlay={this.actions.callbacks.onPlay}
-              onClickPause={this.actions.callbacks.onPause}
+              onClickPlay={this.props.onPlay}
+              onClickPause={this.props.onPause}
             />
           ))}
         </ul>
@@ -92,25 +70,50 @@ export default class ChooseSongOverlay extends React.Component {
   }
 }
 
-function chooseTemplateController(actions, bpm, audioBuffers$) {
-  return actions.play$.switchMap(songId => {
-    const context = startScriptedPlayback(
-      Observable.of(songs[songId].notes),
-      bpm,
-      0,
-      audioBuffers$,
-      Observable.merge(actions.pause$, actions.play$, actions.unmount$).take(1)
-    );
+ChooseSongOverlay.propTypes = {
+  onSelect: PropTypes.func.isRequired,
+  onClose: PropTypes.string.isRequired,
+  onPlay: PropTypes.func.isRequired,
+  onPause: PropTypes.func.isRequired
+};
 
-    return Observable.merge(
-      Observable.of(songId),
-      context.playCommands$.ignoreElements().concatWith(null)
-    );
-  });
+function chooseTemplateController(props$, actions) {
+  const unmount$ = props$.ignoreElements().concatWith(1);
+
+  const currentlyPlaying$ = actions.play$
+    .withLatestFrom(props$)
+    .switchMap(([songId, props]) => {
+      const context = startScriptedPlayback(
+        Observable.of(songs[songId].notes),
+        props.bpm,
+        0,
+        props.media.audioBuffers$,
+        Observable.merge(
+          actions.pause$.debug("pause"),
+          actions.play$,
+          unmount$
+        ).take(1)
+      );
+
+      return Observable.merge(
+        Observable.of(songId),
+        context.playCommands$.ignoreElements().concatWith(null)
+      );
+    })
+    .startWith(null);
+
+  return currentlyPlaying$.withLatestFrom(
+    props$,
+    (currentlyPlaying, props) => ({
+      currentlyPlaying,
+      onSelect: props.onSelect,
+      onClose: props.onClose
+    })
+  );
 }
 
-ChooseSongOverlay.propTypes = {
-  bpm: PropTypes.number.isRequired,
-  onSelect: PropTypes.func.isRequired,
-  onClose: PropTypes.string.isRequired
-};
+export default createControlledComponent(
+  chooseTemplateController,
+  ChooseSongOverlay,
+  ["play", "pause", "close", "select"]
+);

@@ -1,14 +1,31 @@
 import PropTypes from "prop-types";
 import React from "react";
+import { Observable } from "rxjs/Observable";
+import styled from "styled-components";
 
 import Overlay from "./Overlay";
 import Link from "./Link";
 import TrimAdjuster from "./TrimAdjuster";
-import styled from "styled-components";
+import PlayButton from "./PlayButton";
+import SynchronizedVideo from "./SynchronizedVideo";
+
+import createControlledComponent from "./createControlledComponent";
+
+import audioContext from "./audioContext";
 
 import { times } from "lodash";
 
 const contentWidth = 420;
+
+const VideoWrapper = styled.div`
+  position: relative;
+
+  .play-button {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+  }
+`;
 
 class TrimOverlay extends React.Component {
   constructor() {
@@ -27,15 +44,23 @@ class TrimOverlay extends React.Component {
         onClose={this.props.onClose}
       >
         <h1>Trim video</h1>
-        <video
-          playsInline
-          width={contentWidth}
-          poster={this.props.videoClip.poster}
-        >
-          {this.props.videoClip.sources.map(props => (
-            <source {...props} key={props.type} />
-          ))}
-        </video>
+
+        <VideoWrapper>
+          <SynchronizedVideo
+            width={contentWidth}
+            videoClip={this.props.videoClip}
+            audioContext={audioContext}
+            playbackStartedAt={this.props.playbackStartedAt}
+          />
+
+          <PlayButton
+            size={25}
+            isPlaying={this.props.playbackStartedAt !== null}
+            onClickPlay={this.props.onPlay}
+            onClickPause={this.props.onPause}
+          />
+        </VideoWrapper>
+
         <TrimAdjuster
           audioBuffer={this.props.audioBuffer}
           width={contentWidth}
@@ -56,9 +81,30 @@ TrimOverlay.propTypes = {
   audioBuffer: PropTypes.object.isRequired
 };
 
-export default styled(TrimOverlay)`
+const StyledTrimOverlay = styled(TrimOverlay)`
   .content {
     width: ${contentWidth}px;
     text-align: left;
   }
 `;
+
+function controller(props$, actions) {
+  const playbackStartedAt$ = Observable.merge(
+    actions.play$.map(() => audioContext.currentTime),
+    actions.pause$.mapTo(null)
+  ).startWith(null);
+
+  return Observable.combineLatest(
+    props$,
+    playbackStartedAt$,
+    (props, playbackStartedAt) => ({
+      ...props,
+      playbackStartedAt
+    })
+  );
+}
+
+export default createControlledComponent(controller, StyledTrimOverlay, [
+  "play",
+  "pause"
+]);

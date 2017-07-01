@@ -7,6 +7,7 @@ import classNames from "classnames";
 import Link from "./Link";
 import NoteLabel from "./NoteLabel";
 import PitchGuide from "./PitchGuide";
+import SynchronizedVideo from "./SynchronizedVideo";
 
 import { findWrappingLink } from "./domutils";
 import { formatSeconds } from "./format";
@@ -93,22 +94,17 @@ export default class VideoCell extends React.Component {
       }
     } else if (this.props.videoClip) {
       videoEl = (
-        <video
-          id={"playback-" + this.props.note}
+        <SynchronizedVideo
           key={"playback-" + this.props.videoClip.clipId}
-          playsInline
-          muted
-          poster={this.props.videoClip.poster}
-        >
-          {this.props.videoClip.sources.map(props => (
-            <source {...props} key={props.type} />
-          ))}
-        </video>
+          videoClip={this.props.videoClip}
+          audioContext={this.props.audioContext}
+          playbackStartedAt={this.props.playbackStartedAt}
+        />
       );
 
       shadeEl = <div className="shade" />;
 
-      if (!this.props.playing) {
+      if (this.props.playbackStartedAt == null) {
         if (!this.props.readonly) {
           clearEl = (
             <Link onClick={this.onClear} className="clear-button">
@@ -128,9 +124,9 @@ export default class VideoCell extends React.Component {
         }
       }
     } else {
-      const svgId = this.props.playing
-        ? "#svg-robot-open"
-        : "#svg-robot-closed";
+      const svgId = this.props.playbackStartedAt == null
+        ? "#svg-robot-closed"
+        : "#svg-robot-open";
       const className = classNames("empty-video", {
         readonly: this.props.readonly,
         "read-write": !this.props.readonly
@@ -168,7 +164,7 @@ export default class VideoCell extends React.Component {
     return (
       <div
         className={classNames("video-cell touchable", {
-          playing: this.props.playing,
+          playing: this.props.playbackStartedAt != null,
           sharp: this.props.note.includes("#")
         })}
         data-note={this.props.note}
@@ -195,7 +191,7 @@ VideoCell.propTypes = {
   note: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
   octave: PropTypes.number.isRequired,
-  playing: PropTypes.bool.isRequired,
+  playbackStartedAt: PropTypes.number,
   spinner: PropTypes.bool.isRequired,
   mediaStream: PropTypes.object,
   onStartRecording: PropTypes.func,

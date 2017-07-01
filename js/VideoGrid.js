@@ -45,11 +45,14 @@ export default class VideoGrid extends React.Component {
   }
 
   onPlayCommand(command) {
-    this.onStartPlayback(command.noteName, command.when);
+    const note = command.noteName;
+    this.state.playing[note] = command.when;
+    this.forceUpdate();
 
-    command.duration$
-      .takeUntil(this.componentWillUnmount$)
-      .subscribe(() => this.onStopPlayback(command.noteName));
+    command.duration$.takeUntil(this.componentWillUnmount$).subscribe(() => {
+      this.state.playing[note] = null;
+      this.forceUpdate();
+    });
   }
 
   componentWillUnmount() {
@@ -57,57 +60,10 @@ export default class VideoGrid extends React.Component {
     this.componentWillUnmount$.complete({});
   }
 
-  onStartPlayback(note, when) {
-    const videoEl = document.getElementById("playback-" + note);
-    if (videoEl) {
-      videoEl.currentTime = 0;
-      const promise = videoEl.play();
-
-      // Older version of FF don't return a promise
-      if (promise) {
-        promise
-          .then(() => {
-            // Try to compensate for any delay in starting the video
-            if (when) {
-              const delta = this.context.audioContext.currentTime - when;
-              if (delta > 0) {
-                videoEl.currentTime = delta;
-              }
-            }
-          })
-          .catch(function(e) {
-            // 20 = AbortError.
-            // This can happen if we try to pause playback before it starts. This
-            // can safely be ignored. It results in errors that look like:
-            //
-            //   The play() request was interrupted by a call to pause()
-            //
-            if (e.code !== 20) {
-              throw e;
-            }
-          });
-      }
-    }
-
-    this.state.playing[note] = true;
-    this.forceUpdate();
-  }
-
-  onStopPlayback(note) {
-    const videoEl = document.getElementById("playback-" + note);
-    if (videoEl) {
-      videoEl.pause();
-      videoEl.currentTime = 0;
-    }
-
-    this.state.playing[note] = false;
-    this.forceUpdate();
-  }
-
   propsForCell(index, note) {
     const props = {
       videoClip: this.props.videoClips[note],
-      playing: !!this.state.playing[note],
+      playbackStartedAt: this.state.playing[note],
       note: note,
       readonly: this.props.readonly,
       spinner: !!this.props.loading[note],
@@ -171,7 +127,11 @@ export default class VideoGrid extends React.Component {
     return (
       <TouchableArea className="video-container" ref={this.bindTouchableArea}>
         {notes.map((note, index) => (
-          <VideoCell key={note} {...this.propsForCell(index, note)} />
+          <VideoCell
+            key={note}
+            {...this.propsForCell(index, note)}
+            audioContext={this.context.audioContext}
+          />
         ))}
       </TouchableArea>
     );

@@ -26,6 +26,10 @@ export default function createControlledComponent(
       );
     }
 
+    componentWillReceiveProps(nextProps) {
+      this.props$.next(nextProps);
+    }
+
     componentWillUnmount() {
       this.props$.complete();
       this.actions.completeAll();
