@@ -32,7 +32,7 @@ export default class VideoGrid extends React.Component {
   componentWillMount() {
     this.componentWillUnmount$ = new Subject();
 
-    this.props.playCommands$
+    this.subscription = this.props.playCommands$
       .takeUntil(this.componentWillUnmount$)
       .subscribe(this.onPlayCommand);
   }
@@ -56,6 +56,7 @@ export default class VideoGrid extends React.Component {
   }
 
   componentWillUnmount() {
+    this.subscription.unsubscribe();
     this.componentWillUnmount$.next({});
     this.componentWillUnmount$.complete({});
   }

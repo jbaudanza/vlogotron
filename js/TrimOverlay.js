@@ -88,11 +88,40 @@ const StyledTrimOverlay = styled(TrimOverlay)`
   }
 `;
 
+// XXX: Duplicated in AudioPlaybackEngine
+const batchTime = audioContext.baseLatency || 2 * 128 / audioContext.sampleRate;
+
+function schedulePlaybackNow(audioContext, audioBuffer, playUntil$) {
+  const startAt = audioContext.currentTime + batchTime;
+
+  const source = audioContext.createBufferSource();
+  source.buffer = audioBuffer;
+  source.connect(audioContext.destination);
+  source.start(startAt);
+
+  const videoFinished$ = Observable.of(null).delay(audioBuffer.duration * 1000);
+  const stopEarly$ = playUntil$.take(1);
+
+  stopEarly$.subscribe(() => {
+    source.stop();
+    source.disconnect();
+  });
+
+  const playbackEnded$ = Observable.race(videoFinished$, stopEarly$);
+
+  return Observable.merge(
+    Observable.of(startAt),
+    playbackEnded$.ignoreElements().concatWith(null)
+  );
+}
+
 function controller(props$, actions) {
-  const playbackStartedAt$ = Observable.merge(
-    actions.play$.map(() => audioContext.currentTime),
-    actions.pause$.mapTo(null)
-  ).startWith(null);
+  const playbackStartedAt$ = actions.play$
+    .withLatestFrom(props$)
+    .switchMap(([action, props]) =>
+      schedulePlaybackNow(audioContext, props.audioBuffer, actions.pause$)
+    )
+    .startWith(null);
 
   return Observable.combineLatest(
     props$,
