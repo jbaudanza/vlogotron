@@ -28,14 +28,6 @@ const VideoWrapper = styled.div`
 `;
 
 class TrimOverlay extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      trimStart: 0.0,
-      trimEnd: 1.0
-    };
-  }
-
   render() {
     return (
       <Overlay
@@ -63,12 +55,12 @@ class TrimOverlay extends React.Component {
 
         <TrimAdjuster
           audioBuffer={this.props.audioBuffer}
+          trimStart={this.props.trimStart}
+          trimEnd={this.props.trimEnd}
+          onChangeStart={this.props.onChangeStart}
+          onChangeEnd={this.props.onChangeEnd}
           width={contentWidth}
           height={50}
-          trimStart={this.state.trimStart}
-          trimEnd={this.state.trimEnd}
-          onChangeStart={trimStart => this.setState({ trimStart })}
-          onChangeEnd={trimEnd => this.setState({ trimEnd })}
         />
       </Overlay>
     );
@@ -116,6 +108,9 @@ function schedulePlaybackNow(audioContext, audioBuffer, playUntil$) {
 }
 
 function controller(props$, actions) {
+  const trimStart$ = actions.changeStart$.startWith(0);
+  const trimEnd$ = actions.changeEnd$.startWith(1);
+
   const playbackStartedAt$ = actions.play$
     .withLatestFrom(props$)
     .switchMap(([action, props]) =>
@@ -125,15 +120,21 @@ function controller(props$, actions) {
 
   return Observable.combineLatest(
     props$,
+    trimStart$,
+    trimEnd$,
     playbackStartedAt$,
-    (props, playbackStartedAt) => ({
+    (props, trimStart, trimEnd, playbackStartedAt) => ({
       ...props,
-      playbackStartedAt
+      playbackStartedAt,
+      trimStart,
+      trimEnd
     })
   );
 }
 
 export default createControlledComponent(controller, StyledTrimOverlay, [
   "play",
-  "pause"
+  "pause",
+  "changeStart",
+  "changeEnd"
 ]);
