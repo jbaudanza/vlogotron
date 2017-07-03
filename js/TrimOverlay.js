@@ -42,6 +42,7 @@ class TrimOverlay extends React.Component {
             width={contentWidth}
             videoClip={this.props.videoClip}
             audioContext={audioContext}
+            trimStart={this.props.trimStart}
             playbackStartedAt={this.props.playbackStartedAt}
           />
 
@@ -83,15 +84,23 @@ const StyledTrimOverlay = styled(TrimOverlay)`
 // XXX: Duplicated in AudioPlaybackEngine
 const batchTime = audioContext.baseLatency || 2 * 128 / audioContext.sampleRate;
 
-function schedulePlaybackNow(audioContext, audioBuffer, playUntil$) {
+function schedulePlaybackNow(
+  audioContext,
+  trimStart,
+  trimEnd,
+  audioBuffer,
+  playUntil$
+) {
   const startAt = audioContext.currentTime + batchTime;
+  const offset = trimStart * audioBuffer.duration;
+  const duration = trimEnd * audioBuffer.duration - offset;
 
   const source = audioContext.createBufferSource();
   source.buffer = audioBuffer;
   source.connect(audioContext.destination);
-  source.start(startAt);
+  source.start(startAt, offset, duration);
 
-  const videoFinished$ = Observable.of(null).delay(audioBuffer.duration * 1000);
+  const videoFinished$ = Observable.of(null).delay(duration * 1000);
   const stopEarly$ = playUntil$.take(1);
 
   stopEarly$.subscribe(() => {
@@ -108,13 +117,24 @@ function schedulePlaybackNow(audioContext, audioBuffer, playUntil$) {
 }
 
 function controller(props$, actions) {
-  const trimStart$ = actions.changeStart$.startWith(0);
-  const trimEnd$ = actions.changeEnd$.startWith(1);
+  const trimStart$ = actions.changeStart$.startWith(0).publishReplay();
+  const trimEnd$ = actions.changeEnd$.startWith(1).publishReplay();
+
+  // The source observables for these connections will end when the component
+  // is unmounted, so there's no need to manage the subscriptions
+  trimStart$.connect();
+  trimEnd$.connect();
 
   const playbackStartedAt$ = actions.play$
-    .withLatestFrom(props$)
-    .switchMap(([action, props]) =>
-      schedulePlaybackNow(audioContext, props.audioBuffer, actions.pause$)
+    .withLatestFrom(props$, trimStart$, trimEnd$)
+    .switchMap(([action, props, trimStart, trimEnd]) =>
+      schedulePlaybackNow(
+        audioContext,
+        trimStart,
+        trimEnd,
+        props.audioBuffer,
+        actions.pause$
+      )
     )
     .startWith(null);
 

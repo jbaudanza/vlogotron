@@ -2,10 +2,28 @@ import PropTypes from "prop-types";
 import React from "react";
 
 export default class SynchronizedVideo extends React.Component {
+  constructor() {
+    super();
+    this.setVideoElement = this.setVideoElement.bind(this);
+    this.onDurationChange = this.onDurationChange.bind(this);
+    this.isPlaying = false;
+  }
+
   componentWillMount() {
     if (this.props.playbackStartedAt) {
       this.startPlayback();
     }
+  }
+
+  resetStartPosition() {
+    if (this.videoEl && this.videoEl.duration && !this.isPlaying) {
+      const offset = this.props.trimStart * this.videoEl.duration;
+      this.videoEl.currentTime = offset;
+    }
+  }
+
+  onDurationChange(event) {
+    this.resetStartPosition();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -19,14 +37,21 @@ export default class SynchronizedVideo extends React.Component {
     ) {
       this.startPlayback();
     }
+
+    if (prevProps.trimStart != this.props.trimStart) {
+      this.resetStartPosition();
+    }
   }
 
   startPlayback() {
     if (this.videoEl) {
-      this.videoEl.currentTime = 0;
-      const promise = this.videoEl.play();
+      const offset = this.props.trimStart * this.videoEl.duration;
 
-      // Older version of FF don't return a promise
+      this.videoEl.currentTime = offset;
+      const promise = this.videoEl.play();
+      this.isPlaying = true;
+
+      // Older versions of Firefox don't return a promise
       if (promise) {
         promise
           .then(() => {
@@ -35,8 +60,9 @@ export default class SynchronizedVideo extends React.Component {
               const delta =
                 this.props.audioContext.currentTime -
                 this.props.playbackStartedAt;
+
               if (delta > 0 && this.videoEl) {
-                this.videoEl.currentTime = delta;
+                this.videoEl.currentTime = offset + delta;
               }
             }
           })
@@ -59,7 +85,14 @@ export default class SynchronizedVideo extends React.Component {
     if (this.videoEl) {
       this.videoEl.pause();
       this.videoEl.currentTime = 0;
+      this.isPlaying = false;
+      this.resetStartPosition();
     }
+  }
+
+  setVideoElement(el) {
+    this.videoEl = el;
+    this.isPlaying = false;
   }
 
   render() {
@@ -68,8 +101,9 @@ export default class SynchronizedVideo extends React.Component {
         playsInline
         muted
         poster={this.props.videoClip.poster}
-        ref={el => this.videoEl = el}
+        ref={this.setVideoElement}
         width={this.props.width}
+        onDurationChange={this.onDurationChange}
       >
         {this.props.videoClip.sources.map(props => (
           <source {...props} key={props.type} />
@@ -82,5 +116,10 @@ export default class SynchronizedVideo extends React.Component {
 SynchronizedVideo.propTypes = {
   videoClip: PropTypes.object.isRequired,
   playbackStartedAt: PropTypes.number,
+  trimStart: PropTypes.number.isRequired,
   audioContext: PropTypes.object.isRequired
+};
+
+SynchronizedVideo.defaultProps = {
+  trimStart: 0
 };
