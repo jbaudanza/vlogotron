@@ -98,6 +98,7 @@ export default class SynchronizedVideo extends React.Component {
   render() {
     return (
       <video
+        key={this.props.videoClip.clipId}
         playsInline
         muted
         poster={this.props.videoClip.poster}

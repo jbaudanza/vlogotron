@@ -33,7 +33,7 @@ export default class RecordVideosView extends React.Component {
   }
 
   onTrim(note) {
-    this.props.onNavigate("#trim");
+    this.props.onNavigate("#trim?note=" + note);
   }
 
   render() {
@@ -67,18 +67,18 @@ export default class RecordVideosView extends React.Component {
       overlay = <LoginOverlay onLogin={this.props.onLogin} onClose="/" />;
     }
 
-    if (
-      this.props.location.hash === "#trim" &&
-      this.props.videoClips["C3"] &&
-      this.props.audioBuffers["C3"]
-    ) {
-      overlay = (
-        <TrimOverlay
-          onClose={this.props.location.pathname}
-          videoClip={this.props.videoClips["C3"]}
-          audioBuffer={this.props.audioBuffers["C3"]}
-        />
-      );
+    let match;
+    if ((match = this.props.location.hash.match(/^#trim\?note=([\w]+)/))) {
+      const note = match[1];
+      if (this.props.videoClips[note] && this.props.audioBuffers[note]) {
+        overlay = (
+          <TrimOverlay
+            onClose={this.props.location.pathname}
+            videoClip={this.props.videoClips[note]}
+            audioBuffer={this.props.audioBuffers[note]}
+          />
+        );
+      }
     }
 
     return (
