@@ -1,14 +1,46 @@
+/* @flow */
+
 import { Observable } from "rxjs/Observable";
+import type { Subscription } from "rxjs/Subscription";
+import type { Subject } from "rxjs/Subject";
 
 import StorageSubject from "./StorageSubject";
 
 import { concat, omit, findIndex, filter, identity, last } from "lodash";
 
-export function subjectFor(key, initialValue) {
+type NoteSchedule = [string, number, number];
+
+type Song = {
+  bpm: number,
+  notes: Array<NoteSchedule>,
+  title: string,
+  videoClips: { [string]: string }
+};
+
+type SongEdit =
+  | { action: "change-bpm", bpm: number }
+  | { action: "change-title", title: string }
+  | { action: "add-video", videoClipId: string, note: string }
+  | { action: "remove-video", note: string }
+  | { action: "clear-all" }
+  | { action: "replace-all", notes: Array<NoteSchedule> }
+  | { action: "create", note: string, beat: number, duration: number }
+  | { action: "delete", note: string, beat: number }
+  | {
+      action: "move",
+      from: { note: string, beat: number },
+      to: { note: string, beat: number }
+    };
+
+export function subjectFor(key: string, initialValue: Object) {
   return new StorageSubject(window.localStorage, key, initialValue);
 }
 
-export function updatesForNewSong(updateEvents$, storage$, subscription) {
+export function updatesForNewSong(
+  updateEvents$: Observable<SongEdit>,
+  storage$: StorageSubject<Song>,
+  subscription: Subscription
+) {
   const accFn = reduceEditsToSong;
 
   subscription.add(
@@ -23,9 +55,9 @@ function withUndoStack(value) {
 }
 
 export function updatesForNewSongWithUndo(
-  updateEvents$,
-  storage$,
-  subscription
+  updateEvents$: Observable<SongEdit>,
+  storage$: StorageSubject<Song>,
+  subscription: Subscription
 ) {
   const accFn = reduceWithUndoStack;
 
@@ -86,9 +118,12 @@ function reduceWithUndoStack(acc, edit) {
   }
 }
 
-function reduceEditsToNotes(notes, edit) {
-  function matcher(edit, note) {
-    return note[0] === edit.note && note[1] === edit.beat;
+function reduceEditsToNotes(
+  notes: Array<NoteSchedule>,
+  edit: SongEdit
+): Array<NoteSchedule> {
+  function matcher(location: Object, note: NoteSchedule) {
+    return note[0] === location.note && note[1] === location.beat;
   }
 
   switch (edit.action) {
@@ -105,7 +140,7 @@ function reduceEditsToNotes(notes, edit) {
       if (index !== -1) {
         const oldDuration = notes[index][2];
         return concat(
-          filter(notes, (v, i) => i !== index), // remove old note
+          filter(notes, (v: NoteSchedule, i: number) => i !== index), // remove old note
           [[edit.to.note, edit.to.beat, oldDuration]] // add new note
         );
       } else {
@@ -116,7 +151,8 @@ function reduceEditsToNotes(notes, edit) {
   }
 }
 
-function reduceEditsToSong(song, edit) {
+// TODO: Update this to allow for changes to the trim and the gain
+function reduceEditsToSong(song: Song, edit: SongEdit) {
   switch (edit.action) {
     case "change-bpm":
       return { ...song, bpm: edit.bpm };

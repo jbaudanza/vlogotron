@@ -7,5 +7,6 @@
 
 [libs]
 interfaces/midi.js
+flow-typed
 
 [options]

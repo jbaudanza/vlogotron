@@ -1,3 +1,5 @@
+/* @flow */
+
 import { Observable } from "rxjs/Observable";
 import { AnonymousSubject, Subject } from "rxjs/Subject";
 
@@ -7,8 +9,14 @@ const storageEvents$ = Observable.fromEvent(window, "storage");
   Acts like a BehaviorSubject, but keeps state in localStorage, sessionStorage,
   or something that quacks like a Storage object.
 */
-export default class StorageSubject extends AnonymousSubject {
-  constructor(storageArea, key, initialValue) {
+export default class StorageSubject<T> extends AnonymousSubject<T> {
+  remoteUpdates$: Observable<T>;
+  storageArea: Storage;
+  key: string;
+
+  clear: Function;
+
+  constructor(storageArea: Storage, key: string, initialValue: T) {
     const serializeFn = JSON.stringify;
     const deserializeFn = JSON.parse;
 

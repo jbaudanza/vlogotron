@@ -39,7 +39,7 @@ const MIDI_NOTES = [
 ];
 
 export const playCommands$ = midiMessages$
-  .map(function(message: MIDIMessageEvent) {
+  .map(function(message: MIDIMessageEvent): any {
     const channel = message.data[0] & 0xf;
     const type = message.data[0] & 0xf0;
 
@@ -67,6 +67,8 @@ export const playCommands$ = midiMessages$
       return {
         play: noteString
       };
+    } else {
+      return null;
     }
   })
   .filter(identity);
