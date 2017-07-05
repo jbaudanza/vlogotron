@@ -1,15 +1,11 @@
+/* @flow */
 import PropTypes from "prop-types";
 import React from "react";
 import { omit } from "lodash";
 import classNames from "classnames";
 
 class Link extends React.Component {
-  constructor(props) {
-    super(props);
-    this.onClick = this.onClick.bind(this);
-  }
-
-  onClick(event) {
+  onClick(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
     this.props.onClick(event);
@@ -31,7 +27,7 @@ class Link extends React.Component {
     );
 
     if (this.props.onClick) {
-      props.onClick = this.onClick;
+      props.onClick = this.onClick.bind(this);
       props.href = "#";
     }
 
@@ -51,7 +47,7 @@ class Link extends React.Component {
   }
 }
 
-React.propTypes = {
+Link.propTypes = {
   href: PropTypes.string,
   onClick: PropTypes.func,
   enabled: PropTypes.bool

@@ -1,11 +1,20 @@
-import PropTypes from "prop-types";
+/* @flow */
 import React from "react";
 
 export default class SynchronizedVideo extends React.Component {
+  props: {
+    videoClip: Object,
+    playbackStartedAt: ?number,
+    width: number,
+    trimStart: number,
+    audioContext: AudioContext
+  };
+  static defaultProps: Object;
+  isPlaying: boolean;
+  videoEl: HTMLMediaElement;
+
   constructor() {
     super();
-    this.setVideoElement = this.setVideoElement.bind(this);
-    this.onDurationChange = this.onDurationChange.bind(this);
     this.isPlaying = false;
   }
 
@@ -22,11 +31,11 @@ export default class SynchronizedVideo extends React.Component {
     }
   }
 
-  onDurationChange(event) {
+  onDurationChange(event: Event) {
     this.resetStartPosition();
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps: Object) {
     if (prevProps.playbackStartedAt && this.props.playbackStartedAt == null) {
       this.stopPlayback();
     }
@@ -90,7 +99,7 @@ export default class SynchronizedVideo extends React.Component {
     }
   }
 
-  setVideoElement(el) {
+  setVideoElement(el: HTMLMediaElement) {
     this.videoEl = el;
     this.isPlaying = false;
   }
@@ -102,9 +111,9 @@ export default class SynchronizedVideo extends React.Component {
         playsInline
         muted
         poster={this.props.videoClip.poster}
-        ref={this.setVideoElement}
+        ref={this.setVideoElement.bind(this)}
         width={this.props.width}
-        onDurationChange={this.onDurationChange}
+        onDurationChange={this.onDurationChange.bind(this)}
       >
         {this.props.videoClip.sources.map(props => (
           <source {...props} key={props.type} />
@@ -113,13 +122,6 @@ export default class SynchronizedVideo extends React.Component {
     );
   }
 }
-
-SynchronizedVideo.propTypes = {
-  videoClip: PropTypes.object.isRequired,
-  playbackStartedAt: PropTypes.number,
-  trimStart: PropTypes.number.isRequired,
-  audioContext: PropTypes.object.isRequired
-};
 
 SynchronizedVideo.defaultProps = {
   trimStart: 0

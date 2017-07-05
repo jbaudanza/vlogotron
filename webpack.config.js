@@ -16,7 +16,7 @@ module.exports = {
         exclude: /(node_modules|bower_components)/,
         loader: 'babel-loader',
         query: {
-          presets: [["es2015", { "modules": false }], "react"],
+          presets: [["es2015", { "modules": false }], "react", "flow"],
           plugins: ["lodash", "transform-object-rest-spread"]
         }
       },

@@ -1,10 +1,15 @@
+/* @flow */
 import { Observable } from "rxjs/Observable";
 
 import { identity } from "lodash";
 
-const midiAccess$ = navigator.requestMIDIAccess
-  ? Observable.defer(() => navigator.requestMIDIAccess())
-  : Observable.empty();
+const midiAccess$ = Observable.defer(() => {
+  if (navigator.requestMIDIAccess) {
+    return navigator.requestMIDIAccess();
+  } else {
+    return Observable.empty();
+  }
+});
 
 const midiMessages$ = midiAccess$.switchMap(function(midiAccess) {
   const list = [];
@@ -34,7 +39,7 @@ const MIDI_NOTES = [
 ];
 
 export const playCommands$ = midiMessages$
-  .map(function(message) {
+  .map(function(message: MIDIMessageEvent) {
     const channel = message.data[0] & 0xf;
     const type = message.data[0] & 0xf0;
 
