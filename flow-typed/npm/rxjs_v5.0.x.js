@@ -626,20 +626,20 @@ declare class rxjs$Observable<+T> {
 
   withLatestFrom<A, B>(
     a: rxjs$Observable<A>,
-    resultSelector: (a: A) => B,
+    resultSelector: (v: T, a: A) => B,
   ): rxjs$Observable<B>;
 
   withLatestFrom<A, B, C>(
     a: rxjs$Observable<A>,
     b: rxjs$Observable<B>,
-    resultSelector: (a: A, b: B) => C,
+    resultSelector: (v: T, a: A, b: B) => C,
   ): rxjs$Observable<C>;
 
   withLatestFrom<A, B, C, D>(
     a: rxjs$Observable<A>,
     b: rxjs$Observable<B>,
     c: rxjs$Observable<C>,
-    resultSelector: (a: A, b: B, c: C) => D,
+    resultSelector: (v: T, a: A, b: B, c: C) => D,
   ): rxjs$Observable<D>;
 
   withLatestFrom<A, B, C, D, E>(
@@ -647,7 +647,7 @@ declare class rxjs$Observable<+T> {
     b: rxjs$Observable<B>,
     c: rxjs$Observable<C>,
     d: rxjs$Observable<D>,
-    resultSelector: (a: A, b: B, c: C, d: D) => E,
+    resultSelector: (v: T, a: A, b: B, c: C, d: D) => E,
   ): rxjs$Observable<E>;
 
   withLatestFrom<A, B, C, D, E, F>(
@@ -656,7 +656,7 @@ declare class rxjs$Observable<+T> {
     c: rxjs$Observable<C>,
     d: rxjs$Observable<D>,
     e: rxjs$Observable<E>,
-    resultSelector: (a: A, b: B, c: C, d: D, e: E) => F,
+    resultSelector: (v: T, a: A, b: B, c: C, d: D, e: E) => F,
   ): rxjs$Observable<F>;
 
   withLatestFrom<A, B, C, D, E, F, G>(
@@ -666,7 +666,7 @@ declare class rxjs$Observable<+T> {
     d: rxjs$Observable<D>,
     e: rxjs$Observable<E>,
     f: rxjs$Observable<F>,
-    resultSelector: (a: A, b: B, c: C, d: D, e: E, f: F) => G,
+    resultSelector: (v: T, a: A, b: B, c: C, d: D, e: E, f: F) => G,
   ): rxjs$Observable<G>;
 
   withLatestFrom<A, B, C, D, E, F, G, H>(
@@ -677,7 +677,7 @@ declare class rxjs$Observable<+T> {
     e: rxjs$Observable<E>,
     f: rxjs$Observable<F>,
     g: rxjs$Observable<G>,
-    resultSelector: (a: A, b: B, c: C, d: D, e: E, f: F, g: G) => H,
+    resultSelector: (v: T, a: A, b: B, c: C, d: D, e: E, f: F, g: G) => H,
   ): rxjs$Observable<H>;
 
   static using<R: rxjs$ISubscription>(
