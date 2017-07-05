@@ -718,6 +718,10 @@ declare class rxjs$Subject<T> extends rxjs$Observable<T> {
   _subscribe(observer: rxjs$PartialObserver<T>): rxjs$Subscription;
 }
 
+declare class rxjs$AnonymousSubject<T> extends rxjs$Subject<T> {
+  constructor(destination?: Observer<T>, source?: Observable<T>): void;
+}
+
 declare class rxjs$BehaviorSubject<T> extends rxjs$Subject<T> {
   constructor(initialValue: T): void;
 
@@ -784,7 +788,8 @@ declare module 'rxjs/ReplaySubject' {
 
 declare module 'rxjs/Subject' {
   declare module.exports: {
-    Subject: typeof rxjs$Subject
+    Subject: typeof rxjs$Subject,
+    AnonymousSubject: typeof rxjs$AnonymousSubject
   }
 }
 
