@@ -14,13 +14,24 @@ type Song = {
   bpm: number,
   notes: Array<NoteSchedule>,
   title: string,
-  videoClips: { [string]: string }
+  videoClips: {
+    [string]: {
+      videoClipId: string,
+      trimStart: number,
+      trimEnd: number,
+      gain: number
+    }
+  }
 };
 
 type SongEdit =
   | { action: "change-bpm", bpm: number }
   | { action: "change-title", title: string }
-  | { action: "add-video", videoClipId: string, note: string }
+  | {
+      action: "add-video",
+      videoClipId: string,
+      note: string
+    }
   | { action: "remove-video", note: string }
   | { action: "clear-all" }
   | { action: "replace-all", notes: Array<NoteSchedule> }
@@ -33,7 +44,7 @@ type SongEdit =
     };
 
 export function subjectFor(key: string, initialValue: Object) {
-  return new StorageSubject(window.localStorage, key, initialValue);
+  return new StorageSubject(window.localStorage, key + "-2", initialValue);
 }
 
 export function updatesForNewSong(
@@ -152,7 +163,7 @@ function reduceEditsToNotes(
 }
 
 // TODO: Update this to allow for changes to the trim and the gain
-function reduceEditsToSong(song: Song, edit: SongEdit) {
+function reduceEditsToSong(song: Song, edit: SongEdit): Song {
   switch (edit.action) {
     case "change-bpm":
       return { ...song, bpm: edit.bpm };
@@ -163,7 +174,12 @@ function reduceEditsToSong(song: Song, edit: SongEdit) {
         ...song,
         videoClips: {
           ...song.videoClips,
-          [edit.note]: edit.videoClipId
+          [edit.note]: {
+            videoClipId: edit.videoClipId,
+            trimStart: 0,
+            trimEnd: 1,
+            gain: 1
+          }
         }
       };
     case "remove-video":
