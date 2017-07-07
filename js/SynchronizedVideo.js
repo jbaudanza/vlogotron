@@ -25,7 +25,7 @@ export default class SynchronizedVideo extends React.Component {
   }
 
   resetStartPosition() {
-    if (this.videoEl && this.videoEl.duration && !this.isPlaying) {
+    if (this.videoEl && isFinite(this.videoEl.duration) && !this.isPlaying) {
       const offset = this.props.trimStart * this.videoEl.duration;
       this.videoEl.currentTime = offset;
     }
@@ -54,7 +54,15 @@ export default class SynchronizedVideo extends React.Component {
 
   startPlayback() {
     if (this.videoEl) {
-      const offset = this.props.trimStart * this.videoEl.duration;
+      // It seems that local videos stored in a blob have the duration
+      // attribute set to Infinity. This might be a problem when trimming
+      // videos
+      let offset;
+      if (isFinite(this.videoEl.duration)) {
+        offset = this.props.trimStart * this.videoEl.duration;
+      } else {
+        offset = 0;
+      }
 
       this.videoEl.currentTime = offset;
       const promise = this.videoEl.play();
