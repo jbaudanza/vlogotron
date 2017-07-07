@@ -117,7 +117,7 @@ export default class VideoCell extends React.Component {
           trimEl = (
             <Link onClick={this.onTrim} className="trim-button">
               <svg version="1.1" width="11px" height="11px">
-                <use xlinkHref="#svg-trash" fill="white" />
+                <use xlinkHref="#svg-trim" fill="white" />
               </svg>
             </Link>
           );
