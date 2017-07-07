@@ -132,7 +132,7 @@ export function subscribeToSongLocation(
 
   const videoClipIds$ = song$.map(function(song) {
     if (song) {
-      return mapValues(song.videoClips, (v) => v.videoClipId);
+      return mapValues(song.videoClips, v => v.videoClipId);
     } else {
       return {};
     }

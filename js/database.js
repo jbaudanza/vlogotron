@@ -84,7 +84,10 @@ export function updateUser(database: FirebaseDatabase, user: Object) {
   ref.child("lastSeenAt").set(firebase.database.ServerValue.TIMESTAMP);
 }
 
-export function songById(database: FirebaseDatabase, songId: string): Observable<Object> {
+export function songById(
+  database: FirebaseDatabase,
+  songId: string
+): Observable<Object> {
   const ref = database
     .ref("songs")
     .child(songId)
@@ -102,12 +105,18 @@ export function songById(database: FirebaseDatabase, songId: string): Observable
     .map(fillInDefaults);
 }
 
-export function displayNameForUid(database: FirebaseDatabase, uid: string): Observable<string> {
+export function displayNameForUid(
+  database: FirebaseDatabase,
+  uid: string
+): Observable<string> {
   const ref = database.ref("users").child(uid).child("displayName");
   return fromFirebaseRef(ref, "value").map(snapshot => snapshot.val());
 }
 
-export function waitForTranscode(database: FirebaseDatabase, videoClipId: string): Observable<Object> {
+export function waitForTranscode(
+  database: FirebaseDatabase,
+  videoClipId: string
+): Observable<Object> {
   return fromFirebaseRef(
     database.ref("video-clips").child(videoClipId).child("transcodedAt"),
     "value"
@@ -116,14 +125,21 @@ export function waitForTranscode(database: FirebaseDatabase, videoClipId: string
     .ignoreElements();
 }
 
-export function songsForUser(database: FirebaseDatabase, uid: string): Observable<Object> {
+export function songsForUser(
+  database: FirebaseDatabase,
+  uid: string
+): Observable<Object> {
   const ref = database.ref("users").child(uid).child("songs");
   return fromFirebaseRef(ref, "value").map(snapshot =>
     mapValues(snapshot.val(), (value, key) => ({ ...value, songId: key, uid }))
   );
 }
 
-export function createVideoClip(database: FirebaseDatabase, databaseEntry: Object, videoBlob: Object): Promise<string> {
+export function createVideoClip(
+  database: FirebaseDatabase,
+  databaseEntry: Object,
+  videoBlob: Object
+): Promise<string> {
   const databaseRef = database.ref("video-clips");
 
   const uploadRef = firebase
@@ -136,7 +152,7 @@ export function createVideoClip(database: FirebaseDatabase, databaseEntry: Objec
 
   // This OR is just to make flow happy. It might not be necessary with better
   // flow-typed defs for firebase.
-  return ref.then(() => ref.key || '');
+  return ref.then(() => ref.key || "");
 }
 
 function migrate(v) {
