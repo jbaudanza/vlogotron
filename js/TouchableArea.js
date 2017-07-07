@@ -35,6 +35,9 @@ export default class TouchableArea extends React.Component {
   onMouseDown(event) {
     const el = this.findTouchableElement(event.target);
 
+    // Don't activate on right clicks or control-left clicks
+    if (event.button !== 0 || event.ctrlKey) return;
+
     // Make sure we don't trap an event that was supposed to go to a link
     const link = findWrappingLink(event.target);
     if (link && link !== el) return;
