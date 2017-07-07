@@ -15,10 +15,28 @@ import audioContext from "./audioContext";
 
 import { times } from "lodash";
 
-const contentWidth = 420;
+const contentWidth = 343;
+
+const VideoCropper = styled.div`
+  position: absolute;
+  overflow: hidden;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+
+  video {
+    height: 100%;
+    margin-left: -19%;
+  }
+`;
 
 const VideoWrapper = styled.div`
   position: relative;
+
+  width: ${contentWidth}px;
+  height: ${contentWidth}px;
+  margin-bottom: 40px;
 
   .play-button {
     position: absolute;
@@ -26,6 +44,62 @@ const VideoWrapper = styled.div`
     left: 5px;
   }
 `;
+
+const colors = {
+  slateGrey: "#5d617a",
+  darkSkyBlue: "#29bdec"
+};
+
+const barHeight = 8;
+const controlHeight = 17;
+
+const VideoPlaybackPositionWrapper = styled.div`
+  position: absolute;
+  height: ${controlHeight}px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+`;
+
+const VideoPlaybackPositionBar = styled.div`
+  position: absolute;
+  top: ${controlHeight - barHeight}px;
+  bottom: 0;
+  opacity: 0.75;
+`;
+
+function percentString(number) {
+  return number * 100 + "%";
+}
+
+function VideoPlaybackPosition(props) {
+  const svgStyle = {
+    position: "absolute",
+    top: 4,
+    left: percentString(props.progress),
+    marginLeft: "-10px"
+  };
+  const barLeftStyle = {
+    left: 0,
+    right: percentString(1 - props.progress),
+    backgroundColor: colors.darkSkyBlue
+  };
+  const barRightStyle = {
+    left: percentString(props.progress),
+    right: 0,
+    backgroundColor: colors.slateGrey
+  };
+
+  return (
+    <VideoPlaybackPositionWrapper>
+      <VideoPlaybackPositionBar style={barLeftStyle} />
+      <VideoPlaybackPositionBar style={barRightStyle} />
+      <svg style={svgStyle} version="1.1" width="20px" height="20px">
+        <use xlinkHref="#svg-playback-position-circle" fill="white" />
+      </svg>
+    </VideoPlaybackPositionWrapper>
+  );
+}
 
 class TrimOverlay extends React.Component {
   render() {
@@ -38,13 +112,14 @@ class TrimOverlay extends React.Component {
         <h1>Trim video</h1>
 
         <VideoWrapper>
-          <SynchronizedVideo
-            width={contentWidth}
-            videoClip={this.props.videoClip}
-            audioContext={audioContext}
-            trimStart={this.props.trimStart}
-            playbackStartedAt={this.props.playbackStartedAt}
-          />
+          <VideoCropper>
+            <SynchronizedVideo
+              videoClip={this.props.videoClip}
+              audioContext={audioContext}
+              trimStart={this.props.trimStart}
+              playbackStartedAt={this.props.playbackStartedAt}
+            />
+          </VideoCropper>
 
           <PlayButton
             size={25}
@@ -52,6 +127,8 @@ class TrimOverlay extends React.Component {
             onClickPlay={this.props.onPlay}
             onClickPause={this.props.onPause}
           />
+
+          <VideoPlaybackPosition progress={0.0} />
         </VideoWrapper>
 
         <TrimAdjuster
@@ -78,6 +155,10 @@ const StyledTrimOverlay = styled(TrimOverlay)`
   .content {
     width: ${contentWidth}px;
     text-align: left;
+  }
+  // Disable scrolling
+  .content .scroll {
+    overflow: visible;
   }
 `;
 

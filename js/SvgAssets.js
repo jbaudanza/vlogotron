@@ -510,6 +510,60 @@ const svgEl = (
       />
     </symbol>
 
+    <symbol id="svg-playback-position-circle" viewBox="0 0 20 21">
+      <defs>
+        <circle id="svg-playback-position-circle-b" cx="7" cy="7" r="7" />
+        <filter
+          id="svg-playback-position-circle-a"
+          width="185.7%"
+          height="185.7%"
+          x="-42.9%"
+          y="-28.6%"
+          filterUnits="objectBoundingBox"
+        >
+          <feMorphology
+            in="SourceAlpha"
+            operator="dilate"
+            radius="2"
+            result="shadowSpreadOuter1"
+          />
+          <feOffset
+            dy="2"
+            in="shadowSpreadOuter1"
+            result="shadowOffsetOuter1"
+          />
+          <feGaussianBlur
+            in="shadowOffsetOuter1"
+            result="shadowBlurOuter1"
+            stdDeviation="1"
+          />
+          <feComposite
+            in="shadowBlurOuter1"
+            in2="SourceAlpha"
+            operator="out"
+            result="shadowBlurOuter1"
+          />
+          <feColorMatrix
+            in="shadowBlurOuter1"
+            values="0 0 0 0 0.522268282 0 0 0 0 0.522268282 0 0 0 0 0.522268282 0 0 0 0.5 0"
+          />
+        </filter>
+      </defs>
+      <g fill="none" fillRule="evenodd" transform="translate(3 2)">
+        <use
+          fill="#000"
+          filter="url(#svg-playback-position-circle-a)"
+          xlinkHref="#svg-playback-position-circle-b"
+        />
+        <use
+          fill="#29BDEC"
+          stroke="#FFF"
+          strokeWidth="4"
+          xlinkHref="#svg-playback-position-circle-b"
+        />
+      </g>
+    </symbol>
+
   </svg>
 );
 

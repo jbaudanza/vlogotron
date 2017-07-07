@@ -1,6 +1,5 @@
 import PropTypes from "prop-types";
 import React from "react";
-import ReactDOM from "react-dom";
 
 import { bindAll } from "lodash";
 import classNames from "classnames";
@@ -9,7 +8,6 @@ import NoteLabel from "./NoteLabel";
 import PitchGuide from "./PitchGuide";
 import SynchronizedVideo from "./SynchronizedVideo";
 
-import { findWrappingLink } from "./domutils";
 import { formatSeconds } from "./format";
 
 import "./VideoCell.scss";
@@ -116,7 +114,7 @@ export default class VideoCell extends React.Component {
 
           trimEl = (
             <Link onClick={this.onTrim} className="trim-button">
-              <svg version="1.1" width="11px" height="11px">
+              <svg version="1.1" width="16px" height="14px">
                 <use xlinkHref="#svg-trim" fill="white" />
               </svg>
             </Link>

@@ -5,7 +5,8 @@ export default class SynchronizedVideo extends React.Component {
   props: {
     videoClip: Object,
     playbackStartedAt: ?number,
-    width: number,
+    width: ?number,
+    height: ?number,
     trimStart: number,
     audioContext: AudioContext
   };
@@ -121,6 +122,7 @@ export default class SynchronizedVideo extends React.Component {
         poster={this.props.videoClip.poster}
         ref={this.setVideoElement.bind(this)}
         width={this.props.width}
+        height={this.props.height}
         onDurationChange={this.onDurationChange.bind(this)}
       >
         {this.props.videoClip.sources.map(props => (
