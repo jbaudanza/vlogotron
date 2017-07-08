@@ -7,7 +7,7 @@ import ReactActions from "./ReactActions";
 export default function createControlledComponent(
   controller,
   Component,
-  actionNames
+  actionNames = []
 ) {
   return class ControlledComponent extends React.Component {
     constructor(props) {

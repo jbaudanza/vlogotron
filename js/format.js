@@ -1,4 +1,6 @@
-export function formatSeconds(durationInSeconds) {
+/* @flow */
+
+export function formatSeconds(durationInSeconds: number): string {
   if (!isFinite(durationInSeconds)) return "";
 
   const minutes = String(Math.floor(durationInSeconds / 60));

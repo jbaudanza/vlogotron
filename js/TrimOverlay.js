@@ -9,6 +9,8 @@ import TrimAdjuster from "./TrimAdjuster";
 import PlayButton from "./PlayButton";
 import SynchronizedVideo from "./SynchronizedVideo";
 
+import { formatSeconds } from "./format";
+
 import createControlledComponent from "./createControlledComponent";
 
 import audioContext from "./audioContext";
@@ -101,6 +103,51 @@ function VideoPlaybackPosition(props) {
   );
 }
 
+const SvgPlayArrow = (
+  <svg width="9" height="17" viewBox="0 0 9 17">
+    <path
+      fill="#FFF"
+      fillRule="evenodd"
+      d="M0 17.057V0l8.507 8.529"
+      opacity=".564"
+    />
+  </svg>
+);
+
+const PlaybackPositionText = styled.div`
+  font-family: HKGrotesk;
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  opacity: 0.7;
+  position: absolute;
+  bottom: 15px;
+  left: 40px;
+`;
+
+function secondCounterController(props$) {
+  return props$
+    .switchMap(props => {
+      if (props.startedAt) {
+        return Observable.interval(500)
+          .map(() => props.getCurrentTime() - props.startedAt)
+          .startWith(0);
+      } else {
+        return Observable.of(0);
+      }
+    })
+    .map(seconds => ({ seconds }));
+}
+
+function SecondCounterView(props) {
+  return <span>{formatSeconds(props.seconds)}</span>;
+}
+
+const SecondCounter = createControlledComponent(
+  secondCounterController,
+  SecondCounterView
+);
+
 class TrimOverlay extends React.Component {
   render() {
     return (
@@ -129,6 +176,16 @@ class TrimOverlay extends React.Component {
           />
 
           <VideoPlaybackPosition progress={0.0} />
+          <PlaybackPositionText>
+            <SecondCounter
+              startedAt={this.props.playbackStartedAt}
+              getCurrentTime={() => audioContext.currentTime}
+            />
+            {" "}
+            |
+            {" "}
+            {formatSeconds(this.props.audioBuffer.duration)}
+          </PlaybackPositionText>
         </VideoWrapper>
 
         <TrimAdjuster
