@@ -59,9 +59,7 @@ const controlHeight = 17;
 const VideoPlaybackPositionWrapper = styled.div`
   position: absolute;
   height: ${controlHeight}px;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 0
 `;
 
 const VideoPlaybackPositionBar = styled.div`
@@ -75,43 +73,95 @@ function percentString(number) {
   return number * 100 + "%";
 }
 
-function VideoPlaybackPosition(props) {
-  const svgStyle = {
-    position: "absolute",
-    top: 4,
-    left: percentString(props.progress),
-    marginLeft: "-10px"
-  };
-  const barLeftStyle = {
-    left: 0,
-    right: percentString(1 - props.progress),
-    backgroundColor: colors.darkSkyBlue
-  };
-  const barRightStyle = {
-    left: percentString(props.progress),
-    right: 0,
-    backgroundColor: colors.slateGrey
-  };
+class VideoPlaybackPosition extends React.Component {
+  animationFrame(progress) {
+    if (this.leftBarEl) {
+      Object.assign(this.leftBarEl.style, {
+        left: 0,
+        right: percentString(1 - progress),
+        backgroundColor: colors.darkSkyBlue
+      });
+    }
 
-  return (
-    <VideoPlaybackPositionWrapper>
-      <VideoPlaybackPositionBar style={barLeftStyle} />
-      <VideoPlaybackPositionBar style={barRightStyle} />
-      <svg style={svgStyle} version="1.1" width="20px" height="20px">
-        <use xlinkHref="#svg-playback-position-circle" fill="white" />
-      </svg>
-    </VideoPlaybackPositionWrapper>
+    if (this.rightBarEl) {
+      Object.assign(this.rightBarEl.style, {
+        right: 0,
+        left: percentString(progress),
+        backgroundColor: colors.slateGrey
+      });
+    }
+
+    if (this.svgCircleEl) {
+      Object.assign(this.svgCircleEl.style, {
+        position: "absolute",
+        left: percentString(progress),
+        top: "4px",
+        marginLeft: "-10px"
+      });
+    }
+  }
+
+  render() {
+    const wrapperStyle = {
+      left: percentString(this.props.trimStart),
+      right: percentString(1 - this.props.trimEnd)
+    };
+
+    return (
+      <VideoPlaybackPositionWrapper style={wrapperStyle}>
+        <VideoPlaybackPositionBar innerRef={el => this.leftBarEl = el} />
+        <VideoPlaybackPositionBar innerRef={el => this.rightBarEl = el} />
+        <svg
+          version="1.1"
+          width="20px"
+          height="20px"
+          ref={el => this.svgCircleEl = el}
+        >
+          <use xlinkHref="#svg-playback-position-circle" fill="white" />
+        </svg>
+      </VideoPlaybackPositionWrapper>
+    );
+  }
+}
+
+class PlaybackLineMarker extends React.Component {
+  animationFrame(progress) {
+    if (this.el) {
+      Object.assign(this.el.style, {
+        position: "absolute",
+        top: 0,
+        left: percentString(progress),
+        width: "2px",
+        height: "66px",
+        backgroundColor: colors.darkSkyBlue
+      });
+    }
+  }
+
+  render() {
+    return <div ref={el => this.el = el} />;
+  }
+}
+
+function createPlaybackPositionAnimation(Component) {
+  return createAnimatedComponent(
+    Component,
+    props => props.playbackStartedAt,
+    (props, element) => {
+      const progress = props.playbackStartedAt
+        ? (props.getCurrentTime() - props.playbackStartedAt) / props.duration
+        : 0;
+      element.animationFrame(progress);
+    }
   );
 }
 
-const AnimatedVideoPlaybackPosition = createAnimatedComponent(
-  VideoPlaybackPosition,
-  { progress: 0 },
-  props => props.playbackStartedAt,
-  props => ({
-    progress: (props.getCurrentTime() - props.playbackStartedAt) /
-      props.duration
-  })
+const AnimatedVideoPlaybackPosition = createPlaybackPositionAnimation(
+  VideoPlaybackPosition
+);
+
+const AnimatedPlaybackLineMarker = createPlaybackPositionAnimation(
+  PlaybackLineMarker
 );
 
 const SvgPlayArrow = (
@@ -163,14 +213,6 @@ function getCurrentTime() {
   return audioContext.currentTime;
 }
 
-const PlaybackLineMarker = styled.div`
-  position: absolute;
-  top: 0;
-  width: 2px;
-  height: 66px;
-  background-color: ${colors.darkSkyBlue};
-`;
-
 const TrimAdjusterWrapper = styled.div`
   position: relative;
   padding-top: 10px;
@@ -178,6 +220,18 @@ const TrimAdjusterWrapper = styled.div`
 
 class TrimOverlay extends React.Component {
   render() {
+    const trimmedDuration =
+      this.props.audioBuffer.duration *
+      (this.props.trimEnd - this.props.trimStart);
+
+    const playbackAnimationProps = {
+      getCurrentTime: getCurrentTime,
+      playbackStartedAt: this.props.playbackStartedAt,
+      duration: trimmedDuration,
+      trimStart: this.props.trimStart,
+      trimEnd: this.props.trimEnd
+    };
+
     return (
       <Overlay
         className="trim-overlay"
@@ -203,11 +257,7 @@ class TrimOverlay extends React.Component {
             onClickPause={this.props.onPause}
           />
 
-          <AnimatedVideoPlaybackPosition
-            getCurrentTime={getCurrentTime}
-            playbackStartedAt={this.props.playbackStartedAt}
-            duration={this.props.audioBuffer.duration}
-          />
+          <AnimatedVideoPlaybackPosition {...playbackAnimationProps} />
 
           <PlaybackPositionText>
             <SecondCounter
@@ -217,15 +267,11 @@ class TrimOverlay extends React.Component {
             {" "}
             |
             {" "}
-            {formatSeconds(this.props.audioBuffer.duration)}
+            {formatSeconds(trimmedDuration)}
           </PlaybackPositionText>
         </VideoWrapper>
 
         <TrimAdjusterWrapper>
-          <PlaybackLineMarker
-            startedAt={this.props.playbackStartedAt}
-            getCurrentTime={getCurrentTime}
-          />
           <TrimAdjuster
             audioBuffer={this.props.audioBuffer}
             trimStart={this.props.trimStart}
@@ -235,6 +281,7 @@ class TrimOverlay extends React.Component {
             width={contentWidth}
             height={50}
           />
+          <AnimatedPlaybackLineMarker {...playbackAnimationProps} />
         </TrimAdjusterWrapper>
       </Overlay>
     );
