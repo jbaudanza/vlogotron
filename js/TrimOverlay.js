@@ -12,6 +12,7 @@ import SynchronizedVideo from "./SynchronizedVideo";
 import { formatSeconds } from "./format";
 
 import createControlledComponent from "./createControlledComponent";
+import createAnimatedComponent from "./createAnimatedComponent";
 
 import audioContext from "./audioContext";
 
@@ -103,6 +104,16 @@ function VideoPlaybackPosition(props) {
   );
 }
 
+const AnimatedVideoPlaybackPosition = createAnimatedComponent(
+  VideoPlaybackPosition,
+  { progress: 0 },
+  props => props.playbackStartedAt,
+  props => ({
+    progress: (props.getCurrentTime() - props.playbackStartedAt) /
+      props.duration
+  })
+);
+
 const SvgPlayArrow = (
   <svg width="9" height="17" viewBox="0 0 9 17">
     <path
@@ -148,6 +159,23 @@ const SecondCounter = createControlledComponent(
   SecondCounterView
 );
 
+function getCurrentTime() {
+  return audioContext.currentTime;
+}
+
+const PlaybackLineMarker = styled.div`
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 66px;
+  background-color: ${colors.darkSkyBlue};
+`;
+
+const TrimAdjusterWrapper = styled.div`
+  position: relative;
+  padding-top: 10px;
+`;
+
 class TrimOverlay extends React.Component {
   render() {
     return (
@@ -175,11 +203,16 @@ class TrimOverlay extends React.Component {
             onClickPause={this.props.onPause}
           />
 
-          <VideoPlaybackPosition progress={0.0} />
+          <AnimatedVideoPlaybackPosition
+            getCurrentTime={getCurrentTime}
+            playbackStartedAt={this.props.playbackStartedAt}
+            duration={this.props.audioBuffer.duration}
+          />
+
           <PlaybackPositionText>
             <SecondCounter
               startedAt={this.props.playbackStartedAt}
-              getCurrentTime={() => audioContext.currentTime}
+              getCurrentTime={getCurrentTime}
             />
             {" "}
             |
@@ -188,15 +221,21 @@ class TrimOverlay extends React.Component {
           </PlaybackPositionText>
         </VideoWrapper>
 
-        <TrimAdjuster
-          audioBuffer={this.props.audioBuffer}
-          trimStart={this.props.trimStart}
-          trimEnd={this.props.trimEnd}
-          onChangeStart={this.props.onChangeStart}
-          onChangeEnd={this.props.onChangeEnd}
-          width={contentWidth}
-          height={50}
-        />
+        <TrimAdjusterWrapper>
+          <PlaybackLineMarker
+            startedAt={this.props.playbackStartedAt}
+            getCurrentTime={getCurrentTime}
+          />
+          <TrimAdjuster
+            audioBuffer={this.props.audioBuffer}
+            trimStart={this.props.trimStart}
+            trimEnd={this.props.trimEnd}
+            onChangeStart={this.props.onChangeStart}
+            onChangeEnd={this.props.onChangeEnd}
+            width={contentWidth}
+            height={50}
+          />
+        </TrimAdjusterWrapper>
       </Overlay>
     );
   }
