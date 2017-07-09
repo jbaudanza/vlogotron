@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import { Observable } from "rxjs/Observable";
 
+import { times } from "lodash";
 import styled from "styled-components";
 
 const documentMouseMove$ = Observable.fromEvent(document, "mousemove");
@@ -49,7 +50,7 @@ const Shade = styled.div`
   opacity: 0.8;
 `;
 
-const grabberWidth = 7;
+const grabberWidth = 9;
 
 const Grabber = styled.div`
   position: absolute;
@@ -59,6 +60,15 @@ const Grabber = styled.div`
   background-color: #4c59a1;
   border-radius: 2px;
   cursor: pointer;
+`;
+
+const GrabberLine = styled.div`
+  position: absolute;
+  top: 20px;
+  left: ${props => 2 + props.count * 2}px;
+  width: 1px;
+  height: 9px;
+  background-color: #fff;
 `;
 
 const Canvas = styled.canvas`
@@ -175,13 +185,21 @@ export default class TrimAdjuster extends React.Component {
             right: grabberWidth + canvasWidth * (1 - this.props.trimStart)
           }}
           onMouseDown={this.onMouseDownStart}
-        />
+        >
+          <GrabberLine count={0} />
+          <GrabberLine count={1} />
+          <GrabberLine count={2} />
+        </Grabber>
         <Grabber
           tabIndex={2}
           onKeyDown={this.onKeyDownTrimEnd}
           style={{ left: grabberWidth + canvasWidth * this.props.trimEnd }}
           onMouseDown={this.onMouseDownEnd}
-        />
+        >
+          <GrabberLine count={0} />
+          <GrabberLine count={1} />
+          <GrabberLine count={2} />
+        </Grabber>
       </TrimAdjusterWrapper>
     );
   }
