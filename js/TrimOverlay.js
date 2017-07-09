@@ -53,10 +53,22 @@ const colors = {
   darkSkyBlue: "#29bdec"
 };
 
+function TrimmedDiv(props) {
+  const style = {
+    left: percentString(props.trimStart),
+    right: percentString(1 - props.trimEnd)
+  };
+  return (
+    <div style={style} className={props.className}>
+      {props.children}
+    </div>
+  );
+}
+
 const barHeight = 8;
 const controlHeight = 17;
 
-const VideoPlaybackPositionWrapper = styled.div`
+const VideoPlaybackPositionWrapper = styled(TrimmedDiv)`
   position: absolute;
   height: ${controlHeight}px;
   bottom: 0
@@ -102,13 +114,8 @@ class VideoPlaybackPosition extends React.Component {
   }
 
   render() {
-    const wrapperStyle = {
-      left: percentString(this.props.trimStart),
-      right: percentString(1 - this.props.trimEnd)
-    };
-
     return (
-      <VideoPlaybackPositionWrapper style={wrapperStyle}>
+      <VideoPlaybackPositionWrapper {...this.props}>
         <VideoPlaybackPositionBar innerRef={el => this.leftBarEl = el} />
         <VideoPlaybackPositionBar innerRef={el => this.rightBarEl = el} />
         <svg
@@ -124,22 +131,61 @@ class VideoPlaybackPosition extends React.Component {
   }
 }
 
-class PlaybackLineMarker extends React.Component {
-  animationFrame(progress) {
-    if (this.el) {
-      Object.assign(this.el.style, {
+const AudioPlaybackPositionMarkerWrapper = styled(TrimmedDiv)`
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: ${props => (props.playbackStartedAt ? "block" : "none")}
+`;
+
+const AudioPlaybackPositionLabel = styled.div`
+  position: absolute;
+  bottom: -15px;
+  height: 15px;
+  line-height: 15px;
+  font-size: 12px;
+  font-weight: 500;
+  width: 38px;
+  margin-left: ${-38 / 2}px;
+  background-color: ${colors.darkSkyBlue};
+  color: #fff;
+  border-radius: 2px;
+  text-align: center;
+`;
+
+const AudioPlaybackPositionLine = styled.div`
+  position: absolute;
+  width: 2px;
+  top: 0;
+  bottom: 0;
+  background-color: ${colors.darkSkyBlue}
+`;
+
+class AudioPlaybackPositionMarker extends React.Component {
+  animationFrame(progress, elapsed) {
+    if (this.markerEl) {
+      Object.assign(this.markerEl.style, {
         position: "absolute",
         top: 0,
-        left: percentString(progress),
-        width: "2px",
         height: "66px",
-        backgroundColor: colors.darkSkyBlue
+        left: percentString(progress)
       });
+    }
+
+    if (this.labelEl) {
+      this.labelEl.textContent = formatSeconds(elapsed);
     }
   }
 
   render() {
-    return <div ref={el => this.el = el} />;
+    return (
+      <AudioPlaybackPositionMarkerWrapper {...this.props}>
+        <div ref={el => this.markerEl = el}>
+          <AudioPlaybackPositionLine />
+          <AudioPlaybackPositionLabel innerRef={el => this.labelEl = el} />
+        </div>
+      </AudioPlaybackPositionMarkerWrapper>
+    );
   }
 }
 
@@ -148,10 +194,13 @@ function createPlaybackPositionAnimation(Component) {
     Component,
     props => props.playbackStartedAt,
     (props, element) => {
-      const progress = props.playbackStartedAt
-        ? (props.getCurrentTime() - props.playbackStartedAt) / props.duration
-        : 0;
-      element.animationFrame(progress);
+      if (props.playbackStartedAt) {
+        const elapsed = props.getCurrentTime() - props.playbackStartedAt;
+        const progress = props.playbackStartedAt ? elapsed / props.duration : 0;
+        element.animationFrame(progress, elapsed);
+      } else {
+        element.animationFrame(0);
+      }
     }
   );
 }
@@ -160,8 +209,8 @@ const AnimatedVideoPlaybackPosition = createPlaybackPositionAnimation(
   VideoPlaybackPosition
 );
 
-const AnimatedPlaybackLineMarker = createPlaybackPositionAnimation(
-  PlaybackLineMarker
+const AnimatedAudioPlaybackPositionMarker = createPlaybackPositionAnimation(
+  AudioPlaybackPositionMarker
 );
 
 const SvgPlayArrow = (
@@ -176,7 +225,6 @@ const SvgPlayArrow = (
 );
 
 const PlaybackPositionText = styled.div`
-  font-family: HKGrotesk;
   font-size: 12px;
   font-weight: 500;
   color: #fff;
@@ -281,7 +329,7 @@ class TrimOverlay extends React.Component {
             width={contentWidth}
             height={50}
           />
-          <AnimatedPlaybackLineMarker {...playbackAnimationProps} />
+          <AnimatedAudioPlaybackPositionMarker {...playbackAnimationProps} />
         </TrimAdjusterWrapper>
       </Overlay>
     );
