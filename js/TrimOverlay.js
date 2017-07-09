@@ -39,7 +39,7 @@ const VideoWrapper = styled.div`
 
   width: ${contentWidth}px;
   height: ${contentWidth}px;
-  margin-bottom: 40px;
+  margin-bottom: 10px;
 
   .play-button {
     position: absolute;
@@ -138,9 +138,36 @@ const AudioPlaybackPositionMarkerWrapper = styled(TrimmedDiv)`
   display: ${props => (props.playbackStartedAt ? "block" : "none")}
 `;
 
-const AudioPlaybackPositionLabel = styled.div`
+const DivWithPointer = styled.div`
+  // arrow pointer - http://www.cssarrowplease.com/
+  &:after {
+    left: 50%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+    border-color: rgba(255, 255, 255, 0);
+    border-width: ${props => props.size}px;
+    margin-left: ${props => -props.size}px;
+
+    // for pointing up
+    bottom: 100%;
+    border-bottom-color: ${props => props.color};
+
+    // for pointing down
+    //top: 100%;
+    //border-top-color: $menu-background-color;
+  }
+`;
+
+const AudioPlaybackPositionLabel = styled(DivWithPointer).attrs({
+  color: colors.darkSkyBlue,
+  size: 5
+})`
   position: absolute;
-  bottom: -15px;
+  bottom: -23px;
   height: 15px;
   line-height: 15px;
   font-size: 12px;
@@ -156,6 +183,7 @@ const AudioPlaybackPositionLabel = styled.div`
 const AudioPlaybackPositionLine = styled.div`
   position: absolute;
   width: 2px;
+  margin-left: -1px;
   top: 0;
   bottom: 0;
   background-color: ${colors.darkSkyBlue}
