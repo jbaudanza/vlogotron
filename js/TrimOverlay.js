@@ -85,6 +85,55 @@ function percentString(number) {
   return number * 100 + "%";
 }
 
+const svgCircle = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlnsXlink="http://www.w3.org/1999/xlink"
+    width="20"
+    height="21"
+    viewBox="0 0 20 21"
+  >
+    <defs>
+      <circle id="circle-b" cx="7" cy="7" r="7" />
+      <filter
+        id="circle-a"
+        width="185.7%"
+        height="185.7%"
+        x="-42.9%"
+        y="-28.6%"
+        filterUnits="objectBoundingBox"
+      >
+        <feMorphology
+          in="SourceAlpha"
+          operator="dilate"
+          radius="2"
+          result="shadowSpreadOuter1"
+        />
+        <feOffset dy="2" in="shadowSpreadOuter1" result="shadowOffsetOuter1" />
+        <feGaussianBlur
+          in="shadowOffsetOuter1"
+          result="shadowBlurOuter1"
+          stdDeviation="1"
+        />
+        <feComposite
+          in="shadowBlurOuter1"
+          in2="SourceAlpha"
+          operator="out"
+          result="shadowBlurOuter1"
+        />
+        <feColorMatrix
+          in="shadowBlurOuter1"
+          values="0 0 0 0 0.522268282 0 0 0 0 0.522268282 0 0 0 0 0.522268282 0 0 0 0.5 0"
+        />
+      </filter>
+    </defs>
+    <g fill="none" fillRule="evenodd" transform="translate(3 2)">
+      <use fill="#000" filter="url(#circle-a)" xlinkHref="#circle-b" />
+      <use fill="#29BDEC" stroke="#FFF" strokeWidth="4" xlinkHref="#circle-b" />
+    </g>
+  </svg>
+);
+
 class VideoPlaybackPosition extends React.Component {
   animationFrame(progress) {
     if (this.leftBarEl) {
@@ -118,13 +167,66 @@ class VideoPlaybackPosition extends React.Component {
       <VideoPlaybackPositionWrapper {...this.props}>
         <VideoPlaybackPositionBar innerRef={el => this.leftBarEl = el} />
         <VideoPlaybackPositionBar innerRef={el => this.rightBarEl = el} />
+
         <svg
-          version="1.1"
-          width="20px"
-          height="20px"
           ref={el => this.svgCircleEl = el}
+          xmlns="http://www.w3.org/2000/svg"
+          xmlnsXlink="http://www.w3.org/1999/xlink"
+          width="20"
+          height="21"
+          viewBox="0 0 20 21"
         >
-          <use xlinkHref="#svg-playback-position-circle" fill="white" />
+          <defs>
+            <circle id="playback-position-circle-b" cx="7" cy="7" r="7" />
+            <filter
+              id="playback-position-circle-a"
+              width="185.7%"
+              height="185.7%"
+              x="-42.9%"
+              y="-28.6%"
+              filterUnits="objectBoundingBox"
+            >
+              <feMorphology
+                in="SourceAlpha"
+                operator="dilate"
+                radius="2"
+                result="shadowSpreadOuter1"
+              />
+              <feOffset
+                dy="2"
+                in="shadowSpreadOuter1"
+                result="shadowOffsetOuter1"
+              />
+              <feGaussianBlur
+                in="shadowOffsetOuter1"
+                result="shadowBlurOuter1"
+                stdDeviation="1"
+              />
+              <feComposite
+                in="shadowBlurOuter1"
+                in2="SourceAlpha"
+                operator="out"
+                result="shadowBlurOuter1"
+              />
+              <feColorMatrix
+                in="shadowBlurOuter1"
+                values="0 0 0 0 0.522268282 0 0 0 0 0.522268282 0 0 0 0 0.522268282 0 0 0 0.5 0"
+              />
+            </filter>
+          </defs>
+          <g fill="none" fillRule="evenodd" transform="translate(3 2)">
+            <use
+              fill="#000"
+              filter="url(#playback-position-circle-a)"
+              xlinkHref="#playback-position-circle-b"
+            />
+            <use
+              fill="#29BDEC"
+              stroke="#FFF"
+              strokeWidth="4"
+              xlinkHref="#playback-position-circle-b"
+            />
+          </g>
         </svg>
       </VideoPlaybackPositionWrapper>
     );
