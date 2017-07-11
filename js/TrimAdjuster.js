@@ -73,8 +73,6 @@ const GrabberLine = styled.div`
 
 const Canvas = styled.canvas`
   margin-top: ${grabberPadding}px;
-  margin-left: ${grabberWidth}px;
-  margin-right: ${grabberWidth}px;
 `;
 
 export default class TrimAdjuster extends React.Component {
@@ -156,33 +154,32 @@ export default class TrimAdjuster extends React.Component {
   }
 
   render() {
-    const canvasWidth = this.props.width - grabberWidth * 2;
     return (
       <TrimAdjusterWrapper
         style={{ width: this.props.width, height: this.props.height }}
       >
         <Canvas
-          width={canvasWidth}
+          width={this.props.width}
           height={this.props.height - grabberPadding * 2}
           innerRef={this.setCanvasRef}
         />
         <Shade
           style={{
-            left: grabberWidth,
-            width: canvasWidth * this.props.trimStart
+            left: 0,
+            width: this.props.width * this.props.trimStart
           }}
         />
         <Shade
           style={{
-            right: grabberWidth,
-            width: canvasWidth * (1 - this.props.trimEnd)
+            right: 0,
+            width: this.props.width * (1 - this.props.trimEnd)
           }}
         />
         <Grabber
           tabIndex={1}
           onKeyDown={this.onKeyDownTrimStart}
           style={{
-            right: grabberWidth + canvasWidth * (1 - this.props.trimStart)
+            right: this.props.width * (1 - this.props.trimStart)
           }}
           onMouseDown={this.onMouseDownStart}
         >
@@ -193,7 +190,7 @@ export default class TrimAdjuster extends React.Component {
         <Grabber
           tabIndex={2}
           onKeyDown={this.onKeyDownTrimEnd}
-          style={{ left: grabberWidth + canvasWidth * this.props.trimEnd }}
+          style={{ left: this.props.width * this.props.trimEnd }}
           onMouseDown={this.onMouseDownEnd}
         >
           <GrabberLine count={0} />

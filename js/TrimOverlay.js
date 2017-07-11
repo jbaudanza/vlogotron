@@ -85,7 +85,6 @@ function percentString(number) {
   return number * 100 + "%";
 }
 
-
 class VideoPlaybackPosition extends React.Component {
   animationFrame(progress) {
     if (this.leftBarEl) {
@@ -120,9 +119,8 @@ class VideoPlaybackPosition extends React.Component {
         <VideoPlaybackPositionBar innerRef={el => this.leftBarEl = el} />
         <VideoPlaybackPositionBar innerRef={el => this.rightBarEl = el} />
 
-        {
-          this.props.playbackStartedAt ? (
-            <svg
+        {this.props.playbackStartedAt
+          ? <svg
               ref={el => this.svgCircleEl = el}
               xmlns="http://www.w3.org/2000/svg"
               xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -182,8 +180,7 @@ class VideoPlaybackPosition extends React.Component {
                 />
               </g>
             </svg>
-          ) : null
-        }
+          : null}
       </VideoPlaybackPositionWrapper>
     );
   }
