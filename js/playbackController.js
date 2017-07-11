@@ -1,7 +1,7 @@
 import { Observable } from "rxjs/Observable";
 import { songLengthInSeconds } from "./song";
 
-import { values, pick, sum, mapValues } from "lodash";
+import { values, pick, sum, mapValues, identity } from "lodash";
 
 import { playCommands$ as midiPlayCommands$ } from "./midi";
 import { playCommands$ as keyboardPlayCommands$ } from "./keyboard";
@@ -85,7 +85,7 @@ export function playbackControllerHelper(
         notes$,
         bpm,
         startPosition || 0,
-        media.audioBuffers$,
+        media.audioSources$,
         actions.pause$.concatWith({})
       )
     )
@@ -133,11 +133,7 @@ export function playbackControllerHelper(
   // TODO: Do we need to keep refcounts when merging these streams?
   const playCommands$ = Observable.merge(
     scriptedPlayCommands$$.concatAll(),
-    startLivePlaybackEngine(
-      media.audioBuffers$,
-      livePlayCommands$,
-      subscription
-    )
+    startLivePlaybackEngine(media.audioSources$, livePlayCommands$, subscription)
   );
 
   // Start up Observables with side-effect

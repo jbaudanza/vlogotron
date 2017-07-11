@@ -164,7 +164,7 @@ export default class TrimAdjuster extends React.Component {
 
     grabberOffset = -(event.clientX - grabberEl.getBoundingClientRect()[edge]);
 
-    if (edge === 'left') {
+    if (edge === "left") {
       adjust = +grabberWidth;
     } else {
       adjust = -grabberWidth;

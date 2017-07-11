@@ -105,7 +105,7 @@ export default function recordVideosController(
   );
 
   const playCommands$ = startLivePlaybackEngine(
-    mediaStore.audioBuffers$,
+    mediaStore.audioSources$,
     livePlayCommands$,
     subscription
   );
@@ -116,8 +116,8 @@ export default function recordVideosController(
     currentUser$,
     mediaStore.song$,
     mediaStore.loading$,
-    mediaStore.audioBuffers$,
-    (videoClips, recordingState, currentUser, song, loading, audioBuffers) => ({
+    mediaStore.audioSources$,
+    (videoClips, recordingState, currentUser, song, loading, audioSources) => ({
       ...recordingState,
       playCommands$,
       currentUser,
@@ -126,38 +126,9 @@ export default function recordVideosController(
       loading,
       supported: "MediaRecorder" in window,
       songTitle: song ? song.title : null,
-      audioBuffers
+      audioSources
     })
   );
-}
-
-function reduceToAudioBufferStore(acc, finalMedia) {
-  if (finalMedia.cleared) {
-    return omit(acc, finalMedia.note);
-  } else {
-    return {
-      ...acc,
-      [finalMedia.note]: finalMedia.audioBuffer
-    };
-  }
-}
-
-function reduceToLocalVideoClipStore(acc, obj) {
-  if (obj.cleared) {
-    return omit(acc, obj.note);
-  } else {
-    return {
-      ...acc,
-      [obj.note]: {
-        sources: [
-          {
-            src: URL.createObjectURL(obj.videoBlob),
-            type: obj.videoBlob.type
-          }
-        ]
-      }
-    };
-  }
 }
 
 function startRecording(note, finish$, abort$) {

@@ -20,6 +20,7 @@ import {
   pickBy,
   map,
   mapValues,
+  merge,
   identity
 } from "lodash";
 
@@ -171,11 +172,20 @@ export function subscribeToSongLocation(
     (remote, local) => pickBy(remote, (value, note) => !(note in local))
   );
 
+  // This datastructure contains the AudioBuffers and trimming info for each
+  // note.
+  const audioSources$ = Observable.combineLatest(
+    song$.filter(identity).map(o => o.videoClips),
+    audioBuffers$.map(o =>
+      mapValues(o, audioBuffer => ({ audioBuffer }))
+    ),
+    (x, y) => merge({}, x, y)
+  );
   return {
     song$,
     videoClips$,
     workspace$,
-    audioBuffers$,
+    audioSources$,
     clearedEvents$,
     recordedMedia$,
     loading$

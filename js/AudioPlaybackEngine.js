@@ -15,7 +15,7 @@ import { songLengthInBeats, beatsToTimestamp, timestampToBeats } from "./song";
 const batchTime = audioContext.baseLatency || 2 * 128 / audioContext.sampleRate;
 
 export function startLivePlaybackEngine(
-  audioBuffers$,
+  audioSources$,
   playCommands$,
   subscription
 ) {
@@ -23,15 +23,15 @@ export function startLivePlaybackEngine(
 
   const stream$ = observableWithGainNode(destinationNode =>
     playCommands$
-      .withLatestFrom(audioBuffers$)
-      .map(([cmd, audioBuffers]) => {
+      .withLatestFrom(audioSources$)
+      .map(([cmd, audioSources]) => {
         const when = audioContext.currentTime + batchTime;
         let event = null;
 
         if (cmd.play) {
           const [noteName, node] = buildSourceNode(
             cmd.play,
-            audioBuffers,
+            audioSources,
             destinationNode
           );
 
@@ -84,15 +84,15 @@ function observableWithGainNode(observableFactory) {
   );
 }
 
-function buildSourceNode(requestedNoteName, audioBuffers, destinationNode) {
+function buildSourceNode(requestedNoteName, audioSources, destinationNode) {
   const isSharp = requestedNoteName.indexOf("#") >= 0;
   const noteName = requestedNoteName.replace("#", "");
 
-  const audioBuffer = audioBuffers[noteName];
+  const audioSource = audioSources[noteName];
 
-  if (audioBuffer) {
+  if (audioSource) {
     const source = audioContext.createBufferSource();
-    source.buffer = audioBuffer;
+    source.buffer = audioSource.audioBuffer;
     source.connect(destinationNode);
 
     // alter playback rate for sharp notes,
@@ -131,7 +131,7 @@ export function startScriptedPlayback(
   notes$,
   bpm,
   startPosition,
-  audioBuffers$,
+  audioSources$,
   playUntil$
 ) {
   const truncatedNotes$ = notes$.map(notes =>
@@ -160,7 +160,7 @@ export function startScriptedPlayback(
 
   // TODO: If the song isn't going to change, we don't need the playback
   // scheduler.
-  const commandsWithAudioBuffers$ = playbackSchedule(audioContext)
+  const commandsWithAudioSources$ = playbackSchedule(audioContext)
     .scan(makeBeatWindow, [null, 0])
     .withLatestFrom(truncatedNotes$)
     // TODO: This really should be takeUntil with a predicate function, but
@@ -169,17 +169,17 @@ export function startScriptedPlayback(
       ([beatWindow, notes]) => beatWindow[0] < songLengthInBeats(notes)
     )
     .map(([beatWindow, notes]) => pickNotesForBeatWindow(beatWindow, notes))
-    .withLatestFrom(audioBuffers$);
+    .withLatestFrom(audioSources$);
 
   const stream$ = observableWithGainNode(gainNode =>
-    commandsWithAudioBuffers$
-      .flatMap(([commands, audioBuffers]) => {
+    commandsWithAudioSources$
+      .flatMap(([commands, audioSources]) => {
         const events = [];
 
         commands.forEach(command => {
           const [noteName, source] = buildSourceNode(
             command[0],
-            audioBuffers,
+            audioSources,
             gainNode
           );
 
