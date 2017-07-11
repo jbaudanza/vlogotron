@@ -160,7 +160,7 @@ function migrate(v) {
     return {
       videoClipId: v,
       trimStart: 0,
-      trimEnd: 0,
+      trimEnd: 1,
       gain: 1
     };
   } else {

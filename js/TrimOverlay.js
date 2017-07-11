@@ -18,6 +18,8 @@ import audioContext from "./audioContext";
 
 import { times } from "lodash";
 
+import TrimmedAudioBufferSourceNode from "./TrimmedAudioBufferSourceNode";
+
 const contentWidth = 343;
 
 const VideoCropper = styled.div`
@@ -447,15 +449,17 @@ function schedulePlaybackNow(
   playUntil$
 ) {
   const startAt = audioContext.currentTime + batchTime;
-  const offset = trimStart * audioBuffer.duration;
-  const duration = trimEnd * audioBuffer.duration - offset;
 
-  const source = audioContext.createBufferSource();
-  source.buffer = audioBuffer;
+  const source = new TrimmedAudioBufferSourceNode(
+    audioContext,
+    audioBuffer,
+    trimStart,
+    trimEnd
+  );
   source.connect(audioContext.destination);
-  source.start(startAt, offset, duration);
+  source.start(startAt);
 
-  const videoFinished$ = Observable.of(null).delay(duration * 1000);
+  const videoFinished$ = Observable.of(null).delay(source.duration * 1000);
   const stopEarly$ = playUntil$.take(1);
 
   stopEarly$.subscribe(() => {

@@ -70,7 +70,11 @@ export default class RecordVideosView extends React.Component {
     let match;
     if ((match = this.props.location.hash.match(/^#trim\?note=([\w]+)/))) {
       const note = match[1];
-      if (this.props.videoClips[note] && this.props.audioSources[note]) {
+      if (
+        this.props.videoClips[note] &&
+        this.props.audioSources[note] &&
+        this.props.audioSources[note].audioBuffer
+      ) {
         overlay = (
           <TrimOverlay
             onClose={this.props.location.pathname}

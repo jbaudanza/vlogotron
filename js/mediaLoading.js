@@ -176,9 +176,7 @@ export function subscribeToSongLocation(
   // note.
   const audioSources$ = Observable.combineLatest(
     song$.filter(identity).map(o => o.videoClips),
-    audioBuffers$.map(o =>
-      mapValues(o, audioBuffer => ({ audioBuffer }))
-    ),
+    audioBuffers$.map(o => mapValues(o, audioBuffer => ({ audioBuffer }))),
     (x, y) => merge({}, x, y)
   );
   return {

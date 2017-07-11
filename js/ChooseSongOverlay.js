@@ -88,11 +88,7 @@ function chooseTemplateController(props$, actions) {
         props.bpm,
         0,
         props.media.audioSources$,
-        Observable.merge(
-          actions.pause$,
-          actions.play$,
-          unmount$
-        ).take(1)
+        Observable.merge(actions.pause$, actions.play$, unmount$).take(1)
       );
 
       return Observable.merge(

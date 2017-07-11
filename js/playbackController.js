@@ -133,7 +133,11 @@ export function playbackControllerHelper(
   // TODO: Do we need to keep refcounts when merging these streams?
   const playCommands$ = Observable.merge(
     scriptedPlayCommands$$.concatAll(),
-    startLivePlaybackEngine(media.audioSources$, livePlayCommands$, subscription)
+    startLivePlaybackEngine(
+      media.audioSources$,
+      livePlayCommands$,
+      subscription
+    )
   );
 
   // Start up Observables with side-effect

@@ -8,6 +8,8 @@ import { noteLabelsToMidi, noteToFrequency } from "./frequencies";
 
 import { songLengthInBeats, beatsToTimestamp, timestampToBeats } from "./song";
 
+import TrimmedAudioBufferSourceNode from "./TrimmedAudioBufferSourceNode";
+
 // This is the minimum amount of time we will try to schedule audio in the
 // future. This is based on the following comment by Chris Wilson:
 // https://github.com/WebAudio/web-audio-api/issues/296#issuecomment-257100626
@@ -91,14 +93,18 @@ function buildSourceNode(requestedNoteName, audioSources, destinationNode) {
   const audioSource = audioSources[noteName];
 
   if (audioSource) {
-    const source = audioContext.createBufferSource();
-    source.buffer = audioSource.audioBuffer;
+    const source = new TrimmedAudioBufferSourceNode(
+      audioContext,
+      audioSource.audioBuffer,
+      audioSource.trimStart,
+      audioSource.trimEnd
+    );
     source.connect(destinationNode);
 
     // alter playback rate for sharp notes,
     // simply use just intonation for now
     const pitchRatio = isSharp ? 1.05946 : 1.0;
-    source.playbackRate.value = pitchRatio;
+    source.source.playbackRate.value = pitchRatio;
 
     return [noteName, source];
   } else {
