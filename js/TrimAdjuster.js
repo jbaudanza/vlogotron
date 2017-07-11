@@ -5,6 +5,8 @@ import { Observable } from "rxjs/Observable";
 import { times } from "lodash";
 import styled from "styled-components";
 
+import { findWrappingClass } from "./domutils";
+
 const documentMouseMove$ = Observable.fromEvent(document, "mousemove");
 const documentMouseUp$ = Observable.fromEvent(document, "mouseup");
 
@@ -153,9 +155,11 @@ export default class TrimAdjuster extends React.Component {
     event.preventDefault();
     event.target.focus();
 
-    const rect = event.target.parentNode.getBoundingClientRect();
+    const grabberEl = findWrappingClass(event.target, "grabber");
+
+    const rect = this.wrapperEl.getBoundingClientRect();
     const grabberOffset =
-      event.target.getBoundingClientRect()[edge] - event.clientX;
+      grabberEl.getBoundingClientRect()[edge] - event.clientX;
 
     let adjust;
     if (edge === "left") {
@@ -174,6 +178,7 @@ export default class TrimAdjuster extends React.Component {
     return (
       <TrimAdjusterWrapper
         style={{ width: this.props.width, height: this.props.height }}
+        innerRef={el => this.wrapperEl = el}
       >
         <Canvas
           width={this.props.width}
@@ -194,6 +199,7 @@ export default class TrimAdjuster extends React.Component {
         />
         <Grabber
           tabIndex={1}
+          className="grabber"
           onKeyDown={this.onKeyDownTrimStart}
           style={{
             right: this.props.width * (1 - this.props.trimStart)
@@ -206,6 +212,7 @@ export default class TrimAdjuster extends React.Component {
         </Grabber>
         <Grabber
           tabIndex={2}
+          className="grabber"
           onKeyDown={this.onKeyDownTrimEnd}
           style={{ left: this.props.width * this.props.trimEnd }}
           onMouseDown={this.onMouseDownEnd}
