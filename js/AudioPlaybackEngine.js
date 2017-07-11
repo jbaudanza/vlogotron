@@ -4,7 +4,7 @@ import { animationFrame } from "rxjs/scheduler/animationFrame";
 
 import audioContext from "./audioContext";
 import { playbackSchedule } from "./playbackSchedule";
-import { frequencies } from "./frequencies";
+import { noteLabelsToMidi, noteToFrequency } from "./frequencies";
 
 import { songLengthInBeats, beatsToTimestamp, timestampToBeats } from "./song";
 
@@ -102,9 +102,10 @@ function buildSourceNode(requestedNoteName, audioBuffers, destinationNode) {
 
     return [noteName, source];
   } else {
+    const midiNote = noteLabelsToMidi[requestedNoteName];
     const source = audioContext.createOscillator();
     source.type = "square";
-    source.frequency.value = frequencies[requestedNoteName];
+    source.frequency.value = noteToFrequency(midiNote);
 
     const gainNode = audioContext.createGain();
     gainNode.gain.value = 0.05;

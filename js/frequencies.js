@@ -1,5 +1,3 @@
-import { mapValues } from "lodash";
-
 // TODO: We should stop using note labels and use the midi notes directly.
 export const noteLabelsToMidi = {
   C3: 36,
@@ -50,5 +48,3 @@ export function noteToFrequency(note) {
 export function frequencyToNote(frequency) {
   return CONST_FIXED_NOTE + Math.log(frequency / CONST_F0) / CONST_LOG_A;
 }
-
-export const frequencies = mapValues(noteLabelsToMidi, noteToFrequency);
