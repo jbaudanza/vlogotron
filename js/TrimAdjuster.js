@@ -75,6 +75,12 @@ const Canvas = styled.canvas`
   margin-top: ${grabberPadding}px;
 `;
 
+function constrainRange(number) {
+  if (number < 0) return 0;
+  if (number > 1) return 1;
+  return number;
+}
+
 export default class TrimAdjuster extends React.Component {
   constructor(props) {
     super();
@@ -102,12 +108,16 @@ export default class TrimAdjuster extends React.Component {
   }
 
   _filteredOnChangeStart(value) {
+    value = constrainRange(value);
+
     if (value >= 0 && value < this.props.trimEnd) {
       this.props.onChangeStart(value);
     }
   }
 
   _filteredOnChangeEnd(value) {
+    value = constrainRange(value);
+
     if (value <= 1 && value > this.props.trimStart) {
       this.props.onChangeEnd(value);
     }
@@ -122,7 +132,14 @@ export default class TrimAdjuster extends React.Component {
   }
 
   onKeyDown(callback, prop, event) {
-    const interval = 0.01;
+    let interval;
+
+    if (event.shiftKey) {
+      interval = 0.10;
+    } else {
+      interval = 0.01;
+    }
+
     if (event.key === "ArrowLeft") {
       callback(this.props[prop] - interval);
     }
