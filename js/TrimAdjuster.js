@@ -90,12 +90,12 @@ export default class TrimAdjuster extends React.Component {
     this.onMouseDownStart = this.onMouseDown.bind(
       this,
       this._filteredOnChangeStart.bind(this),
-      "right"
+      "left"
     );
     this.onMouseDownEnd = this.onMouseDown.bind(
       this,
       this._filteredOnChangeEnd.bind(this),
-      "left"
+      "right"
     );
     this.onKeyDownTrimStart = this.onKeyDown.bind(
       this,
@@ -158,11 +158,13 @@ export default class TrimAdjuster extends React.Component {
     const grabberEl = findWrappingClass(event.target, "grabber");
 
     const rect = this.wrapperEl.getBoundingClientRect();
-    const grabberOffset =
-      grabberEl.getBoundingClientRect()[edge] - event.clientX;
 
+    let grabberOffset;
     let adjust;
-    if (edge === "left") {
+
+    grabberOffset = -(event.clientX - grabberEl.getBoundingClientRect()[edge]);
+
+    if (edge === 'left') {
       adjust = +grabberWidth;
     } else {
       adjust = -grabberWidth;
