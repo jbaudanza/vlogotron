@@ -52,8 +52,13 @@ const VideoWrapper = styled.div`
 
 const colors = {
   slateGrey: "#5d617a",
-  darkSkyBlue: "#29bdec"
+  darkSkyBlue: "#29bdec",
+  duskyBlue: "#4b57a3"
 };
+
+const DoneButton = styled(Link).attrs({ className: "action" })`
+  background-color: ${colors.duskyBlue};
+`;
 
 function TrimmedDiv(props) {
   const style = {
@@ -351,6 +356,11 @@ const TrimAdjusterWrapper = styled.div`
   padding-top: 10px;
 `;
 
+const ActionWrapper = styled.div`
+  margin-top: 40px;
+  text-align: center;
+`;
+
 class TrimOverlay extends React.Component {
   render() {
     const trimmedDuration =
@@ -416,6 +426,12 @@ class TrimOverlay extends React.Component {
           />
           <AnimatedAudioPlaybackPositionMarker {...playbackAnimationProps} />
         </TrimAdjusterWrapper>
+
+        <ActionWrapper>
+          <DoneButton onClick={this.props.onFinish}>
+            Done
+          </DoneButton>
+        </ActionWrapper>
       </Overlay>
     );
   }
@@ -484,6 +500,12 @@ function controller(props$, actions) {
   trimStart$.connect();
   trimEnd$.connect();
 
+  actions.finish$
+    .withLatestFrom(props$, trimStart$, trimEnd$)
+    .subscribe(([value, props, trimStart, trimEnd]) =>
+      props.onFinish(trimStart, trimEnd)
+    );
+
   const playbackStartedAt$ = actions.play$
     .withLatestFrom(props$, trimStart$, trimEnd$)
     .switchMap(([action, props, trimStart, trimEnd]) =>
@@ -503,7 +525,9 @@ function controller(props$, actions) {
     trimEnd$,
     playbackStartedAt$,
     (props, trimStart, trimEnd, playbackStartedAt) => ({
-      ...props,
+      videoClip: props.videoClip,
+      onClose: props.onClose,
+      audioBuffer: props.audioBuffer,
       playbackStartedAt,
       trimStart,
       trimEnd
@@ -515,5 +539,6 @@ export default createControlledComponent(controller, StyledTrimOverlay, [
   "play",
   "pause",
   "changeStart",
-  "changeEnd"
+  "changeEnd",
+  "finish"
 ]);
