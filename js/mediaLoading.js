@@ -179,9 +179,22 @@ export function subscribeToSongLocation(
     audioBuffers$.map(o => mapValues(o, audioBuffer => ({ audioBuffer }))),
     (x, y) => merge({}, x, y)
   );
+
+  // This tacks on trimStart and trimEnd to the videoClip. It might be nice to
+  // clean this up a bit
+  const videoClipsWithTrim$ = Observable.combineLatest(
+    videoClips$,
+    song$
+      .filter(identity)
+      .map(song =>
+        mapValues(song.videoClips, o => pick(o, "trimStart", "trimEnd"))
+      ),
+    (videoClips, trimSettings) => merge({}, videoClips, trimSettings)
+  ).map(videoClips => pickBy(videoClips, v => v.clipId));
+
   return {
     song$,
-    videoClips$,
+    videoClips$: videoClipsWithTrim$,
     workspace$,
     audioSources$,
     clearedEvents$,

@@ -492,8 +492,16 @@ function schedulePlaybackNow(
 }
 
 function controller(props$, actions) {
-  const trimStart$ = actions.changeStart$.startWith(0).publishReplay();
-  const trimEnd$ = actions.changeEnd$.startWith(1).publishReplay();
+  const initialProps$ = props$.take(1);
+
+  const trimStart$ = initialProps$
+    .map(props => props.trimStart)
+    .concat(actions.changeStart$)
+    .publishReplay();
+  const trimEnd$ = initialProps$
+    .map(props => props.trimEnd)
+    .concat(actions.changeEnd$)
+    .publishReplay();
 
   // The source observables for these connections will end when the component
   // is unmounted, so there's no need to manage the subscriptions
