@@ -6,7 +6,7 @@ import type { Subject } from "rxjs/Subject";
 
 import StorageSubject from "./StorageSubject";
 
-import { concat, omit, findIndex, filter, identity, last } from "lodash";
+import { concat, omit, merge, findIndex, filter, identity, last } from "lodash";
 
 type NoteSchedule = [string, number, number];
 
@@ -162,9 +162,13 @@ function reduceEditsToNotes(
   }
 }
 
-// TODO: Update this to allow for changes to the trim and the gain
 function reduceEditsToSong(song: Song, edit: SongEdit): Song {
   switch (edit.action) {
+    case "change-trim":
+      const videoClips = merge({}, song.videoClips, {
+        [edit.note]: { trimStart: edit.trimStart, trimEnd: edit.trimEnd }
+      });
+      return { ...song, videoClips };
     case "change-bpm":
       return { ...song, bpm: edit.bpm };
     case "change-title":

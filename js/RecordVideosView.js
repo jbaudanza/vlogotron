@@ -12,7 +12,7 @@ import TrimOverlay from "./TrimOverlay";
 export default class RecordVideosView extends React.Component {
   constructor() {
     super();
-    bindAll(this, "bindVideoGrid", "onChangeTitle", "onTrim", "onFinishTrim");
+    bindAll(this, "bindVideoGrid", "onChangeTitle", "onTrim");
   }
 
   bindVideoGrid(component) {
@@ -36,8 +36,16 @@ export default class RecordVideosView extends React.Component {
     this.props.onNavigate("#trim?note=" + note);
   }
 
-  onFinishTrim(trimStart, trimEnd) {
-    console.log("onFinishedTrim", arguments);
+  onFinishTrim(note, trimStart, trimEnd) {
+    this.props.actions.subjects.editSong$.next({
+      action: "change-trim",
+      note,
+      trimStart,
+      trimEnd
+    });
+
+    // Dismiss the overlay
+    this.props.onNavigate(this.props.location.pathname);
   }
 
   render() {
@@ -84,7 +92,7 @@ export default class RecordVideosView extends React.Component {
             onClose={this.props.location.pathname}
             videoClip={this.props.videoClips[note]}
             audioBuffer={this.props.audioSources[note].audioBuffer}
-            onFinish={this.onFinishTrim}
+            onFinish={this.onFinishTrim.bind(this, note)}
           />
         );
       }
