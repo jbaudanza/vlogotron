@@ -190,7 +190,7 @@ export function subscribeToSongLocation(
         mapValues(song.videoClips, o => pick(o, "trimStart", "trimEnd"))
       ),
     (videoClips, trimSettings) => merge({}, videoClips, trimSettings)
-  ).map(videoClips => pickBy(videoClips, v => v.clipId));
+  ).map(videoClips => pickBy(videoClips, v => "sources" in v));
 
   return {
     song$,
