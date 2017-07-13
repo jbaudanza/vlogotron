@@ -8,6 +8,7 @@ import SongEditorHeader from "./SongEditorHeader";
 import PageTextFooter from "./PageTextFooter";
 import LoginOverlay from "./LoginOverlay";
 import TrimOverlay from "./TrimOverlay";
+import NotificationPopup from "./NotificationPopup";
 
 export default class RecordVideosView extends React.Component {
   constructor() {
@@ -159,6 +160,7 @@ export default class RecordVideosView extends React.Component {
               </div>}
 
         </div>
+        <NotificationPopup />
         {overlay}
       </div>
     );

@@ -3,6 +3,7 @@ import React from "react";
 import { Observable } from "rxjs/Observable";
 import styled from "styled-components";
 
+import colors from "./colors";
 import Overlay from "./Overlay";
 import Link from "./Link";
 import TrimAdjuster from "./TrimAdjuster";
@@ -49,12 +50,6 @@ const VideoWrapper = styled.div`
     left: 5px;
   }
 `;
-
-const colors = {
-  slateGrey: "#5d617a",
-  darkSkyBlue: "#29bdec",
-  duskyBlue: "#4b57a3"
-};
 
 const DoneButton = styled(Link).attrs({ className: "action" })`
   background-color: ${colors.duskyBlue};

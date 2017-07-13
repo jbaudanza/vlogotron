@@ -1,0 +1,8 @@
+export default {
+  purple: "#4b57a3",
+  lightBlueGreyTwo: "#d7dced",
+  slateGrey: "#5d617a",
+  darkSkyBlue: "#29bdec",
+  duskyBlue: "#4b57a3",
+  greyishBrown: "#434343"
+};
