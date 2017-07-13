@@ -353,7 +353,9 @@ function getCurrentTime() {
 
 const TrimAdjusterWrapper = styled.div`
   position: relative;
-  padding-top: 10px;
+  padding-top: 8px;
+  height: 66px;
+  box-sizing: border-box;
 `;
 
 const ActionWrapper = styled.div`
@@ -422,7 +424,7 @@ class TrimOverlay extends React.Component {
             onChangeStart={this.props.onChangeStart}
             onChangeEnd={this.props.onChangeEnd}
             width={contentWidth}
-            height={50}
+            height={51}
           />
           <AnimatedAudioPlaybackPositionMarker {...playbackAnimationProps} />
         </TrimAdjusterWrapper>
@@ -446,6 +448,7 @@ TrimOverlay.propTypes = {
 const StyledTrimOverlay = styled(TrimOverlay)`
   .content {
     width: ${contentWidth}px;
+    padding: 0 40px 20px 40px;
     text-align: left;
   }
   // Disable scrolling

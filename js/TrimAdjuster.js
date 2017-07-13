@@ -37,7 +37,7 @@ function draw(array, context, width, height) {
   }
 }
 
-const grabberPadding = 2;
+const grabberPadding = 4;
 
 const TrimAdjusterWrapper = styled.div`
   position: relative;
