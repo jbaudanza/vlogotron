@@ -44,6 +44,7 @@ export default class VideoCell extends React.Component {
     let shadeEl;
     let clearEl;
     let trimEl;
+    let noteLabelEl;
     let spinnerEl;
     let pitchGuideEl;
 
@@ -160,6 +161,12 @@ export default class VideoCell extends React.Component {
       );
     }
 
+    if (!this.props.mediaStream) {
+      noteLabelEl = (
+        <NoteLabel note={this.props.label} octave={this.props.octave} />
+      );
+    }
+
     return (
       <div
         className={classNames("video-cell touchable", {
@@ -172,7 +179,7 @@ export default class VideoCell extends React.Component {
         {countdownEl}
         {stopActionEl}
         {shadeEl}
-        <NoteLabel note={this.props.label} octave={this.props.octave} />
+        {noteLabelEl}
         {clearEl}
         {trimEl}
         {spinnerEl}
