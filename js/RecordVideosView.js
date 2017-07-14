@@ -9,6 +9,7 @@ import PageTextFooter from "./PageTextFooter";
 import LoginOverlay from "./LoginOverlay";
 import TrimOverlay from "./TrimOverlay";
 import NotificationPopup from "./NotificationPopup";
+import SubHeader from "./SubHeader";
 
 export default class RecordVideosView extends React.Component {
   constructor() {
@@ -111,6 +112,10 @@ export default class RecordVideosView extends React.Component {
           primaryAction={{ href: nextPathname }}
           primaryActionLabel={this.context.messages["next-action"]()}
         />
+        <SubHeader>
+          Whats up!?
+          <a href="http://www.example.com">Click this link!</a>
+        </SubHeader>
 
         <div className="page-content">
           {this.props.supported

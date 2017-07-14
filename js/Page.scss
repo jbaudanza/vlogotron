@@ -55,19 +55,11 @@
     }
   }
 
-  .instructions {
-    margin-top: 20px;
-    font-weight: 500; // Medium
-    font-size: 17px;
-    color: $color-blue-grey;
-    text-align: center;
-
-    .mobile-text {
-      display: none;
-    }
-    .desktop-text {
-      display: inline;
-    }
+  .mobile-text {
+    display: none;
+  }
+  .desktop-text {
+    display: inline;
   }
 
   .song-editor-header {
@@ -372,13 +364,11 @@ and (max-device-width : 667px) {
       order: 2;
     }
 
-    .instructions {
-      .mobile-text {
-        display: inline;
-      }
-      .desktop-text {
-        display: none;
-      }
+    .mobile-text {
+      display: inline;
+    }
+    .desktop-text {
+      display: none;
     }
   }
 }

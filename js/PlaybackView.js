@@ -7,6 +7,7 @@ import classNames from "classnames";
 import Link from "./Link";
 import PlaybackHeader from "./PlaybackHeader";
 import VideoGrid from "./VideoGrid";
+import SubHeader from "./SubHeader";
 
 export default class PlaybackView extends React.Component {
   constructor() {
@@ -59,14 +60,14 @@ export default class PlaybackView extends React.Component {
         />
 
         <div className="page-content">
-          <div className="instructions">
+          <SubHeader>
             <span className="mobile-text">
               {this.context.messages["mobile-playback-instructions"]()}
             </span>
             <span className="desktop-text">
               {this.context.messages["desktop-playback-instructions"]()}
             </span>
-          </div>
+          </SubHeader>
           <VideoGrid
             readonly
             videoClips={this.props.videoClips}

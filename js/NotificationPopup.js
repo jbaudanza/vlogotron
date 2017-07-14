@@ -139,5 +139,6 @@ export default styled(NotificationPopup)`
 
   a {
     color: ${colors.duskyBlue};
+    text-decoration: none;
   }
 `;
