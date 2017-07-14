@@ -8,6 +8,7 @@ import SongEditorHeader from "./SongEditorHeader";
 import PageTextFooter from "./PageTextFooter";
 import LoginOverlay from "./LoginOverlay";
 import TrimOverlay from "./TrimOverlay";
+import ShareOverlay from "./ShareOverlay";
 import NotificationPopup from "./NotificationPopup";
 import SubHeader from "./SubHeader";
 
@@ -102,6 +103,10 @@ export default class RecordVideosView extends React.Component {
       }
     }
 
+    if (this.props.location.hash === "#share") {
+      overlay = <ShareOverlay onClose={this.props.location.pathname} />;
+    }
+
     return (
       <div className="page-vertical-wrapper record-videos-page">
         <SongEditorHeader
@@ -114,7 +119,7 @@ export default class RecordVideosView extends React.Component {
         />
         <SubHeader>
           Whats up!?
-          <a href="http://www.example.com">Click this link!</a>
+          <a href="#share">Click this link!</a>
         </SubHeader>
 
         <div className="page-content">

@@ -48,7 +48,7 @@ function RobotSvg(props) {
       <defs>
         <path id="svg-robot-avatar-a" d="M0 28.282h32.994V.092H0z" />
       </defs>
-      <g fill="none" fill-rule="evenodd" transform="translate(2 2)">
+      <g fill="none" fillRule="evenodd" transform="translate(2 2)">
         <circle
           cx="23.5"
           cy="23.5"
