@@ -69,7 +69,7 @@ export default class TextithCopyButton extends React.Component {
 
         this.timeoutId = setTimeout(
           () => this.setState({ recentlyCopied: false }),
-          3000
+          1000
         );
       }
     }

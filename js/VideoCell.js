@@ -133,23 +133,19 @@ export default class VideoCell extends React.Component {
       });
 
       videoEl = (
-        <Link
-          className={className}
-          onClick={this.props.onStartRecording}
-          enabled={!this.props.mediaStream && !this.props.readonly}
-        >
-          <svg
-            version="1.1"
-            width="100px"
-            height="125px"
-            className="background"
+        <div className={className}>
+          <Link
+            onClick={this.props.onStartRecording}
+            className="start-record-button"
           >
+            <svg version="1.1" width="20px" height="25px">
+              <use xlinkHref="#svg-camera" />
+            </svg>
+          </Link>
+          <svg version="1.1" width="100px" height="125px" className="robot">
             <use xlinkHref={svgId} />
           </svg>
-          <span className="tip">
-            {this.context.messages["record-videos-tip-short"]()}
-          </span>
-        </Link>
+        </div>
       );
     }
 

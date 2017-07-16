@@ -118,8 +118,13 @@ export default class RecordVideosView extends React.Component {
           primaryActionLabel={this.context.messages["next-action"]()}
         />
         <SubHeader>
-          Whats up!?
-          <a href="#share">Click this link!</a>
+          <span>
+            Hey! You have 16 empty notes, record them now or just leave blank and share with your friends so they can help you fill all in.
+          </span>
+          {" "}
+          <a href="#share">
+            Copy link to share
+          </a>
         </SubHeader>
 
         <div className="page-content">
