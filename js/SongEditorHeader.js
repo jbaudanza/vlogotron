@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import React from "react";
+import PageHeader from "./PageHeader";
 
 import { bindAll } from "lodash";
 
@@ -58,7 +59,7 @@ export default class SongEditorHeader extends React.Component {
 
   render() {
     return (
-      <div className="page-header song-editor-header">
+      <PageHeader className="song-editor-header">
         <div className="first">
           <Link className="action" {...this.props.secondaryAction}>
             {this.props.secondaryActionLabel}
@@ -88,7 +89,7 @@ export default class SongEditorHeader extends React.Component {
             {this.props.primaryActionLabel}
           </Link>
         </div>
-      </div>
+      </PageHeader>
     );
   }
 }

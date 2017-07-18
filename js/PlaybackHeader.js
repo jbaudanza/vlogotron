@@ -3,6 +3,7 @@ import React from "react";
 import Link from "./Link";
 
 import PlayButton from "./PlayButton";
+import PageHeader from "./PageHeader";
 
 import { formatSeconds } from "./format";
 import classNames from "classnames";
@@ -34,7 +35,7 @@ export default class PlaybackHeader extends React.Component {
     const title = "vlogotron: remix my face!";
 
     return (
-      <div className="page-header">
+      <PageHeader>
         <PlayButton
           size={32}
           onClickPlay={this.props.onClickPlay}
@@ -100,7 +101,7 @@ export default class PlaybackHeader extends React.Component {
             {this.context.messages["remix-action"]()}
           </Link>
         </div>
-      </div>
+      </PageHeader>
     );
   }
 }

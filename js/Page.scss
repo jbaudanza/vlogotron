@@ -91,61 +91,6 @@
 
   }
 
-  .page-header {
-    padding: 0 24px;
-
-    flex: 0 0 $header-height;
-
-    background-color: $color-purple;
-    display: flex;
-
-    .song-title {
-      font-weight: 500; // Medium
-      font-size: 17px;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    .play-button {
-      display: inline-block;
-      width: 32px;
-      height: 32px;
-      margin-top: $header-height/2 - 16px;
-    }
-
-    .song-info {
-      flex-grow: 1;
-      margin-left: 12px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-
-      font-weight: 500; // medium
-      color: white;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-
-      .by {
-        opacity: 0.5;
-      }
-      .top {
-        font-size: 17px;
-      }
-      .bottom {
-        font-size: 10px;
-      }
-    }
-
-    .action {
-      margin: 0 7px;
-      margin-top: $header-height / 2 - 14px;
-      border: solid 1px white;
-      white-space: nowrap;
-      display: block;
-      float: left;
-    }
-  }
-
   a.action, select.action, span.action {
     font-size: 11px;
     font-weight: 600; // semi-bold
