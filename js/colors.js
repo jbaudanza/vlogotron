@@ -7,5 +7,6 @@ export default {
   greyishBrown: "#434343",
   duskTwo: "#3b406b",
   charcoalGrey: "#46484f",
-  cloudyBlue: "#bdc1d7"
+  cloudyBlue: "#bdc1d7",
+  dark: "#1f233d"
 };

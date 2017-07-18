@@ -3,6 +3,7 @@ import React from "react";
 
 import { bindAll, bindKey, forEach, intersection } from "lodash";
 
+import RecordingNotSupported from "./RecordingNotSupported";
 import VideoGrid from "./VideoGrid";
 import SongEditorHeader from "./SongEditorHeader";
 import PageTextFooter from "./PageTextFooter";
@@ -123,67 +124,42 @@ export default class RecordVideosView extends React.Component {
           primaryAction={{ href: nextPathname }}
           primaryActionLabel={this.context.messages["next-action"]()}
         />
-        <SubHeader>
-          <span>
-            {this.context.messages["sub-header-tip-for-op"]({
-              EMPTY_COUNT: emptyCount
-            })}
-          </span>
-          {" "}
-          <a href="#share">
-            Copy link to share
-          </a>
-        </SubHeader>
-
         <div className="page-content">
           {this.props.supported
-            ? <VideoGrid
-                readonly
-                videoClips={this.props.videoClips}
-                playCommands$={this.props.playCommands$}
-                readonly={false}
-                loading={this.props.loading}
-                onStartRecording={callbacks.onStartRecording}
-                onStopRecording={callbacks.onStopRecording}
-                onClear={callbacks.onClearVideoClip}
-                onTrim={this.onTrim}
-                mediaStream={this.props.mediaStream}
-                countdownUntilRecord={this.props.countdownUntilRecord}
-                durationRecorded={this.props.durationRecorded}
-                noteBeingRecorded={this.props.noteBeingRecorded}
-                pitchCorrection={this.props.pitchCorrection}
-                ref={this.bindVideoGrid}
-              />
-            : <div className="text-blob">
-                <h3>Sorry, we can't record videos in your browser.</h3>
-
-                <p>
-                  We wish we could, but the Vologtron uses
+            ? <div>
+                <SubHeader>
+                  <span>
+                    {this.context.messages["sub-header-tip-for-op"]({
+                      EMPTY_COUNT: emptyCount
+                    })}
+                  </span>
                   {" "}
-                  <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder">
-                    technology
+                  <a href="#share">
+                    Copy link to share
                   </a>
-                  {" "}
-                  to
-                  record video and audio that isn't available in your web browser.
-                </p>
-
-                <p>
-                  If you have
-                  {" "}
-                  <a href="https://www.google.com/chrome">Chrome</a>
-                  {" "}
-                  or
-                  {" "}
-                  <a href="https://www.mozilla.org/firefox">FireFox</a>
-                  {" "}
-                  installed, give
-                  that a try.
-                </p>
-              </div>}
+                </SubHeader>
+                <VideoGrid
+                  readonly
+                  videoClips={this.props.videoClips}
+                  playCommands$={this.props.playCommands$}
+                  readonly={false}
+                  loading={this.props.loading}
+                  onStartRecording={callbacks.onStartRecording}
+                  onStopRecording={callbacks.onStopRecording}
+                  onClear={callbacks.onClearVideoClip}
+                  onTrim={this.onTrim}
+                  mediaStream={this.props.mediaStream}
+                  countdownUntilRecord={this.props.countdownUntilRecord}
+                  durationRecorded={this.props.durationRecorded}
+                  noteBeingRecorded={this.props.noteBeingRecorded}
+                  pitchCorrection={this.props.pitchCorrection}
+                  ref={this.bindVideoGrid}
+                />
+                <NotificationPopup />
+              </div>
+            : <RecordingNotSupported />}
 
         </div>
-        <NotificationPopup />
         {overlay}
       </div>
     );
