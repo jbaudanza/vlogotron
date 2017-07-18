@@ -7,6 +7,7 @@ import Link from "./Link";
 import NoteLabel from "./NoteLabel";
 import PitchGuide from "./PitchGuide";
 import SynchronizedVideo from "./SynchronizedVideo";
+import colors from "./colors";
 
 import { formatSeconds } from "./format";
 
@@ -138,7 +139,12 @@ export default class VideoCell extends React.Component {
             onClick={this.props.onStartRecording}
             className="start-record-button"
           >
-            <svg version="1.1" width="20px" height="25px">
+            <svg
+              version="1.1"
+              width="20px"
+              height="25px"
+              stroke={colors.cloudyBlue}
+            >
               <use xlinkHref="#svg-camera" />
             </svg>
           </Link>

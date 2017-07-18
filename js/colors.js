@@ -6,5 +6,6 @@ export default {
   duskyBlue: "#4b57a3",
   greyishBrown: "#434343",
   duskTwo: "#3b406b",
-  charcoalGrey: "#46484f"
+  charcoalGrey: "#46484f",
+  cloudyBlue: "#bdc1d7"
 };

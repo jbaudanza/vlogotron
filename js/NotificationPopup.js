@@ -8,22 +8,34 @@ import styled from "styled-components";
 
 class NotificationPopup extends React.Component {
   render() {
+    const name = "Jonathan";
+    const avatar = (
+      <img
+        width={50}
+        height={50}
+        src="https://lh5.googleusercontent.com/-ZOYEtSkY-kg/AAAAAAAAAAI/AAAAAAAABHg/eKUqXXkA_yk/photo.jpg"
+      />
+    );
+    //const avatar = robotSvg;
+
     return (
       <div className={this.props.className}>
         <AvatarWrapper>
-          {/*
-          <img width={50} height={50} src="https://lh5.googleusercontent.com/-ZOYEtSkY-kg/AAAAAAAAAAI/AAAAAAAABHg/eKUqXXkA_yk/photo.jpg" />
-          */}
-          {robotSvg}
+          {avatar}
         </AvatarWrapper>
-        <div>
-          Hello, Vlogotron!
-        </div>
-        <div>
-          <a href="http://www.example.com">
-            It's a link
-          </a>
-        </div>
+        <p>
+          {name} needs your help finishing this song. Pick a square
+          with a robot in it and click the
+          <CameraIcon /> icon
+          to replace the robot with your own voice.
+        </p>
+        <p>
+          Watch this
+          {" "}
+          <a href="http://www.example.com">Tutorial video</a>
+          {" "}
+          for more instructions.
+        </p>
         <CloseLink href="#">
           <svg version="1.1" width="13px" height="14px">
             <use xlinkHref="#svg-close" />
@@ -54,6 +66,29 @@ const CloseLink = styled(Link)`
   right: 9px;
   top: 9px;
 `;
+
+const CameraIconWrapper = styled.span`
+  display: inline-block;
+  width: 20px;
+  height: 10px;
+  overflow: hidden;
+  margin: 0 2px;
+
+  svg {
+    margin-top: -5px;
+    stroke: #333;
+  }
+`;
+
+function CameraIcon(props) {
+  return (
+    <CameraIconWrapper>
+      <svg version="1.1" width="20px" height="25px">
+        <use xlinkHref="#svg-camera" />
+      </svg>
+    </CameraIconWrapper>
+  );
+}
 
 const robotSvg = (
   <svg
@@ -121,18 +156,18 @@ export default styled(NotificationPopup)`
   background-color: red;
   position: fixed;
   width: 207px;
-  height: 114px;
   bottom: 35px;
   right: 22px;
   border-radius: 4px;
   background-color: #fff;
   box-shadow: 0 2px 4px 0 ${colors.lightBlueGreyTwo};
 
-  padding: 30px 15px 0 15px;
+  padding: 30px 15px 15px 15px;
   box-sizing: border-box;
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.2px;
+  line-height: 1.5;
   text-align: center;
   color: ${colors.greyishBrown};
 
