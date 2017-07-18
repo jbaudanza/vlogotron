@@ -2,10 +2,8 @@ import PropTypes from "prop-types";
 import React from "react";
 import Link from "./Link";
 
-import PlayButton from "./PlayButton";
 import PageHeader from "./PageHeader";
 
-import { formatSeconds } from "./format";
 import classNames from "classnames";
 
 import { ShareButtons, generateShareIcon } from "react-share";
@@ -35,30 +33,15 @@ export default class PlaybackHeader extends React.Component {
     const title = "vlogotron: remix my face!";
 
     return (
-      <PageHeader>
-        <PlayButton
-          size={32}
-          onClickPlay={this.props.onClickPlay}
-          onClickPause={this.props.onClickPause}
-          isPlaying={this.props.isPlaying}
-          enabled={!this.props.loading}
-        />
-
-        <div className="song-info">
-          <div className="top">
-            <span className="song-title">{this.props.songTitle}</span>
-            <span className="by"> by </span>
-            <span className="song-author">{this.props.authorName}</span>
-          </div>
-          <div className="bottom">
-            {formatSeconds(this.props.playbackPositionInSeconds)}
-            {" "}
-            |
-            {" "}
-            {formatSeconds(this.props.songLength)}
-          </div>
-        </div>
-
+      <PageHeader
+        songTitle={this.props.songTitle}
+        authorName={this.props.authorName}
+        songLength={this.props.songLength}
+        playbackPositionInSeconds={this.props.playbackPositionInSeconds}
+        onClickPlay={this.props.onClickPlay}
+        onClickPause={this.props.onClickPause}
+        isPlaying={this.props.isPlaying}
+      >
         <div className="actions">
           <Link
             onClick={this.toggleShareButtons}
