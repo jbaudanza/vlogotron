@@ -44,5 +44,6 @@
   "privacy-policy-link": "PP",
   "contact-link": "contact",
   "delete-song-action": "Delete Song",
-  "edit-song-action": "Edit Song"
+  "edit-song-action": "Edit Song",
+  "sub-header-tip-for-op": "Hey! You have {EMPTY_COUNT} empty notes, record them now or just leave blank and share with your friends so they can help you fill all in."
 }

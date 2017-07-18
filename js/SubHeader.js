@@ -14,6 +14,9 @@ const SubHeader = styled.div`
   height: 40px;
   line-height: 40px;
 
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
   .mobile-text {
     display: none;
   }

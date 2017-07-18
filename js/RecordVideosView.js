@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import React from "react";
 
-import { bindAll, bindKey, forEach } from "lodash";
+import { bindAll, bindKey, forEach, intersection } from "lodash";
 
 import VideoGrid from "./VideoGrid";
 import SongEditorHeader from "./SongEditorHeader";
@@ -11,6 +11,8 @@ import TrimOverlay from "./TrimOverlay";
 import ShareOverlay from "./ShareOverlay";
 import NotificationPopup from "./NotificationPopup";
 import SubHeader from "./SubHeader";
+
+import { notes } from "./VideoGrid";
 
 export default class RecordVideosView extends React.Component {
   constructor() {
@@ -107,6 +109,10 @@ export default class RecordVideosView extends React.Component {
       overlay = <ShareOverlay onClose={this.props.location.pathname} />;
     }
 
+    const emptyCount =
+      notes.length -
+      intersection(Object.keys(this.props.videoClips), notes).length;
+
     return (
       <div className="page-vertical-wrapper record-videos-page">
         <SongEditorHeader
@@ -119,7 +125,9 @@ export default class RecordVideosView extends React.Component {
         />
         <SubHeader>
           <span>
-            Hey! You have 16 empty notes, record them now or just leave blank and share with your friends so they can help you fill all in.
+            {this.context.messages["sub-header-tip-for-op"]({
+              EMPTY_COUNT: emptyCount
+            })}
           </span>
           {" "}
           <a href="#share">
