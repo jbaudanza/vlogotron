@@ -62,35 +62,6 @@
     display: inline;
   }
 
-  .song-editor-header {
-    display: flex;
-
-    .first, .last {
-      flex: 0;
-    }
-    .middle {
-      flex: 1;
-      text-align: center;
-      line-height: $header-height;
-
-      a {
-        text-decoration: none;
-        color: white;
-      }
-
-      input {
-        font-family: $font-family;
-        margin-top: 17px;
-        width: 216px;
-      }
-    }
-
-    .song-title {
-      margin-right: 10px;
-    }
-
-  }
-
   a.action, select.action, span.action {
     font-size: 11px;
     font-weight: 600; // semi-bold

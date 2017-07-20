@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import React from "react";
 
-import { bindAll, bindKey, forEach, intersection } from "lodash";
+import { bindAll, bindKey, forEach, intersection, isEmpty } from "lodash";
 
 import RecordingNotSupported from "./RecordingNotSupported";
 import VideoGrid from "./VideoGrid";
@@ -65,12 +65,9 @@ export default class RecordVideosView extends React.Component {
   }
 
   render() {
-    const callbacks = this.props.actions.callbacks;
+    const loadingAsBool = !isEmpty(this.props.loading);
 
-    const nextPathname = this.props.location.pathname.replace(
-      "/record-videos",
-      "/note-editor"
-    );
+    const callbacks = this.props.actions.callbacks;
 
     let footer;
     if (this.props.error) {
@@ -143,6 +140,7 @@ export default class RecordVideosView extends React.Component {
           onChangeTitle={this.onChangeTitle}
           songLength={this.props.songLength}
           authorName={this.props.authorName}
+          loading={loadingAsBool}
           playbackPositionInSeconds={this.props.playbackPositionInSeconds}
           onClickPlay={this.props.actions.callbacks.onPlay}
           onClickPause={this.props.actions.callbacks.onPause}

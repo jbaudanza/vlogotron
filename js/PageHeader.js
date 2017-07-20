@@ -6,6 +6,7 @@ import colors from "./colors";
 import { formatSeconds } from "./format";
 
 import PlayButton from "./PlayButton";
+import EditableTitle from "./EditableTitle";
 
 // XXX: Duplicated in Page.scss
 const headerHeight = 63;
@@ -56,10 +57,6 @@ const HeaderMiddle = styled(VerticallyCenteredText)`
   font-weight: 500; // medium
   color: white;
 
-  .song-title {
-    font-size: 18px;
-  }
-
   .author-name {
     font-size: 12px;
   }
@@ -103,7 +100,12 @@ export default class PageHeader extends React.Component {
         </HeaderLeft>
 
         <HeaderMiddle>
-          <div className="song-title">{this.props.songTitle}</div>
+          {
+            <EditableTitle
+              value={this.props.songTitle}
+              onChange={this.props.onChangeTitle}
+            />
+          }
           <div className="author-name">
             <span className="by"> by </span>
             <span className="song-author">{this.props.authorName}</span>
