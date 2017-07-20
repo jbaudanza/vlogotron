@@ -5,13 +5,14 @@ import { bindAll, bindKey, forEach, intersection } from "lodash";
 
 import RecordingNotSupported from "./RecordingNotSupported";
 import VideoGrid from "./VideoGrid";
-import SongEditorHeader from "./SongEditorHeader";
+import PageHeader from "./PageHeader";
 import PageTextFooter from "./PageTextFooter";
 import LoginOverlay from "./LoginOverlay";
 import TrimOverlay from "./TrimOverlay";
 import ShareOverlay from "./ShareOverlay";
 import NotificationPopup from "./NotificationPopup";
 import SubHeader from "./SubHeader";
+import Link from "./Link";
 
 import { notes } from "./VideoGrid";
 
@@ -116,14 +117,26 @@ export default class RecordVideosView extends React.Component {
 
     return (
       <div className="page-vertical-wrapper record-videos-page">
-        <SongEditorHeader
+        <PageHeader
+          isPlaying={this.props.isPlaying}
           songTitle={this.props.songTitle}
           onChangeTitle={this.onChangeTitle}
-          secondaryAction={{ href: "/" }}
-          secondaryActionLabel={this.context.messages["cancel-action"]()}
-          primaryAction={{ href: nextPathname }}
-          primaryActionLabel={this.context.messages["next-action"]()}
-        />
+          songLength={this.props.songLength}
+          authorName={this.props.authorName}
+          playbackPositionInSeconds={this.props.playbackPositionInSeconds}
+          onClickPlay={this.props.actions.callbacks.onPlay}
+          onClickPause={this.props.actions.callbacks.onPause}
+        >
+          <div className="actions">
+            <Link className="action">
+              Change melody
+            </Link>
+
+            <Link className="action">
+              Delete
+            </Link>
+          </div>
+        </PageHeader>
         <div className="page-content">
           {this.props.supported
             ? <div>

@@ -72,9 +72,11 @@ export function routeToPageConfig(route) {
           "editSong",
           "dismissError",
           "clearVideoClip",
-          "playCommands$"
+          "playCommands$",
+          "pause",
+          "play"
         ],
-        sidebarVisible: false
+        sidebarVisible: true
       };
     case "note-editor":
       return {

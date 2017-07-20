@@ -41,6 +41,7 @@ export default class PlaybackHeader extends React.Component {
         onClickPlay={this.props.onClickPlay}
         onClickPause={this.props.onClickPause}
         isPlaying={this.props.isPlaying}
+        loading={this.props.loading}
       >
         <div className="actions">
           <Link

@@ -4,13 +4,11 @@ import { Subject } from "rxjs/Subject";
 import { omit } from "lodash";
 
 import audioContext from "./audioContext";
-import { combine as combinePlayCommands } from "./playCommands";
 import { start as startCapturing } from "./recording";
 
-import { startLivePlaybackEngine } from "./AudioPlaybackEngine";
+import { playbackControllerHelper } from "./playbackController";
 
-import { playCommands$ as midiPlayCommands$ } from "./midi";
-import { playCommands$ as keyboardPlayCommands$ } from "./keyboard";
+import { displayNameForUid } from "./database";
 
 import { updatesForNewSong } from "./localWorkspace";
 import { createVideoClip } from "./database";
@@ -97,36 +95,52 @@ export default function recordVideosController(
     finalMedia$.subscribe(e => mediaStore.recordedMedia$.next(e))
   );
 
-  const livePlayCommands$ = combinePlayCommands(
-    Observable.merge(
-      actions.playCommands$$,
-      Observable.of(midiPlayCommands$, keyboardPlayCommands$)
-    )
-  );
-
-  const playCommands$ = startLivePlaybackEngine(
-    mediaStore.audioSources$,
-    livePlayCommands$,
+  const parentView$ = playbackControllerHelper(
+    actions,
+    currentUser$,
+    mediaStore.song$.map(o => (o ? o.notes : [])),
+    mediaStore.song$.map(o => (o ? o.bpm : 120)).distinctUntilChanged(),
+    mediaStore,
     subscription
   );
 
+  const authorName$ = mediaStore.song$.switchMap(song => {
+    if (song) {
+      return displayNameForUid(firebase.database(), song.uid);
+    } else {
+      return Observable.empty();
+    }
+  });
+
   return Observable.combineLatest(
+    parentView$,
     mediaStore.videoClips$,
     recordingState$,
     currentUser$,
     mediaStore.song$,
     mediaStore.loading$,
     mediaStore.audioSources$,
-    (videoClips, recordingState, currentUser, song, loading, audioSources) => ({
+    authorName$,
+    (
+      parentView,
+      videoClips,
+      recordingState,
+      currentUser,
+      song,
+      loading,
+      audioSources,
+      authorName
+    ) => ({
+      ...parentView,
       ...recordingState,
-      playCommands$,
       currentUser,
       videoClips,
       song,
       loading,
       supported: "MediaRecorder" in window,
       songTitle: song ? song.title : null,
-      audioSources
+      audioSources,
+      authorName
     })
   );
 }
