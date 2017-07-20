@@ -11,6 +11,7 @@ import LoginOverlay from "./LoginOverlay";
 import TrimOverlay from "./TrimOverlay";
 import ShareOverlay from "./ShareOverlay";
 import NotificationPopup from "./NotificationPopup";
+import ChooseSongOverlay from "./ChooseSongOverlay";
 import SubHeader from "./SubHeader";
 import Link from "./Link";
 
@@ -41,6 +42,14 @@ export default class RecordVideosView extends React.Component {
 
   onTrim(note) {
     this.props.onNavigate("#trim?note=" + note);
+  }
+
+  onChooseSong(song) {
+    this.props.actions.subjects.editSong$.next({
+      action: "replace-all",
+      notes: song.notes
+    });
+    this.props.onNavigate(this.props.location.pathname);
   }
 
   onFinishTrim(note, trimStart, trimEnd) {
@@ -107,6 +116,17 @@ export default class RecordVideosView extends React.Component {
       }
     }
 
+    if (this.props.location.hash === "#choose-song") {
+      overlay = (
+        <ChooseSongOverlay
+          onSelect={this.onChooseSong}
+          media={this.props.media}
+          onClose={this.props.location.pathname}
+          bpm={this.props.bpm}
+        />
+      );
+    }
+
     if (this.props.location.hash === "#share") {
       overlay = <ShareOverlay onClose={this.props.location.pathname} />;
     }
@@ -128,7 +148,7 @@ export default class RecordVideosView extends React.Component {
           onClickPause={this.props.actions.callbacks.onPause}
         >
           <div className="actions">
-            <Link className="action">
+            <Link href="#choose-song" className="action">
               Change melody
             </Link>
 
