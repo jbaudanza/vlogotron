@@ -2,7 +2,6 @@
 <html>
   <head>
     <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, width=device-width">
-    <script src="/main.js"></script>
     <meta property="og:title" content="Vlogotron: Remix My Face!" />
     <meta property="og:url" content="https://www.vlogotron.com/" />
     <meta property="og:image" content="https://www.vlogotron.com/screenshot.png" />
@@ -11,19 +10,35 @@
     <div id="mount-node"></div>
   </body>
   <script type="text/javascript">
-    if ('AudioContext' in window || 'webkitAudioContext' in window) {
-      window.main(document.getElementById('mount-node'));
-    } else {
-      document.location = '/browser_not_supported.html';
+    function loadJs(src) {
+      var scriptEl = document.createElement('script');
+      scriptEl.src = src;
+      document.head.appendChild(scriptEl);
     }
 
     if (document.location.hostname !== 'localhost') {
       var src = "https://us-central1-vlogotron-95daf.cloudfunctions.net/accessLog?t=" + +(new Date());
       if (document.referrer)
         src += '&referrer=' + encodeURIComponent(document.referrer);
-      var el = document.createElement('script');
-      el.src = src;
-      document.head.appendChild(el);
+      loadJs(src);
+    }
+
+    if (document.location.host === 'www.vlogotron.com') {
+      loadJs("/v1.js");
+    } else {
+      loadJs("/main.js");
+    }
+
+    // TODO: We woudln't need to use the onload event ff we didn't have such a
+    // janky way to switch between staging and production.
+    function onLoad() {
+      window.main(document.getElementById('mount-node'));
+    }
+
+    if ('AudioContext' in window || 'webkitAudioContext' in window) {
+      document.body.onload = onLoad;
+    } else {
+      document.location = '/browser_not_supported.html';
     }
   </script>
 
