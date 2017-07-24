@@ -1,7 +1,7 @@
 import { Observable } from "rxjs/Observable";
 import { Subject } from "rxjs/Subject";
 
-import { omit } from "lodash";
+import { omit, identity } from "lodash";
 
 import audioContext from "./audioContext";
 import { start as startCapturing } from "./recording";
@@ -30,7 +30,7 @@ const escapeKey$ = Observable.fromEvent(document, "keydown").filter(
  */
 
 export default function recordVideosController(
-  params,
+  props$,
   actions,
   currentUser$,
   mediaStore,
@@ -106,7 +106,10 @@ export default function recordVideosController(
 
   const authorName$ = mediaStore.song$.switchMap(song => {
     if (song) {
-      return displayNameForUid(firebase.database(), song.uid);
+      if ('uid' in song)
+        return displayNameForUid(firebase.database(), song.uid);
+      else
+        return currentUser$.filter(identity).map(u => u.displayName);
     } else {
       return Observable.empty();
     }
@@ -121,6 +124,7 @@ export default function recordVideosController(
     mediaStore.loading$,
     mediaStore.audioSources$,
     authorName$,
+    props$,
     (
       parentView,
       videoClips,
@@ -129,7 +133,8 @@ export default function recordVideosController(
       song,
       loading,
       audioSources,
-      authorName
+      authorName,
+      props,
     ) => ({
       ...parentView,
       ...recordingState,
@@ -140,7 +145,10 @@ export default function recordVideosController(
       supported: "MediaRecorder" in window,
       songTitle: song ? song.title : null,
       audioSources,
-      authorName
+      authorName,
+      location: props.location,
+      onNavigate: props.onNavigate,
+      onLogin: props.onLogin
     })
   );
 }

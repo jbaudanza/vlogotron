@@ -7,10 +7,13 @@ import PlaybackView from "./PlaybackView";
 import RecordVideosView from "./RecordVideosView";
 import NoteEditorView from "./NoteEditorView";
 import ErrorView from "./ErrorView";
+import LoadingView from "./LoadingView";
 
 import playbackController from "./playbackController";
 import noteEditorController from "./noteEditorController";
 import recordVideosController from "./recordVideosController";
+
+import createControlledComponent from "./createControlledComponent";
 
 import { fromPairs } from "lodash";
 
@@ -52,52 +55,79 @@ export function pathnameToRoute(pathname) {
   return { name: "not-found", params: {} };
 }
 
-export function routeToPageConfig(route) {
+export function routeToPageConfig(route, currentUser$, media, firebase) {
+  // TODO: Convert all controllers to this new signature and remove this
+  // migrateController wrapper
+  function migrateController(controllerFn) {
+    return function(props$, actions, subscription) {
+      return controllerFn(
+        props$,
+        actions,
+        currentUser$,
+        media,
+        firebase,
+        subscription,
+        () => false // navigateFn is a no-op
+      );
+    };
+  }
+
   switch (route.name) {
     case "root":
     case "view-song":
       return {
-        view: PlaybackView,
-        controller: playbackController,
-        actions: ["play", "pause", "playCommands$"],
+        component: createControlledComponent(
+          migrateController(playbackController),
+          PlaybackView,
+          ["play", "pause", "playCommands$"],
+          LoadingView
+        ),
         sidebarVisible: true
       };
     case "record-videos":
       return {
-        controller: recordVideosController,
-        view: RecordVideosView,
-        actions: [
-          "startRecording",
-          "stopRecording",
-          "editSong",
-          "dismissError",
-          "clearVideoClip",
-          "playCommands$",
-          "pause",
-          "play"
-        ],
+        component: createControlledComponent(
+          migrateController(recordVideosController),
+          RecordVideosView,
+          [
+            "startRecording",
+            "stopRecording",
+            "editSong",
+            "dismissError",
+            "clearVideoClip",
+            "playCommands$",
+            "pause",
+            "play"
+          ],
+          LoadingView
+        ),
         sidebarVisible: true
       };
     case "note-editor":
       return {
-        view: NoteEditorView,
-        controller: noteEditorController,
-        actions: [
-          "changeCellsPerBeat",
-          "changePlaybackStartPosition",
-          "editSong",
-          "pause",
-          "play",
-          "playCommands$",
-          "save"
-        ],
+        component: createControlledComponent(
+          migrateController(noteEditorController),
+          NoteEditorView,
+          [
+            "changeCellsPerBeat",
+            "changePlaybackStartPosition",
+            "editSong",
+            "pause",
+            "play",
+            "playCommands$",
+            "save"
+          ],
+          LoadingView
+        ),
         sidebarVisible: false
       };
     default:
       return {
-        actions: [],
-        controller: () => Observable.of({}),
-        view: ErrorView,
+        component: createControlledComponent(
+          () => Observable.of({}),
+          ErrorView,
+          LoadingView
+        ),
         sidebarVisible: true
       };
   }

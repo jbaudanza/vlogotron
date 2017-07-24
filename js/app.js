@@ -15,8 +15,6 @@ import SideOverlay from "./SideOverlay";
 import LoginOverlay from "./LoginOverlay";
 import MySongsOverlay from "./MySongsOverlay";
 import NavOverlay from "./NavOverlay";
-
-import ReactActions from "./ReactActions";
 import Page from "./Page";
 
 import audioContext from "./audioContext";
@@ -112,19 +110,6 @@ function initializeLocale() {
   return "en";
 }
 
-function LoadingView(props) {
-  return (
-    <div className="page-vertical-wrapper">
-      <div className="page-content initial-loading">
-        <svg version="1.1" width="100px" height="100px" className="spinner">
-          <use xlinkHref="#svg-spinner" />
-        </svg>
-        loading...
-      </div>
-    </div>
-  );
-}
-
 class App extends React.Component {
   constructor() {
     super();
@@ -197,8 +182,6 @@ class App extends React.Component {
   }
 
   onRouteChange(route) {
-    this.disposePage();
-
     const songLocation = mapRouteToSongLocation(route);
     if (
       this.songLocation == null || !isEqual(this.songLocation, songLocation)
@@ -214,70 +197,22 @@ class App extends React.Component {
       );
     }
 
-    this.pageSubscription = new Subscription();
-
-    const pageConfig = routeToPageConfig(route);
-
-    this.pageActions = new ReactActions(pageConfig.actions);
-
-    const viewState$ = pageConfig.controller(
-      route.params,
-      this.pageActions.observables,
+    const pageConfig = routeToPageConfig(
+      route,
       currentUser$,
       this.media,
-      firebase,
-      this.pageSubscription,
-      this.onNavigate.bind(this)
+      firebase
     );
 
     this.setState({
       sidebarVisible: pageConfig.sidebarVisible,
-      view: <LoadingView /> // If the controller emits immediately, this div will never be shown.
+      component: pageConfig.component
     });
-
-    this.pageSubscription.add(
-      viewState$.subscribe(viewState => {
-        const View = pageConfig.view;
-
-        let shareUrl;
-        if (this.state.origin && this.state.location) {
-          shareUrl = this.state.origin + this.state.location.pathname;
-        } else {
-          shareUrl = "";
-        }
-
-        this.setState({
-          view: (
-            <View
-              {...viewState}
-              shareUrl={shareUrl}
-              media={this.media}
-              onChangeLocale={this.onChangeLocale}
-              actions={this.pageActions}
-              onNavigate={this.onNavigate}
-              onLogin={this.onLogin}
-              onLogout={this.onLogout}
-            />
-          )
-        });
-      })
-    );
   }
 
   componentWillUnmount() {
     this.globalSubscription.unsubscribe();
     this.unsubscribeMedia();
-    this.disposePage();
-  }
-
-  disposePage() {
-    if (this.pageSubscription) {
-      this.pageSubscription.unsubscribe();
-      this.pageActions.completeAll();
-
-      delete this.pageSubscription;
-      delete this.pageActions;
-    }
   }
 
   onNavigate(href) {
@@ -328,9 +263,11 @@ class App extends React.Component {
       sideOverlayClassName = "nav-overlay";
     }
 
-    const view = React.cloneElement(this.state.view, {
+    const view = React.createElement(this.state.component, {
       location: this.state.location,
-      shareUrl: this.state.origin + this.state.location.pathname
+      shareUrl: this.state.origin + this.state.location.pathname,
+      onNavigate: this.onNavigate,
+      onLogin: this.onLogin
     });
 
     return (

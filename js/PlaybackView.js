@@ -52,8 +52,8 @@ export default class PlaybackView extends React.Component {
           authorName={this.props.authorName}
           shareUrl={this.props.shareUrl}
           playbackPositionInSeconds={this.props.playbackPositionInSeconds}
-          onClickPlay={this.props.actions.callbacks.onPlay}
-          onClickPause={this.props.actions.callbacks.onPause}
+          onClickPlay={this.props.onPlay}
+          onClickPause={this.props.onPause}
           remixAction={{
             href: `/songs/${this.props.songId}/remix/record-videos`
           }}

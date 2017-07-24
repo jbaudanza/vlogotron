@@ -20,7 +20,7 @@ import { notes } from "./VideoGrid";
 export default class RecordVideosView extends React.Component {
   constructor() {
     super();
-    bindAll(this, "bindVideoGrid", "onChangeTitle", "onTrim");
+    bindAll(this, "bindVideoGrid", "onChangeTitle", "onTrim", "onChooseSong");
   }
 
   bindVideoGrid(component) {
@@ -67,22 +67,20 @@ export default class RecordVideosView extends React.Component {
   render() {
     const loadingAsBool = !isEmpty(this.props.loading);
 
-    const callbacks = this.props.actions.callbacks;
-
     let footer;
     if (this.props.error) {
       footer = (
         <PageTextFooter
           error
           text={this.context.messages[this.props.error]()}
-          onDismissError={callbacks.onDismissError}
+          onDismissError={this.props.onDismissError}
         />
       );
     } else {
       footer = (
         <PageTextFooter
           text={this.context.messages["record-videos-tip-long"]()}
-          onDismissError={callbacks.onDismissError}
+          onDismissError={this.props.onDismissError}
         />
       );
     }
@@ -142,8 +140,8 @@ export default class RecordVideosView extends React.Component {
           authorName={this.props.authorName}
           loading={loadingAsBool}
           playbackPositionInSeconds={this.props.playbackPositionInSeconds}
-          onClickPlay={this.props.actions.callbacks.onPlay}
-          onClickPause={this.props.actions.callbacks.onPause}
+          onClickPlay={this.props.onPlay}
+          onClickPause={this.props.onPause}
         >
           <div className="actions">
             <Link href="#choose-song" className="action">
@@ -175,9 +173,9 @@ export default class RecordVideosView extends React.Component {
                   playCommands$={this.props.playCommands$}
                   readonly={false}
                   loading={this.props.loading}
-                  onStartRecording={callbacks.onStartRecording}
-                  onStopRecording={callbacks.onStopRecording}
-                  onClear={callbacks.onClearVideoClip}
+                  onStartRecording={this.props.onStartRecording}
+                  onStopRecording={this.props.onStopRecording}
+                  onClear={this.props.onClearVideoClip}
                   onTrim={this.onTrim}
                   mediaStream={this.props.mediaStream}
                   countdownUntilRecord={this.props.countdownUntilRecord}
@@ -205,5 +203,7 @@ RecordVideosView.propTypes = {
   loading: PropTypes.object.isRequired,
   videoClips: PropTypes.object.isRequired,
   playCommands$: PropTypes.object.isRequired,
-  songTitle: PropTypes.string.isRequired
+  songTitle: PropTypes.string.isRequired,
+  onNavigate: PropTypes.func.isRequired,
+  location: PropTypes.object.isRequired
 };

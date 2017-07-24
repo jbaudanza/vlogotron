@@ -7,13 +7,18 @@ import ReactActions from "./ReactActions";
 export default function createControlledComponent(
   controller,
   Component,
-  actionNames = []
+  actionNames = [],
+  InitialComponent
 ) {
+  if (!InitialComponent) {
+    InitialComponent = Component;
+  }
+
   return class ControlledComponent extends React.Component {
     constructor(props) {
       super();
+      this.state = {};
       this.props$ = new BehaviorSubject(props);
-      this.state = { current: {} };
       this.actions = new ReactActions(actionNames);
     }
 
@@ -42,7 +47,22 @@ export default function createControlledComponent(
     }
 
     render() {
-      return <Component {...this.actions.callbacks} {...this.state.current} />;
+      if (this.state.current) {
+        return (
+          <Component
+            {...this.actions.callbacks}
+            actions={this.actions}
+            {...this.state.current}
+          />
+        );
+      } else {
+        return (
+          <InitialComponent
+            {...this.actions.callbacks}
+            actions={this.actions}
+          />
+        );
+      }
     }
   };
 }

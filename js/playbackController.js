@@ -19,7 +19,7 @@ import { songs, timestampToBeats, songLengthInBeats } from "./song";
 import { displayNameForUid } from "./database";
 
 export default function playbackController(
-  params,
+  props$,
   actions,
   currentUser$,
   media,
@@ -49,7 +49,13 @@ export default function playbackController(
     parentView$,
     authorName$,
     songId$,
-    (parentView, authorName, songId) => ({ ...parentView, authorName, songId })
+    props$.map(props => props.shareUrl),
+    (parentView, authorName, songId, shareUrl) => ({
+      ...parentView,
+      authorName,
+      songId,
+      shareUrl
+    })
   );
 }
 

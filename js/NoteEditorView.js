@@ -196,5 +196,7 @@ NoteEditorView.contextTypes = {
 };
 
 NoteEditorView.propTypes = {
-  loading: PropTypes.object.isRequired
+  loading: PropTypes.object.isRequired,
+  onNavigate: PropTypes.func.isRequired,
+  location: PropTypes.object.isRequired
 };
