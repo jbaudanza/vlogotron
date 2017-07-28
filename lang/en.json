@@ -9,6 +9,7 @@
   "cancel-action": "cancel",
   "next-action": "next",
   "update-action": "update",
+  "free-action": "free",
   "ok-action": "OK",
   "start-singing-countdown-prompt": "Start singing in",
   "default-song-title": "Untitled Song",

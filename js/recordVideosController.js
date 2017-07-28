@@ -106,10 +106,9 @@ export default function recordVideosController(
 
   const authorName$ = mediaStore.song$.switchMap(song => {
     if (song) {
-      if ('uid' in song)
+      if ("uid" in song)
         return displayNameForUid(firebase.database(), song.uid);
-      else
-        return currentUser$.filter(identity).map(u => u.displayName);
+      else return currentUser$.filter(identity).map(u => u.displayName);
     } else {
       return Observable.empty();
     }
@@ -134,7 +133,7 @@ export default function recordVideosController(
       loading,
       audioSources,
       authorName,
-      props,
+      props
     ) => ({
       ...parentView,
       ...recordingState,

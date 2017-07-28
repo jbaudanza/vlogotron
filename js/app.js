@@ -12,6 +12,7 @@ import { bindAll, isEqual, find, includes } from "lodash";
 import SvgAssets from "./SvgAssets";
 
 import SideOverlay from "./SideOverlay";
+import CreateNewSongOverlay from "./CreateNewSongOverlay";
 import LoginOverlay from "./LoginOverlay";
 import MySongsOverlay from "./MySongsOverlay";
 import NavOverlay from "./NavOverlay";
@@ -261,6 +262,14 @@ class App extends React.Component {
         <NavOverlay isLoggedIn={isLoggedIn} onLogout={this.onLogout} />
       );
       sideOverlayClassName = "nav-overlay";
+    } else if (this.state.location.hash === "#create-new") {
+      overlay = (
+        <CreateNewSongOverlay
+          onLogin={this.onLogin}
+          onClose={this.state.location.pathname}
+          currentUser={this.state.currentUser}
+        />
+      );
     }
 
     const view = React.createElement(this.state.component, {

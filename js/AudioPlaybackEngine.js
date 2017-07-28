@@ -140,7 +140,7 @@ export function startScriptedPlayback(
   audioSources$,
   playUntil$
 ) {
-  const truncatedNotes$ = notes$.debug('notes').map(notes =>
+  const truncatedNotes$ = notes$.map(notes =>
     notes
       .filter(note => note[1] >= startPosition)
       .map(note => [note[0], note[1] - startPosition, note[2]])
@@ -175,7 +175,7 @@ export function startScriptedPlayback(
       ([beatWindow, notes]) => beatWindow[0] < songLengthInBeats(notes)
     )
     .map(([beatWindow, notes]) => pickNotesForBeatWindow(beatWindow, notes))
-    .withLatestFrom(audioSources$.debug('audioSources')).debug('commandsWithAudioSources');
+    .withLatestFrom(audioSources$);
 
   const stream$ = observableWithGainNode(gainNode =>
     commandsWithAudioSources$

@@ -26,6 +26,10 @@ class LineItem extends React.Component {
   }
 
   render() {
+    const selectLabel = this.props.song.premium
+      ? "$1.99"
+      : this.context.messages["free-action"]();
+
     return (
       <li>
         <PlayButton
@@ -36,7 +40,14 @@ class LineItem extends React.Component {
         />
         {this.props.song.title}
         <Link onClick={this.onSelect}>
-          {this.context.messages["select-action"]()}
+          {selectLabel}
+          <svg width="8" height="14" viewBox="0 0 8 14">
+            <path
+              fill="#ADBAC2"
+              fillRule="evenodd"
+              d="M7.566 7.01a.56.56 0 0 1-.163.395l-5.867 5.942a.568.568 0 0 1-.8.007.561.561 0 0 1-.008-.797l5.48-5.55L.726 1.39A.561.561 0 0 1 .738.594a.568.568 0 0 1 .8.011l5.868 6.013c.106.109.16.25.16.392"
+            />
+          </svg>
         </Link>
       </li>
     );

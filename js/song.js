@@ -5408,42 +5408,50 @@ export const songs = {
   "mary-had-a-little-lamb": {
     title: "Mary had a Little Lamb",
     notes: maryHadALittleLamb,
-    bpm: 120
-  },
-  "happy-birthday": {
-    title: "Happy Birthday",
-    notes: happyBirthday,
-    bpm: 120
+    bpm: 120,
+    premium: false
   },
   chopsticks: {
     title: "Chopsticks",
     notes: chopsticks,
-    bpm: 120
+    bpm: 120,
+    premium: false
+  },
+  "happy-birthday": {
+    title: "Happy Birthday",
+    notes: happyBirthday,
+    bpm: 120,
+    premium: true
   },
   turkeyInTheStraw: {
     title: "Turkey in the Straw",
     notes: turkeyInTheStraw,
-    bpm: 120
+    bpm: 120,
+    premium: true
   },
   theEntertainer: {
     title: "The Entertainer",
     notes: theEntertainer,
-    bpm: 120
+    bpm: 120,
+    premium: true
   },
   johnJacob: {
     title: "John Jacob Jingleheimer Schmidt",
     notes: johnJacob,
-    bpm: 120
+    bpm: 120,
+    premium: true
   },
   bride: {
     title: "The Bride",
     notes: bride,
-    bpm: 60
+    bpm: 60,
+    premium: true
   },
   civitas: {
     title: "Civitas Sancti Tui",
     notes: civitas,
-    bpm: 80
+    bpm: 80,
+    premium: true
   }
 };
 

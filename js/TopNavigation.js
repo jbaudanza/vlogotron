@@ -28,7 +28,7 @@ export default class TopNavigation extends React.Component {
             />
           : null}
         <NavLink
-          href="/record-videos"
+          href="#create-new"
           width="30px"
           height="30px"
           icon="#svg-plus"
