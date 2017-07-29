@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import React from "react";
 
 import Overlay from "./Overlay";
@@ -9,7 +10,6 @@ import styled from "styled-components";
 import colors from "./colors";
 
 const stripe = Stripe("pk_test_DHTDixORQV3rdO8tLqEAU72l");
-
 
 const StyledStripeWrapper = styled.div`
   background-color: white;
@@ -77,13 +77,10 @@ export default class PurchaseOverlay extends React.Component {
       <Overlay onClose={this.props.onClose}>
         <h1>Vlogotron Premium</h1>
         <p>
-          This one-time purchase of
-          {" "}
-          {this.props.price}
-          {" "}
-          gives you access to "
-          {this.props.songName}
-          " and all the other premium songs on Vlogotron.
+          {this.context.messages["purchase-premium-description"]({
+            PRICE: this.props.price / 100,
+            SONG_NAME: this.props.songName
+          })}
         </p>
         <p>
           {this.state.errorMessage}
@@ -98,10 +95,14 @@ export default class PurchaseOverlay extends React.Component {
             enabled={this.state.complete && !this.state.working}
             onClick={this.onClickPurchase}
           >
-            Purchase
+            {this.context.messages["purchase-action"]()}
           </ActionLink>
         </form>
       </Overlay>
     );
   }
 }
+
+PurchaseOverlay.contextTypes = {
+  messages: PropTypes.object.isRequired
+};

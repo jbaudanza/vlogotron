@@ -48,18 +48,22 @@ export default class CreateNewSongOverlay extends React.Component {
   }
 
   render() {
+    const price = 199;
+
     if (this.props.currentUser) {
       if (this.state.purchaseForm) {
         return (
           <PurchaseOverlay
             onClose={this.props.onClose}
-            price="$1.99"
+            price={price}
             songName="The Entertainer"
           />
         );
       }
       return (
         <ChooseSongOverlay
+          price={price}
+          premiumAccount={false}
           onClose={this.props.onClose}
           onSelect={() => this.setState({ purchaseForm: true })}
         />

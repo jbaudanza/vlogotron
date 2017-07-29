@@ -235,7 +235,11 @@ class App extends React.Component {
   }
 
   getChildContext() {
-    return { audioContext, messages: messages[this.state.locale] };
+    return {
+      audioContext,
+      messages: messages[this.state.locale],
+      locale: this.state.locale
+    };
   }
 
   render() {
@@ -305,5 +309,6 @@ class App extends React.Component {
 
 App.childContextTypes = {
   audioContext: PropTypes.object,
-  messages: PropTypes.object
+  messages: PropTypes.object,
+  locale: PropTypes.string
 };

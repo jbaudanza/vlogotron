@@ -8,7 +8,6 @@ import classNames from "classnames";
 
 import { ShareButtons, generateShareIcon } from "react-share";
 
-
 const {
   FacebookShareButton,
   GooglePlusShareButton,
@@ -82,7 +81,10 @@ export default class PlaybackHeader extends React.Component {
             </div>
           </div>
 
-          <PageHeaderAction className="remix-action" {...this.props.remixAction}>
+          <PageHeaderAction
+            className="remix-action"
+            {...this.props.remixAction}
+          >
             {this.context.messages["remix-action"]()}
           </PageHeaderAction>
         </div>
