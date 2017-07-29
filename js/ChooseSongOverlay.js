@@ -125,7 +125,7 @@ ChooseSongOverlay.propTypes = {
   onPlay: PropTypes.func.isRequired,
   onPause: PropTypes.func.isRequired,
   price: PropTypes.number.isRequired,
-  premiumAccount: PropTypes.string.isRequired
+  premiumAccount: PropTypes.bool.isRequired
 };
 
 function chooseTemplateController(props$, actions) {

@@ -1,3 +1,5 @@
+/* @flow */
+
 import PropTypes from "prop-types";
 import React from "react";
 
@@ -25,6 +27,10 @@ function onToken(jwtPromise, stripeToken) {
 }
 
 export default class CreateNewSongOverlay extends React.Component {
+  state: {
+    purchaseForm: bool
+  }
+
   constructor() {
     super();
     this.state = { purchaseForm: false };
@@ -33,18 +39,8 @@ export default class CreateNewSongOverlay extends React.Component {
   onSelect() {
     const tokenPromise = this.props.currentUser.getToken();
 
-    const handler = StripeCheckout.configure({
-      key: "pk_test_DHTDixORQV3rdO8tLqEAU72l",
-      image: "https://stripe.com/img/documentation/checkout/marketplace.png",
-      locale: "auto",
-      token: onToken.bind(null, tokenPromise)
-    });
-
-    handler.open({
-      name: "Vlogotron",
-      description: "2 Widgets",
-      amount: 199
-    });
+    // XXX: Do something with this
+    onToken.bind(null, tokenPromise)
   }
 
   render() {

@@ -1,3 +1,5 @@
+/* @flow */
+
 export default {
   purple: "#4b57a3",
   lightBlueGreyTwo: "#d7dced",

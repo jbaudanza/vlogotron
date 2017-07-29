@@ -1,6 +1,6 @@
 [ignore]
 .*/test/
-.*/styled-components/
+.*/styled-components/src
 
 [include]
 ./js

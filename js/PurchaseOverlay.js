@@ -49,7 +49,7 @@ export default class PurchaseOverlay extends React.Component {
 
   mountStripeElement(el) {
     if (el) {
-      this.card = stripe.elements().create("card");
+      this.card = stripe.elements({locale: this.context.locale}).create("card");
       this.card.addEventListener("change", this.onChange.bind(this));
       this.card.mount(el);
     } else {
@@ -117,5 +117,9 @@ export default class PurchaseOverlay extends React.Component {
 
 PurchaseOverlay.contextTypes = {
   messages: PropTypes.object.isRequired,
+  locale: PropTypes.string.isRequired,
+};
+
+PurchaseOverlay.propTypes = {
   onCancel: PropTypes.func.isRequired
 };

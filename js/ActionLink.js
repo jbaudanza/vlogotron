@@ -1,3 +1,5 @@
+/* @flow */
+
 import Link from "./Link";
 
 import colors from "./colors";
