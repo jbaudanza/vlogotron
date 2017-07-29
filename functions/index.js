@@ -36,3 +36,7 @@ exports.accessLog = functions.https.onRequest((req, res) => {
   res.setHeader("content-type", "text/javascript");
   res.status(200).send("true;");
 });
+
+exports.charge = functions.https.onRequest(
+  require("./charge").bind(null, admin)
+);

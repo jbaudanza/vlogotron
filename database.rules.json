@@ -9,6 +9,13 @@
         }
       }
     },
+    "stripe-customers": {
+      "$uid": {
+        "premium": {
+          ".read": "$uid === auth.uid"
+        }
+      }
+    },
     "songs": {
       "$songId": {
         ".read": "!data.child('deletedAt').exists() && (data.child('visibility').val() === 'everyone' || data.child('uid').val() === auth.uid)",

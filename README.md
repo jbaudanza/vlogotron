@@ -41,3 +41,7 @@
 # Configuring CORS
 
     gsutil cors set cors.json gs://vlogotron-95daf.appspot.com/
+
+# Configure Stripe
+
+firebase functions:config:set stripe.token=sk_test_abcdefg
