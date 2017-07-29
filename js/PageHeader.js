@@ -21,15 +21,6 @@ const PageHeaderWrapper = styled.div.attrs({ className: "page-header" })`
 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  .action {
-    margin: 0 7px;
-    margin-top: ${headerHeight / 2 - 14}px;
-    border: solid 1px white;
-    white-space: nowrap;
-    display: block;
-    float: left;
-  }
 `;
 
 const playButtonSize = 32;

@@ -5423,19 +5423,19 @@ export const songs = {
     bpm: 120,
     premium: true
   },
-  turkeyInTheStraw: {
+  "turkey-in-the-straw": {
     title: "Turkey in the Straw",
     notes: turkeyInTheStraw,
     bpm: 120,
     premium: true
   },
-  theEntertainer: {
+  "the-entertainer": {
     title: "The Entertainer",
     notes: theEntertainer,
     bpm: 120,
     premium: true
   },
-  johnJacob: {
+  "john-jacob": {
     title: "John Jacob Jingleheimer Schmidt",
     notes: johnJacob,
     bpm: 120,

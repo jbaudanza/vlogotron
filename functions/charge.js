@@ -17,12 +17,12 @@ const chargeOptions = {
 };
 
 const allowedOrigins = [
-    "http://localhost:5000",
-    "https://www.vlogotron.com",
-    "https://staging.vlogotron.com",
-    "https://vlogotron-95daf.firebaseapp.com",
-    "http://localhost:5000",
-    "https://www.vlogotron"
+  "http://localhost:5000",
+  "https://www.vlogotron.com",
+  "https://staging.vlogotron.com",
+  "https://vlogotron-95daf.firebaseapp.com",
+  "http://localhost:5000",
+  "https://www.vlogotron"
 ];
 
 function charge(admin, req, res) {

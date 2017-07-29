@@ -3,6 +3,7 @@ import React from "react";
 
 import ChooseSongOverlay from "./ChooseSongOverlay";
 import LoginOverlay from "./LoginOverlay";
+import PurchaseOverlay from "./PurchaseOverlay";
 
 import createControlledComponent from "./createControlledComponent";
 
@@ -24,6 +25,11 @@ function onToken(jwtPromise, stripeToken) {
 }
 
 export default class CreateNewSongOverlay extends React.Component {
+  constructor() {
+    super();
+    this.state = { purchaseForm: false };
+  }
+
   onSelect() {
     const tokenPromise = this.props.currentUser.getToken();
 
@@ -36,17 +42,26 @@ export default class CreateNewSongOverlay extends React.Component {
 
     handler.open({
       name: "Vlogotron",
-      description: "2 widgets",
+      description: "2 Widgets",
       amount: 199
     });
   }
 
   render() {
     if (this.props.currentUser) {
+      if (this.state.purchaseForm) {
+        return (
+          <PurchaseOverlay
+            onClose={this.props.onClose}
+            price="$1.99"
+            songName="The Entertainer"
+          />
+        );
+      }
       return (
         <ChooseSongOverlay
           onClose={this.props.onClose}
-          onSelect={this.onSelect.bind(this)}
+          onSelect={() => this.setState({ purchaseForm: true })}
         />
       );
     } else {

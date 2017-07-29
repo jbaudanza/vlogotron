@@ -1,12 +1,13 @@
 import PropTypes from "prop-types";
 import React from "react";
-import Link from "./Link";
+import PageHeaderAction from "./PageHeaderAction";
 
 import PageHeader from "./PageHeader";
 
 import classNames from "classnames";
 
 import { ShareButtons, generateShareIcon } from "react-share";
+
 
 const {
   FacebookShareButton,
@@ -44,14 +45,14 @@ export default class PlaybackHeader extends React.Component {
         loading={this.props.loading}
       >
         <div className="actions">
-          <Link
+          <PageHeaderAction
             onClick={this.toggleShareButtons}
-            className={classNames("action share-action", {
+            className={classNames("share-action", {
               "toggled-on": this.state.shareButtonsVisible
             })}
           >
             {this.context.messages["share-action"]()}
-          </Link>
+          </PageHeaderAction>
 
           <div
             className={classNames("share-buttons-wrapper", {
@@ -81,9 +82,9 @@ export default class PlaybackHeader extends React.Component {
             </div>
           </div>
 
-          <Link className="action remix-action" {...this.props.remixAction}>
+          <PageHeaderAction className="remix-action" {...this.props.remixAction}>
             {this.context.messages["remix-action"]()}
-          </Link>
+          </PageHeaderAction>
         </div>
       </PageHeader>
     );

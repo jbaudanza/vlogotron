@@ -13,7 +13,7 @@ import ShareOverlay from "./ShareOverlay";
 import NotificationPopup from "./NotificationPopup";
 import ChooseSongOverlay from "./ChooseSongOverlay";
 import SubHeader from "./SubHeader";
-import Link from "./Link";
+import PageHeaderAction from "./PageHeaderAction";
 
 import { notes } from "./VideoGrid";
 
@@ -144,13 +144,13 @@ export default class RecordVideosView extends React.Component {
           onClickPause={this.props.onPause}
         >
           <div className="actions">
-            <Link href="#choose-song" className="action">
+            <PageHeaderAction href="#choose-song">
               Change melody
-            </Link>
+            </PageHeaderAction>
 
-            <Link className="action">
+            <PageHeaderAction>
               Delete
-            </Link>
+            </PageHeaderAction>
           </div>
         </PageHeader>
         <div className="page-content">

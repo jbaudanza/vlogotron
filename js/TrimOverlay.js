@@ -5,7 +5,7 @@ import styled from "styled-components";
 
 import colors from "./colors";
 import Overlay from "./Overlay";
-import Link from "./Link";
+import ActionLink from "./ActionLink";
 import TrimAdjuster from "./TrimAdjuster";
 import PlayButton from "./PlayButton";
 import SynchronizedVideo from "./SynchronizedVideo";
@@ -49,10 +49,6 @@ const VideoWrapper = styled.div`
     bottom: 5px;
     left: 5px;
   }
-`;
-
-const DoneButton = styled(Link).attrs({ className: "action" })`
-  background-color: ${colors.duskyBlue};
 `;
 
 function TrimmedDiv(props) {
@@ -425,9 +421,9 @@ class TrimOverlay extends React.Component {
         </TrimAdjusterWrapper>
 
         <ActionWrapper>
-          <DoneButton onClick={this.props.onFinish}>
+          <ActionLink onClick={this.props.onFinish}>
             Done
-          </DoneButton>
+          </ActionLink>
         </ActionWrapper>
       </Overlay>
     );
@@ -449,6 +445,7 @@ const StyledTrimOverlay = styled(TrimOverlay)`
   // Disable scrolling
   .content .scroll {
     overflow: visible;
+    padding: 0;
   }
 `;
 
