@@ -3,6 +3,7 @@ import React from "react";
 
 import Overlay from "./Overlay";
 import ActionLink from "./ActionLink";
+import Link from "./Link";
 
 import { bindAll } from "lodash";
 
@@ -10,6 +11,11 @@ import styled from "styled-components";
 import colors from "./colors";
 
 const stripe = Stripe("pk_test_DHTDixORQV3rdO8tLqEAU72l");
+
+const NevermindLink = styled(Link)`
+  color: #333;
+  margin-right: 15px;
+`;
 
 const StyledStripeWrapper = styled.div`
   background-color: white;
@@ -91,12 +97,18 @@ export default class PurchaseOverlay extends React.Component {
             innerRef={this.mountStripeElement}
           />
 
-          <ActionLink
-            enabled={this.state.complete && !this.state.working}
-            onClick={this.onClickPurchase}
-          >
-            {this.context.messages["purchase-action"]()}
-          </ActionLink>
+          <div>
+            <NevermindLink onClick={this.props.onCancel}>
+              {this.context.messages["nevermind-action"]()}
+            </NevermindLink>
+
+            <ActionLink
+              enabled={this.state.complete && !this.state.working}
+              onClick={this.onClickPurchase}
+            >
+              {this.context.messages["purchase-action"]()}
+            </ActionLink>
+          </div>
         </form>
       </Overlay>
     );
@@ -104,5 +116,6 @@ export default class PurchaseOverlay extends React.Component {
 }
 
 PurchaseOverlay.contextTypes = {
-  messages: PropTypes.object.isRequired
+  messages: PropTypes.object.isRequired,
+  onCancel: PropTypes.func.isRequired
 };

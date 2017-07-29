@@ -57,6 +57,7 @@ export default class CreateNewSongOverlay extends React.Component {
             onClose={this.props.onClose}
             price={price}
             songName="The Entertainer"
+            onCancel={() => this.setState({ purchaseForm: false })}
           />
         );
       }
