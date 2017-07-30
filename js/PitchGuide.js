@@ -1,8 +1,10 @@
+/* @flow */
+
 import React from "react";
 import styled from "styled-components";
 import { times } from "lodash";
 
-function SvgMeter(props) {
+function SvgMeter(props: Object) {
   const width = props.width;
   const height = 10;
   const dotCount = 18;

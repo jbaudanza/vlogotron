@@ -1,9 +1,12 @@
+/* @flow */
+
 import PropTypes from "prop-types";
 import React from "react";
 import PageHeaderAction from "./PageHeaderAction";
 
 import PageHeader from "./PageHeader";
 
+import { bindAll } from "lodash";
 import classNames from "classnames";
 
 import { ShareButtons, generateShareIcon } from "react-share";
@@ -19,10 +22,14 @@ const TwitterIcon = generateShareIcon("twitter");
 const GooglePlusIcon = generateShareIcon("google");
 
 export default class PlaybackHeader extends React.Component {
+  state: {
+    shareButtonsVisible: boolean
+  };
+
   constructor() {
     super();
     this.state = { shareButtonsVisible: false };
-    this.toggleShareButtons = this.toggleShareButtons.bind(this);
+    bindAll(this, "toggleShareButtons");
   }
 
   toggleShareButtons() {

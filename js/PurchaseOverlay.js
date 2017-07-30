@@ -1,3 +1,5 @@
+/* @flow */
+
 import PropTypes from "prop-types";
 import React from "react";
 
@@ -41,13 +43,21 @@ const StyledStripeWrapper = styled.div`
 `;
 
 export default class PurchaseOverlay extends React.Component {
+  state: {
+    errorMessage: ?string,
+    complete: boolean,
+    working: boolean
+  };
+
+  card: StripeCard;
+
   constructor() {
     super();
     this.state = { errorMessage: null, complete: false, working: false };
     bindAll(this, "mountStripeElement", "onChange", "onClickPurchase");
   }
 
-  mountStripeElement(el) {
+  mountStripeElement(el: HTMLElement) {
     if (el) {
       this.card = stripe
         .elements({ locale: this.context.locale })
@@ -73,7 +83,7 @@ export default class PurchaseOverlay extends React.Component {
     });
   }
 
-  onChange(event) {
+  onChange(event: StripeCardChangeEvent) {
     this.setState({
       errorMessage: event.error ? event.error.message : null,
       complete: event.complete

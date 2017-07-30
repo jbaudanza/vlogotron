@@ -1,6 +1,9 @@
+/* @flow */
+
 import PropTypes from "prop-types";
 import React from "react";
 
+import type { Subscription } from "rxjs/Subscription";
 import { bindAll, bindKey, isEmpty } from "lodash";
 import classNames from "classnames";
 
@@ -15,7 +18,9 @@ export default class PlaybackView extends React.Component {
     bindAll(this, "bindVideoGrid");
   }
 
-  bindVideoGrid(component) {
+  subscription: Subscription;
+
+  bindVideoGrid(component: VideoGrid) {
     if (component) {
       this.subscription = component.playCommands$$.subscribe(
         this.props.actions.subjects.playCommands$$

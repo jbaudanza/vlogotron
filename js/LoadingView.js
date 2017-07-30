@@ -1,6 +1,8 @@
+/* @flow */
+
 import React from "react";
 
-export default function LoadingView(props) {
+export default function LoadingView() {
   return (
     <div className="page-vertical-wrapper">
       <div className="page-content initial-loading">
