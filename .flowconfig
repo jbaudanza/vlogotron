@@ -6,7 +6,7 @@
 ./js
 
 [libs]
-interfaces/midi.js
+interfaces
 flow-typed
 
 [options]

@@ -1,3 +1,5 @@
+/* @flow */
+
 import PropTypes from "prop-types";
 import React from "react";
 import styled from "styled-components";
@@ -81,6 +83,10 @@ class LineItem extends React.Component {
     this.onClickPause = props.onClickPause.bind(null, props.songId);
   }
 
+  onSelect: Function;
+  onClickPlay: Function;
+  onClickPause: Function;
+
   render() {
     let actionLabel;
 
@@ -135,7 +141,7 @@ class ChooseSongOverlay extends React.Component {
         <h1>Choose a song</h1>
 
         <StyledUL>
-          {map(songs, (song, songId) => (
+          {map(songs, (song, songId: string) => (
             <LineItem
               song={song}
               key={songId}
