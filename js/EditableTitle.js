@@ -11,7 +11,7 @@ import Link from "./Link";
 export default class EditableTitle extends React.Component {
   state: {
     newValue: ?string
-  }
+  };
 
   constructor() {
     super();

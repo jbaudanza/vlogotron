@@ -28,8 +28,8 @@ function onToken(jwtPromise, stripeToken) {
 
 export default class CreateNewSongOverlay extends React.Component {
   state: {
-    purchaseForm: bool
-  }
+    purchaseForm: boolean
+  };
 
   constructor() {
     super();
@@ -40,7 +40,7 @@ export default class CreateNewSongOverlay extends React.Component {
     const tokenPromise = this.props.currentUser.getToken();
 
     // XXX: Do something with this
-    onToken.bind(null, tokenPromise)
+    onToken.bind(null, tokenPromise);
   }
 
   render() {

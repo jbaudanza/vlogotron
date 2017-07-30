@@ -11,9 +11,8 @@ import Link from "./Link";
 import PlayButton from "./PlayButton";
 
 import { songs } from "./song";
+import colors from "./colors";
 import { startScriptedPlayback } from "./AudioPlaybackEngine";
-
-import "./ChooseSongOverlay.scss";
 
 import ReactActions from "./ReactActions";
 import createControlledComponent from "./createControlledComponent";
@@ -28,7 +27,24 @@ const arrowEl = (
   </svg>
 );
 
+const StyledPlayButton = styled(PlayButton)`
+  float: left;
+  svg {
+    border: 1px solid ${colors.purple};
+    border-radius: 25px;
+    margin-right: 10px;
+  }
+`;
+
 const StyledLink = styled(Link)`
+  font-size: 11px;
+  text-decoration: none;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  color: ${colors.purple};
+  float: right;
+
   span {
     margin-right: 10px
   }
@@ -36,6 +52,25 @@ const StyledLink = styled(Link)`
     position: relative;
     top: 3px;
   }
+`;
+
+const StyledLI = styled.li`
+  padding: 18px 0;
+  line-height: 21px;
+  border-bottom: solid 1px ${colors.whitish};
+
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const StyledUL = styled.ul`
+  text-align: left;
+  padding: 0;
+  color: ${colors.charcoalGrey};
+  font-size: 14px;
+  font-weight: 500; // Medium
+  list-style-type: none;
 `;
 
 class LineItem extends React.Component {
@@ -63,8 +98,8 @@ class LineItem extends React.Component {
     }
 
     return (
-      <li>
-        <PlayButton
+      <StyledLI>
+        <StyledPlayButton
           size={21}
           isPlaying={this.props.isPlaying}
           onClickPlay={this.onClickPlay}
@@ -77,7 +112,7 @@ class LineItem extends React.Component {
           </span>
           {arrowEl}
         </StyledLink>
-      </li>
+      </StyledLI>
     );
   }
 }
@@ -99,7 +134,7 @@ class ChooseSongOverlay extends React.Component {
       <Overlay className="choose-song-overlay" onClose={this.props.onClose}>
         <h1>Choose a song</h1>
 
-        <ul className="song-list">
+        <StyledUL>
           {map(songs, (song, songId) => (
             <LineItem
               song={song}
@@ -113,7 +148,7 @@ class ChooseSongOverlay extends React.Component {
               premiumAccount={this.props.premiumAccount}
             />
           ))}
-        </ul>
+        </StyledUL>
       </Overlay>
     );
   }

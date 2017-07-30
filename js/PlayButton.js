@@ -21,7 +21,7 @@ export default class PlayButton extends React.Component {
     return (
       <Link
         onClick={this.onClick}
-        className="play-button"
+        className={`play-button ${this.props.className}`}
         enabled={this.props.enabled}
       >
         <svg version="1.1" width={this.props.size} height={this.props.size}>
