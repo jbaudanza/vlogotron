@@ -1,3 +1,4 @@
+/* @flow */
 import ActionLink from "./ActionLink";
 
 import styled from "styled-components";

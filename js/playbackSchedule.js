@@ -1,3 +1,5 @@
+/* @flow */
+
 import { Observable } from "rxjs/Observable";
 
 const schedule$ = Observable.merge(
@@ -11,7 +13,7 @@ const schedule$ = Observable.merge(
 
 /* Returns an Observable of timestamps. These timestamps represent how far
    in the future the app should be scheduling audio playback. */
-export function playbackSchedule(audioContext) {
+export function playbackSchedule(audioContext: AudioContext) {
   return schedule$
     .map(() => audioContext.currentTime + (document.hasFocus() ? 1.0 : 2.0))
     .scan(Math.max, audioContext.currentTime)

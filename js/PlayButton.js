@@ -1,15 +1,22 @@
+/* @flow */
+
 import PropTypes from "prop-types";
 import React from "react";
 
+import { bindAll } from "lodash";
 import Link from "./Link";
 
 export default class PlayButton extends React.Component {
+  static defaultProps: {
+    enabled: boolean
+  };
+
   constructor() {
     super();
-    this.onClick = this.onClick.bind(this);
+    bindAll(this, "onClick");
   }
 
-  onClick(event) {
+  onClick(event: Event) {
     if (this.props.isPlaying) {
       this.props.onClickPause();
     } else {

@@ -1,3 +1,5 @@
+/* @flow */
+
 import React from "react";
 import styled from "styled-components";
 import colors from "./colors";
@@ -16,7 +18,7 @@ const TextBlob = styled.div`
   border: 1px solid ${colors.dark};
 `;
 
-export default function RecordingNotSupported(props) {
+export default function RecordingNotSupported(props: { className: string }) {
   return (
     <TextBlob className={props.className}>
       <h3>Sorry, we can't record videos in your browser.</h3>

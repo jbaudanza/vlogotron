@@ -155,6 +155,11 @@ export function createVideoClip(
   return ref.then(() => ref.key || "");
 }
 
+export function premiumAccountStatus(database: FirebaseDatabase, uid: string) {
+  const ref = database.ref("stripe-customers").child(uid).child("premium");
+  return fromFirebaseRef(ref, "value").map(snapshot => snapshot.val());
+}
+
 function migrate(v) {
   if (typeof v === "string") {
     return {

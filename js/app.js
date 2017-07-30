@@ -22,7 +22,12 @@ import audioContext from "./audioContext";
 
 import { findWrappingLink } from "./domutils";
 
-import { updateUser, songsForUser, deleteSong } from "./database";
+import {
+  updateUser,
+  songsForUser,
+  deleteSong,
+  premiumAccountStatus
+} from "./database";
 
 import * as firebase from "firebase";
 
@@ -65,6 +70,16 @@ currentUser$.subscribe(user => {
     updateUser(firebase.database(), user);
   }
 });
+
+const premiumAccountStatus$ = currentUser$.switchMap(user => {
+  if (user) {
+    return premiumAccountStatus(firebase.database(), user.uid);
+  } else {
+    return Observable.of(false);
+  }
+});
+
+premiumAccountStatus$.debug("premium").subscribe();
 
 // If the user logs in, navigate away from a login dialog
 Observable.combineLatest(

@@ -1,3 +1,5 @@
+/* @flow */
+
 import PropTypes from "prop-types";
 import React from "react";
 
@@ -11,7 +13,18 @@ import { findWrappingLink, findWrappingClass } from "./domutils";
 const documentMouseMove$ = Observable.fromEvent(document, "mousemove");
 const documentMouseUp$ = Observable.fromEvent(document, "mouseup");
 
+type TouchGesture = {
+  firstEl: HTMLElement,
+  movements$: Observable<HTMLElement>
+};
+
 export default class TouchableArea extends React.Component {
+  touches$$: Subject<TouchGesture>;
+  touchCancel$: Observable<TouchEvent>;
+  touchMove$: Observable<TouchEvent>;
+  touchEnd$: Observable<TouchEvent>;
+  rootElement: HTMLElement;
+
   constructor() {
     super();
     bindAll(this, "onMouseDown", "setRootElement", "onTouchStart");
@@ -22,7 +35,7 @@ export default class TouchableArea extends React.Component {
     this.touches$$.complete();
   }
 
-  start(firstEl, movements$) {
+  start(firstEl: HTMLElement, movements$: Observable<HTMLElement>) {
     if (this.props.onTouchStart)
       this.props.onTouchStart(movements$.startWith(firstEl));
 
@@ -32,7 +45,9 @@ export default class TouchableArea extends React.Component {
     });
   }
 
-  onMouseDown(event) {
+  onMouseDown(event: MouseEvent) {
+    if (!(event.target instanceof HTMLElement)) return;
+
     const el = this.findTouchableElement(event.target);
 
     // Don't activate on right clicks or control-left clicks
@@ -54,7 +69,7 @@ export default class TouchableArea extends React.Component {
     }
   }
 
-  setRootElement(node) {
+  setRootElement(node: HTMLElement) {
     this.rootElement = node;
 
     this.touchMove$ = Observable.fromEvent(this.rootElement, "touchmove");
@@ -62,7 +77,7 @@ export default class TouchableArea extends React.Component {
     this.touchCancel$ = Observable.fromEvent(this.rootElement, "touchcancel");
   }
 
-  onTouchStart(event) {
+  onTouchStart(event: TouchEvent) {
     let anyHandled = false;
 
     forEach(event.changedTouches, touch => {
@@ -103,7 +118,7 @@ export default class TouchableArea extends React.Component {
     }
   }
 
-  findTouchableElement(el) {
+  findTouchableElement(el: HTMLElement) {
     return findWrappingClass(el, "touchable", this.rootElement);
   }
 
