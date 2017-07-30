@@ -1,5 +1,8 @@
+/* @flow */
+
 import { Subject } from "rxjs/Subject";
 import { Observable } from "rxjs/Observable";
+import type { Subscription } from "rxjs/Subscription";
 import { animationFrame } from "rxjs/scheduler/animationFrame";
 
 import audioContext from "./audioContext";
@@ -17,9 +20,9 @@ import TrimmedAudioBufferSourceNode from "./TrimmedAudioBufferSourceNode";
 const batchTime = audioContext.baseLatency || 2 * 128 / audioContext.sampleRate;
 
 export function startLivePlaybackEngine(
-  audioSources$,
-  playCommands$,
-  subscription
+  audioSources$: Observable<Object>,
+  playCommands$: Observable<Object>,
+  subscription: Subscription
 ) {
   const active = {};
 
@@ -68,6 +71,8 @@ export function startLivePlaybackEngine(
 }
 
 class GainNodeResource {
+  node: AudioNode;
+
   constructor() {
     this.node = audioContext.createGain();
     this.node.gain.value = 0.9;
@@ -133,12 +138,14 @@ function syncWithAudio(audioContext, when) {
   });
 }
 
+type NoteList = Array<[string, number, number]>;
+
 export function startScriptedPlayback(
-  notes$,
-  bpm,
-  startPosition,
-  audioSources$,
-  playUntil$
+  notes$: Observable<NoteList>,
+  bpm: number,
+  startPosition: number,
+  audioSources$: Observable<Object>,
+  playUntil$: Observable<any>
 ) {
   const truncatedNotes$ = notes$.map(notes =>
     notes
@@ -146,7 +153,9 @@ export function startScriptedPlayback(
       .map(note => [note[0], note[1] - startPosition, note[2]])
   );
 
-  function pickNotesForBeatWindow(beatWindow, notes) {
+  type BeatWindow = [number, number];
+
+  function pickNotesForBeatWindow(beatWindow: BeatWindow, notes: NoteList) {
     const [beatFrom, beatTo] = beatWindow;
     return notes.filter(note => note[1] >= beatFrom && note[1] < beatTo);
   }
@@ -157,7 +166,7 @@ export function startScriptedPlayback(
   const playbackStartedAt = audioContext.currentTime + 0.125;
 
   // Returns the time window (in beats) that need to be scheduled
-  function makeBeatWindow(lastWindow, playbackUntilTimestamp) {
+  function makeBeatWindow(lastWindow, playbackUntilTimestamp): BeatWindow {
     return [
       lastWindow[1],
       timestampToBeats(playbackUntilTimestamp - playbackStartedAt, bpm)
@@ -167,7 +176,7 @@ export function startScriptedPlayback(
   // TODO: If the song isn't going to change, we don't need the playback
   // scheduler.
   const commandsWithAudioSources$ = playbackSchedule(audioContext)
-    .scan(makeBeatWindow, [null, 0])
+    .scan(makeBeatWindow, [0, 0])
     .withLatestFrom(truncatedNotes$)
     // TODO: This really should be takeUntil with a predicate function, but
     // that doesn't exist. Right now we're emitting one more than we need to.

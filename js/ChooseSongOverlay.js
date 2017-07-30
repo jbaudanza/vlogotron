@@ -169,7 +169,20 @@ ChooseSongOverlay.propTypes = {
   premiumAccount: PropTypes.bool.isRequired
 };
 
-function chooseTemplateController(props$, actions) {
+type OuterPropTypes = {
+  onSelect: string => void,
+  onClose: Function,
+  price: number,
+  bpm: number,
+  media: Object,
+  premiumAccount: boolean
+};
+type ActionTypes = { play$: Observable<string>, pause$: Observable<string> };
+
+function chooseTemplateController(
+  props$: Observable<OuterPropTypes>,
+  actions: ActionTypes
+) {
   const unmount$ = props$.ignoreElements().concatWith(1);
 
   const currentlyPlaying$ = actions.play$

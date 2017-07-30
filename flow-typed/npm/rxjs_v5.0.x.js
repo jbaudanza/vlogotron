@@ -684,6 +684,12 @@ declare class rxjs$Observable<+T> {
     resourceFactory: () => ?R,
     observableFactory: (resource: R) => rxjs$Observable<T> | Promise<T> | void,
   ): rxjs$Observable<T>;
+
+  // Custom RxJS Extensions - JB, July 30, 2017
+  // If there is someway to "re-open" a class with Flow, we should do that
+  // instead of this.
+  debug(s: string): rxjs$Observable<T>;
+  concatWith(v: T): rxjs$Observable<T>;
 }
 
 declare class rxjs$ConnectableObservable<T> extends rxjs$Observable<T> {

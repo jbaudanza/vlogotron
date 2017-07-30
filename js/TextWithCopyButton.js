@@ -1,3 +1,4 @@
+/* @flow */
 import React from "react";
 
 import styled from "styled-components";
@@ -44,9 +45,26 @@ function onClickInput(event) {
   event.target.select();
 }
 
-export default class TextithCopyButton extends React.Component {
+export default class TextWithCopyButton extends React.Component {
+  inputEl: HTMLInputElement;
+  timeoutId: number;
+  inputRef: Function;
+
+  constructor() {
+    super();
+    this.inputRef = this.inputRef.bind(this);
+  }
+
+  state: {
+    supported: boolean,
+    recentlyCopied: boolean
+  };
+
   componentWillMount() {
-    this.setState({ supported: document.queryCommandSupported("copy") });
+    const supported =
+      typeof document.queryCommandSupported === "function" &&
+      document.queryCommandSupported("copy");
+    this.setState({ supported });
   }
 
   componentWillUnmount() {
@@ -55,7 +73,7 @@ export default class TextithCopyButton extends React.Component {
     }
   }
 
-  copyToClipboard(event) {
+  copyToClipboard(event: Event) {
     event.preventDefault();
     event.stopPropagation();
 
@@ -75,13 +93,17 @@ export default class TextithCopyButton extends React.Component {
     }
   }
 
+  inputRef(el: HTMLInputElement) {
+    this.inputEl = el;
+  }
+
   render() {
     return (
       <TextWithCopyButtonWrapper className={this.props.className}>
         <TextInput
           value={this.props.value}
           readOnly
-          innerRef={el => this.inputEl = el}
+          innerRef={this.inputRef}
           onClick={onClickInput}
         />
         {this.state.supported
