@@ -1,3 +1,5 @@
+/* @flow */
+
 import { concat, filter, findIndex, max } from "lodash";
 
 // Consider encoding this like:
@@ -13,6 +15,16 @@ import { concat, filter, findIndex, max } from "lodash";
   ]
 }
 */
+
+export type ScheduledNote = [string, number, number];
+export type ScheduledNoteList = Array<ScheduledNote>;
+export type Song = {
+  title: string,
+  notes: ScheduledNoteList,
+  bpm: number,
+  premium: boolean
+};
+export type SongMap = {[string]: Song};
 
 const maryHadALittleLamb = [
   ["A4", 0, 1], // Ma-
@@ -5404,7 +5416,7 @@ const bride = [
   ["B3", 292, 4]
 ];
 
-export const songs = {
+export const songs: SongMap = {
   "mary-had-a-little-lamb": {
     title: "Mary had a Little Lamb",
     notes: maryHadALittleLamb,
@@ -5455,18 +5467,18 @@ export const songs = {
   }
 };
 
-export function timestampToBeats(timestamp, bpm) {
+export function timestampToBeats(timestamp: number, bpm: number): number {
   return timestamp / 60.0 * bpm;
 }
 
-export function beatsToTimestamp(beats, bpm) {
+export function beatsToTimestamp(beats: number, bpm: number): number {
   return beats / bpm * 60;
 }
 
-export function songLengthInBeats(notes) {
+export function songLengthInBeats(notes: ScheduledNoteList): number {
   return max(notes.map(note => note[1] + note[2])) || 0;
 }
 
-export function songLengthInSeconds(notes, bpm) {
+export function songLengthInSeconds(notes: ScheduledNoteList, bpm: number): number {
   return beatsToTimestamp(songLengthInBeats(notes), bpm);
 }

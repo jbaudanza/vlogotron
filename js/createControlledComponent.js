@@ -1,15 +1,17 @@
+/* @noflow - flow annotations on HOC are tricky */
+
 import React from "react";
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
 import { Subscription } from "rxjs/Subscription";
 
 import ReactActions from "./ReactActions";
 
-export default function createControlledComponent(
-  controller,
-  Component,
-  actionNames = [],
-  InitialComponent
-) {
+export default function createControlledComponent<OuterPropTypes, InnerPropTypes>(
+  controller: (OuterPropTypes, Object, Subscription) => InnerPropTypes,
+  Component: React.Component<{}, InnerPropTypes, {}>,
+  actionNames: Array<string> = [],
+  InitialComponent: React.Component
+): React.Component {
   if (!InitialComponent) {
     InitialComponent = Component;
   }

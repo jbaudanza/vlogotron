@@ -15,6 +15,7 @@ import PlayButton from "./PlayButton";
 import { songs } from "./song";
 import colors from "./colors";
 import { startScriptedPlayback } from "./AudioPlaybackEngine";
+import type { AudioSourceMap } from "./AudioPlaybackEngine";
 
 import ReactActions from "./ReactActions";
 import createControlledComponent from "./createControlledComponent";
@@ -173,8 +174,7 @@ type OuterPropTypes = {
   onSelect: string => void,
   onClose: Function,
   price: number,
-  bpm: number,
-  media: Object,
+  audioSources: AudioSourceMap,
   premiumAccount: boolean
 };
 type ActionTypes = { play$: Observable<string>, pause$: Observable<string> };
@@ -190,9 +190,9 @@ function chooseTemplateController(
     .switchMap(([songId, props]) => {
       const context = startScriptedPlayback(
         Observable.of(songs[songId].notes),
-        props.bpm,
-        0,
-        props.media.audioSources$,
+        songs[songId].bpm,
+        0, // startPosition
+        props$.map(props => props.audioSources),
         Observable.merge(actions.pause$, actions.play$, unmount$).take(1)
       );
 

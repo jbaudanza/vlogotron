@@ -62,6 +62,7 @@ export default class CreateNewSongOverlay extends React.Component {
           price={price}
           premiumAccount={false}
           onClose={this.props.onClose}
+          audioSources={{}}
           onSelect={() => this.setState({ purchaseForm: true })}
         />
       );

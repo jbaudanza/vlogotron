@@ -10,8 +10,17 @@ import { playbackSchedule } from "./playbackSchedule";
 import { noteLabelsToMidi, noteToFrequency } from "./frequencies";
 
 import { songLengthInBeats, beatsToTimestamp, timestampToBeats } from "./song";
+import type { ScheduledNoteList } from "./song";
 
 import TrimmedAudioBufferSourceNode from "./TrimmedAudioBufferSourceNode";
+
+export type AudioSource = {
+  audioBuffer: AudioBuffer,
+  trimStart: number,
+  trimEnd: number
+};
+
+export type AudioSourceMap = { [string]: AudioSource };
 
 // This is the minimum amount of time we will try to schedule audio in the
 // future. This is based on the following comment by Chris Wilson:
@@ -20,7 +29,7 @@ import TrimmedAudioBufferSourceNode from "./TrimmedAudioBufferSourceNode";
 const batchTime = audioContext.baseLatency || 2 * 128 / audioContext.sampleRate;
 
 export function startLivePlaybackEngine(
-  audioSources$: Observable<Object>,
+  audioSources$: Observable<AudioSourceMap>,
   playCommands$: Observable<Object>,
   subscription: Subscription
 ) {
@@ -91,7 +100,11 @@ function observableWithGainNode(observableFactory) {
   );
 }
 
-function buildSourceNode(requestedNoteName, audioSources, destinationNode) {
+function buildSourceNode(
+  requestedNoteName,
+  audioSources: AudioSourceMap,
+  destinationNode
+) {
   const isSharp = requestedNoteName.indexOf("#") >= 0;
   const noteName = requestedNoteName.replace("#", "");
 
@@ -138,13 +151,11 @@ function syncWithAudio(audioContext, when) {
   });
 }
 
-type NoteList = Array<[string, number, number]>;
-
 export function startScriptedPlayback(
-  notes$: Observable<NoteList>,
+  notes$: Observable<ScheduledNoteList>,
   bpm: number,
   startPosition: number,
-  audioSources$: Observable<Object>,
+  audioSources$: Observable<AudioSourceMap>,
   playUntil$: Observable<any>
 ) {
   const truncatedNotes$ = notes$.map(notes =>
@@ -155,7 +166,10 @@ export function startScriptedPlayback(
 
   type BeatWindow = [number, number];
 
-  function pickNotesForBeatWindow(beatWindow: BeatWindow, notes: NoteList) {
+  function pickNotesForBeatWindow(
+    beatWindow: BeatWindow,
+    notes: ScheduledNoteList
+  ) {
     const [beatFrom, beatTo] = beatWindow;
     return notes.filter(note => note[1] >= beatFrom && note[1] < beatTo);
   }
