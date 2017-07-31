@@ -6,7 +6,10 @@ import { Subscription } from "rxjs/Subscription";
 
 import ReactActions from "./ReactActions";
 
-export default function createControlledComponent<OuterPropTypes, InnerPropTypes>(
+export default function createControlledComponent<
+  OuterPropTypes,
+  InnerPropTypes
+>(
   controller: (OuterPropTypes, Object, Subscription) => InnerPropTypes,
   Component: React.Component<{}, InnerPropTypes, {}>,
   actionNames: Array<string> = [],

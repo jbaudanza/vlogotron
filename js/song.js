@@ -24,7 +24,7 @@ export type Song = {
   bpm: number,
   premium: boolean
 };
-export type SongMap = {[string]: Song};
+export type SongMap = { [string]: Song };
 
 const maryHadALittleLamb = [
   ["A4", 0, 1], // Ma-
@@ -5479,6 +5479,9 @@ export function songLengthInBeats(notes: ScheduledNoteList): number {
   return max(notes.map(note => note[1] + note[2])) || 0;
 }
 
-export function songLengthInSeconds(notes: ScheduledNoteList, bpm: number): number {
+export function songLengthInSeconds(
+  notes: ScheduledNoteList,
+  bpm: number
+): number {
   return beatsToTimestamp(songLengthInBeats(notes), bpm);
 }
