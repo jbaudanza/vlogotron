@@ -1,14 +1,15 @@
 /* @flow */
 
-export function findParentNode(
+export function findParentNode<N>(
   startEl: Node,
-  testFn: Node => boolean,
-  stopEl: ?Element = null
-): ?Node {
+  nodeType: Function,
+  testFn: (N) => boolean,
+  stopEl: ?Node = null
+): ?N {
   let iterEl = startEl;
 
   while (iterEl && iterEl !== stopEl) {
-    if (testFn(iterEl)) return iterEl;
+    if (iterEl instanceof nodeType && testFn(iterEl)) return iterEl;
     else iterEl = iterEl.parentNode;
   }
 
@@ -20,22 +21,14 @@ export function findWrappingClass(
   className: string,
   stopEl: ?Element = null
 ): ?Element {
-  const e = findParentNode(
+  return findParentNode(
     element,
-    el =>
-      el instanceof Element && el.classList && el.classList.contains(className),
+    Element,
+    el => el.classList && el.classList.contains(className),
     stopEl
   );
-
-  // TODO: This is to make flow happy and isn't necessary
-  if (e instanceof Element) return e;
-  else return null;
 }
 
 export function findWrappingLink(element: Element): ?HTMLAnchorElement {
-  const e = findParentNode(element, e => e instanceof HTMLAnchorElement);
-
-  // TODO: This is to make flow happy and isn't necessary
-  if (e instanceof HTMLAnchorElement) return e;
-  else return null;
+  return findParentNode(element, HTMLAnchorElement, e => true);
 }
