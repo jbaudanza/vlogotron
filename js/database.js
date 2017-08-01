@@ -1,13 +1,37 @@
 /* @flow */
-import { Observable } from "rxjs";
+import { Observable } from "rxjs/Observable";
 
 import { mapKeys, mapValues, omit } from "lodash";
 
+import type { Song } from "./song";
 import * as firebase from "firebase";
+
+type VideoClipSource = {
+  src: string,
+  type: string
+};
+
+type VideoClip = {
+  audioUrl: string,
+  clipId: string,
+  poster: string,
+  sources: Array<VideoClipSource>,
+  trimStart: number,
+  trimEnd: number
+};
+
+type SerializedSong = Song & {
+  parentSong: ?SerializedSong,
+  songId: string,
+  videoClips: { [string]: VideoClip }
+};
 
 type FirebaseDatabase = Object;
 
-export function createSong(database: FirebaseDatabase, song: Object) {
+export function createSong(
+  database: FirebaseDatabase,
+  song: SerializedSong
+): Promise<string> {
   const songsCollectionRef = database.ref("songs");
 
   const rootObject = {
@@ -44,9 +68,10 @@ function denormalizedRefsForSong(database, song) {
     database.ref("users").child(song.uid).child("songs").child(song.songId)
   );
 
-  if (song.parentSong) {
+  const parentSong = song.parentSong;
+  if (parentSong) {
     refs.push(
-      database.ref("remixes").child(song.parentSong.songId).child(song.songId)
+      database.ref("remixes").child(parentSong.songId).child(song.songId)
     );
   }
 
@@ -87,7 +112,7 @@ export function updateUser(database: FirebaseDatabase, user: Object) {
 export function songById(
   database: FirebaseDatabase,
   songId: string
-): Observable<Object> {
+): Observable<SerializedSong> {
   const ref = database
     .ref("songs")
     .child(songId)
