@@ -63,6 +63,7 @@ export default class CreateNewSongOverlay extends React.Component {
           premiumAccount={false}
           onClose={this.props.onClose}
           audioSources={{}}
+          premiumAccountStatus={this.props.premiumAccountStatus}
           onSelect={() => this.setState({ purchaseForm: true })}
         />
       );
@@ -75,6 +76,7 @@ export default class CreateNewSongOverlay extends React.Component {
 CreateNewSongOverlay.propTypes = {
   onLogin: PropTypes.func.isRequired,
   onClose: PropTypes.string.isRequired,
+  premiumAccountStatus: PropTypes.bool.isRequired,
   currentUser: PropTypes.object
 };
 

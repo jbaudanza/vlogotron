@@ -79,8 +79,6 @@ const premiumAccountStatus$ = currentUser$.switchMap(user => {
   }
 });
 
-premiumAccountStatus$.debug("premium").subscribe();
-
 // If the user logs in, navigate away from a login dialog
 Observable.combineLatest(
   currentUser$.distinctUntilChanged(),
@@ -186,6 +184,12 @@ class App extends React.Component {
     this.globalSubscription.add(
       currentLocation$.subscribe(this.stateObserver("location"))
     );
+
+    this.globalSubscription.add(
+      premiumAccountStatus$.subscribe(
+        this.stateObserver("premiumAccountStatus")
+      )
+    );
   }
 
   unsubscribeMedia() {
@@ -287,6 +291,7 @@ class App extends React.Component {
           onLogin={this.onLogin}
           onClose={this.state.location.pathname}
           currentUser={this.state.currentUser}
+          premiumAccountStatus={this.state.premiumAccountStatus}
         />
       );
     }

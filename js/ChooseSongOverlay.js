@@ -91,7 +91,7 @@ class LineItem extends React.Component {
   render() {
     let actionLabel;
 
-    if (this.props.premiumAccount) {
+    if (this.props.premiumAccountStatus) {
       actionLabel = this.context.messages["select-action"]();
     } else {
       if (this.props.song.premium) {
@@ -130,7 +130,7 @@ LineItem.contextTypes = {
 };
 
 LineItem.propTypes = {
-  premiumAccount: PropTypes.bool.isRequired,
+  premiumAccountStatus: PropTypes.bool.isRequired,
   price: PropTypes.number.isRequired,
   song: PropTypes.object.isRequired
 };
@@ -152,7 +152,7 @@ class ChooseSongOverlay extends React.Component {
               onClickPlay={this.props.onPlay}
               onClickPause={this.props.onPause}
               price={this.props.price}
-              premiumAccount={this.props.premiumAccount}
+              premiumAccountStatus={this.props.premiumAccountStatus}
             />
           ))}
         </StyledUL>
@@ -167,7 +167,7 @@ ChooseSongOverlay.propTypes = {
   onPlay: PropTypes.func.isRequired,
   onPause: PropTypes.func.isRequired,
   price: PropTypes.number.isRequired,
-  premiumAccount: PropTypes.bool.isRequired
+  premiumAccountStatus: PropTypes.bool.isRequired
 };
 
 type OuterPropTypes = {
@@ -175,7 +175,7 @@ type OuterPropTypes = {
   onClose: Function,
   price: number,
   audioSources: AudioSourceMap,
-  premiumAccount: boolean
+  premiumAccountStatus: boolean
 };
 type ActionTypes = { play$: Observable<string>, pause$: Observable<string> };
 
@@ -203,14 +203,15 @@ function chooseTemplateController(
     })
     .startWith(null);
 
-  return currentlyPlaying$.withLatestFrom(
+  return Observable.combineLatest(
+    currentlyPlaying$,
     props$,
     (currentlyPlaying, props) => ({
       currentlyPlaying,
       onSelect: props.onSelect,
       onClose: props.onClose,
       price: props.price,
-      premiumAccount: props.premiumAccount
+      premiumAccountStatus: props.premiumAccountStatus
     })
   );
 }

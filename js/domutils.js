@@ -3,7 +3,7 @@
 export function findParentNode<N>(
   startEl: Node,
   nodeType: Function,
-  testFn: (N) => boolean,
+  testFn: N => boolean,
   stopEl: ?Node = null
 ): ?N {
   let iterEl = startEl;
