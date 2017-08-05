@@ -1,14 +1,14 @@
 /* @flow */
 
 import React from "react";
+import Spinner from "./Spinner";
 
 export default function LoadingView() {
   return (
     <div className="page-vertical-wrapper">
       <div className="page-content initial-loading">
-        <svg version="1.1" width="100px" height="100px" className="spinner">
-          <use xlinkHref="#svg-spinner" />
-        </svg>
+
+        <Spinner size={100} />
         loading...
       </div>
     </div>

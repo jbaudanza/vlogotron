@@ -20,6 +20,7 @@ import type { AudioSourceMap } from "./AudioPlaybackEngine";
 import ReactActions from "./ReactActions";
 import createControlledComponent from "./createControlledComponent";
 
+
 const arrowEl = (
   <svg width="8" height="14" viewBox="0 0 8 14">
     <path
@@ -79,28 +80,34 @@ const StyledUL = styled.ul`
 class LineItem extends React.Component {
   constructor(props) {
     super();
-    this.onSelect = props.onSelect.bind(null, props.song);
+    this.onSelectSong = props.onSelectSong.bind(null, props.song);
     this.onClickPlay = props.onClickPlay.bind(null, props.songId);
     this.onClickPause = props.onClickPause.bind(null, props.songId);
+    this.onRequestPurchase = props.onRequestPurchase.bind(null, props.songId);
   }
 
-  onSelect: Function;
+  onSelectSong: Function;
+  onRequestPurchase: Function;
   onClickPlay: Function;
   onClickPause: Function;
 
   render() {
     let actionLabel;
+    let onClick;
 
     if (this.props.premiumAccountStatus) {
       actionLabel = this.context.messages["select-action"]();
+      onClick = this.onSelectSong;
     } else {
       if (this.props.song.premium) {
         actionLabel = new Intl.NumberFormat(this.context.locale, {
           style: "currency",
           currency: "USD"
         }).format(this.props.price / 100);
+        onClick = this.onRequestPurchase;
       } else {
         actionLabel = this.context.messages["free-action"]();
+        onClick = this.onSelectSong;
       }
     }
 
@@ -113,7 +120,7 @@ class LineItem extends React.Component {
           onClickPause={this.onClickPause}
         />
         {this.props.song.title}
-        <StyledLink onClick={this.onSelect}>
+        <StyledLink onClick={onClick}>
           <span>
             {actionLabel}
           </span>
@@ -148,7 +155,8 @@ class ChooseSongOverlay extends React.Component {
               key={songId}
               songId={songId}
               isPlaying={this.props.currentlyPlaying === songId}
-              onSelect={this.props.onSelect}
+              onSelectSong={this.props.onSelectSong}
+              onRequestPurchase={this.props.onRequestPurchase}
               onClickPlay={this.props.onPlay}
               onClickPause={this.props.onPause}
               price={this.props.price}
@@ -162,16 +170,18 @@ class ChooseSongOverlay extends React.Component {
 }
 
 ChooseSongOverlay.propTypes = {
-  onSelect: PropTypes.func.isRequired,
+  onSelectSong: PropTypes.func.isRequired,
   onClose: PropTypes.string.isRequired,
   onPlay: PropTypes.func.isRequired,
   onPause: PropTypes.func.isRequired,
+  onRequestPurchase: PropTypes.func.isRequired,
   price: PropTypes.number.isRequired,
   premiumAccountStatus: PropTypes.bool.isRequired
 };
 
 type OuterPropTypes = {
-  onSelect: string => void,
+  onSelectSong: string => void,
+  onRequestPurchase: string => void,
   onClose: Function,
   price: number,
   audioSources: AudioSourceMap,
@@ -208,8 +218,9 @@ function chooseTemplateController(
     props$,
     (currentlyPlaying, props) => ({
       currentlyPlaying,
-      onSelect: props.onSelect,
+      onSelectSong: props.onSelectSong,
       onClose: props.onClose,
+      onRequestPurchase: props.onRequestPurchase,
       price: props.price,
       premiumAccountStatus: props.premiumAccountStatus
     })

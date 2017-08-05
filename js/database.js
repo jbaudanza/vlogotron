@@ -26,7 +26,99 @@ type SerializedSong = Song & {
   videoClips: { [string]: VideoClip }
 };
 
+// Current structure:
+/*
+Song:
+  createdAt:  number
+  updatedAt: number
+  bpm: number
+  revisions: []
+  *title: string
+  uid: string
+  *videoClips: { gain, trimStart, trimEnd, videoClipId }
+  *visibility: "everyone"
+
+  * Denormalized from revisions
+
+Revision:
+  bpm: number
+  notes: []
+  timestamp: number,
+  uid: string
+  videoClips: { gain, trimStart, trimEnd, videoClipId }
+  visibility
+
+Refactored:
+// Maybe this should be called something else: Boards, Grids, Stages
+  schema: 2
+  createdAt: number
+  updatedAt: number
+  templateId: string
+  events: [
+    updateTrim, updateGrain, recordVideo, deleteVideo
+  ]
+*/
+
+type SongBoardEvent =
+  | {
+      type: "add-video",
+      videoClipId: string,
+      note: string,
+      uid: string
+    }
+  | {
+      type: "remove-video",
+      note: string,
+      uid: string
+    }
+  | {
+      type: "update-gain",
+      value: number,
+      uid: string
+    }
+  | {
+      type: "update-trim",
+      start: number,
+      end: number,
+      uid: string
+    }
+  | {
+      type: "update-song",
+      songId: string,
+      uid: string
+    };
+
+type SongBoard = {
+  createdAt: number,
+  updatedAt: number,
+  events: Array<SongBoardEvent>,
+  templateId: string, // denormalized
+  videoClips: { [string]: Object } // denormalized
+};
+
 type FirebaseDatabase = Object;
+
+export function createSongBoard(
+  database: FirebaseDatabase,
+  uid: string,
+  songId: string
+): Promise<string> {
+  const collectionRef = database.ref("song-boards");
+
+  const rootObject = {
+    createdAt: firebase.database.ServerValue.TIMESTAMP,
+    updatedAt: firebase.database.ServerValue.TIMESTAMP,
+    uid: uid
+  };
+
+  const rootWrite = collectionRef.push(rootObject);
+
+  return rootWrite.then(songBoardRef => {
+    database.ref("users").child(uid).child("song-boards").child(songId).set(rootObject).then(() => {
+      return songBoardRef.key
+    })
+  })
+}
 
 export function createSong(
   database: FirebaseDatabase,
@@ -239,5 +331,35 @@ function fromFirebaseRef(ref, eventType) {
     ref.on(eventType, handler, observer.error.bind(observer));
 
     return () => ref.off(eventType, handler);
+  });
+}
+
+function reduceFirebaseCollection<T>(
+  collectionRef,
+  accFn: (T, any) => T,
+  initial: T
+): Observable<T> {
+  const query = collectionRef.orderByKey();
+
+  return fromFirebaseRef(query, "value").first().switchMap(snapshot => {
+    let lastKey;
+    let acc = initial;
+
+    snapshot.forEach(function(child) {
+      lastKey = child.key;
+      acc = accFn(acc, child.val());
+    });
+
+    let rest$;
+    if (lastKey) {
+      rest$ = fromFirebaseRef(query.startAt(lastKey), "child_added").skip(1);
+    } else {
+      rest$ = fromFirebaseRef(query, "child_added");
+    }
+
+    return rest$
+      .map(snapshot => snapshot.val())
+      .scan(accFn, acc)
+      .startWith(acc);
   });
 }

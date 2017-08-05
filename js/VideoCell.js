@@ -8,8 +8,20 @@ import NoteLabel from "./NoteLabel";
 import PitchGuide from "./PitchGuide";
 import SynchronizedVideo from "./SynchronizedVideo";
 import colors from "./colors";
+import Spinner from "./Spinner";
+import styled from "styled-components";
 
 import { formatSeconds } from "./format";
+
+const StyledSpinner = styled(Spinner)`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -25px;
+  margin-top: -25px;
+  display: block;
+  fill: #fff;
+`;
 
 import "./VideoCell.scss";
 
@@ -156,11 +168,7 @@ export default class VideoCell extends React.Component {
     }
 
     if (this.props.spinner) {
-      spinnerEl = (
-        <svg version="1.1" width="50px" height="50px" className="spinner">
-          <use xlinkHref="#svg-spinner" />
-        </svg>
-      );
+      spinnerEl = <StyledSpinner size={50} />;
     }
 
     if (!this.props.mediaStream) {

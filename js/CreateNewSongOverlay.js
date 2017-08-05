@@ -3,11 +3,27 @@
 import PropTypes from "prop-types";
 import React from "react";
 
+import { createSongBoard } from "./database";
+
 import ChooseSongOverlay from "./ChooseSongOverlay";
 import LoginOverlay from "./LoginOverlay";
 import PurchaseOverlay from "./PurchaseOverlay";
+import Overlay from "./Overlay";
+import Spinner from "./Spinner";
 
 import createControlledComponent from "./createControlledComponent";
+
+import { songs } from "./song";
+
+import { bindAll } from "lodash";
+
+function WorkingOverlay(props) {
+  return (
+    <Overlay {...props}>
+      <Spinner size={100}/>
+    </Overlay>
+  );
+}
 
 function onToken(jwtPromise, stripeToken) {
   jwtPromise.then(jwt => {
@@ -28,32 +44,64 @@ function onToken(jwtPromise, stripeToken) {
 
 export default class CreateNewSongOverlay extends React.Component {
   state: {
-    purchaseForm: boolean
+    purchaseSongId: ?string,
+    working: boolean
   };
 
   constructor() {
     super();
-    this.state = { purchaseForm: false };
+    this.state = { purchaseSongId: null, working: false };
+    bindAll(this, "onSelectSong", "onRequestPurchase", "onCancelPurchase");
   }
 
-  onSelect() {
+  onSelectSong(songId: string) {
+    const promise = createSongBoard(
+      this.props.firebase.database(),
+      this.props.currentUser.uid,
+      songId
+    );
+
+    this.setState({ working: true });
+
+    promise.then((key) => {
+      alert(key);
+      this.setState({ working: false })
+    }, (err) => {
+      console.error(err);
+      this.setState({ working: false })
+    })
+
+    /*
     const tokenPromise = this.props.currentUser.getToken();
 
     // XXX: Do something with this
     onToken.bind(null, tokenPromise);
+    */
+  }
+
+  onRequestPurchase(songId: string) {
+    this.setState({ purchaseSongId: songId });
+  }
+
+  onCancelPurchase() {
+    this.setState({ purchaseSongId: null });
   }
 
   render() {
     const price = 199;
 
+    if (this.state.working) {
+      return <WorkingOverlay onClose={this.props.onClose} />;
+    }
+
     if (this.props.currentUser) {
-      if (this.state.purchaseForm) {
+      if (this.state.purchaseSongId) {
         return (
           <PurchaseOverlay
             onClose={this.props.onClose}
             price={price}
-            songName="The Entertainer"
-            onCancel={() => this.setState({ purchaseForm: false })}
+            songName={songs[this.state.purchaseSongId].title}
+            onCancel={this.onCancelPurchase}
           />
         );
       }
@@ -64,7 +112,8 @@ export default class CreateNewSongOverlay extends React.Component {
           onClose={this.props.onClose}
           audioSources={{}}
           premiumAccountStatus={this.props.premiumAccountStatus}
-          onSelect={() => this.setState({ purchaseForm: true })}
+          onRequestPurchase={this.onRequestPurchase}
+          onSelectSong={this.onSelectSong}
         />
       );
     } else {

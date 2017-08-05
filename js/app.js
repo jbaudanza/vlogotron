@@ -291,6 +291,7 @@ class App extends React.Component {
           onLogin={this.onLogin}
           onClose={this.state.location.pathname}
           currentUser={this.state.currentUser}
+          firebase={firebase}
           premiumAccountStatus={this.state.premiumAccountStatus}
         />
       );
