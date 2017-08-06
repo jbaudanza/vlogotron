@@ -20,19 +20,19 @@ import { bindAll } from "lodash";
 function WorkingOverlay(props) {
   return (
     <Overlay {...props}>
-      <Spinner size={100}/>
+      <Spinner size={100} />
     </Overlay>
   );
 }
 
-function onToken(jwtPromise, stripeToken) {
-  jwtPromise.then(jwt => {
+function createStripeCharge(jwtPromise: Promise<string>, stripeToken: StripeToken) {
+  return jwtPromise.then(jwt => {
     const requestBody = JSON.stringify({
       jwt: jwt,
       token: stripeToken.id
     });
 
-    fetch("http://localhost:5002/vlogotron-95daf/us-central1/charge", {
+    fetch("https://us-central1-vlogotron-95daf.cloudfunctions.net/charge", {
       method: "POST",
       headers: {
         "Content-type": "application/json; charset=UTF-8"
@@ -51,7 +51,22 @@ export default class CreateNewSongOverlay extends React.Component {
   constructor() {
     super();
     this.state = { purchaseSongId: null, working: false };
-    bindAll(this, "onSelectSong", "onRequestPurchase", "onCancelPurchase");
+    bindAll(
+      this,
+      "onSelectSong",
+      "onRequestPurchase",
+      "onCancelPurchase",
+      "onStripeToken"
+    );
+  }
+
+  onStripeToken(token: StripeToken) {
+    const jwtPromise = this.props.currentUser.getToken();
+
+    createStripeCharge(jwtPromise, token);
+    // TODO:
+    // - Wait until the premium flag is set, and then call onSelect
+    // - Make sure any card errors are caught and displayed somehow
   }
 
   onSelectSong(songId: string) {
@@ -63,20 +78,16 @@ export default class CreateNewSongOverlay extends React.Component {
 
     this.setState({ working: true });
 
-    promise.then((key) => {
-      alert(key);
-      this.setState({ working: false })
-    }, (err) => {
-      console.error(err);
-      this.setState({ working: false })
-    })
-
-    /*
-    const tokenPromise = this.props.currentUser.getToken();
-
-    // XXX: Do something with this
-    onToken.bind(null, tokenPromise);
-    */
+    promise.then(
+      key => {
+        alert(key);
+        this.setState({ working: false });
+      },
+      err => {
+        console.error(err);
+        this.setState({ working: false });
+      }
+    );
   }
 
   onRequestPurchase(songId: string) {
@@ -102,6 +113,7 @@ export default class CreateNewSongOverlay extends React.Component {
             price={price}
             songName={songs[this.state.purchaseSongId].title}
             onCancel={this.onCancelPurchase}
+            onToken={this.onStripeToken}
           />
         );
       }

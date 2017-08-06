@@ -114,10 +114,16 @@ export function createSongBoard(
   const rootWrite = collectionRef.push(rootObject);
 
   return rootWrite.then(songBoardRef => {
-    database.ref("users").child(uid).child("song-boards").child(songId).set(rootObject).then(() => {
-      return songBoardRef.key
-    })
-  })
+    database
+      .ref("users")
+      .child(uid)
+      .child("song-boards")
+      .child(songId)
+      .set(rootObject)
+      .then(() => {
+        return songBoardRef.key;
+      });
+  });
 }
 
 export function createSong(

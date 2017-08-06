@@ -20,7 +20,6 @@ import type { AudioSourceMap } from "./AudioPlaybackEngine";
 import ReactActions from "./ReactActions";
 import createControlledComponent from "./createControlledComponent";
 
-
 const arrowEl = (
   <svg width="8" height="14" viewBox="0 0 8 14">
     <path

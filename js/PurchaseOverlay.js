@@ -78,7 +78,7 @@ export default class PurchaseOverlay extends React.Component {
         // TODO: This might be triggered on an unmounted component
         this.setState({ errorMessage: result.error.message });
       } else {
-        console.log("token", result.token);
+        this.props.onToken(result.token);
       }
     });
   }
@@ -133,5 +133,6 @@ PurchaseOverlay.contextTypes = {
 };
 
 PurchaseOverlay.propTypes = {
-  onCancel: PropTypes.func.isRequired
+  onCancel: PropTypes.func.isRequired,
+  onToken: PropTypes.func.isRequired
 };
