@@ -6,25 +6,26 @@ import { mapKeys, mapValues, omit } from "lodash";
 import type { Song } from "./song";
 import * as firebase from "firebase";
 
-type VideoClipSource = {
+type VideoClipSource = $Exact<{
   src: string,
   type: string
-};
+}>;
 
-type VideoClip = {
+type VideoClip = $Exact<{
   audioUrl: string,
   clipId: string,
   poster: string,
   sources: Array<VideoClipSource>,
   trimStart: number,
   trimEnd: number
-};
+}>;
 
-type SerializedSong = Song & {
-  parentSong: ?SerializedSong,
-  songId: string,
-  videoClips: { [string]: VideoClip }
-};
+type SerializedSong = Song &
+  $Exact<{
+    parentSong: ?SerializedSong,
+    songId: string,
+    videoClips: { [string]: VideoClip }
+  }>;
 
 // Current structure:
 /*
@@ -60,41 +61,41 @@ Refactored:
 */
 
 type SongBoardEvent =
-  | {
-      type: "add-video",
-      videoClipId: string,
-      note: string,
-      uid: string
-    }
-  | {
-      type: "remove-video",
-      note: string,
-      uid: string
-    }
-  | {
-      type: "update-gain",
-      value: number,
-      uid: string
-    }
-  | {
-      type: "update-trim",
-      start: number,
-      end: number,
-      uid: string
-    }
-  | {
-      type: "update-song",
-      songId: string,
-      uid: string
-    };
+  | $Exact<{
+    type: "add-video",
+    videoClipId: string,
+    note: string,
+    uid: string
+  }>
+  | $Exact<{
+    type: "remove-video",
+    note: string,
+    uid: string
+  }>
+  | $Exact<{
+    type: "update-gain",
+    value: number,
+    uid: string
+  }>
+  | $Exact<{
+    type: "update-trim",
+    start: number,
+    end: number,
+    uid: string
+  }>
+  | $Exact<{
+    type: "update-song",
+    songId: string,
+    uid: string
+  }>;
 
-type SongBoard = {
+type SongBoard = $Exact<{
   createdAt: number,
   updatedAt: number,
   events: Array<SongBoardEvent>,
   templateId: string, // denormalized
   videoClips: { [string]: Object } // denormalized
-};
+}>;
 
 type FirebaseDatabase = Object;
 

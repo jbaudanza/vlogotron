@@ -12,8 +12,7 @@ const stripe = require("stripe")(stripeSecretKey);
 const chargeOptions = {
   amount: 199,
   currency: "usd",
-  description: "Premium songs",
-  metadata: { songId: "chopsticks" } // TODO: Use real songId
+  description: "Premium songs"
 };
 
 const allowedOrigins = [
@@ -75,7 +74,8 @@ function charge(admin, req, res) {
             return stripe.charges.create(
               Object.assign({}, chargeOptions, {
                 customer: customerId,
-                source: source.id
+                source: source.id,
+                metadata: req.body.metadata
               })
             );
           });
@@ -95,7 +95,10 @@ function charge(admin, req, res) {
           })
           .then(customer => {
             return stripe.charges.create(
-              Object.assign({}, chargeOptions, { customer: customer.id })
+              Object.assign({}, chargeOptions, {
+                customer: customer.id,
+                metadata: req.body.metadata
+              })
             );
           });
       }
@@ -106,7 +109,7 @@ function charge(admin, req, res) {
           res.status(200).send(JSON.stringify(charge));
         },
         error => {
-          res.status(400).send(JSON.stringify(error));
+          res.status(402).send(JSON.stringify(error));
         }
       );
     });

@@ -18,12 +18,12 @@ import { concat, filter, findIndex, max } from "lodash";
 
 export type ScheduledNote = [string, number, number];
 export type ScheduledNoteList = Array<ScheduledNote>;
-export type Song = {
+export type Song = {|
   title: string,
   notes: ScheduledNoteList,
   bpm: number,
   premium: boolean
-};
+|};
 export type SongMap = { [string]: Song };
 
 const maryHadALittleLamb = [

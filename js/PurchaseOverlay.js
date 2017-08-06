@@ -9,6 +9,7 @@ import Link from "./Link";
 
 import { bindAll } from "lodash";
 
+import { songs } from "./song";
 import styled from "styled-components";
 import colors from "./colors";
 
@@ -42,6 +43,37 @@ const StyledStripeWrapper = styled.div`
   }
 `;
 
+function createStripeCharge(
+  jwtPromise: Promise<string>,
+  songId: string,
+  stripeToken: StripeToken
+) {
+  return jwtPromise.then(jwt => {
+    const requestBody = JSON.stringify({
+      jwt: jwt,
+      token: stripeToken.id,
+      metadata: { songId }
+    });
+
+    return fetch(
+      "https://us-central1-vlogotron-95daf.cloudfunctions.net/charge",
+      {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json; charset=UTF-8"
+        },
+        body: requestBody
+      }
+    ).then(r => {
+      if (r.ok) {
+        return r.json();
+      } else {
+        return r.json().then(json => Promise.reject(json));
+      }
+    });
+  });
+}
+
 export default class PurchaseOverlay extends React.Component {
   state: {
     errorMessage: ?string,
@@ -70,17 +102,37 @@ export default class PurchaseOverlay extends React.Component {
   }
 
   onClickPurchase() {
-    this.setState({ working: true });
+    this.setState({ working: true, errorMessage: null });
 
-    stripe.createToken(this.card).then(result => {
-      this.setState({ working: false });
+    const promise = stripe.createToken(this.card).then(result => {
       if (result.error) {
-        // TODO: This might be triggered on an unmounted component
-        this.setState({ errorMessage: result.error.message });
+        throw result.error;
       } else {
-        this.props.onToken(result.token);
+        const jwtPromise = this.props.currentUser.getToken();
+        if (result.token) {
+          return createStripeCharge(
+            jwtPromise,
+            this.props.songId,
+            result.token
+          );
+        }
       }
     });
+
+    // TODO: Handle the case where the component is unmounted while the promise
+    // is in progress
+    promise.then(
+      result => {
+        // TODO: Call some onSelectSong callback
+        this.setState({ working: false });
+      },
+      (error: StripeError) => {
+        this.setState({
+          working: false,
+          errorMessage: error.message
+        });
+      }
+    );
   }
 
   onChange(event: StripeCardChangeEvent) {
@@ -97,7 +149,7 @@ export default class PurchaseOverlay extends React.Component {
         <p>
           {this.context.messages["purchase-premium-description"]({
             PRICE: this.props.price / 100,
-            SONG_NAME: this.props.songName
+            SONG_NAME: songs[this.props.songId].title
           })}
         </p>
         <p>
@@ -134,5 +186,7 @@ PurchaseOverlay.contextTypes = {
 
 PurchaseOverlay.propTypes = {
   onCancel: PropTypes.func.isRequired,
-  onToken: PropTypes.func.isRequired
+  onToken: PropTypes.func.isRequired,
+  currentUser: PropTypes.object.isRequired,
+  songId: PropTypes.string.isRequired
 };

@@ -13,8 +13,6 @@ import Spinner from "./Spinner";
 
 import createControlledComponent from "./createControlledComponent";
 
-import { songs } from "./song";
-
 import { bindAll } from "lodash";
 
 function WorkingOverlay(props) {
@@ -23,26 +21,6 @@ function WorkingOverlay(props) {
       <Spinner size={100} />
     </Overlay>
   );
-}
-
-function createStripeCharge(
-  jwtPromise: Promise<string>,
-  stripeToken: StripeToken
-) {
-  return jwtPromise.then(jwt => {
-    const requestBody = JSON.stringify({
-      jwt: jwt,
-      token: stripeToken.id
-    });
-
-    fetch("https://us-central1-vlogotron-95daf.cloudfunctions.net/charge", {
-      method: "POST",
-      headers: {
-        "Content-type": "application/json; charset=UTF-8"
-      },
-      body: requestBody
-    });
-  });
 }
 
 export default class CreateNewSongOverlay extends React.Component {
@@ -64,9 +42,6 @@ export default class CreateNewSongOverlay extends React.Component {
   }
 
   onStripeToken(token: StripeToken) {
-    const jwtPromise = this.props.currentUser.getToken();
-
-    createStripeCharge(jwtPromise, token);
     // TODO:
     // - Wait until the premium flag is set, and then call onSelect
     // - Make sure any card errors are caught and displayed somehow
@@ -114,9 +89,10 @@ export default class CreateNewSongOverlay extends React.Component {
           <PurchaseOverlay
             onClose={this.props.onClose}
             price={price}
-            songName={songs[this.state.purchaseSongId].title}
+            songId={this.state.purchaseSongId}
             onCancel={this.onCancelPurchase}
             onToken={this.onStripeToken}
+            currentUser={this.props.currentUser}
           />
         );
       }
