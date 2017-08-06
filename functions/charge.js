@@ -21,7 +21,6 @@ const allowedOrigins = [
   "https://www.vlogotron.com",
   "https://staging.vlogotron.com",
   "https://vlogotron-95daf.firebaseapp.com",
-  "http://localhost:5000",
   "https://www.vlogotron"
 ];
 
@@ -101,10 +100,15 @@ function charge(admin, req, res) {
           });
       }
 
-      chargePromise.then(charge => {
-        dbRef.child("premium").set(true);
-        res.status(200).send(JSON.stringify(charge));
-      });
+      chargePromise.then(
+        charge => {
+          dbRef.child("premium").set(true);
+          res.status(200).send(JSON.stringify(charge));
+        },
+        error => {
+          res.status(400).send(JSON.stringify(error));
+        }
+      );
     });
   });
 }

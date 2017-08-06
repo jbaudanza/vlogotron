@@ -25,7 +25,10 @@ function WorkingOverlay(props) {
   );
 }
 
-function createStripeCharge(jwtPromise: Promise<string>, stripeToken: StripeToken) {
+function createStripeCharge(
+  jwtPromise: Promise<string>,
+  stripeToken: StripeToken
+) {
   return jwtPromise.then(jwt => {
     const requestBody = JSON.stringify({
       jwt: jwt,
