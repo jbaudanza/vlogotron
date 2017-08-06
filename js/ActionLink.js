@@ -27,4 +27,8 @@ export default styled(Link)`
   &:hover.enabled {
     opacity: 1;
   }
+
+  &.disabled {
+    background-color: #ababab;
+  }
 `;

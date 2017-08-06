@@ -35,7 +35,7 @@ declare class StripeCardChangeEvent {
 }
 
 declare class StripeElements {
-  create(type: string): StripeCard
+  create(type: string, options?: Object): StripeCard
 }
 
 declare class StripeCardError {

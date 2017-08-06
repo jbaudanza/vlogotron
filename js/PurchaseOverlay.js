@@ -35,7 +35,7 @@ const StyledStripeWrapper = styled.div`
   }
 
   &.StripeElement--invalid {
-    border-color: #fa755a;
+    border-color: ${colors.red};
   }
 
   &.StripeElement--webkit-autofill {
@@ -74,6 +74,10 @@ function createStripeCharge(
   });
 }
 
+const ErrorMessage = styled.p`
+  color: ${colors.red};
+`;
+
 export default class PurchaseOverlay extends React.Component {
   state: {
     errorMessage: ?string,
@@ -93,7 +97,12 @@ export default class PurchaseOverlay extends React.Component {
     if (el) {
       this.card = stripe
         .elements({ locale: this.context.locale })
-        .create("card");
+        .create("card", {
+          style: {
+            base: { fontFamily: "HKGrotesk, sans-serif" },
+            invalid: { color: colors.red }
+          }
+        });
       this.card.addEventListener("change", this.onChange.bind(this));
       this.card.mount(el);
     } else {
@@ -152,9 +161,9 @@ export default class PurchaseOverlay extends React.Component {
             SONG_NAME: songs[this.props.songId].title
           })}
         </p>
-        <p>
+        <ErrorMessage>
           {this.state.errorMessage}
-        </p>
+        </ErrorMessage>
         <form>
           <StyledStripeWrapper
             key="stripe-field"

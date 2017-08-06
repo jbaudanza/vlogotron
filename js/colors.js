@@ -12,5 +12,6 @@ export default {
   cloudyBlue: "#bdc1d7",
   dark: "#1f233d",
   whitish: "#e2e2e2",
-  charcoalGrey: "#46484f"
+  charcoalGrey: "#46484f",
+  red: "#bc1838"
 };
