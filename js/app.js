@@ -8,8 +8,10 @@ import { Observable } from "rxjs/Observable";
 import { Subscription } from "rxjs/Subscription";
 
 import { bindAll, isEqual, find, includes } from "lodash";
+import { fontFamily } from "./fonts";
 
 import SvgAssets from "./SvgAssets";
+import styled from "styled-components";
 
 import SideOverlay from "./SideOverlay";
 import CreateNewSongOverlay from "./CreateNewSongOverlay";
@@ -45,7 +47,6 @@ import {
   mapRouteToSongLocation
 } from "./mediaLoading";
 
-import "./style.scss";
 import {
   navigate,
   currentLocation$,
@@ -58,6 +59,10 @@ import messages from "./messages";
 window.main = function(node) {
   ReactDOM.render(<App />, node);
 };
+
+const PageWrapper = styled.div`
+  font-family: ${fontFamily};
+`;
 
 const currentUser$ = Observable.create(function(observer) {
   const auth = firebase.auth();
@@ -305,7 +310,7 @@ class App extends React.Component {
     });
 
     return (
-      <div onClick={this.onClick}>
+      <PageWrapper onClick={this.onClick}>
         <SvgAssets />
         <Page
           sidebarVisible={this.state.sidebarVisible}
@@ -323,7 +328,7 @@ class App extends React.Component {
         >
           {sideOverlayContent}
         </SideOverlay>
-      </div>
+      </PageWrapper>
     );
   }
 }

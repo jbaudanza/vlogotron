@@ -5,6 +5,7 @@ import React from "react";
 import styled from "styled-components";
 
 import { bindAll } from "lodash";
+import { fontFamily } from "./fonts";
 
 import Link from "./Link";
 
@@ -119,7 +120,7 @@ const StyledTitle = styled.span`
 `;
 
 const StyledInput = styled.input`
-  font-family: HKGrotesk, sans-serif;
+  font-family: ${fontFamily};
   margin: 0 auto;
   width: 216px;
 `;

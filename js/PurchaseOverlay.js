@@ -12,6 +12,7 @@ import { bindAll } from "lodash";
 import { songs } from "./song";
 import styled from "styled-components";
 import colors from "./colors";
+import { fontFamily } from "./fonts";
 
 const stripe = Stripe("pk_test_DHTDixORQV3rdO8tLqEAU72l");
 
@@ -99,7 +100,7 @@ export default class PurchaseOverlay extends React.Component {
         .elements({ locale: this.context.locale })
         .create("card", {
           style: {
-            base: { fontFamily: "HKGrotesk, sans-serif" },
+            base: { fontFamily: fontFamily },
             invalid: { color: colors.red }
           }
         });

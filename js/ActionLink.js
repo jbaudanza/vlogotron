@@ -4,6 +4,7 @@ import Link from "./Link";
 
 import colors from "./colors";
 import styled from "styled-components";
+import { fontFamily } from "./fonts";
 
 export default styled(Link)`
   background-color: ${colors.duskyBlue};
@@ -11,7 +12,7 @@ export default styled(Link)`
   font-weight: 600; // semi-bold
   padding: 0 15px;
   text-decoration: none;
-  font-family: HKGrotesk, sans-serif;
+  font-family: ${fontFamily};
 
   display: inline-block;
   height: 28px;

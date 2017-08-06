@@ -13,7 +13,11 @@ const TextBlob = styled.div`
 
   h3 {
     margin-top: 0;
+    font-size: 24px;
+    font-weight: 500;
+    text-align: center;
   }
+
   color: ${colors.dark};
   border: 1px solid ${colors.dark};
 `;
@@ -41,7 +45,7 @@ export default function RecordingNotSupported(props: { className: string }) {
         {" "}
         or
         {" "}
-        <a href="https://www.mozilla.org/firefox">FireFox</a>
+        <a href="https://www.mozilla.org/firefox">Firefox</a>
         {" "}
         installed, give
         that a try.
