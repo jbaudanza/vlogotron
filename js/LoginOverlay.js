@@ -22,6 +22,11 @@ const StyledOverlay = styled(Overlay)`
 const providers = ["Facebook", "Google", "Twitter"];
 
 export default class LoginOverlay extends React.Component {
+  props: {
+    onLogin: (string) => void,
+    onClose: string
+  };
+
   render() {
     return (
       <StyledOverlay className="login-overlay" onClose={this.props.onClose}>
@@ -44,8 +49,3 @@ export default class LoginOverlay extends React.Component {
     );
   }
 }
-
-LoginOverlay.propTypes = {
-  onLogin: PropTypes.func.isRequired,
-  onClose: PropTypes.string.isRequired
-};

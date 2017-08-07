@@ -29,6 +29,14 @@ export default class CreateNewSongOverlay extends React.Component {
     working: boolean
   };
 
+  props: {
+    onLogin: (string) => void,
+    onClose: string,
+    premiumAccountStatus: boolean,
+    currentUser: Object,
+    firebase: Object
+  };
+
   constructor() {
     super();
     this.state = { purchaseSongId: null, working: false };
@@ -112,13 +120,6 @@ export default class CreateNewSongOverlay extends React.Component {
     }
   }
 }
-
-CreateNewSongOverlay.propTypes = {
-  onLogin: PropTypes.func.isRequired,
-  onClose: PropTypes.string.isRequired,
-  premiumAccountStatus: PropTypes.bool.isRequired,
-  currentUser: PropTypes.object
-};
 
 function controller(props$, actions, subscription) {}
 

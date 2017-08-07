@@ -1,3 +1,5 @@
+/* @flow */
+
 import "./rxjs-additions";
 
 import PropTypes from "prop-types";
@@ -94,7 +96,7 @@ Observable.combineLatest(
     }
   }
 )
-  .filter(x => x)
+  .filter(x => !!x)
   .subscribe(navigate);
 
 const mySongs$ = currentUser$.switchMap(user => {
@@ -115,7 +117,10 @@ function initializeLocale() {
   const available = ["en", "ko"];
 
   // First, see if the user picked a locale in previous session
-  if ("locale" in localStorage && includes(available, localStorage.locale)) {
+  if (
+    typeof localStorage.locale === "string" &&
+    includes(available, localStorage.locale)
+  ) {
     return localStorage.locale;
   }
 
@@ -130,6 +135,22 @@ function initializeLocale() {
 }
 
 class App extends React.Component {
+  state: {
+    origin: string,
+    locale: string,
+    currentUser?: Object,
+    location: Location,
+    mySongs?: Object,
+    premiumAccountStatus: boolean,
+    component: Function,
+    sidebarVisible: boolean
+  };
+
+  globalSubscription: Subscription;
+  mediaSubscription: Subscription;
+  media: Object;
+  songLocation: Object;
+
   constructor() {
     super();
     bindAll(
@@ -142,12 +163,19 @@ class App extends React.Component {
       "onRouteChange"
     );
 
-    this.state = { locale: initializeLocale(), origin: document.origin };
+    this.state = {
+      locale: initializeLocale(),
+      origin: document.location.origin,
+      premiumAccountStatus: false,
+      sidebarVisible: false,
+      location: document.location,
+      component: props => null
+    };
   }
 
-  onChangeLocale(locale) {
+  onChangeLocale(locale: string) {
     this.setState({ locale });
-    localStorage.locale = locale;
+    localStorage.setItem("locale", locale);
   }
 
   onClick(event) {
@@ -160,7 +188,7 @@ class App extends React.Component {
         // Assume that any url that ends with .html is static content that
         // requires a refresh. This is true for the privacy policy and tos
         const href = clickable.getAttribute("href");
-        if (!href.endsWith(".html")) {
+        if (href && !href.endsWith(".html")) {
           this.onNavigate(href);
           event.preventDefault();
           event.stopPropagation();
@@ -242,7 +270,8 @@ class App extends React.Component {
 
   onNavigate(href) {
     navigate(href);
-    document.body.scrollTop = 0;
+
+    if (document.body) document.body.scrollTop = 0;
   }
 
   onLogin(providerString) {
