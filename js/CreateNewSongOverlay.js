@@ -30,7 +30,7 @@ export default class CreateNewSongOverlay extends React.Component {
   };
 
   props: {
-    onLogin: (string) => void,
+    onLogin: string => void,
     onClose: string,
     premiumAccountStatus: boolean,
     currentUser: Object,

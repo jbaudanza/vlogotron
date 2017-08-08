@@ -129,6 +129,9 @@ declare class rxjs$Observable<+T> {
 
   static throw(error: any): rxjs$Observable<any>;
 
+  // JB - Aug 7, 2017
+  static race(a: rxjs$Observable<T>, a: rxjs$Observable<T>): rxjs$Observable<T>;
+
   audit(durationSelector: (value: T) => rxjs$Observable<any> | Promise<any>): rxjs$Observable<T>;
 
   race(other: rxjs$Observable<T>): rxjs$Observable<T>;

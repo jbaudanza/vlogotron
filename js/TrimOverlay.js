@@ -1,3 +1,4 @@
+/* @flow */
 import PropTypes from "prop-types";
 import React from "react";
 import { Observable } from "rxjs/Observable";
@@ -84,10 +85,14 @@ function percentString(number) {
 }
 
 class VideoPlaybackPosition extends React.Component {
+  leftBarEl: HTMLElement;
+  rightBarEl: HTMLElement;
+  svgCircleEl: HTMLElement;
+
   animationFrame(progress) {
     if (this.leftBarEl) {
       Object.assign(this.leftBarEl.style, {
-        left: 0,
+        left: "0",
         right: percentString(1 - progress),
         backgroundColor: colors.darkSkyBlue
       });
@@ -95,7 +100,7 @@ class VideoPlaybackPosition extends React.Component {
 
     if (this.rightBarEl) {
       Object.assign(this.rightBarEl.style, {
-        right: 0,
+        right: "0",
         left: percentString(progress),
         backgroundColor: colors.slateGrey
       });
@@ -243,11 +248,14 @@ const AudioPlaybackPositionLine = styled.div`
 `;
 
 class AudioPlaybackPositionMarker extends React.Component {
+  markerEl: HTMLElement;
+  labelEl: HTMLElement;
+
   animationFrame(progress, elapsed) {
     if (this.markerEl) {
       Object.assign(this.markerEl.style, {
         position: "absolute",
-        top: 0,
+        top: "0",
         height: "66px",
         left: percentString(progress)
       });

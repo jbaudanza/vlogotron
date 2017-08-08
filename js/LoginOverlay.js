@@ -23,7 +23,7 @@ const providers = ["Facebook", "Google", "Twitter"];
 
 export default class LoginOverlay extends React.Component {
   props: {
-    onLogin: (string) => void,
+    onLogin: string => void,
     onClose: string
   };
 

@@ -30,7 +30,7 @@ export default class TrimmedAudioBufferSourceNode {
     this.source.start(when, this.offset, this.duration);
   }
 
-  stop(when: number) {
+  stop(when?: number) {
     this.source.stop(when);
   }
 }

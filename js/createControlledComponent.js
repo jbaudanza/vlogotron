@@ -1,8 +1,9 @@
-/* @noflow - flow annotations on HOC are tricky */
+/* @noflow - flow annotations on HOC are tricky. Use this as a guide: https://gist.github.com/faergeek/d7bbe4d638f71be915b040865044397b */
 
 import React from "react";
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
 import { Subscription } from "rxjs/Subscription";
+import type { Observable } from "rxjs/Observable"
 
 import ReactActions from "./ReactActions";
 
@@ -10,16 +11,24 @@ export default function createControlledComponent<
   OuterPropTypes,
   InnerPropTypes
 >(
-  controller: (OuterPropTypes, Object, Subscription) => InnerPropTypes,
-  Component: React.Component<{}, InnerPropTypes, {}>,
+  controller: (Observable<OuterPropTypes>, Object, Subscription) => InnerPropTypes,
+  Component: Class<React.Component<*, InnerPropTypes, *>>,
   actionNames: Array<string> = [],
-  InitialComponent: React.Component
-): React.Component {
+  InitialComponent: Class<React.Component<*, *, *>>
+): React.Component<*, *, *> {
   if (!InitialComponent) {
     InitialComponent = Component;
   }
 
-  return class ControlledComponent extends React.Component {
+  return class ControlledComponent extends React.Component<*,*,*> {
+    state: {
+      current?: InnerPropTypes
+    };
+
+    props$: BehaviorSubject<OuterPropTypes>;
+    actions: ReactActions;
+    subscription: Subscription;
+
     constructor(props) {
       super();
       this.state = {};
