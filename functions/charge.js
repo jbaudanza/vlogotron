@@ -28,7 +28,10 @@ function charge(admin, req, res) {
   if (allowedOrigins.indexOf(req.headers.origin) !== -1) {
     res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
   }
-  res.setHeader("Access-Control-Allow-Headers", "content-type");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "content-type,x-requested-with"
+  );
 
   if (req.method === "OPTIONS") {
     res.setHeader("allow", "OPTIONS, POST");
