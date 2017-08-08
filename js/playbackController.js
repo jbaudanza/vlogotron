@@ -17,6 +17,7 @@ import audioContext from "./audioContext";
 import { songs, timestampToBeats, songLengthInBeats } from "./song";
 
 import { displayNameForUid } from "./database";
+import combineTemplate from "./combineTemplate";
 
 export default function playbackController(
   props$,
@@ -149,41 +150,24 @@ export function playbackControllerHelper(
   // Start up Observables with side-effect
   subscription.add(scriptedPlaybackContext$$.connect());
 
-  return Observable.combineLatest(
-    media.videoClips$,
-    media.loading$,
-    isPlaying$,
-    playbackPositionInSeconds$,
-    currentUser$,
-    startPosition$,
-    songLength$,
-    notes$,
-    bpm$,
-    media.song$,
-    (
-      videoClips,
-      loading,
-      isPlaying,
-      playbackPositionInSeconds,
-      currentUser,
-      playbackStartPosition,
-      songLength,
-      notes,
-      bpm,
-      song
-    ) => ({
-      videoClips,
-      isPlaying,
-      playbackPositionInSeconds,
-      playbackPositionInBeats$$,
-      playbackStartPosition,
-      loading,
-      currentUser,
-      playCommands$,
-      songLength,
-      notes,
-      songTitle: song ? song.title : null,
-      bpm
-    })
-  );
+  const songTitle$ = media.song$.map(song => (song ? song.title : null));
+
+  const viewState$ = combineTemplate({
+    videoClips: media.videoClips$,
+    loading: media.loading$,
+    isPlaying: isPlaying$,
+    playbackPositionInSeconds: playbackPositionInSeconds$,
+    currentUser: currentUser$,
+    playbackStartPosition: startPosition$,
+    songLength: songLength$,
+    songTitle: songTitle$,
+    notes: notes$,
+    bpm: bpm$
+  });
+
+  return viewState$.map(viewState => ({
+    ...viewState,
+    playCommands$,
+    playbackPositionInBeats$$
+  }));
 }

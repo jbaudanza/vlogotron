@@ -63,7 +63,15 @@ function charge(admin, req, res) {
     return;
   }
 
-  admin.auth().verifyIdToken(req.body.jwt).then(decodedToken => {
+  console.log("Handling Charge request from IP: ", req.ip);
+
+  function onInvalidToken() {
+    console.warn("JSON Web Token didn't validate");
+    res.status(400).send("JSON Web Token didn't validate");
+    return;
+  }
+
+  function onValidToken(decodedToken) {
     const uid = decodedToken.uid;
     const dbRef = admin.database().ref("stripe-customers").child(uid);
     const customerIdRef = dbRef.child("customerId");
@@ -72,7 +80,7 @@ function charge(admin, req, res) {
 
     customerIdRef.once("value", function(snapshot) {
       if (snapshot.exists()) {
-        console.log("Completing purchase with stored customer id for uid", uid);
+        console.log("Found existing customer id for uid", uid);
 
         const customerId = snapshot.val();
         chargePromise = stripe.customers
@@ -113,14 +121,18 @@ function charge(admin, req, res) {
       chargePromise.then(
         charge => {
           dbRef.child("premium").set(true);
+          console.log("Charge completed");
           res.status(200).send(JSON.stringify(charge));
         },
         error => {
+          console.log("Charge failed", error.message);
           res.status(402).send(JSON.stringify(error));
         }
       );
     });
-  });
+  }
+
+  admin.auth().verifyIdToken(req.body.jwt).then(onValidToken, onInvalidToken);
 }
 
 module.exports = charge;
