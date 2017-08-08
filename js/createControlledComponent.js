@@ -3,7 +3,7 @@
 import React from "react";
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
 import { Subscription } from "rxjs/Subscription";
-import type { Observable } from "rxjs/Observable"
+import type { Observable } from "rxjs/Observable";
 
 import ReactActions from "./ReactActions";
 
@@ -11,7 +11,11 @@ export default function createControlledComponent<
   OuterPropTypes,
   InnerPropTypes
 >(
-  controller: (Observable<OuterPropTypes>, Object, Subscription) => InnerPropTypes,
+  controller: (
+    Observable<OuterPropTypes>,
+    Object,
+    Subscription
+  ) => InnerPropTypes,
   Component: Class<React.Component<*, InnerPropTypes, *>>,
   actionNames: Array<string> = [],
   InitialComponent: Class<React.Component<*, *, *>>
@@ -20,7 +24,7 @@ export default function createControlledComponent<
     InitialComponent = Component;
   }
 
-  return class ControlledComponent extends React.Component<*,*,*> {
+  return class ControlledComponent extends React.Component<*, *, *> {
     state: {
       current?: InnerPropTypes
     };

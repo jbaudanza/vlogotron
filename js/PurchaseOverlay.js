@@ -8,6 +8,7 @@ import ActionLink from "./ActionLink";
 import Link from "./Link";
 
 import { bindAll } from "lodash";
+import { Observable } from "rxjs/Observable";
 
 import { songs } from "./song";
 import styled from "styled-components";
@@ -50,28 +51,20 @@ function createStripeCharge(
   stripeToken: StripeToken
 ) {
   return jwtPromise.then(jwt => {
-    const requestBody = JSON.stringify({
+    const requestBody = {
       jwt: jwt,
       token: stripeToken.id,
       metadata: { songId }
-    });
+    };
 
-    return fetch(
-      "https://us-central1-vlogotron-95daf.cloudfunctions.net/charge",
-      {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json; charset=UTF-8"
-        },
-        body: requestBody
-      }
-    ).then(r => {
-      if (r.ok) {
-        return r.json();
-      } else {
-        return r.json().then(json => Promise.reject(json));
-      }
-    });
+    // TODO: Card declined errors are getting reported as "ajax error 402"
+    return Observable.ajax
+      .post(
+        "https://us-central1-vlogotron-95daf.cloudfunctions.net/charge",
+        requestBody,
+        { "Content-Type": "application/json" }
+      )
+      .toPromise();
   });
 }
 
@@ -187,6 +180,12 @@ export default class PurchaseOverlay extends React.Component {
       </Overlay>
     );
   }
+}
+
+function controller(props$, actions, subscription) {
+  const unmount$ = props$.ignoreElements().concatWith(1);
+
+  actions.purchase$;
 }
 
 PurchaseOverlay.contextTypes = {

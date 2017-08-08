@@ -28,6 +28,10 @@ function charge(admin, req, res) {
   if (allowedOrigins.indexOf(req.headers.origin) !== -1) {
     res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
   }
+
+  // NOTE: If we can get content-type to be one of the standard ones, we can
+  // remove it from this list. Standard ones include:
+  //   application/x-www-form-urlencoded, multipart/form-data, or text/plain
   res.setHeader(
     "Access-Control-Allow-Headers",
     "content-type,x-requested-with"

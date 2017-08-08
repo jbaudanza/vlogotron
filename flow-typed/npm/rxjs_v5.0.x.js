@@ -39,6 +39,10 @@ type rxjs$EventListenerOptions = {
   once?: boolean;
 } | boolean;
 
+type rxjs$Ajax = {
+  post(string, (string|Object), ?Object) : rxjs$Observable<any>
+}
+
 declare class rxjs$Observable<+T> {
   static bindCallback(callbackFunc: (callback: (_: void) => any) => any, selector?: void, scheduler?: rxjs$SchedulerClass): () => rxjs$Observable<void>;
   static bindCallback<U>(callbackFunc: (callback: (result: U) => any) => any, selector?: void, scheduler?: rxjs$SchedulerClass): () => rxjs$Observable<U>;
@@ -131,6 +135,7 @@ declare class rxjs$Observable<+T> {
 
   // JB - Aug 7, 2017
   static race(a: rxjs$Observable<T>, a: rxjs$Observable<T>): rxjs$Observable<T>;
+  static ajax: rxjs$Ajax;
 
   audit(durationSelector: (value: T) => rxjs$Observable<any> | Promise<any>): rxjs$Observable<T>;
 
