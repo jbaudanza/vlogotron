@@ -15,9 +15,11 @@ import type { ScheduledNoteList } from "./song";
 import TrimmedAudioBufferSourceNode from "./TrimmedAudioBufferSourceNode";
 
 export type AudioSource = {
-  audioBuffer: AudioBuffer,
+  // audioBuffer will be missing if it hasn't finished loading yet
+  audioBuffer?: AudioBuffer,
   trimStart: number,
-  trimEnd: number
+  trimEnd: number,
+  videoClipId: string
 };
 
 export type AudioSourceMap = { [string]: AudioSource };
@@ -110,7 +112,7 @@ function buildSourceNode(
 
   const audioSource = audioSources[noteName];
 
-  if (audioSource) {
+  if (audioSource && audioSource.audioBuffer) {
     const source = new TrimmedAudioBufferSourceNode(
       audioContext,
       audioSource.audioBuffer,
