@@ -1,3 +1,4 @@
+/* @flow */
 const functions = require("firebase-functions");
 
 let stripeSecretKey;
@@ -23,7 +24,23 @@ const allowedOrigins = [
   "https://www.vlogotron"
 ];
 
-function charge(admin, req, res) {
+function sendJSON(res, code, responseObject) {
+  res.writeHead(code, { "Content-Type": "application/json" });
+  res.end(JSON.stringify(responseObject));
+}
+
+function sendAuthError(res, errorMessage) {
+  res.writeHead(401, {
+    "WWW-Authenticate": "Bearer"
+  });
+  res.end(errorMessage);
+}
+
+function charge(
+  admin /*: Object */,
+  req /*: ExpressRequest */,
+  res /*:http$ServerResponse */
+) {
   // Set CORS headers
   if (allowedOrigins.indexOf(req.headers.origin) !== -1) {
     res.setHeader("Access-Control-Allow-Origin", req.headers.origin);
@@ -34,32 +51,49 @@ function charge(admin, req, res) {
   //   application/x-www-form-urlencoded, multipart/form-data, or text/plain
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "content-type,x-requested-with"
+    "content-type,x-requested-with,authorization"
   );
 
   if (req.method === "OPTIONS") {
-    res.setHeader("allow", "OPTIONS, POST");
-    res.status(200).send("");
+    res.writeHead(200, { Allow: "OPTIONS, POST" });
+    res.end();
     return;
   }
 
   if (req.method !== "POST") {
-    res.status(405).send("Method Not Allowed");
+    res.statusCode = 405;
+    res.end("Method Not Allowed");
     return;
   }
 
   if (typeof req.body !== "object") {
-    res.status(400).send("Expected parameters in request body");
+    res.statusCode = 400;
+    res.end("Expected parameters in request body");
     return;
   }
 
-  if (typeof req.body.jwt !== "string") {
-    res.status(400).send("Expected jwt parameter in request body");
+  if (!req.headers.authorization) {
+    sendAuthError(res, "Expected Authorization header with JSON Web Token");
     return;
   }
+
+  const authParts = req.headers.authorization.split(" ");
+
+  if (authParts.length !== 2) {
+    sendAuthError(res, "Unable to parse Authorization header");
+    return;
+  }
+
+  if (authParts[0] !== "Bearer") {
+    sendAuthError(res, "Expected Authorization header to include Bearer token");
+    return;
+  }
+
+  const jwt = authParts[1];
 
   if (typeof req.body.token !== "string") {
-    res.status(400).send("Expected token parameter in request body");
+    res.statusCode = 400;
+    res.end("Expected token parameter in request body");
     return;
   }
 
@@ -67,7 +101,8 @@ function charge(admin, req, res) {
 
   function onInvalidToken() {
     console.warn("JSON Web Token didn't validate");
-    res.status(400).send("JSON Web Token didn't validate");
+    res.statusCode = 400;
+    res.end("JSON Web Token didn't validate");
     return;
   }
 
@@ -122,17 +157,17 @@ function charge(admin, req, res) {
         charge => {
           dbRef.child("premium").set(true);
           console.log("Charge completed");
-          res.status(200).send(JSON.stringify(charge));
+          sendJSON(res, 200, charge);
         },
         error => {
           console.log("Charge failed", error.message);
-          res.status(402).send(JSON.stringify(error));
+          sendJSON(res, 402, error);
         }
       );
     });
   }
 
-  admin.auth().verifyIdToken(req.body.jwt).then(onValidToken, onInvalidToken);
+  admin.auth().verifyIdToken(jwt).then(onValidToken, onInvalidToken);
 }
 
 module.exports = charge;

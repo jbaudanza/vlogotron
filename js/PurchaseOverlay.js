@@ -55,13 +55,13 @@ function createStripeCharge(
   stripeToken: StripeToken
 ) {
   const requestBody = {
-    jwt: jwt,
     token: stripeToken.id,
     metadata: { songId }
   };
 
   return postJSON(
     "https://us-central1-vlogotron-95daf.cloudfunctions.net/charge",
+    jwt,
     requestBody
   ).do(xhr => {
     if (!httpOk(xhr.status)) {
