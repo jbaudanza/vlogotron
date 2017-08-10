@@ -1,7 +1,8 @@
+/* @flow */
+
 import { Observable } from "rxjs/Observable";
 import { Subject } from "rxjs/Subject";
-
-import { omit, identity } from "lodash";
+import type { Subscription } from "rxjs/Subscription";
 
 import audioContext from "./audioContext";
 import { start as startCapturing } from "./recording";
@@ -30,12 +31,12 @@ const escapeKey$ = Observable.fromEvent(document, "keydown").filter(
  */
 
 export default function recordVideosController(
-  props$,
-  actions,
-  currentUser$,
-  mediaStore,
-  firebase,
-  subscription
+  props$: Observable<Object>,
+  actions: { [string]: Observable<any> },
+  currentUser$: Observable<?Object>,
+  mediaStore: Object,
+  firebase: Object,
+  subscription: Subscription
 ) {
   const recordingEngine$ = actions.startRecording$
     .switchMap(note => startRecording(note, actions.stopRecording$, escapeKey$))
@@ -50,8 +51,10 @@ export default function recordVideosController(
 
   const finalMedia$ = recordingEngine$.switchMap(o => o.media$);
 
+  const nonNullUser$: Observable<Object> = currentUser$.nonNull();
+
   const uploadedEvents$ = finalMedia$
-    .withLatestFrom(currentUser$, (media, currentUser) =>
+    .withLatestFrom(nonNullUser$, (media, currentUser) =>
       createVideoClip(
         firebase.database(),
         {
@@ -68,7 +71,7 @@ export default function recordVideosController(
     )
     .mergeAll();
 
-  const clearedEvents$ = actions.clearVideoClip$.map(note => ({
+  const clearedEvents$ = actions.clearVideoClip$.map((note: string) => ({
     action: "remove-video",
     note
   }));
@@ -83,7 +86,7 @@ export default function recordVideosController(
     })
   );
 
-  const clearedMedia$ = actions.clearVideoClip$.map(note => ({
+  const clearedMedia$ = actions.clearVideoClip$.map((note: string) => ({
     note,
     cleared: true
   }));
@@ -108,17 +111,17 @@ export default function recordVideosController(
     if (song) {
       if ("uid" in song)
         return displayNameForUid(firebase.database(), song.uid);
-      else return currentUser$.filter(identity).map(u => u.displayName);
+      else return nonNullUser$.map(u => u.displayName);
     } else {
       return Observable.empty();
     }
   });
 
+  // $FlowFixMe - We don't have type definitions for combineLatest with this many arguments
   return Observable.combineLatest(
     parentView$,
     mediaStore.videoClips$,
     recordingState$,
-    currentUser$,
     mediaStore.song$,
     mediaStore.loading$,
     mediaStore.audioSources$,
@@ -128,7 +131,6 @@ export default function recordVideosController(
       parentView,
       videoClips,
       recordingState,
-      currentUser,
       song,
       loading,
       audioSources,
@@ -137,7 +139,6 @@ export default function recordVideosController(
     ) => ({
       ...parentView,
       ...recordingState,
-      currentUser,
       videoClips,
       song,
       loading,
@@ -152,13 +153,20 @@ export default function recordVideosController(
   );
 }
 
-function startRecording(note, finish$, abort$) {
-  const promise = navigator.mediaDevices.getUserMedia({
-    audio: true,
-    video: true
-  });
+function getUserMedia() {
+  if (navigator.mediaDevices) {
+    return navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: true
+    });
+  } else {
+    // The View logic should stop this error from ever been raised
+    return Promise.reject("Recording isn't suppported on this device.");
+  }
+}
 
-  return Observable.fromPromise(promise)
+function startRecording(note, finish$, abort$) {
+  return Observable.fromPromise(getUserMedia())
     .map(mediaStream => runRecordingProcess(mediaStream, note, finish$, abort$))
     .catch(err => {
       console.error(err);
@@ -248,9 +256,11 @@ function runRecordingProcess(mediaStream, note, finish$, abort$) {
 
   const viewState$ = processes$
     .filter(obj => "viewState" in obj)
+    // $FlowFixMe - Flow can't refine from filter op
     .map(obj => ({ mediaStream, noteBeingRecorded: note, ...obj.viewState }))
     .concatWith({});
 
+  // $FlowFixMe - Need type definition for media$
   const media$ = processes$.filter(o => o.media).map(o => o.media);
 
   // The observable should cleanup itself when stop$ or abort$ fire

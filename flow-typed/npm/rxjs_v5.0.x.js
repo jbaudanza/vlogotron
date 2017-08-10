@@ -698,6 +698,7 @@ declare class rxjs$Observable<+T> {
   // instead of this.
   debug(s: string): rxjs$Observable<T>;
   concatWith(v: T): rxjs$Observable<T>;
+  nonNull(): rxjs$Observable<$NonMaybeType<T>>;
 }
 
 declare class rxjs$ConnectableObservable<T> extends rxjs$Observable<T> {
