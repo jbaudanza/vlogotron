@@ -27,13 +27,12 @@ type VideoClipSources = {
   videoUrls: Array<VideoClipSource>
 };
 
-type SerializedSong = Song &
-  {
-    parentSong: ?SerializedSong,
-    songId: SongId,
-    videoClips: { [NoteId]: VideoClip },
-    revisionId: string
-  };
+type SerializedSong = Song & {
+  parentSong: ?SerializedSong,
+  songId: SongId,
+  videoClips: { [NoteId]: VideoClip },
+  revisionId: string
+};
 
 // Current structure:
 /*
@@ -132,11 +131,11 @@ export function createSongBoard(
   const rootWrite = collectionRef.push(rootObject);
 
   return rootWrite.then(songBoardRef => {
-    database
+    return database
       .ref("users")
       .child(uid)
       .child("song-boards")
-      .child(songId)
+      .child(songBoardRef.key)
       .set(rootObject)
       .then(() => {
         return songBoardRef.key;

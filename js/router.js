@@ -33,7 +33,9 @@ const routes = [
   [`/songs/${id}/note-editor`, "note-editor", "songId"],
   [`/songs/${id}/(remix)/record-videos`, "record-videos", "songId", "remix"],
   [`/songs/${id}/(remix)/note-editor`, "note-editor", "songId", "remix"],
-  [`/song-board/${id}`, "play-song-board", "songId"]
+  [`/song-board/${id}`, "play-song-board", "songId"],
+  [`/song-board/${id}/edit`, "edit-song-board", "songId"],
+  [`/song-board/${id}/collab`, "collab-song-board", "songId"]
 ];
 
 export type Route = {
@@ -138,6 +140,7 @@ export function routeToPageConfig(
         component: createControlledComponent(
           () => Observable.of({}),
           ErrorView,
+          [],
           LoadingView
         ),
         sidebarVisible: true

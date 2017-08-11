@@ -327,6 +327,7 @@ class App extends React.Component {
           currentUser={this.state.currentUser}
           firebase={firebase}
           premiumAccountStatus={this.state.premiumAccountStatus}
+          onNavigate={this.onNavigate}
         />
       );
     }

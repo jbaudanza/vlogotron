@@ -32,6 +32,7 @@ export default class CreateNewSongOverlay extends React.Component {
   props: {
     onLogin: string => void,
     onClose: string,
+    onNavigate: string => void,
     premiumAccountStatus: boolean,
     currentUser: Object,
     firebase: Object
@@ -40,19 +41,7 @@ export default class CreateNewSongOverlay extends React.Component {
   constructor() {
     super();
     this.state = { purchaseSongId: null, working: false };
-    bindAll(
-      this,
-      "onSelectSong",
-      "onRequestPurchase",
-      "onCancelPurchase",
-      "onStripeToken"
-    );
-  }
-
-  onStripeToken(token: StripeToken) {
-    // TODO:
-    // - Wait until the premium flag is set, and then call onSelect
-    // - Make sure any card errors are caught and displayed somehow
+    bindAll(this, "onSelectSong", "onRequestPurchase", "onCancelPurchase");
   }
 
   onSelectSong(songId: string) {
@@ -62,12 +51,15 @@ export default class CreateNewSongOverlay extends React.Component {
       songId
     );
 
-    this.setState({ working: true });
+    promise.then(key => console.log("got key", key));
 
+    this.setState({ working: true, purchaseSongId: null });
+
+    // TODO: Perhaps we should disable the X button while this is working.
     promise.then(
       key => {
-        alert(key);
         this.setState({ working: false });
+        this.props.onNavigate("/song-boards/" + key);
       },
       err => {
         console.error(err);
@@ -99,8 +91,8 @@ export default class CreateNewSongOverlay extends React.Component {
             price={price}
             songId={this.state.purchaseSongId}
             onCancel={this.onCancelPurchase}
-            onToken={this.onStripeToken}
             currentUser={this.props.currentUser}
+            onSelectSong={this.onSelectSong}
           />
         );
       }
@@ -120,7 +112,3 @@ export default class CreateNewSongOverlay extends React.Component {
     }
   }
 }
-
-function controller(props$, actions, subscription) {}
-
-//export default createControlledComponent(CreateNewSongOverlay, controller);

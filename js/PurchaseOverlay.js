@@ -157,7 +157,16 @@ export default createControlledComponent(controller, PurchaseOverlay, [
   "purchase"
 ]);
 
-function controller(props$, actions, subscription) {
+type OuterProps = {
+  songId: string,
+  onClose: string,
+  price: number,
+  onCancel: Function,
+  currentUser: Object,
+  onSelectSong: string => void
+};
+
+function controller(props$: Observable<OuterProps>, actions) {
   const unmount$ = props$.ignoreElements().concatWith(1);
 
   const songId$ = props$.map(props => props.songId);
@@ -179,9 +188,6 @@ function controller(props$, actions, subscription) {
 
   const errorsFromNetwork$ = new Subject();
 
-  // TODO: We need to derive:
-  // - success events that should trigger some callback
-
   const doPurchase$ = stripeTokens$
     .withLatestFrom(jwt$, songId$, (stripeToken, jwt, songId) =>
       createStripeCharge(jwt, songId, stripeToken)
@@ -189,6 +195,7 @@ function controller(props$, actions, subscription) {
     .switch()
     .retryWhen(errors$ =>
       // Pull out the error to pass to the view and resubscribe
+      // $FlowFixMe - I think the rxjs flow defs are broken for this.
       errors$.do(errorsFromNetwork$).mapTo(1)
     )
     .takeUntil(unmount$);
@@ -197,6 +204,11 @@ function controller(props$, actions, subscription) {
   // through the purchaseProcess$ observable.
   const purchaseProcess$ = doPurchase$.publishReplay();
   purchaseProcess$.connect();
+
+  // Call onSelectSong callback when purchase is complete
+  purchaseProcess$.withLatestFrom(props$).subscribe(([purchase, props]) => {
+    props.onSelectSong(props.songId);
+  });
 
   const errorMessage$ = Observable.merge(
     // Errors from the Stripe Elements control
@@ -228,7 +240,8 @@ PurchaseOverlay.propTypes = {
   onChange: PropTypes.func.isRequired,
   onClose: PropTypes.string.isRequired,
   onCancel: PropTypes.func.isRequired,
-  errorMessage: PropTypes.string
+  errorMessage: PropTypes.string,
+  songId: PropTypes.string
 };
 
 PurchaseOverlay.contextTypes = {
