@@ -279,9 +279,10 @@ declare class rxjs$Observable<+T> {
 
   retryWhen(notifier: (errors: rxjs$Observable<Error>) => rxjs$Observable<any>): rxjs$Observable<T>;
 
+  // JB - Make initialValue optional
   scan<U>(
     f: (acc: U, value: T) => U,
-    initialValue: U,
+    initialValue?: U,
   ): rxjs$Observable<U>;
 
   share(): rxjs$Observable<T>;

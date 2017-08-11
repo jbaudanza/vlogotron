@@ -76,3 +76,7 @@ Observable.prototype.debug = function(message) {
 Observable.prototype.concatWith = function(value) {
   return this.concat(Observable.of(value));
 };
+
+Observable.prototype.nonNull = function() {
+  return this.filter(v => v != null);
+};

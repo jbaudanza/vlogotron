@@ -3,7 +3,7 @@ import { Observable } from "rxjs/Observable";
 
 import { mapKeys, mapValues, omit } from "lodash";
 
-import type { Song } from "./song";
+import type { Song, SongId } from "./song";
 import * as firebase from "firebase";
 
 type VideoClipSource = $Exact<{
@@ -11,20 +11,27 @@ type VideoClipSource = $Exact<{
   type: string
 }>;
 
-type VideoClip = $Exact<{
-  audioUrl: string,
+type NoteId = string; // Looks like: "C#4"
+type VideoClipId = string; // Looks like firebase id
+
+type VideoClip = {
   clipId: string,
-  poster: string,
-  sources: Array<VideoClipSource>,
   trimStart: number,
-  trimEnd: number
-}>;
+  trimEnd: number,
+  gain: number
+};
+
+type VideoClipSources = {
+  posterUrl: string,
+  audioUrl: string,
+  videoUrls: Array<VideoClipSource>
+};
 
 type SerializedSong = Song &
   $Exact<{
     parentSong: ?SerializedSong,
-    songId: string,
-    videoClips: { [string]: VideoClip }
+    songId: SongId,
+    videoClips: { [NoteId]: VideoClip }
   }>;
 
 // Current structure:
@@ -56,46 +63,55 @@ Refactored:
   updatedAt: number
   templateId: string
   events: [
-    updateTrim, updateGrain, recordVideo, deleteVideo
+    updateTrim, updateGain, recordVideo, deleteVideo
   ]
 */
 
 type SongBoardEvent =
-  | $Exact<{
-    type: "add-video",
-    videoClipId: string,
-    note: string,
-    uid: string
-  }>
-  | $Exact<{
-    type: "remove-video",
-    note: string,
-    uid: string
-  }>
-  | $Exact<{
-    type: "update-gain",
-    value: number,
-    uid: string
-  }>
-  | $Exact<{
-    type: "update-trim",
-    start: number,
-    end: number,
-    uid: string
-  }>
-  | $Exact<{
-    type: "update-song",
-    songId: string,
-    uid: string
-  }>;
+  | {
+      type: "add-video",
+      videoClipId: string,
+      note: NoteId,
+      uid: string
+    }
+  | {
+      type: "remove-video",
+      note: NoteId,
+      uid: string
+    }
+  | {
+      type: "update-gain",
+      value: number,
+      note: NoteId,
+      uid: string
+    }
+  | {
+      type: "update-trim",
+      note: NoteId,
+      trimStart: number,
+      trimEnd: number,
+      uid: string
+    }
+  | {
+      type: "update-song",
+      songId: SongId,
+      uid: string
+    };
 
-type SongBoard = $Exact<{
+type SongBoardSchema = {
   createdAt: number,
   updatedAt: number,
   events: Array<SongBoardEvent>,
-  templateId: string, // denormalized
-  videoClips: { [string]: Object } // denormalized
-}>;
+  songId: SongId, // denormalized
+  videoClips: { [NoteId]: VideoClip } // denormalized
+};
+
+type SongBoard = {
+  createdAt: number,
+  updatedAt: number,
+  songId: SongId,
+  videoClips: { [NoteId]: VideoClip }
+};
 
 type FirebaseDatabase = Object;
 
@@ -125,6 +141,93 @@ export function createSongBoard(
         return songBoardRef.key;
       });
   });
+}
+
+function updateVideoClip(
+  songBoard: SongBoard,
+  note: NoteId,
+  fn: VideoClip => VideoClip
+): SongBoard {
+  if (note in songBoard.videoClips) {
+    const videoClips = {
+      ...songBoard.videoClips,
+      [note]: fn(songBoard.videoClips[note])
+    };
+    return { ...songBoard, videoClips };
+  } else {
+    console.warn(`Attempt to update missing video-clip ${note}`);
+    return songBoard;
+  }
+}
+
+function reduceSongBoard(acc: ?SongBoard, event: SongBoardEvent): SongBoard {
+  // TODO: This can't be right
+  if (acc == null) {
+    acc = {
+      createdAt: 0,
+      updatedAt: 0,
+      videoClips: {},
+      songId: "happy-birthday"
+    };
+  }
+
+  switch (event.type) {
+    case "add-video":
+      const videoClip: VideoClip = {
+        clipId: event.videoClipId,
+        gain: 0,
+        trimStart: 0,
+        trimEnd: 1
+      };
+
+      return {
+        ...acc,
+        videoClips: {
+          ...acc.videoClips,
+          [event.note]: videoClip
+        }
+      };
+    case "remove-video":
+      return { ...acc, videoClips: omit(acc.videoClips, event.note) };
+    case "update-gain":
+      const value = event.value;
+      return updateVideoClip(acc, event.note, videoClip => ({
+        ...videoClip,
+        gain: value
+      }));
+
+    case "update-trim":
+      const { trimStart, trimEnd } = event;
+      return updateVideoClip(acc, event.note, videoClip => ({
+        ...videoClip,
+        trimStart,
+        trimEnd
+      }));
+
+    case "update-song":
+      return { ...acc, songId: event.songId };
+  }
+
+  return acc;
+}
+
+export function findSongBoard(
+  database: FirebaseDatabase,
+  songId: string
+): Observable<SongBoard> {
+  const collectionRef = database
+    .ref("song-boards")
+    .child(songId)
+    .child("events");
+  return reduceFirebaseCollection(collectionRef, reduceSongBoard);
+}
+
+export function updateSongBoard(
+  database: FirebaseDatabase,
+  songId: string,
+  event: SongBoardEvent
+): Promise<Object> {
+  return database.ref("song-boards").child(songId).child("events").push(event);
 }
 
 export function createSong(
@@ -343,8 +446,8 @@ function fromFirebaseRef(ref, eventType) {
 
 function reduceFirebaseCollection<T>(
   collectionRef,
-  accFn: (T, any) => T,
-  initial: T
+  accFn: (?T, any) => T,
+  initial?: T
 ): Observable<T> {
   const query = collectionRef.orderByKey();
 
@@ -364,9 +467,12 @@ function reduceFirebaseCollection<T>(
       rest$ = fromFirebaseRef(query, "child_added");
     }
 
-    return rest$
-      .map(snapshot => snapshot.val())
-      .scan(accFn, acc)
-      .startWith(acc);
+    const stream$ = rest$.map(snapshot => snapshot.val()).scan(accFn, acc);
+
+    if (initial == null) {
+      return stream$;
+    } else {
+      return stream$.startWith(initial);
+    }
   });
 }

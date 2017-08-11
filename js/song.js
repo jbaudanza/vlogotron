@@ -24,7 +24,8 @@ export type Song = {|
   bpm: number,
   premium: boolean
 |};
-export type SongMap = { [string]: Song };
+export type SongId = string;
+export type SongMap = { [SongId]: Song };
 
 const maryHadALittleLamb = [
   ["A4", 0, 1], // Ma-
