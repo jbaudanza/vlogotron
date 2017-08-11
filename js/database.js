@@ -28,11 +28,12 @@ type VideoClipSources = {
 };
 
 type SerializedSong = Song &
-  $Exact<{
+  {
     parentSong: ?SerializedSong,
     songId: SongId,
-    videoClips: { [NoteId]: VideoClip }
-  }>;
+    videoClips: { [NoteId]: VideoClip },
+    revisionId: string
+  };
 
 // Current structure:
 /*
@@ -113,7 +114,7 @@ type SongBoard = {
   videoClips: { [NoteId]: VideoClip }
 };
 
-type FirebaseDatabase = Object;
+export type FirebaseDatabase = Object;
 
 export function createSongBoard(
   database: FirebaseDatabase,

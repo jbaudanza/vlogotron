@@ -1,3 +1,4 @@
+/* @flow */
 import { Observable } from "rxjs/Observable";
 import { Subscription } from "rxjs/Subscription";
 import { Subject } from "rxjs/Subject";
@@ -7,9 +8,11 @@ import audioContext from "./audioContext";
 import { getArrayBuffer } from "./http";
 
 import { pathnameToRoute } from "./router";
+import type { Route } from "./router";
 
 import { subjectFor } from "./localWorkspace";
 import { songById, waitForTranscode } from "./database";
+import type { FirebaseDatabase } from "./database";
 
 import {
   clone,
@@ -26,7 +29,12 @@ import {
 
 import promiseFromTemplate from "./promiseFromTemplate";
 
-export function mapRouteToSongLocation(route) {
+type SongLocation =
+  | { source: "database", id: string }
+  | { source: "localStorage", id: string }
+  | { source: "none" };
+
+export function mapRouteToSongLocation(route: Route): SongLocation {
   switch (route.name) {
     case "root":
       return { source: "database", id: DEFAULT_SONG_ID };
@@ -63,10 +71,10 @@ function workspaceForSong(songLocation, song) {
 }
 
 export function subscribeToSongLocation(
-  songLocation,
-  defaultSongTitle,
-  firebase,
-  subscription
+  songLocation: SongLocation,
+  defaultSongTitle: string,
+  firebase: FirebaseDatabase,
+  subscription: Subscription
 ) {
   let song$;
   let workspace$;
@@ -165,17 +173,17 @@ export function subscribeToSongLocation(
   subscription.add(remoteVideoClips$.connect());
 
   // If we have some local recorded audio buffers, we can remove them
-  // from the list of remove audio buffers being loaded.
+  // from the list of remote audio buffers being loaded.
   const loading$ = Observable.combineLatest(
     audioLoading.loading$,
     localAudioBuffers$,
-    (remote, local) => pickBy(remote, (value, note) => !(note in local))
+    (remote, local) => pickBy(remote, (value, note: string) => !(note in local))
   );
 
   // This datastructure contains the AudioBuffers and trimming info for each
   // note.
   const audioSources$ = Observable.combineLatest(
-    song$.filter(identity).map(o => o.videoClips),
+    song$.nonNull().map(o => o.videoClips),
     audioBuffers$.map(o => mapValues(o, audioBuffer => ({ audioBuffer }))),
     (x, y) => merge({}, x, y)
   );
@@ -185,7 +193,7 @@ export function subscribeToSongLocation(
   const videoClipsWithTrim$ = Observable.combineLatest(
     videoClips$,
     song$
-      .filter(identity)
+      .nonNull()
       .map(song =>
         mapValues(song.videoClips, o => pick(o, "trimStart", "trimEnd"))
       ),
@@ -240,7 +248,10 @@ function gatherPromises(obj) {
   return values(pick(obj.promises, values(obj.clipIds)));
 }
 
-export function loadAudioBuffersFromVideoClips(videoClips$, subscription) {
+export function loadAudioBuffersFromVideoClips(
+  videoClips$: Observable<Object>,
+  subscription: Subscription
+) {
   const loadingContext$ = videoClips$
     .map(o => mapValues(o, v => v.audioUrl)) // { [note]: [url], ... }
     .scan(reduceToAudioBuffers, {})
@@ -318,7 +329,7 @@ function getAudioBuffer(url) {
 }
 
 function reduceToAudioBuffers(acc, noteToUrlMap) {
-  const next = {
+  const next: Object = {
     httpMap: clone(acc.httpMap || {}),
     promises: [],
     progressList: [],

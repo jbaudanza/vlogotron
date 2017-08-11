@@ -96,7 +96,7 @@ Observable.combineLatest(
     }
   }
 )
-  .filter(x => !!x)
+  .nonNull()
   .subscribe(navigate);
 
 const mySongs$ = currentUser$.switchMap(user => {

@@ -1,3 +1,4 @@
+/* @flow */
 import React from "react";
 
 import { Observable } from "rxjs/Observable";
@@ -17,7 +18,7 @@ import createControlledComponent from "./createControlledComponent";
 
 import { fromPairs } from "lodash";
 
-export function navigate(href) {
+export function navigate(href: string) {
   urlHistory.push(href);
 }
 
@@ -31,10 +32,16 @@ const routes = [
   [`/songs/${id}/record-videos`, "record-videos", "songId"],
   [`/songs/${id}/note-editor`, "note-editor", "songId"],
   [`/songs/${id}/(remix)/record-videos`, "record-videos", "songId", "remix"],
-  [`/songs/${id}/(remix)/note-editor`, "note-editor", "songId", "remix"]
+  [`/songs/${id}/(remix)/note-editor`, "note-editor", "songId", "remix"],
+  [`/song-board/${id}`, "play-song-board", "songId"]
 ];
 
-export function pathnameToRoute(pathname) {
+export type Route = {
+  name: string,
+  params: { [string]: string }
+};
+
+export function pathnameToRoute(pathname: string): Route {
   for (let i = 0; i < routes.length; i++) {
     const entry = routes[i];
 
@@ -55,7 +62,12 @@ export function pathnameToRoute(pathname) {
   return { name: "not-found", params: {} };
 }
 
-export function routeToPageConfig(route, currentUser$, media, firebase) {
+export function routeToPageConfig(
+  route: Route,
+  currentUser$: Observable<Object>,
+  media: Object,
+  firebase: Object
+): Object {
   // TODO: Convert all controllers to this new signature and remove this
   // migrateController wrapper
   function migrateController(controllerFn) {

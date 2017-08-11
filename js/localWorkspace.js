@@ -43,7 +43,10 @@ type SongEdit =
       to: { note: string, beat: number }
     };
 
-export function subjectFor(key: string, initialValue: Object) {
+export function subjectFor(
+  key: string,
+  initialValue: Object
+): StorageSubject<Object> {
   return new StorageSubject(window.localStorage, key + "-2", initialValue);
 }
 
