@@ -53,7 +53,7 @@ import {
   navigate,
   currentLocation$,
   pathnameToRoute,
-  routeToPageConfig
+  routeToViewComponent
 } from "./router";
 
 import messages from "./messages";
@@ -142,8 +142,7 @@ class App extends React.Component {
     location: Location,
     mySongs?: Object,
     premiumAccountStatus: boolean,
-    component: Function,
-    sidebarVisible: boolean
+    component: Function
   };
 
   globalSubscription: Subscription;
@@ -167,7 +166,6 @@ class App extends React.Component {
       locale: initializeLocale(),
       origin: document.location.origin,
       premiumAccountStatus: false,
-      sidebarVisible: false,
       location: document.location,
       component: props => null
     };
@@ -250,7 +248,7 @@ class App extends React.Component {
       );
     }
 
-    const pageConfig = routeToPageConfig(
+    const component = routeToViewComponent(
       route,
       currentUser$,
       this.media,
@@ -258,8 +256,7 @@ class App extends React.Component {
     );
 
     this.setState({
-      sidebarVisible: pageConfig.sidebarVisible,
-      component: pageConfig.component
+      component: component
     });
   }
 
@@ -343,7 +340,7 @@ class App extends React.Component {
       <PageWrapper onClick={this.onClick}>
         <SvgAssets />
         <Page
-          sidebarVisible={this.state.sidebarVisible}
+          sidebarVisible={true}
           onChangeLocale={this.onChangeLocale}
           onLogout={this.onLogout}
           isLoggedIn={isLoggedIn}

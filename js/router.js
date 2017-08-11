@@ -64,12 +64,12 @@ export function pathnameToRoute(pathname: string): Route {
   return { name: "not-found", params: {} };
 }
 
-export function routeToPageConfig(
+export function routeToViewComponent(
   route: Route,
   currentUser$: Observable<Object>,
   media: Object,
   firebase: Object
-): Object {
+): Function {
   // TODO: Convert all controllers to this new signature and remove this
   // migrateController wrapper
   function migrateController(controllerFn) {
@@ -89,62 +89,50 @@ export function routeToPageConfig(
   switch (route.name) {
     case "root":
     case "view-song":
-      return {
-        component: createControlledComponent(
-          migrateController(playbackController),
-          PlaybackView,
-          ["play", "pause", "playCommands$"],
-          LoadingView
-        ),
-        sidebarVisible: true
-      };
+      return createControlledComponent(
+        migrateController(playbackController),
+        PlaybackView,
+        ["play", "pause", "playCommands$"],
+        LoadingView
+      );
     case "record-videos":
-      return {
-        component: createControlledComponent(
-          migrateController(recordVideosController),
-          RecordVideosView,
-          [
-            "startRecording",
-            "stopRecording",
-            "editSong",
-            "dismissError",
-            "clearVideoClip",
-            "playCommands$",
-            "pause",
-            "play"
-          ],
-          LoadingView
-        ),
-        sidebarVisible: true
-      };
+      return createControlledComponent(
+        migrateController(recordVideosController),
+        RecordVideosView,
+        [
+          "startRecording",
+          "stopRecording",
+          "editSong",
+          "dismissError",
+          "clearVideoClip",
+          "playCommands$",
+          "pause",
+          "play"
+        ],
+        LoadingView
+      );
     case "note-editor":
-      return {
-        component: createControlledComponent(
-          migrateController(noteEditorController),
-          NoteEditorView,
-          [
-            "changeCellsPerBeat",
-            "changePlaybackStartPosition",
-            "editSong",
-            "pause",
-            "play",
-            "playCommands$",
-            "save"
-          ],
-          LoadingView
-        ),
-        sidebarVisible: false
-      };
+      return createControlledComponent(
+        migrateController(noteEditorController),
+        NoteEditorView,
+        [
+          "changeCellsPerBeat",
+          "changePlaybackStartPosition",
+          "editSong",
+          "pause",
+          "play",
+          "playCommands$",
+          "save"
+        ],
+        LoadingView
+      );
     default:
-      return {
-        component: createControlledComponent(
-          () => Observable.of({}),
-          ErrorView,
-          [],
-          LoadingView
-        ),
-        sidebarVisible: true
-      };
+      return createControlledComponent(
+        () => Observable.of({}),
+        ErrorView,
+        [],
+        LoadingView
+      );
   }
 }
 
