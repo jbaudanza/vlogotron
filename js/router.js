@@ -127,12 +127,7 @@ export function routeToViewComponent(
         LoadingView
       );
     default:
-      return createControlledComponent(
-        () => Observable.of({}),
-        ErrorView,
-        [],
-        LoadingView
-      );
+      return ErrorView;
   }
 }
 
