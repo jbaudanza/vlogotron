@@ -263,14 +263,3 @@ and (max-device-width : 667px) {
     }
   }
 }
-
-.initial-loading {
-  color: $color-dark;
-  text-align: center;
-
-  svg {
-    display: block;
-    margin: 25px auto;
-    fill: $color-dark;
-  }
-}

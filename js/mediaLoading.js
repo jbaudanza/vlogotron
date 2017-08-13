@@ -7,12 +7,10 @@ import audioContext from "./audioContext";
 
 import { getArrayBuffer } from "./http";
 
-import { pathnameToRoute } from "./router";
 import type { Route } from "./router";
 
-import { subjectFor } from "./localWorkspace";
-import { songById, waitForTranscode } from "./database";
-import type { FirebaseDatabase } from "./database";
+import { findSongBoard, waitForTranscode } from "./database";
+import type { SongBoard, FirebaseDatabase, VideoClip } from "./database";
 
 import {
   clone,
@@ -29,58 +27,32 @@ import {
 
 import promiseFromTemplate from "./promiseFromTemplate";
 
-type SongLocation =
-  | { source: "database", id: string }
-  | { source: "localStorage", id: string }
-  | { source: "none" };
-
-export function mapRouteToSongLocation(route: Route): SongLocation {
-  switch (route.name) {
-    case "root":
-      return { source: "database", id: DEFAULT_SONG_ID };
-    case "record-videos":
-    case "note-editor":
-      return {
-        source: "localStorage",
-        id: route.params.songId,
-        remix: !!route.params.remix
-      };
-    case "view-song":
-      return { source: "database", id: route.params.songId };
-  }
-  return { source: "none" };
-}
-
 const initialSong = {
   videoClips: {},
   notes: [],
   bpm: 120
 };
 
-function workspaceForSong(songLocation, song) {
-  let key;
-  if (songLocation.remix) {
-    key = "vlogotron-remix-song:" + song.revisionId;
-    const parentSong = { songId: song.songId, revisionId: song.revisionId };
-    song = { ...omit(song, "songId", "revisionId"), parentSong };
-  } else {
-    key = "vlogotron-edit-song:" + song.revisionId;
-  }
+export type Media = {
+  songBoard$: Observable<?SongBoard>,
+  videoClips$: Observable<{ [string]: VideoClip }>,
+  audioSources$: Observable<Object>,
+  clearedEvents$: Subject<Object>,
+  recordedMedia$: Observable<Object>,
+  loading$: Observable<Object>
+};
 
-  return subjectFor(key, song);
-}
-
-export function subscribeToSongLocation(
-  songLocation: SongLocation,
+export function subscribeToSongBoardId(
+  songBoardId: string,
   defaultSongTitle: string,
   firebase: FirebaseDatabase,
   subscription: Subscription
-) {
-  let song$;
-  let workspace$;
+): Media {
   let localVideoStore$;
   let localAudioBuffers$;
 
+  // TODO: These used to be mixed in to create localVideoStore$ and localAudioBuffers$,
+  // this probably needs to be added back somehow.
   const clearedEvents$ = new Subject();
   const recordedMedia$ = new Subject();
 
@@ -92,56 +64,16 @@ export function subscribeToSongLocation(
   const null$ = Observable.of(null);
   const emptyObject$ = Observable.of({});
 
-  switch (songLocation.source) {
-    case "database":
-      song$ = null$.concat(songById(database, songLocation.id)).publishReplay();
-      localVideoStore$ = emptyObject$;
-      localAudioBuffers$ = emptyObject$;
-      subscription.add(song$.connect());
-      break;
-    case "localStorage":
-      if (songLocation.id) {
-        workspace$ = songById(database, songLocation.id)
-          .take(1)
-          .map(song => workspaceForSong(songLocation, song))
-          .publishReplay();
+  const songBoard$ = null$
+    .concat(findSongBoard(database, songBoardId))
+    .publishReplay();
+  localVideoStore$ = emptyObject$;
+  localAudioBuffers$ = emptyObject$;
+  subscription.add(songBoard$.connect());
 
-        subscription.add(workspace$.connect());
-      } else {
-        const initialValue = {
-          ...initialSong,
-          title: defaultSongTitle
-        };
-        workspace$ = Observable.of(
-          subjectFor("vlogotron-new-song", initialValue)
-        );
-      }
-
-      localAudioBuffers$ = Observable.merge(recordedMedia$, clearedEvents$)
-        .scan(reduceToLocalAudioBufferStore, {})
-        .startWith({})
-        .publishReplay();
-
-      localVideoStore$ = Observable.merge(recordedMedia$, clearedEvents$)
-        .scan(reduceToLocalVideoClipStore, {})
-        .startWith({})
-        .publishReplay();
-
-      subscription.add(localAudioBuffers$.connect());
-      subscription.add(localVideoStore$.connect());
-
-      song$ = null$.concat(workspace$.switch());
-
-      break;
-    default:
-      song$ = null$;
-      localVideoStore$ = emptyObject$;
-      localAudioBuffers$ = emptyObject$;
-  }
-
-  const videoClipIds$ = song$.map(function(song) {
-    if (song) {
-      return mapValues(song.videoClips, v => v.videoClipId);
+  const videoClipIds$ = songBoard$.map(function(songBoard) {
+    if (songBoard) {
+      return mapValues(songBoard.videoClips, (v: VideoClip) => v.videoClipId);
     } else {
       return {};
     }
@@ -183,7 +115,7 @@ export function subscribeToSongLocation(
   // This datastructure contains the AudioBuffers and trimming info for each
   // note.
   const audioSources$ = Observable.combineLatest(
-    song$.nonNull().map(o => o.videoClips),
+    songBoard$.nonNull().map(o => o.videoClips), // XXX: Is this nonNull still necessary?
     audioBuffers$.map(o => mapValues(o, audioBuffer => ({ audioBuffer }))),
     (x, y) => merge({}, x, y)
   );
@@ -192,18 +124,20 @@ export function subscribeToSongLocation(
   // clean this up a bit
   const videoClipsWithTrim$ = Observable.combineLatest(
     videoClips$,
-    song$
-      .nonNull()
+    songBoard$
+      .nonNull() // XXX: Is this still necessary?
       .map(song =>
-        mapValues(song.videoClips, o => pick(o, "trimStart", "trimEnd"))
+        mapValues(song.videoClips, (o: VideoClip) => ({
+          trimStart: o.trimStart,
+          trimEnd: o.trimEnd
+        }))
       ),
     (videoClips, trimSettings) => merge({}, videoClips, trimSettings)
   ).map(videoClips => pickBy(videoClips, v => "sources" in v));
 
   return {
-    song$,
+    songBoard$,
     videoClips$: videoClipsWithTrim$,
-    workspace$,
     audioSources$,
     clearedEvents$,
     recordedMedia$,

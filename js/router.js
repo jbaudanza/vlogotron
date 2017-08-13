@@ -18,6 +18,8 @@ import createControlledComponent from "./createControlledComponent";
 
 import { fromPairs } from "lodash";
 
+import type { Media } from "./mediaLoading";
+
 export function navigate(href: string) {
   urlHistory.push(href);
 }
@@ -67,7 +69,7 @@ export function pathnameToRoute(pathname: string): Route {
 export function routeToViewComponent(
   route: Route,
   currentUser$: Observable<Object>,
-  media: Object,
+  media: Media,
   firebase: Object
 ): Function {
   // TODO: Convert all controllers to this new signature and remove this

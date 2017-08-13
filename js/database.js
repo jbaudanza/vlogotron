@@ -14,8 +14,8 @@ type VideoClipSource = $Exact<{
 type NoteId = string; // Looks like: "C#4"
 type VideoClipId = string; // Looks like firebase id
 
-type VideoClip = {
-  clipId: string,
+export type VideoClip = {
+  videoClipId: string,
   trimStart: number,
   trimEnd: number,
   gain: number
@@ -98,6 +98,7 @@ type SongBoardEvent =
       uid: string
     };
 
+// This is the datastructure on Firebase
 type SongBoardSchema = {
   createdAt: number,
   updatedAt: number,
@@ -106,7 +107,9 @@ type SongBoardSchema = {
   videoClips: { [NoteId]: VideoClip } // denormalized
 };
 
-type SongBoard = {
+// This is the datastructure with videoClipIds
+export type SongBoard = {
+  uid: string,
   createdAt: number,
   updatedAt: number,
   songId: SongId,
@@ -167,14 +170,15 @@ function reduceSongBoard(acc: ?SongBoard, event: SongBoardEvent): SongBoard {
       createdAt: 0,
       updatedAt: 0,
       videoClips: {},
-      songId: "happy-birthday"
+      songId: "happy-birthday",
+      uid: "b7Z6g5LFN7SiyJpAnxByRmuSHuV2"
     };
   }
 
   switch (event.type) {
     case "add-video":
       const videoClip: VideoClip = {
-        clipId: event.videoClipId,
+        videoClipId: event.videoClipId,
         gain: 0,
         trimStart: 0,
         trimEnd: 1
@@ -213,11 +217,11 @@ function reduceSongBoard(acc: ?SongBoard, event: SongBoardEvent): SongBoard {
 
 export function findSongBoard(
   database: FirebaseDatabase,
-  songId: string
+  songBoardId: string
 ): Observable<SongBoard> {
   const collectionRef = database
     .ref("song-boards")
-    .child(songId)
+    .child(songBoardId)
     .child("events");
   return reduceFirebaseCollection(collectionRef, reduceSongBoard);
 }

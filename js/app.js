@@ -44,10 +44,8 @@ const config = {
 };
 firebase.initializeApp(config);
 
-import {
-  subscribeToSongLocation,
-  mapRouteToSongLocation
-} from "./mediaLoading";
+import { subscribeToSongBoardId } from "./mediaLoading";
+import type { Media } from "./mediaLoading";
 
 import {
   navigate,
@@ -55,6 +53,7 @@ import {
   pathnameToRoute,
   routeToViewComponent
 } from "./router";
+import type { Route } from "./router";
 
 import messages from "./messages";
 
@@ -134,6 +133,16 @@ function initializeLocale() {
   return "en";
 }
 
+function songBoardIdForRoute(route: Route): ?string {
+  if (route.name === "root") {
+    return "-KrRkEMrrpH0P4YcDgme";
+  } else if ("songBoardId" in route.params) {
+    return route.params.songBoardId;
+  } else {
+    return null;
+  }
+}
+
 class App extends React.Component {
   state: {
     origin: string,
@@ -147,8 +156,8 @@ class App extends React.Component {
 
   globalSubscription: Subscription;
   mediaSubscription: Subscription;
-  media: Object;
-  songLocation: Object;
+  media: Media;
+  songBoardId: ?string;
 
   constructor() {
     super();
@@ -228,20 +237,20 @@ class App extends React.Component {
       this.mediaSubscription.unsubscribe();
       delete this.mediaSubscription;
       delete this.media;
-      delete this.songLocation;
+      delete this.songBoardId;
     }
   }
 
   onRouteChange(route) {
-    const songLocation = mapRouteToSongLocation(route);
-    if (
-      this.songLocation == null || !isEqual(this.songLocation, songLocation)
-    ) {
+    const newSongBoardId = songBoardIdForRoute(route);
+
+    if (newSongBoardId == null) {
       this.unsubscribeMedia();
+    } else if (this.songBoardId != newSongBoardId) {
       this.mediaSubscription = new Subscription();
-      this.songLocation = songLocation;
-      this.media = subscribeToSongLocation(
-        songLocation,
+      this.songBoardId = newSongBoardId;
+      this.media = subscribeToSongBoardId(
+        newSongBoardId,
         messages[this.state.locale]["default-song-title"](),
         firebase,
         this.mediaSubscription

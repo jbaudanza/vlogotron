@@ -1,7 +1,6 @@
 /* @flow */
 
 import { Observable } from "rxjs/Observable";
-import { songLengthInSeconds } from "./song";
 
 import { values, pick, sum, mapValues, identity } from "lodash";
 
@@ -16,7 +15,12 @@ import { combine as combinePlayCommands } from "./playCommands";
 import { animationFrame } from "rxjs/scheduler/animationFrame";
 import audioContext from "./audioContext";
 
-import { songs, timestampToBeats, songLengthInBeats } from "./song";
+import {
+  songLengthInSeconds,
+  songs,
+  timestampToBeats,
+  songLengthInBeats
+} from "./song";
 
 import { displayNameForUid } from "./database";
 import combineTemplate from "./combineTemplate";
@@ -24,44 +28,45 @@ import combineTemplate from "./combineTemplate";
 import type { FirebaseDatabase } from "./database";
 import type { Subscription } from "rxjs/Subscription";
 import type { ScheduledNoteList } from "./song";
+import type { Media } from "./mediaLoading";
 
 export default function playbackController(
   props$: Observable<Object>,
   actions: Object,
   currentUser$: Observable<?Object>,
-  media: Object,
+  media: Media,
   firebase: FirebaseDatabase,
   subscription: Subscription,
   navigate: Function
 ) {
-  const authorName$ = media.song$.switchMap(song => {
-    if (song) {
-      return displayNameForUid(firebase.database(), song.uid);
+  const authorName$ = media.songBoard$.switchMap(songBoard => {
+    if (songBoard) {
+      return displayNameForUid(firebase.database(), songBoard.uid);
     } else {
       return Observable.empty();
     }
   });
 
+  const song$ = media.songBoard$
+    .nonNull()
+    .map(songBoard => songs[songBoard.songId]);
+
   const parentView$ = playbackControllerHelper(
     actions,
     currentUser$,
-    media.song$.map(o => (o ? o.notes : [])),
-    media.song$.map(o => (o ? o.bpm : 120)).distinctUntilChanged(),
+    song$.map(o => (o ? o.notes : [])),
+    song$.map(o => (o ? o.bpm : 120)).distinctUntilChanged(),
     media,
     subscription
   );
 
-  const songId$ = media.song$.map(o => (o ? o.songId : null));
-
   return Observable.combineLatest(
     parentView$,
     authorName$,
-    songId$,
     props$.map(props => props.shareUrl),
-    (parentView, authorName, songId, shareUrl) => ({
+    (parentView, authorName, shareUrl) => ({
       ...parentView,
       authorName,
-      songId,
       shareUrl
     })
   );
@@ -72,7 +77,7 @@ export function playbackControllerHelper(
   currentUser$: Observable<?Object>,
   notes$: Observable<ScheduledNoteList>,
   bpm$: Observable<number>,
-  media: Object,
+  media: Media,
   subscription: Subscription
 ) {
   const livePlayCommands$ = combinePlayCommands(
@@ -157,7 +162,10 @@ export function playbackControllerHelper(
   // Start up Observables with side-effect
   subscription.add(scriptedPlaybackContext$$.connect());
 
-  const songTitle$ = media.song$.map(song => (song ? song.title : null));
+  const song$ = media.songBoard$
+    .nonNull()
+    .map(songBoard => songs[songBoard.songId]);
+  const songTitle$ = song$.map(song => song.title);
 
   const viewState$ = combineTemplate({
     videoClips: media.videoClips$,
