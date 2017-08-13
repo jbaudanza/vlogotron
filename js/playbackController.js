@@ -1,3 +1,5 @@
+/* @flow */
+
 import { Observable } from "rxjs/Observable";
 import { songLengthInSeconds } from "./song";
 
@@ -19,13 +21,18 @@ import { songs, timestampToBeats, songLengthInBeats } from "./song";
 import { displayNameForUid } from "./database";
 import combineTemplate from "./combineTemplate";
 
+import type { FirebaseDatabase } from "./database";
+import type { Subscription } from "rxjs/Subscription";
+import type { ScheduledNoteList } from "./song";
+
 export default function playbackController(
-  props$,
-  actions,
-  currentUser$,
-  media,
-  firebase,
-  subscription
+  props$: Observable<Object>,
+  actions: Object,
+  currentUser$: Observable<?Object>,
+  media: Object,
+  firebase: FirebaseDatabase,
+  subscription: Subscription,
+  navigate: Function
 ) {
   const authorName$ = media.song$.switchMap(song => {
     if (song) {
@@ -61,12 +68,12 @@ export default function playbackController(
 }
 
 export function playbackControllerHelper(
-  actions,
-  currentUser$,
-  notes$,
-  bpm$,
-  media,
-  subscription
+  actions: Object,
+  currentUser$: Observable<?Object>,
+  notes$: Observable<ScheduledNoteList>,
+  bpm$: Observable<number>,
+  media: Object,
+  subscription: Subscription
 ) {
   const livePlayCommands$ = combinePlayCommands(
     Observable.merge(
