@@ -38,6 +38,28 @@ const MIDI_NOTES = [
   "B"
 ];
 
+export function midiNoteToLabel(midiNote: number): string {
+  return (
+    MIDI_NOTES[midiNote % MIDI_NOTES.length] +
+    String(Math.floor(midiNote / MIDI_NOTES.length) - 1)
+  );
+}
+
+export function labelToMidiNote(label: string): ?number {
+  const match = label.toUpperCase().match(/([\w#]+)([\-\d]+)/);
+  if (match) {
+    const note = match[1];
+    const noteOffset = MIDI_NOTES.indexOf(note);
+    if (noteOffset === -1) return null;
+
+    const octave = parseInt(match[2]);
+
+    return noteOffset + (octave + 1) * MIDI_NOTES.length;
+  } else {
+    return null;
+  }
+}
+
 export const playCommands$ = midiMessages$
   .map(function(message: MIDIMessageEvent): any {
     const channel = message.data[0] & 0xf;
