@@ -35,9 +35,9 @@ const routes = [
   [`/songs/${id}/note-editor`, "note-editor", "songId"],
   [`/songs/${id}/(remix)/record-videos`, "record-videos", "songId", "remix"],
   [`/songs/${id}/(remix)/note-editor`, "note-editor", "songId", "remix"],
-  [`/song-board/${id}`, "play-song-board", "songId"],
-  [`/song-board/${id}/edit`, "edit-song-board", "songId"],
-  [`/song-board/${id}/collab`, "collab-song-board", "songId"]
+  [`/song-boards/${id}`, "play-song-board", "songBoardId"],
+  [`/song-boards/${id}/edit`, "edit-song-board", "songBoardId"],
+  [`/song-boards/${id}/collab`, "collab-song-board", "songBoardId"]
 ];
 
 export type Route = {
@@ -91,6 +91,7 @@ export function routeToViewComponent(
   switch (route.name) {
     case "root":
     case "view-song":
+    case "play-song-board":
       return createControlledComponent(
         migrateController(playbackController),
         PlaybackView,
