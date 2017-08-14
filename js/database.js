@@ -98,16 +98,6 @@ type SongBoardEvent =
       uid: string
     };
 
-// This is the datastructure on Firebase
-type SongBoardSchema = {
-  createdAt: number,
-  updatedAt: number,
-  events: Array<SongBoardEvent>,
-  songId: SongId, // denormalized
-  videoClips: { [NoteId]: VideoClip } // denormalized
-};
-
-// This is the datastructure with videoClipIds
 export type SongBoard = {
   uid: string,
   createdAt: number,
@@ -128,7 +118,8 @@ export function createSongBoard(
   const rootObject = {
     createdAt: firebase.database.ServerValue.TIMESTAMP,
     updatedAt: firebase.database.ServerValue.TIMESTAMP,
-    uid: uid
+    uid: uid,
+    songId: songId
   };
 
   const rootWrite = collectionRef.push(rootObject);
@@ -215,15 +206,31 @@ function reduceSongBoard(acc: ?SongBoard, event: SongBoardEvent): SongBoard {
   return acc;
 }
 
+function songBoardSnapshot(snapshot): SongBoard {
+  const val = snapshot.val();
+  return {
+    createdAt: val.createdAt,
+    updatedAt: val.updatedAt,
+    songId: val.songId,
+    uid: val.uid,
+    videoClips: {}
+  };
+}
+
 export function findSongBoard(
   database: FirebaseDatabase,
   songBoardId: string
 ): Observable<SongBoard> {
-  const collectionRef = database
-    .ref("song-boards")
-    .child(songBoardId)
-    .child("events");
-  return reduceFirebaseCollection(collectionRef, reduceSongBoard);
+  const songBoardRef = database.ref("song-boards").child(songBoardId);
+
+  return fromFirebaseRef(songBoardRef, "value").map(songBoardSnapshot).first();
+
+  // TODO: This should stream updates
+  // const collectionRef = database
+  //   .ref("song-boards")
+  //   .child(songBoardId)
+  //   .child("events");
+  // return reduceFirebaseCollection(collectionRef, reduceSongBoard);
 }
 
 export function updateSongBoard(
