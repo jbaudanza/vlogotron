@@ -145,8 +145,9 @@ export default class VideoCell extends React.Component {
         "read-write": !this.props.readonly
       });
 
-      videoEl = (
-        <div className={className}>
+      let startRecordButton;
+      if (!this.props.readonly) {
+        startRecordButton = (
           <Link
             onClick={this.props.onStartRecording}
             className="start-record-button"
@@ -160,6 +161,12 @@ export default class VideoCell extends React.Component {
               <use xlinkHref="#svg-camera" />
             </svg>
           </Link>
+        );
+      }
+
+      videoEl = (
+        <div className={className}>
+          {startRecordButton}
           <svg version="1.1" width="100px" height="125px" className="robot">
             <use xlinkHref={svgId} />
           </svg>
