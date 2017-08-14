@@ -30,9 +30,14 @@ export type AudioSourceMap = { [string]: AudioSource };
 // https://webaudio.github.io/web-audio-api/#widl-BaseAudioContext-baseLatency
 const batchTime = audioContext.baseLatency || 2 * 128 / audioContext.sampleRate;
 
+export type LivePlayCommand = {
+  play?: string,
+  pause?: string
+};
+
 export function startLivePlaybackEngine(
   audioSources$: Observable<AudioSourceMap>,
-  playCommands$: Observable<Object>,
+  playCommands$: Observable<LivePlayCommand>,
   subscription: Subscription
 ) {
   const active = {};
@@ -45,6 +50,7 @@ export function startLivePlaybackEngine(
         let event = null;
 
         if (cmd.play) {
+          const inputNoteName = cmd.play;
           const [noteName, node] = buildSourceNode(
             cmd.play,
             audioSources,
@@ -53,22 +59,23 @@ export function startLivePlaybackEngine(
 
           if (node) {
             const subject = new Subject();
-            active[cmd.play] = { node, subject };
+            active[inputNoteName] = { node, subject };
             node.start(when);
 
             event = {
               when,
-              noteName: cmd.play,
+              noteName: inputNoteName,
               duration$: subject.asObservable()
             };
           }
         }
 
         if (cmd.pause && active[cmd.pause]) {
-          active[cmd.pause].node.stop(when);
-          active[cmd.pause].subject.next({});
-          active[cmd.pause].subject.complete();
-          delete active[cmd.pause];
+          const inputNoteName = cmd.pause;
+          active[inputNoteName].node.stop(when);
+          active[inputNoteName].subject.next({});
+          active[inputNoteName].subject.complete();
+          delete active[inputNoteName];
         }
 
         return event;

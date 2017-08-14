@@ -2,6 +2,7 @@
 import { Observable } from "rxjs/Observable";
 
 import { identity } from "lodash";
+import type { LivePlayCommand } from "./AudioPlaybackEngine";
 
 const midiAccess$ = Observable.defer(() => {
   if (navigator.requestMIDIAccess) {
@@ -61,7 +62,7 @@ export function labelToMidiNote(label: string): ?number {
 }
 
 export const playCommands$ = midiMessages$
-  .map(function(message: MIDIMessageEvent): any {
+  .map(function(message: MIDIMessageEvent): ?LivePlayCommand {
     const channel = message.data[0] & 0xf;
     const type = message.data[0] & 0xf0;
 
@@ -69,7 +70,7 @@ export const playCommands$ = midiMessages$
     const velocity = message.data[2];
 
     // Add the octave to the note
-    const noteString = MIDI_NOTES[note % 12] + Math.floor(note / 12);
+    const noteString = midiNoteToLabel(note);
 
     // Detect a note ending. See http://stackoverflow.com/a/21636112/667069
     if (
@@ -93,4 +94,4 @@ export const playCommands$ = midiMessages$
       return null;
     }
   })
-  .filter(identity);
+  .nonNull();
