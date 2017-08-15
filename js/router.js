@@ -98,6 +98,7 @@ export function routeToViewComponent(
         ["play", "pause", "playCommands$"],
         LoadingView
       );
+    case "edit-song-board":
     case "record-videos":
       return createControlledComponent(
         migrateController(recordVideosController),

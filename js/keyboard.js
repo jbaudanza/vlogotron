@@ -1,7 +1,5 @@
 import { Observable } from "rxjs/Observable";
 
-import { identity } from "lodash";
-
 const keyUp$ = Observable.fromEvent(document, "keyup");
 const keyDown$ = Observable.fromEvent(document, "keydown");
 
@@ -79,4 +77,4 @@ export const playCommands$ = keys$
       return { [type]: note };
     }
   })
-  .filter(identity);
+  .nonNull();

@@ -10,6 +10,7 @@ import { start as startCapturing } from "./recording";
 import { playbackControllerHelper } from "./playbackController";
 
 import { displayNameForUid } from "./database";
+import { songs } from "./song";
 
 import { updatesForNewSong } from "./localWorkspace";
 import { createVideoClip } from "./database";
@@ -18,6 +19,8 @@ import {
   noteToFrequency,
   noteLabelsToMidi
 } from "./frequencies";
+
+import type { Media, CapturedMedia } from "./mediaLoading";
 
 // Note: keypress doesn't work for escape key. Need to use keydown.
 const escapeKey$ = Observable.fromEvent(document, "keydown").filter(
@@ -34,7 +37,7 @@ export default function recordVideosController(
   props$: Observable<Object>,
   actions: { [string]: Observable<any> },
   currentUser$: Observable<?Object>,
-  mediaStore: Object,
+  mediaStore: Media,
   firebase: Object,
   subscription: Subscription,
   navigate: Function
@@ -99,19 +102,24 @@ export default function recordVideosController(
     finalMedia$.subscribe(e => mediaStore.recordedMedia$.next(e))
   );
 
+  // TODO: Is this null checking necessary?
+  const song$ = mediaStore.songBoard$.map(
+    songBoard => (songBoard ? songs[songBoard.songId] : null)
+  );
+
   const parentView$ = playbackControllerHelper(
     actions,
     currentUser$,
-    mediaStore.song$.map(o => (o ? o.notes : [])),
-    mediaStore.song$.map(o => (o ? o.bpm : 120)).distinctUntilChanged(),
+    song$.map(o => (o ? o.notes : [])),
+    song$.map(o => (o ? o.bpm : 120)).distinctUntilChanged(),
     mediaStore,
     subscription
   );
 
-  const authorName$ = mediaStore.song$.switchMap(song => {
-    if (song) {
-      if ("uid" in song)
-        return displayNameForUid(firebase.database(), song.uid);
+  const authorName$ = mediaStore.songBoard$.switchMap(songBoard => {
+    if (songBoard) {
+      if ("uid" in songBoard)
+        return displayNameForUid(firebase.database(), songBoard.uid);
       else return nonNullUser$.map(u => u.displayName);
     } else {
       return Observable.empty();
@@ -123,7 +131,7 @@ export default function recordVideosController(
     parentView$,
     mediaStore.videoClips$,
     recordingState$,
-    mediaStore.song$,
+    song$,
     mediaStore.loading$,
     mediaStore.audioSources$,
     authorName$,
@@ -208,7 +216,9 @@ function runRecordingProcess(mediaStream, note, finish$, abort$) {
   const startCapturing$ = Observable.create(observer => {
     const result = startCapturing(mediaStream, finish$, abort$);
 
-    const media$ = Observable.combineLatest(
+    const media$: Observable<
+      CapturedMedia
+    > = Observable.combineLatest(
       result.audioBuffer$,
       result.videoBlob$,
       (audioBuffer, videoBlob) => ({ note, videoBlob, audioBuffer })

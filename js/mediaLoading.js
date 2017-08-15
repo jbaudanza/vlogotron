@@ -33,12 +33,23 @@ const initialSong = {
   bpm: 120
 };
 
+export type CapturedMedia = {
+  note: string,
+  videoBlob: Blob,
+  audioBuffer: AudioBuffer
+};
+
+export type ClearedMedia = {
+  note: string,
+  cleared: true
+};
+
 export type Media = {
   songBoard$: Observable<?SongBoard>,
   videoClips$: Observable<{ [string]: VideoClip }>,
   audioSources$: Observable<Object>,
-  clearedEvents$: Subject<Object>,
-  recordedMedia$: Observable<Object>,
+  clearedEvents$: Subject<ClearedMedia>,
+  recordedMedia$: Subject<CapturedMedia>,
   loading$: Observable<Object>
 };
 
@@ -51,8 +62,6 @@ export function subscribeToSongBoardId(
   let localVideoStore$;
   let localAudioBuffers$;
 
-  // TODO: These used to be mixed in to create localVideoStore$ and localAudioBuffers$,
-  // this probably needs to be added back somehow.
   const clearedEvents$ = new Subject();
   const recordedMedia$ = new Subject();
 
@@ -67,8 +76,20 @@ export function subscribeToSongBoardId(
   const songBoard$ = null$
     .concat(findSongBoard(database, songBoardId))
     .publishReplay();
-  localVideoStore$ = emptyObject$;
-  localAudioBuffers$ = emptyObject$;
+
+  localAudioBuffers$ = Observable.merge(recordedMedia$, clearedEvents$)
+    .scan(reduceToLocalAudioBufferStore, {})
+    .startWith({})
+    .publishReplay();
+
+  localVideoStore$ = Observable.merge(recordedMedia$, clearedEvents$)
+    .scan(reduceToLocalVideoClipStore, {})
+    .startWith({})
+    .publishReplay();
+
+  subscription.add(localAudioBuffers$.connect());
+  subscription.add(localVideoStore$.connect());
+
   subscription.add(songBoard$.connect());
 
   const videoClipIds$ = songBoard$.map(function(songBoard) {

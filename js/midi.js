@@ -1,7 +1,6 @@
 /* @flow */
 import { Observable } from "rxjs/Observable";
 
-import { identity } from "lodash";
 import type { LivePlayCommand } from "./AudioPlaybackEngine";
 
 const midiAccess$ = Observable.defer(() => {
