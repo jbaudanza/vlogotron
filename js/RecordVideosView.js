@@ -1,3 +1,4 @@
+/* @flow */
 import PropTypes from "prop-types";
 import React from "react";
 
@@ -17,13 +18,19 @@ import PageHeaderAction from "./PageHeaderAction";
 
 import { notes } from "./VideoGrid";
 
+import type { SongBoardEvent } from "./database";
+import type { Subscription } from "rxjs/Subscription";
+import type { SongId } from "./song";
+
 export default class RecordVideosView extends React.Component {
   constructor() {
     super();
     bindAll(this, "bindVideoGrid", "onChangeTitle", "onTrim", "onChooseSong");
   }
 
-  bindVideoGrid(component) {
+  subscription: Subscription;
+
+  bindVideoGrid(component: Object) {
     if (component) {
       this.subscription = component.playCommands$$.subscribe(
         this.props.actions.subjects.playCommands$$
@@ -33,31 +40,39 @@ export default class RecordVideosView extends React.Component {
     }
   }
 
-  onChangeTitle(title) {
-    this.props.actions.subjects.editSong$.next({
-      action: "change-title",
-      title: title
-    });
+  updateSongBoard(event: SongBoardEvent) {
+    this.props.actions.subjects.editSong$.next(event);
   }
 
-  onTrim(note) {
+  onChangeTitle(title: string) {
+    // TODO: This feature doesn't work anymore. It should probably be
+    // removed from the UI
+    // this.updateSongBoard({
+    //   action: "change-title",
+    //   title: title
+    // });
+  }
+
+  onTrim(note: string) {
     this.props.onNavigate("#trim?note=" + note);
   }
 
-  onChooseSong(song) {
-    this.props.actions.subjects.editSong$.next({
-      action: "replace-all",
-      notes: song.notes
+  onChooseSong(songId: SongId) {
+    this.updateSongBoard({
+      type: "update-song",
+      songId: songId,
+      uid: this.props.currentUser.uid
     });
     this.props.onNavigate(this.props.location.pathname);
   }
 
-  onFinishTrim(note, trimStart, trimEnd) {
-    this.props.actions.subjects.editSong$.next({
-      action: "change-trim",
+  onFinishTrim(note: string, trimStart: number, trimEnd: number) {
+    this.updateSongBoard({
+      type: "update-trim",
       note,
       trimStart,
-      trimEnd
+      trimEnd,
+      uid: this.props.currentUser.uid
     });
 
     // Dismiss the overlay

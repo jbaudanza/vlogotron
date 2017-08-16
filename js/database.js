@@ -67,7 +67,7 @@ Refactored:
   ]
 */
 
-type SongBoardEvent =
+export type SongBoardEvent =
   | {
       type: "add-video",
       videoClipId: string,
@@ -100,6 +100,7 @@ type SongBoardEvent =
 
 export type SongBoard = {
   uid: string,
+  songBoardId: string,
   createdAt: number,
   updatedAt: number,
   songId: SongId,
@@ -154,18 +155,7 @@ function updateVideoClip(
   }
 }
 
-function reduceSongBoard(acc: ?SongBoard, event: SongBoardEvent): SongBoard {
-  // TODO: This can't be right
-  if (acc == null) {
-    acc = {
-      createdAt: 0,
-      updatedAt: 0,
-      videoClips: {},
-      songId: "happy-birthday",
-      uid: "b7Z6g5LFN7SiyJpAnxByRmuSHuV2"
-    };
-  }
-
+function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
   switch (event.type) {
     case "add-video":
       const videoClip: VideoClip = {
@@ -209,6 +199,7 @@ function reduceSongBoard(acc: ?SongBoard, event: SongBoardEvent): SongBoard {
 function songBoardSnapshot(snapshot): SongBoard {
   const val = snapshot.val();
   return {
+    songBoardId: val.key,
     createdAt: val.createdAt,
     updatedAt: val.updatedAt,
     songId: val.songId,

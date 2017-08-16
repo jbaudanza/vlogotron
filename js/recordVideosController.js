@@ -9,11 +9,14 @@ import { start as startCapturing } from "./recording";
 
 import { playbackControllerHelper } from "./playbackController";
 
-import { displayNameForUid } from "./database";
+import {
+  displayNameForUid,
+  updateSongBoard,
+  createVideoClip
+} from "./database";
+import type { SongBoardEvent } from "./database";
 import { songs } from "./song";
 
-import { updatesForNewSong } from "./localWorkspace";
-import { createVideoClip } from "./database";
 import {
   frequencyToNote,
   noteToFrequency,
@@ -57,8 +60,8 @@ export default function recordVideosController(
 
   const nonNullUser$: Observable<Object> = currentUser$.nonNull();
 
-  const uploadedEvents$ = finalMedia$
-    .withLatestFrom(nonNullUser$, (media, currentUser) =>
+  const uploadedEvents$: Observable<SongBoardEvent> = finalMedia$
+    .withLatestFrom(nonNullUser$, (media, currentUser) : Promise<SongBoardEvent> =>
       createVideoClip(
         firebase.database(),
         {
@@ -68,25 +71,37 @@ export default function recordVideosController(
         },
         media.videoBlob
       ).then(videoClipId => ({
-        action: "add-video",
+        type: "add-video",
         videoClipId: videoClipId,
-        note: media.note
+        note: media.note,
+        uid: currentUser.uid
       }))
     )
     .mergeAll();
 
-  const clearedEvents$ = actions.clearVideoClip$.map((note: string) => ({
-    action: "remove-video",
-    note
+  const clearedEvents$ = actions.clearVideoClip$.withLatestFrom(nonNullUser$, (note: string, user: Object) => ({
+    type: "remove-video",
+    note: note,
+    uid: user.uid
   }));
 
+  const songBoardEdits$: Observable<SongBoardEvent> = actions.editSong$;
+
+  const songBoardEvents$: Observable<SongBoardEvent> = Observable.merge(
+    clearedEvents$,
+    uploadedEvents$,
+    songBoardEdits$
+  );
+  const songBoardId$ = mediaStore.songBoard$
+    .nonNull()
+    .map(songBoard => songBoard.songBoardId);
+
   subscription.add(
-    mediaStore.workspace$.subscribe(storage$ => {
-      updatesForNewSong(
-        Observable.merge(clearedEvents$, uploadedEvents$, actions.editSong$),
-        storage$,
-        subscription
-      );
+    songBoardEvents$.withLatestFrom(songBoardId$).subscribe(([
+      event,
+      songBoardId
+    ]) => {
+      updateSongBoard(firebase.database(), songBoardId, event);
     })
   );
 

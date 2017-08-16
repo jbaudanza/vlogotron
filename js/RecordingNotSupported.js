@@ -22,7 +22,7 @@ const TextBlob = styled.div`
   border: 1px solid ${colors.dark};
 `;
 
-export default function RecordingNotSupported(props: { className: string }) {
+export default function RecordingNotSupported(props: { className?: string }) {
   return (
     <TextBlob className={props.className}>
       <h3>Sorry, we can't record videos in your browser.</h3>

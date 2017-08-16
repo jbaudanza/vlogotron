@@ -13,6 +13,8 @@ import Link from "./Link";
 import PlayButton from "./PlayButton";
 
 import { songs } from "./song";
+import type { Song } from "./song";
+
 import colors from "./colors";
 import { startScriptedPlayback } from "./AudioPlaybackEngine";
 import type { AudioSourceMap } from "./AudioPlaybackEngine";
@@ -79,13 +81,21 @@ const StyledUL = styled.ul`
 class LineItem extends React.Component {
   constructor(props) {
     super();
-    this.onSelectSong = props.onSelectSong.bind(null, props.song);
+    this.onSelectSong = props.onSelectSong.bind(null, props.songId);
     this.onClickPlay = props.onClickPlay.bind(null, props.songId);
     this.onClickPause = props.onClickPause.bind(null, props.songId);
     this.onRequestPurchase = props.onRequestPurchase.bind(null, props.songId);
   }
 
-  onSelectSong: Function;
+  props: {
+    songId: string,
+    song: Song,
+    premiumAccountStatus: boolean,
+    price: number,
+    isPlaying: boolean
+  }
+
+  onSelectSong: string => void;
   onRequestPurchase: Function;
   onClickPlay: Function;
   onClickPause: Function;
@@ -133,12 +143,6 @@ class LineItem extends React.Component {
 LineItem.contextTypes = {
   messages: PropTypes.object.isRequired,
   locale: PropTypes.string.isRequired
-};
-
-LineItem.propTypes = {
-  premiumAccountStatus: PropTypes.bool.isRequired,
-  price: PropTypes.number.isRequired,
-  song: PropTypes.object.isRequired
 };
 
 class ChooseSongOverlay extends React.Component {
