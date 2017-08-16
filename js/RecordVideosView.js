@@ -25,7 +25,7 @@ import type { SongId } from "./song";
 export default class RecordVideosView extends React.Component {
   constructor() {
     super();
-    bindAll(this, "bindVideoGrid", "onChangeTitle", "onTrim", "onChooseSong");
+    bindAll(this, "bindVideoGrid", "onTrim", "onChooseSong");
   }
 
   subscription: Subscription;
@@ -42,15 +42,6 @@ export default class RecordVideosView extends React.Component {
 
   updateSongBoard(event: SongBoardEvent) {
     this.props.actions.subjects.editSong$.next(event);
-  }
-
-  onChangeTitle(title: string) {
-    // TODO: This feature doesn't work anymore. It should probably be
-    // removed from the UI
-    // this.updateSongBoard({
-    //   action: "change-title",
-    //   title: title
-    // });
   }
 
   onTrim(note: string) {
@@ -150,7 +141,6 @@ export default class RecordVideosView extends React.Component {
         <PageHeader
           isPlaying={this.props.isPlaying}
           songTitle={this.props.songTitle}
-          onChangeTitle={this.onChangeTitle}
           songLength={this.props.songLength}
           authorName={this.props.authorName}
           loading={loadingAsBool}
