@@ -61,7 +61,9 @@ export default function recordVideosController(
   const nonNullUser$: Observable<Object> = currentUser$.nonNull();
 
   const uploadedEvents$: Observable<SongBoardEvent> = finalMedia$
-    .withLatestFrom(nonNullUser$, (media, currentUser) : Promise<SongBoardEvent> =>
+    .withLatestFrom(nonNullUser$, (media, currentUser): Promise<
+      SongBoardEvent
+    > =>
       createVideoClip(
         firebase.database(),
         {
@@ -79,11 +81,14 @@ export default function recordVideosController(
     )
     .mergeAll();
 
-  const clearedEvents$ = actions.clearVideoClip$.withLatestFrom(nonNullUser$, (note: string, user: Object) => ({
-    type: "remove-video",
-    note: note,
-    uid: user.uid
-  }));
+  const clearedEvents$ = actions.clearVideoClip$.withLatestFrom(
+    nonNullUser$,
+    (note: string, user: Object) => ({
+      type: "remove-video",
+      note: note,
+      uid: user.uid
+    })
+  );
 
   const songBoardEdits$: Observable<SongBoardEvent> = actions.editSong$;
 
@@ -92,9 +97,9 @@ export default function recordVideosController(
     uploadedEvents$,
     songBoardEdits$
   );
-  const songBoardId$ = mediaStore.songBoard$
-    .nonNull()
-    .map(songBoard => songBoard.songBoardId);
+  const songBoardId$ = mediaStore.songBoard$.map(
+    songBoard => songBoard.songBoardId
+  );
 
   subscription.add(
     songBoardEvents$.withLatestFrom(songBoardId$).subscribe(([
@@ -117,28 +122,21 @@ export default function recordVideosController(
     finalMedia$.subscribe(e => mediaStore.recordedMedia$.next(e))
   );
 
-  // TODO: Is this null checking necessary?
-  const song$ = mediaStore.songBoard$.map(
-    songBoard => (songBoard ? songs[songBoard.songId] : null)
-  );
+  const song$ = mediaStore.songBoard$.map(songBoard => songs[songBoard.songId]);
 
   const parentView$ = playbackControllerHelper(
     actions,
     currentUser$,
-    song$.map(o => (o ? o.notes : [])),
-    song$.map(o => (o ? o.bpm : 120)).distinctUntilChanged(),
+    song$.map(o => o.notes),
+    song$.map(o => o.bpm).distinctUntilChanged(),
     mediaStore,
     subscription
   );
 
   const authorName$ = mediaStore.songBoard$.switchMap(songBoard => {
-    if (songBoard) {
-      if ("uid" in songBoard)
-        return displayNameForUid(firebase.database(), songBoard.uid);
-      else return nonNullUser$.map(u => u.displayName);
-    } else {
-      return Observable.empty();
-    }
+    if ("uid" in songBoard)
+      return displayNameForUid(firebase.database(), songBoard.uid);
+    else return nonNullUser$.map(u => u.displayName);
   });
 
   // $FlowFixMe - We don't have type definitions for combineLatest with this many arguments

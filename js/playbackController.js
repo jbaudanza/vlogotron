@@ -40,22 +40,16 @@ export default function playbackController(
   navigate: Function
 ) {
   const authorName$ = media.songBoard$.switchMap(songBoard => {
-    if (songBoard) {
-      return displayNameForUid(firebase.database(), songBoard.uid);
-    } else {
-      return Observable.empty();
-    }
+    return displayNameForUid(firebase.database(), songBoard.uid);
   });
 
-  const song$ = media.songBoard$
-    .nonNull()
-    .map(songBoard => songs[songBoard.songId]);
+  const song$ = media.songBoard$.map(songBoard => songs[songBoard.songId]);
 
   const parentView$ = playbackControllerHelper(
     actions,
     currentUser$,
-    song$.map(o => (o ? o.notes : [])),
-    song$.map(o => (o ? o.bpm : 120)).distinctUntilChanged(),
+    song$.map(o => o.notes),
+    song$.map(o => o.bpm).distinctUntilChanged(),
     media,
     subscription
   );
@@ -162,9 +156,7 @@ export function playbackControllerHelper(
   // Start up Observables with side-effect
   subscription.add(scriptedPlaybackContext$$.connect());
 
-  const song$ = media.songBoard$
-    .nonNull()
-    .map(songBoard => songs[songBoard.songId]);
+  const song$ = media.songBoard$.map(songBoard => songs[songBoard.songId]);
   const songTitle$ = song$.map(song => song.title);
 
   const viewState$ = combineTemplate({

@@ -45,7 +45,7 @@ export type ClearedMedia = {
 };
 
 export type Media = {
-  songBoard$: Observable<?SongBoard>,
+  songBoard$: Observable<SongBoard>,
   videoClips$: Observable<{ [string]: VideoClip }>,
   audioSources$: Observable<Object>,
   clearedEvents$: Subject<ClearedMedia>,
@@ -70,12 +70,9 @@ export function subscribeToSongBoardId(
 
   const database = firebase.database();
 
-  const null$ = Observable.of(null);
   const emptyObject$ = Observable.of({});
 
-  const songBoard$ = null$
-    .concat(findSongBoard(database, songBoardId))
-    .publishReplay();
+  const songBoard$ = findSongBoard(database, songBoardId).publishReplay();
 
   localAudioBuffers$ = Observable.merge(recordedMedia$, clearedEvents$)
     .scan(reduceToLocalAudioBufferStore, {})
@@ -93,11 +90,7 @@ export function subscribeToSongBoardId(
   subscription.add(songBoard$.connect());
 
   const videoClipIds$ = songBoard$.map(function(songBoard) {
-    if (songBoard) {
-      return mapValues(songBoard.videoClips, (v: VideoClip) => v.videoClipId);
-    } else {
-      return {};
-    }
+    return mapValues(songBoard.videoClips, (v: VideoClip) => v.videoClipId);
   });
 
   const remoteVideoClips$ = videoClipsForClipIds(
@@ -136,7 +129,7 @@ export function subscribeToSongBoardId(
   // This datastructure contains the AudioBuffers and trimming info for each
   // note.
   const audioSources$ = Observable.combineLatest(
-    songBoard$.nonNull().map(o => o.videoClips), // XXX: Is this nonNull still necessary?
+    songBoard$.map(o => o.videoClips),
     audioBuffers$.map(o => mapValues(o, audioBuffer => ({ audioBuffer }))),
     (x, y) => merge({}, x, y)
   );
@@ -145,14 +138,12 @@ export function subscribeToSongBoardId(
   // clean this up a bit
   const videoClipsWithTrim$ = Observable.combineLatest(
     videoClips$,
-    songBoard$
-      .nonNull() // XXX: Is this still necessary?
-      .map(song =>
-        mapValues(song.videoClips, (o: VideoClip) => ({
-          trimStart: o.trimStart,
-          trimEnd: o.trimEnd
-        }))
-      ),
+    songBoard$.map(song =>
+      mapValues(song.videoClips, (o: VideoClip) => ({
+        trimStart: o.trimStart,
+        trimEnd: o.trimEnd
+      }))
+    ),
     (videoClips, trimSettings) => merge({}, videoClips, trimSettings)
   ).map(videoClips => pickBy(videoClips, v => "sources" in v));
 

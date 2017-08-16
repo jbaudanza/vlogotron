@@ -93,7 +93,7 @@ class LineItem extends React.Component {
     premiumAccountStatus: boolean,
     price: number,
     isPlaying: boolean
-  }
+  };
 
   onSelectSong: string => void;
   onRequestPurchase: Function;
