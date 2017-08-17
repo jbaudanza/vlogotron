@@ -3,8 +3,6 @@
 import PropTypes from "prop-types";
 import React from "react";
 
-import { createSongBoard } from "./database";
-
 import ChooseSongOverlay from "./ChooseSongOverlay";
 import LoginOverlay from "./LoginOverlay";
 import PurchaseOverlay from "./PurchaseOverlay";
@@ -30,12 +28,10 @@ export default class CreateNewSongOverlay extends React.Component {
   };
 
   props: {
-    onLogin: string => void,
     onClose: string,
-    onNavigate: string => void,
     premiumAccountStatus: boolean,
-    currentUser: Object,
-    firebase: Object
+    onSelectSong: string => void,
+    currentUser: Object
   };
 
   constructor() {
@@ -45,27 +41,9 @@ export default class CreateNewSongOverlay extends React.Component {
   }
 
   onSelectSong(songId: string) {
-    const promise = createSongBoard(
-      this.props.firebase.database(),
-      this.props.currentUser.uid,
-      songId
-    );
-
-    promise.then(key => console.log("got key", key));
-
-    this.setState({ working: true, purchaseSongId: null });
-
     // TODO: Perhaps we should disable the X button while this is working.
-    promise.then(
-      key => {
-        this.setState({ working: false });
-        this.props.onNavigate("/song-boards/" + key);
-      },
-      err => {
-        console.error(err);
-        this.setState({ working: false });
-      }
-    );
+    this.setState({ working: true, purchaseSongId: null });
+    this.props.onSelectSong(songId);
   }
 
   onRequestPurchase(songId: string) {
@@ -83,19 +61,18 @@ export default class CreateNewSongOverlay extends React.Component {
       return <WorkingOverlay onClose={this.props.onClose} />;
     }
 
-    if (this.props.currentUser) {
-      if (this.state.purchaseSongId) {
-        return (
-          <PurchaseOverlay
-            onClose={this.props.onClose}
-            price={price}
-            songId={this.state.purchaseSongId}
-            onCancel={this.onCancelPurchase}
-            currentUser={this.props.currentUser}
-            onSelectSong={this.onSelectSong}
-          />
-        );
-      }
+    if (this.state.purchaseSongId) {
+      return (
+        <PurchaseOverlay
+          onClose={this.props.onClose}
+          price={price}
+          songId={this.state.purchaseSongId}
+          onCancel={this.onCancelPurchase}
+          currentUser={this.props.currentUser}
+          onSelectSong={this.onSelectSong}
+        />
+      );
+    } else {
       return (
         <ChooseSongOverlay
           price={price}
@@ -107,8 +84,6 @@ export default class CreateNewSongOverlay extends React.Component {
           onSelectSong={this.onSelectSong}
         />
       );
-    } else {
-      return <LoginOverlay {...this.props} />;
     }
   }
 }

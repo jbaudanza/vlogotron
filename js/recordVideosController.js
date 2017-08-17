@@ -170,7 +170,8 @@ export default function recordVideosController(
       authorName,
       location: props.location,
       onNavigate: props.onNavigate,
-      onLogin: props.onLogin
+      onLogin: props.onLogin,
+      premiumAccountStatus: props.premiumAccountStatus
     })
   );
 }

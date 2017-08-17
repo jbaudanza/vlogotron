@@ -30,7 +30,8 @@ import {
   updateUser,
   songsForUser,
   deleteSong,
-  premiumAccountStatus
+  premiumAccountStatus,
+  createSongBoard
 } from "./database";
 
 import * as firebase from "firebase";
@@ -168,7 +169,8 @@ class App extends React.Component {
       "onNavigate",
       "onLogout",
       "onClick",
-      "onRouteChange"
+      "onRouteChange",
+      "onCreateSongBoard"
     );
 
     this.state = {
@@ -293,6 +295,25 @@ class App extends React.Component {
     deleteSong(firebase.database(), song);
   }
 
+  onCreateSongBoard(songId: string) {
+    const user = this.state.currentUser;
+    if (
+      !user // This is to make flow happy. It shouldn't happen
+    )
+      return;
+
+    const promise = createSongBoard(firebase.database(), user.uid, songId);
+
+    promise.then(
+      key => {
+        this.props.onNavigate("/song-boards/" + key);
+      },
+      err => {
+        console.error(err);
+      }
+    );
+  }
+
   getChildContext() {
     return {
       audioContext,
@@ -326,23 +347,33 @@ class App extends React.Component {
       );
       sideOverlayClassName = "nav-overlay";
     } else if (this.state.location.hash === "#create-new") {
-      overlay = (
-        <CreateNewSongOverlay
-          onLogin={this.onLogin}
-          onClose={this.state.location.pathname}
-          currentUser={this.state.currentUser}
-          firebase={firebase}
-          premiumAccountStatus={this.state.premiumAccountStatus}
-          onNavigate={this.onNavigate}
-        />
-      );
+      // TODO:
+      // - consider new names for: CreateNewSongOverlay, and ChooseSongOverlay
+      if (this.state.currentUser) {
+        overlay = (
+          <CreateNewSongOverlay
+            onClose={this.state.location.pathname}
+            currentUser={this.state.currentUser}
+            premiumAccountStatus={this.state.premiumAccountStatus}
+            onSelectSong={this.onCreateSongBoard}
+          />
+        );
+      } else {
+        overlay = (
+          <LoginOverlay
+            onLogin={this.onLogin}
+            onClose={this.state.location.pathname}
+          />
+        );
+      }
     }
 
     const view = React.createElement(this.state.component, {
       location: this.state.location,
       shareUrl: this.state.origin + this.state.location.pathname,
       onNavigate: this.onNavigate,
-      onLogin: this.onLogin
+      onLogin: this.onLogin,
+      premiumAccountStatus: this.state.premiumAccountStatus
     });
 
     return (

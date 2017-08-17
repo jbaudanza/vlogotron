@@ -92,10 +92,11 @@ class LineItem extends React.Component {
     song: Song,
     premiumAccountStatus: boolean,
     price: number,
-    isPlaying: boolean
+    isPlaying: boolean,
+    onSelectSong: string => void
   };
 
-  onSelectSong: string => void;
+  onSelectSong: Function;
   onRequestPurchase: Function;
   onClickPlay: Function;
   onClickPause: Function;

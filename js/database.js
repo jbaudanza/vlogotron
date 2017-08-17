@@ -34,39 +34,6 @@ type SerializedSong = Song & {
   revisionId: string
 };
 
-// Current structure:
-/*
-Song:
-  createdAt:  number
-  updatedAt: number
-  bpm: number
-  revisions: []
-  *title: string
-  uid: string
-  *videoClips: { gain, trimStart, trimEnd, videoClipId }
-  *visibility: "everyone"
-
-  * Denormalized from revisions
-
-Revision:
-  bpm: number
-  notes: []
-  timestamp: number,
-  uid: string
-  videoClips: { gain, trimStart, trimEnd, videoClipId }
-  visibility
-
-Refactored:
-// Maybe this should be called something else: Boards, Grids, Stages
-  schema: 2
-  createdAt: number
-  updatedAt: number
-  templateId: string
-  events: [
-    updateTrim, updateGain, recordVideo, deleteVideo
-  ]
-*/
-
 export type SongBoardEvent =
   | {
       type: "add-video",
@@ -118,7 +85,6 @@ export function createSongBoard(
 
   const rootObject = {
     createdAt: firebase.database.ServerValue.TIMESTAMP,
-    updatedAt: firebase.database.ServerValue.TIMESTAMP,
     uid: uid,
     songId: songId
   };
@@ -199,7 +165,7 @@ function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
 function songBoardSnapshot(snapshot): SongBoard {
   const val = snapshot.val();
   return {
-    songBoardId: val.key,
+    songBoardId: snapshot.key,
     createdAt: val.createdAt,
     updatedAt: val.updatedAt,
     songId: val.songId,
@@ -214,14 +180,18 @@ export function findSongBoard(
 ): Observable<SongBoard> {
   const songBoardRef = database.ref("song-boards").child(songBoardId);
 
-  return fromFirebaseRef(songBoardRef, "value").map(songBoardSnapshot).first();
+  const first$ = fromFirebaseRef(songBoardRef, "value")
+    .map(songBoardSnapshot)
+    .first();
 
-  // TODO: This should stream updates
-  // const collectionRef = database
-  //   .ref("song-boards")
-  //   .child(songBoardId)
-  //   .child("events");
-  // return reduceFirebaseCollection(collectionRef, reduceSongBoard);
+  return first$.switchMap(initialSnapshot => {
+    const eventsRef = songBoardRef.child("events");
+    return reduceFirebaseCollection(
+      eventsRef,
+      reduceSongBoard,
+      initialSnapshot
+    );
+  });
 }
 
 export function updateSongBoard(
@@ -229,7 +199,11 @@ export function updateSongBoard(
   songId: string,
   event: SongBoardEvent
 ): Promise<Object> {
-  return database.ref("song-boards").child(songId).child("events").push(event);
+  return database
+    .ref("song-boards")
+    .child(songId)
+    .child("events")
+    .push({ timestamp: firebase.database.ServerValue.TIMESTAMP, ...event });
 }
 
 export function createSong(
@@ -448,8 +422,8 @@ function fromFirebaseRef(ref, eventType) {
 
 function reduceFirebaseCollection<T>(
   collectionRef,
-  accFn: (?T, any) => T,
-  initial?: T
+  accFn: (T, any) => T,
+  initial: T
 ): Observable<T> {
   const query = collectionRef.orderByKey();
 
@@ -470,11 +444,6 @@ function reduceFirebaseCollection<T>(
     }
 
     const stream$ = rest$.map(snapshot => snapshot.val()).scan(accFn, acc);
-
-    if (initial == null) {
-      return stream$;
-    } else {
-      return stream$.startWith(initial);
-    }
+    return stream$.startWith(acc);
   });
 }

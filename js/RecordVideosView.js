@@ -15,6 +15,7 @@ import NotificationPopup from "./NotificationPopup";
 import ChooseSongOverlay from "./ChooseSongOverlay";
 import SubHeader from "./SubHeader";
 import PageHeaderAction from "./PageHeaderAction";
+import CreateNewSongOverlay from "./CreateNewSongOverlay";
 
 import { notes } from "./VideoGrid";
 
@@ -25,7 +26,7 @@ import type { SongId } from "./song";
 export default class RecordVideosView extends React.Component {
   constructor() {
     super();
-    bindAll(this, "bindVideoGrid", "onTrim", "onChooseSong");
+    bindAll(this, "bindVideoGrid", "onTrim", "onSelectSong");
   }
 
   subscription: Subscription;
@@ -48,7 +49,7 @@ export default class RecordVideosView extends React.Component {
     this.props.onNavigate("#trim?note=" + note);
   }
 
-  onChooseSong(songId: SongId) {
+  onSelectSong(songId: SongId) {
     this.updateSongBoard({
       type: "update-song",
       songId: songId,
@@ -119,11 +120,11 @@ export default class RecordVideosView extends React.Component {
 
     if (this.props.location.hash === "#choose-song") {
       overlay = (
-        <ChooseSongOverlay
-          onSelect={this.onChooseSong}
-          media={this.props.media}
+        <CreateNewSongOverlay
           onClose={this.props.location.pathname}
-          bpm={this.props.bpm}
+          onSelectSong={this.onSelectSong}
+          currentUser={this.props.currentUser}
+          premiumAccountStatus={this.props.premiumAccountStatus}
         />
       );
     }
