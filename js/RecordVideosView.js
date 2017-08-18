@@ -50,7 +50,9 @@ type Props = {
   premiumAccountStatus: boolean,
   onDismissError: Function,
   audioSources: { [string]: Object },
-  authorPhotoUrl: string
+  authorPhotoUrl: string,
+  origin: string,
+  songBoardId: string
 };
 
 export default class RecordVideosView extends React.Component<Props> {
@@ -160,7 +162,13 @@ export default class RecordVideosView extends React.Component<Props> {
     }
 
     if (this.props.location.hash === "#share") {
-      overlay = <ShareOverlay onClose={this.props.location.pathname} />;
+      overlay = (
+        <ShareOverlay
+          onClose={this.props.location.pathname}
+          origin={this.props.origin}
+          songBoardId={this.props.songBoardId}
+        />
+      );
     }
 
     const emptyCount =

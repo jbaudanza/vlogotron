@@ -26,11 +26,15 @@ const Header = styled.div`
 type Props = {
   onClose: string,
   className: string,
-  origin: string
+  origin: string,
+  songBoardId: string
 };
 
 class ShareOverlay extends React.Component<Props> {
   render() {
+    const baseUrl =
+      this.props.origin + "/song-boards/" + this.props.songBoardId;
+
     return (
       <Overlay onClose={this.props.onClose} className={this.props.className}>
         <h1>Share and collaborate with friends</h1>
@@ -40,14 +44,14 @@ class ShareOverlay extends React.Component<Props> {
           Can only view your track
         </Header>
 
-        <TextWithCopyButton value="http://example.com" />
+        <TextWithCopyButton value={baseUrl} />
 
         <Header>
           {editSvgEl}
           Can add new videos to your track
         </Header>
 
-        <TextWithCopyButton value="http://example.com" />
+        <TextWithCopyButton value={baseUrl + "/collab"} />
       </Overlay>
     );
   }

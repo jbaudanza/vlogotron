@@ -181,6 +181,7 @@ export default function recordVideosController(
     mediaStore.audioSources$,
     authorName$,
     authorPhotoUrl$,
+    songBoardId$,
     props$,
     (
       parentView,
@@ -191,6 +192,7 @@ export default function recordVideosController(
       audioSources,
       authorName,
       authorPhotoUrl,
+      songBoardId,
       props
     ) => ({
       ...parentView,
@@ -208,7 +210,8 @@ export default function recordVideosController(
       origin: props.origin,
       onNavigate: props.onNavigate,
       onLogin: props.onLogin,
-      premiumAccountStatus: props.premiumAccountStatus
+      premiumAccountStatus: props.premiumAccountStatus,
+      songBoardId
     })
   );
 }
