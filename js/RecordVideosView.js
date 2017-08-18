@@ -1,6 +1,7 @@
 /* @flow */
 import PropTypes from "prop-types";
 import * as React from "react";
+import styled from "styled-components";
 
 import { bindAll, bindKey, forEach, intersection, isEmpty } from "lodash";
 
@@ -228,7 +229,10 @@ export default class RecordVideosView extends React.Component<Props> {
                   pitchCorrection={this.props.pitchCorrection}
                   ref={this.bindVideoGrid}
                 />
-                <NotificationPopup photoUrl={this.props.authorPhotoUrl} />
+                <NewSongBoardNotification
+                  authorName={this.props.authorName}
+                  photoUrl={this.props.authorPhotoUrl}
+                />
               </div>
             : <RecordingNotSupported />}
 
@@ -242,3 +246,70 @@ export default class RecordVideosView extends React.Component<Props> {
 RecordVideosView.contextTypes = {
   messages: PropTypes.object.isRequired
 };
+
+const CameraIconWrapper = styled.span`
+  display: inline-block;
+  width: 20px;
+  height: 10px;
+  overflow: hidden;
+  margin: 0 2px;
+
+  svg {
+    margin-top: -5px;
+    stroke: #333;
+  }
+`;
+
+function CameraIcon(props) {
+  return (
+    <CameraIconWrapper>
+      <svg version="1.1" width="20px" height="25px">
+        <use xlinkHref="#svg-camera" />
+      </svg>
+    </CameraIconWrapper>
+  );
+}
+
+function CollabIntroNotification(
+  props: { photoUrl: string, authorName: string }
+) {
+  return (
+    <NotificationPopup photoUrl={this.props.authorPhotoUrl}>
+      <p>
+        {this.props.authorName}
+        {" "}
+        needs your help finishing this song. Pick a square
+        with a robot in it and click the
+        <CameraIcon /> icon
+        to replace the robot with your own voice.
+      </p>
+      <p>
+        Watch this
+        {" "}
+        <a href="http://www.example.com">Tutorial video</a>
+        {" "}
+        for more instructions.
+      </p>
+    </NotificationPopup>
+  );
+}
+
+function NewSongBoardNotification(props) {
+  return (
+    <NotificationPopup>
+      <p>
+        You just created a new song! Make it your own by recording your own
+        voice over the robots. Get started by picking a square
+        and clicking the
+        <CameraIcon /> icon.
+      </p>
+      <p>
+        Watch this
+        {" "}
+        <a href="http://www.example.com">Tutorial video</a>
+        {" "}
+        for more instructions.
+      </p>
+    </NotificationPopup>
+  );
+}

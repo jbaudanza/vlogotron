@@ -10,7 +10,8 @@ import styled from "styled-components";
 
 type Props = {
   className?: string,
-  photoUrl?: string
+  photoUrl?: string,
+  children: React.Node
 };
 
 class NotificationPopup extends React.Component<Props> {
@@ -29,19 +30,7 @@ class NotificationPopup extends React.Component<Props> {
         <AvatarWrapper>
           {avatarEl}
         </AvatarWrapper>
-        <p>
-          {name} needs your help finishing this song. Pick a square
-          with a robot in it and click the
-          <CameraIcon /> icon
-          to replace the robot with your own voice.
-        </p>
-        <p>
-          Watch this
-          {" "}
-          <a href="http://www.example.com">Tutorial video</a>
-          {" "}
-          for more instructions.
-        </p>
+        {this.props.children}
         <CloseLink href="#">
           <svg version="1.1" width="13px" height="14px">
             <use xlinkHref="#svg-close" />
@@ -72,29 +61,6 @@ const CloseLink = styled(Link)`
   right: 9px;
   top: 9px;
 `;
-
-const CameraIconWrapper = styled.span`
-  display: inline-block;
-  width: 20px;
-  height: 10px;
-  overflow: hidden;
-  margin: 0 2px;
-
-  svg {
-    margin-top: -5px;
-    stroke: #333;
-  }
-`;
-
-function CameraIcon(props) {
-  return (
-    <CameraIconWrapper>
-      <svg version="1.1" width="20px" height="25px">
-        <use xlinkHref="#svg-camera" />
-      </svg>
-    </CameraIconWrapper>
-  );
-}
 
 const robotSvg = (
   <svg
