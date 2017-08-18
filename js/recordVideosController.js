@@ -300,11 +300,11 @@ function startTone(note) {
 
   const gainNode = audioContext.createGain();
   gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-  gainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime + ramp);
+  gainNode.gain.linearRampToValueAtTime(0.9, audioContext.currentTime + ramp);
   gainNode.connect(audioContext.destination);
 
   const oscillator = audioContext.createOscillator();
-  oscillator.type = "sine";
+  oscillator.type = "square";
   oscillator.frequency.value = noteToFrequency(noteLabelsToMidi[note]);
   oscillator.connect(gainNode);
   oscillator.start();
