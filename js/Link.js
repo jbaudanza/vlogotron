@@ -17,8 +17,7 @@ class Link extends React.Component<Props> {
     event.preventDefault();
     event.stopPropagation();
 
-    if (this.props.onClick)
-      this.props.onClick(event);
+    if (this.props.onClick) this.props.onClick(event);
   }
 
   render() {

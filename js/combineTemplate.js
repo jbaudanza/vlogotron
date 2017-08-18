@@ -5,6 +5,8 @@ import { forEach } from "lodash";
 
 type ObservableTemplate = { [string]: Observable<any> };
 
+// Prettier will remove the parens and break flow
+// prettier-ignore
 type ExtractReturnType = <V>(Observable<V>) => V;
 
 /*

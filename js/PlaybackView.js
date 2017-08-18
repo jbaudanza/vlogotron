@@ -16,7 +16,7 @@ import SubHeader from "./SubHeader";
 type Props = {
   actions: Object,
   loading: Object,
-  videoClips: {[string]: Object},
+  videoClips: { [string]: Object },
   playCommands$: Observable<Object>,
   isPlaying: boolean,
   songLength: number,

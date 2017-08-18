@@ -21,15 +21,19 @@ function WorkingOverlay(props) {
   );
 }
 
-export default class CreateNewSongOverlay extends React.Component<{
-  onClose: string,
-  premiumAccountStatus: boolean,
-  onSelectSong: string => void,
-  currentUser: Object
-}, {
-  purchaseSongId: ?string,
-  working: boolean
-}> {
+export default class CreateNewSongOverlay
+  extends React.Component<
+    {
+      onClose: string,
+      premiumAccountStatus: boolean,
+      onSelectSong: string => void,
+      currentUser: Object
+    },
+    {
+      purchaseSongId: ?string,
+      working: boolean
+    }
+  > {
   constructor() {
     super();
     this.state = { purchaseSongId: null, working: false };

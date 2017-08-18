@@ -49,7 +49,7 @@ type Props = {
   isPlaying: boolean,
   premiumAccountStatus: boolean,
   onDismissError: Function,
-  audioSources: {string: Object}
+  audioSources: { [string]: Object }
 };
 
 export default class RecordVideosView extends React.Component<Props> {
@@ -233,4 +233,3 @@ export default class RecordVideosView extends React.Component<Props> {
 RecordVideosView.contextTypes = {
   messages: PropTypes.object.isRequired
 };
-

@@ -4,7 +4,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { times } from "lodash";
 
-function SvgMeter(props: {width: number, value: number}) {
+function SvgMeter(props: { width: number, value: number }) {
   const width = props.width;
   const height = 10;
   const dotCount = 18;

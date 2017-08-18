@@ -78,14 +78,15 @@ const StyledUL = styled.ul`
   list-style-type: none;
 `;
 
-class LineItem extends React.Component<{
-  songId: string,
-  song: Song,
-  premiumAccountStatus: boolean,
-  price: number,
-  isPlaying: boolean,
-  onSelectSong: string => void
-}> {
+class LineItem
+  extends React.Component<{
+    songId: string,
+    song: Song,
+    premiumAccountStatus: boolean,
+    price: number,
+    isPlaying: boolean,
+    onSelectSong: string => void
+  }> {
   constructor(props) {
     super();
     this.onSelectSong = props.onSelectSong.bind(null, props.songId);

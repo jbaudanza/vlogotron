@@ -58,10 +58,10 @@ type ViewProps = {
   songLength: number,
   isPlaying: boolean,
   onDismissError: Function,
-  audioSources: {string: Object},
+  audioSources: { string: Object },
   onLogin: Function,
   onNavigate: Function
-}
+};
 
 export default function recordVideosController(
   props$: Observable<Object>,
@@ -71,7 +71,7 @@ export default function recordVideosController(
   firebase: Object,
   subscription: Subscription,
   navigate: Function
-) : Observable<ViewProps> {
+): Observable<ViewProps> {
   const recordingEngine$ = actions.startRecording$
     .switchMap(note => startRecording(note, actions.stopRecording$, escapeKey$))
     .publish();
@@ -192,6 +192,7 @@ export default function recordVideosController(
       song,
       loading,
       supported: "MediaRecorder" in window,
+      collaborateMode: props.location.pathname.endsWith("/collab"),
       songTitle: song ? song.title : null,
       audioSources,
       authorName,

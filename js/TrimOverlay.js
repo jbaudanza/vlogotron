@@ -252,7 +252,8 @@ const AudioPlaybackPositionLine = styled.div`
   background-color: ${colors.darkSkyBlue}
 `;
 
-class AudioPlaybackPositionMarker extends React.Component<{trimStart: number, trimEnd: number}> {
+class AudioPlaybackPositionMarker
+  extends React.Component<{ trimStart: number, trimEnd: number }> {
   markerEl: ?HTMLElement;
   labelEl: ?HTMLElement;
 

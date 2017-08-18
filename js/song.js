@@ -5445,7 +5445,7 @@ export const songs: SongMap = {
   "the-entertainer": {
     title: "The Entertainer",
     notes: theEntertainer,
-    bpm: 120,
+    bpm: 160,
     premium: true
   },
   "john-jacob": {

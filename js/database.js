@@ -316,6 +316,16 @@ export function displayNameForUid(
   return fromFirebaseRef(ref, "value").map(snapshot => snapshot.val());
 }
 
+export function photoUrlForUid(
+  database: FirebaseDatabase,
+  uid: string
+): Observable<string> {
+  const ref = database.ref("users").child(uid);
+  return fromFirebaseRef(ref, "value").map(
+    snapshot => snapshot.val().providerData[0].photoURL
+  );
+}
+
 export function waitForTranscode(
   database: FirebaseDatabase,
   videoClipId: string
