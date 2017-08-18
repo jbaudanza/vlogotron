@@ -15,5 +15,6 @@ export default {
   red: "#bc1838",
   dark: "#1f233d",
   darkTwo: "#212642",
-  darkThree: "#262b4a"
+  darkThree: "#262b4a",
+  blueGrey: "#a0a7c4"
 };
