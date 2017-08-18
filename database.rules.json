@@ -6,6 +6,9 @@
         ".write": "$uid === auth.uid",
         "displayName": {
           ".read": true
+        },
+        "photoURL": {
+          ".read": true
         }
       }
     },

@@ -10,7 +10,7 @@ import styled from "styled-components";
 
 type Props = {
   className?: string,
-  photoUrl?: string,
+  photoURL?: string,
   children: React.Node
 };
 
@@ -19,8 +19,8 @@ class NotificationPopup extends React.Component<Props> {
     const name = "Jonathan";
     let avatarEl;
 
-    if (this.props.photoUrl) {
-      avatarEl = <img height={50} src={this.props.photoUrl} />;
+    if (this.props.photoURL) {
+      avatarEl = <img height={50} src={this.props.photoURL} />;
     } else {
       avatarEl = robotSvg;
     }

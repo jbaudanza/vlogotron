@@ -11,7 +11,7 @@ import { playbackControllerHelper } from "./playbackController";
 
 import {
   displayNameForUid,
-  photoUrlForUid,
+  photoURLForUid,
   updateSongBoard,
   createVideoClip
 } from "./database";
@@ -167,8 +167,8 @@ export default function recordVideosController(
     else return nonNullUser$.map(u => u.displayName);
   });
 
-  const authorPhotoUrl$ = mediaStore.songBoard$.switchMap(songBoard => {
-    return photoUrlForUid(firebase.database(), songBoard.uid);
+  const authorPhotoURL$ = mediaStore.songBoard$.switchMap(songBoard => {
+    return photoURLForUid(firebase.database(), songBoard.uid);
   });
 
   // $FlowFixMe - We don't have type definitions for combineLatest with this many arguments
@@ -180,7 +180,7 @@ export default function recordVideosController(
     mediaStore.loading$,
     mediaStore.audioSources$,
     authorName$,
-    authorPhotoUrl$,
+    authorPhotoURL$,
     songBoardId$,
     props$,
     (
@@ -191,7 +191,7 @@ export default function recordVideosController(
       loading,
       audioSources,
       authorName,
-      authorPhotoUrl,
+      authorPhotoURL,
       songBoardId,
       props
     ) => ({
@@ -205,7 +205,7 @@ export default function recordVideosController(
       songTitle: song ? song.title : null,
       audioSources,
       authorName,
-      authorPhotoUrl,
+      authorPhotoURL,
       location: props.location,
       origin: props.origin,
       onNavigate: props.onNavigate,

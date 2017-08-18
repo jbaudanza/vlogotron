@@ -51,7 +51,7 @@ type Props = {
   premiumAccountStatus: boolean,
   onDismissError: Function,
   audioSources: { [string]: Object },
-  authorPhotoUrl: string,
+  authorPhotoURL: string,
   origin: string,
   songBoardId: string
 };
@@ -229,9 +229,9 @@ export default class RecordVideosView extends React.Component<Props> {
                   pitchCorrection={this.props.pitchCorrection}
                   ref={this.bindVideoGrid}
                 />
-                <NewSongBoardNotification
+                <CollabIntroNotification
                   authorName={this.props.authorName}
-                  photoUrl={this.props.authorPhotoUrl}
+                  photoURL={this.props.authorPhotoURL}
                 />
               </div>
             : <RecordingNotSupported />}
@@ -271,12 +271,12 @@ function CameraIcon(props) {
 }
 
 function CollabIntroNotification(
-  props: { photoUrl: string, authorName: string }
+  props: { photoURL: string, authorName: string }
 ) {
   return (
-    <NotificationPopup photoUrl={this.props.authorPhotoUrl}>
+    <NotificationPopup photoURL={props.photoURL}>
       <p>
-        {this.props.authorName}
+        {props.authorName}
         {" "}
         needs your help finishing this song. Pick a square
         with a robot in it and click the

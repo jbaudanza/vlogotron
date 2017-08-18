@@ -12,6 +12,7 @@ import Spinner from "./Spinner";
 import createControlledComponent from "./createControlledComponent";
 
 import { bindAll } from "lodash";
+import type { FirebaseUser } from "./database";
 
 function WorkingOverlay(props) {
   return (
@@ -21,19 +22,20 @@ function WorkingOverlay(props) {
   );
 }
 
+type Props = {
+  onClose: string,
+  premiumAccountStatus: boolean,
+  onSelectSong: string => void,
+  currentUser: FirebaseUser
+};
+
+type State = {
+  purchaseSongId: ?string,
+  working: boolean
+};
+
 export default class CreateNewSongOverlay
-  extends React.Component<
-    {
-      onClose: string,
-      premiumAccountStatus: boolean,
-      onSelectSong: string => void,
-      currentUser: Object
-    },
-    {
-      purchaseSongId: ?string,
-      working: boolean
-    }
-  > {
+  extends React.Component<Props, State> {
   constructor() {
     super();
     this.state = { purchaseSongId: null, working: false };

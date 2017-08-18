@@ -47,6 +47,7 @@ firebase.initializeApp(config);
 
 import { subscribeToSongBoardId } from "./mediaLoading";
 import type { Media } from "./mediaLoading";
+import type { FirebaseUser } from "./database";
 
 import {
   navigate,
@@ -147,7 +148,7 @@ function songBoardIdForRoute(route: Route): ?string {
 type State = {
   origin: string,
   locale: string,
-  currentUser?: Object,
+  currentUser?: FirebaseUser,
   location: Location,
   mySongs?: Object,
   premiumAccountStatus: boolean,

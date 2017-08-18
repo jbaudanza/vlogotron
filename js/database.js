@@ -279,11 +279,29 @@ export function deleteSong(database: FirebaseDatabase, song: Object) {
   ).then(() => song.songId);
 }
 
-export function updateUser(database: FirebaseDatabase, user: Object) {
+type FirebaseUserInfo = {
+  photoURL: ?string,
+  email: ?string,
+  displayName: ?string,
+  uid: string,
+  providerId: string
+};
+
+export type FirebaseUser = {
+  photoURL: ?string,
+  email: ?string,
+  displayName: ?string,
+  uid: string,
+  providerData: Array<FirebaseUserInfo>,
+  getToken(): Promise<string>
+};
+
+export function updateUser(database: FirebaseDatabase, user: FirebaseUser) {
   const ref = database.ref("users").child(user.uid);
   ref.child("displayName").set(user.displayName);
   ref.child("email").set(user.email);
   ref.child("providerData").set(user.providerData);
+  ref.child("photoURL").set(user.photoURL);
   ref.child("lastSeenAt").set(firebase.database.ServerValue.TIMESTAMP);
 }
 
@@ -316,21 +334,12 @@ export function displayNameForUid(
   return fromFirebaseRef(ref, "value").map(snapshot => snapshot.val());
 }
 
-export function photoUrlForUid(
+export function photoURLForUid(
   database: FirebaseDatabase,
   uid: string
 ): Observable<?string> {
-  const ref = database.ref("users").child(uid);
-  return fromFirebaseRef(ref, "value").map(snapshot => {
-    if (snapshot.exists()) {
-      const val = snapshot.val();
-      if (val.providerData.length > 0) {
-        return val.providerData[0].photoURL;
-      }
-    } else {
-      return null;
-    }
-  });
+  const ref = database.ref("users").child(uid).child("photoURL");
+  return fromFirebaseRef(ref, "value").map(snapshot => snapshot.val());
 }
 
 export function waitForTranscode(
