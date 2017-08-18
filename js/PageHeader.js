@@ -1,6 +1,6 @@
 /* @flow */
 
-import React from "react";
+import * as React from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import colors from "./colors";
@@ -69,7 +69,7 @@ const PlaybackPositionWrapper = styled(VerticallyCenteredText)`
   span { margin: 0 5px; }
 `;
 
-export default class PageHeader extends React.Component {
+export default class PageHeader extends React.Component<$FlowFixMeProps> {
   render() {
     return (
       <PageHeaderWrapper className={this.props.className}>

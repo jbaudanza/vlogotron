@@ -1,7 +1,7 @@
 /* @flow */
 
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 import styled from "styled-components";
 
 import { Observable } from "rxjs/Observable";
@@ -78,7 +78,14 @@ const StyledUL = styled.ul`
   list-style-type: none;
 `;
 
-class LineItem extends React.Component {
+class LineItem extends React.Component<{
+  songId: string,
+  song: Song,
+  premiumAccountStatus: boolean,
+  price: number,
+  isPlaying: boolean,
+  onSelectSong: string => void
+}> {
   constructor(props) {
     super();
     this.onSelectSong = props.onSelectSong.bind(null, props.songId);
@@ -86,15 +93,6 @@ class LineItem extends React.Component {
     this.onClickPause = props.onClickPause.bind(null, props.songId);
     this.onRequestPurchase = props.onRequestPurchase.bind(null, props.songId);
   }
-
-  props: {
-    songId: string,
-    song: Song,
-    premiumAccountStatus: boolean,
-    price: number,
-    isPlaying: boolean,
-    onSelectSong: string => void
-  };
 
   onSelectSong: Function;
   onRequestPurchase: Function;
@@ -146,7 +144,7 @@ LineItem.contextTypes = {
   locale: PropTypes.string.isRequired
 };
 
-class ChooseSongOverlay extends React.Component {
+class ChooseSongOverlay extends React.Component<$FlowFixMeProps> {
   render() {
     return (
       <Overlay className="choose-song-overlay" onClose={this.props.onClose}>

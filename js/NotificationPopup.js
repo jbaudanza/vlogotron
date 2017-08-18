@@ -1,6 +1,6 @@
 /* @flow */
 
-import React from "react";
+import * as React from "react";
 
 import colors from "./colors";
 
@@ -8,7 +8,7 @@ import Link from "./Link";
 
 import styled from "styled-components";
 
-class NotificationPopup extends React.Component {
+class NotificationPopup extends React.Component<$FlowFixMeProps> {
   render() {
     const name = "Jonathan";
     const avatar = (

@@ -1,10 +1,10 @@
 /* @flow */
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 import { omit } from "lodash";
 import classNames from "classnames";
 
-class Link extends React.Component {
+class Link extends React.Component<$FlowFixMeProps> {
   onClick(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();

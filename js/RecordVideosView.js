@@ -1,6 +1,6 @@
 /* @flow */
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 
 import { bindAll, bindKey, forEach, intersection, isEmpty } from "lodash";
 
@@ -23,7 +23,7 @@ import type { SongBoardEvent } from "./database";
 import type { Subscription } from "rxjs/Subscription";
 import type { SongId } from "./song";
 
-export default class RecordVideosView extends React.Component {
+export default class RecordVideosView extends React.Component<$FlowFixMeProps> {
   constructor() {
     super();
     bindAll(this, "bindVideoGrid", "onTrim", "onSelectSong");

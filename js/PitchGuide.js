@@ -1,6 +1,6 @@
 /* @flow */
 
-import React from "react";
+import * as React from "react";
 import styled from "styled-components";
 import { times } from "lodash";
 
@@ -56,7 +56,7 @@ const Label = styled.span`
   }
 `;
 
-export default class PitchGuide extends React.Component {
+export default class PitchGuide extends React.Component<$FlowFixMeProps> {
   render() {
     const width = 136;
     const dotCount = 18;

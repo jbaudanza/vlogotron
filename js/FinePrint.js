@@ -1,9 +1,9 @@
 /* @flow */
 
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 
-export default class FinePrint extends React.Component {
+export default class FinePrint extends React.Component<{}> {
   render() {
     return (
       <div className="fine-print">

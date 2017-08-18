@@ -1,12 +1,12 @@
 /* @flow */
-import React from "react";
+import * as React from "react";
 
 export default function createAnimatedComponent(
   InnerComponent: any,
   shouldAnimate: Object => boolean,
   animationFrame: (Object, any) => void
 ) {
-  return class AnimatedComponent extends React.Component {
+  return class AnimatedComponent extends React.Component<Object> {
     frameId: number;
     innerEl: Element;
 

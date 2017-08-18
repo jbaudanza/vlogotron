@@ -4,7 +4,7 @@ import "./rxjs-additions";
 
 import PropTypes from "prop-types";
 
-import React from "react";
+import * as React from "react";
 import ReactDOM from "react-dom";
 import { Observable } from "rxjs/Observable";
 import { Subscription } from "rxjs/Subscription";
@@ -154,7 +154,8 @@ type State = {
   component: Function
 };
 
-class App extends React.Component<{}, State> {
+class App extends React.Component<State> {
+  static defaultProps: {};
   globalSubscription: Subscription;
   mediaSubscription: Subscription;
   media: Media;

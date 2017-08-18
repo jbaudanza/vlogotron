@@ -1,7 +1,7 @@
 /* @flow */
 
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 
 import type { Subscription } from "rxjs/Subscription";
 import { bindAll, bindKey, isEmpty } from "lodash";
@@ -12,7 +12,7 @@ import PlaybackHeader from "./PlaybackHeader";
 import VideoGrid from "./VideoGrid";
 import SubHeader from "./SubHeader";
 
-export default class PlaybackView extends React.Component {
+export default class PlaybackView extends React.Component<$FlowFixMeProps> {
   constructor() {
     super();
     bindAll(this, "bindVideoGrid");

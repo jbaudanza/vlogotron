@@ -1,7 +1,7 @@
 /* @flow */
 
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 import styled from "styled-components";
 
 import colors from "./colors";
@@ -32,7 +32,7 @@ const ErrorMessage = styled.div`
   font-size: 24px;
 `;
 
-class ErrorView extends React.Component {
+class ErrorView extends React.Component<{}> {
   render() {
     return (
       <Wrapper className="page-vertical-wrapper">

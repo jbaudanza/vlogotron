@@ -1,7 +1,7 @@
 /* @flow */
 
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 import styled from "styled-components";
 
 import { bindAll } from "lodash";
@@ -9,18 +9,16 @@ import { fontFamily } from "./fonts";
 
 import Link from "./Link";
 
-export default class EditableTitle extends React.Component {
-  state: {
-    newValue: ?string
-  };
-
+export default class EditableTitle extends React.Component<$FlowFixMeProps, {
+  newValue: ?string
+}> {
   constructor() {
     super();
     this.state = { newValue: null };
     bindAll(this, "onChange", "startEditing", "onKeyDown", "onBlur");
   }
 
-  onChange(event: SyntheticEvent) {
+  onChange(event: SyntheticEvent<>) {
     const el = event.target;
     if (el instanceof HTMLInputElement) {
       this.setState({ newValue: el.value });
@@ -35,7 +33,7 @@ export default class EditableTitle extends React.Component {
     if (inputEl) inputEl.focus();
   }
 
-  onKeyDown(event: SyntheticKeyboardEvent) {
+  onKeyDown(event: SyntheticKeyboardEvent<>) {
     if (event.keyCode === 27) {
       // escape
       event.preventDefault();
@@ -54,7 +52,7 @@ export default class EditableTitle extends React.Component {
     }
   }
 
-  onBlur(event: SyntheticEvent) {
+  onBlur(event: SyntheticEvent<>) {
     this.setState({ newValue: null });
   }
 

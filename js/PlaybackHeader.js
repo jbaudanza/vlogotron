@@ -1,7 +1,7 @@
 /* @flow */
 
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 import PageHeaderAction from "./PageHeaderAction";
 
 import PageHeader from "./PageHeader";
@@ -21,11 +21,9 @@ const FacebookIcon = generateShareIcon("facebook");
 const TwitterIcon = generateShareIcon("twitter");
 const GooglePlusIcon = generateShareIcon("google");
 
-export default class PlaybackHeader extends React.Component {
-  state: {
-    shareButtonsVisible: boolean
-  };
-
+export default class PlaybackHeader extends React.Component<$FlowFixMeProps, {
+  shareButtonsVisible: boolean
+}> {
   constructor() {
     super();
     this.state = { shareButtonsVisible: false };

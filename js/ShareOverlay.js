@@ -1,5 +1,5 @@
 /* @flow */
-import React from "react";
+import * as React from "react";
 import styled from "styled-components";
 
 import Overlay from "./Overlay";
@@ -29,7 +29,8 @@ type Props = {
   origin: string
 };
 
-class ShareOverlay extends React.Component<Props> {
+class ShareOverlay extends React.Component<> {
+  static defaultProps: Props;
   render() {
     return (
       <Overlay onClose={this.props.onClose} className={this.props.className}>

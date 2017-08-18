@@ -1,5 +1,5 @@
 /* @flow */
-import React from "react";
+import * as React from "react";
 
 import styled from "styled-components";
 import colors from "./colors";
@@ -45,7 +45,10 @@ function onClickInput(event) {
   event.target.select();
 }
 
-export default class TextWithCopyButton extends React.Component {
+export default class TextWithCopyButton extends React.Component<$FlowFixMeProps, {
+  supported: boolean,
+  recentlyCopied: boolean
+}> {
   inputEl: HTMLInputElement;
   timeoutId: number;
   inputRef: Function;
@@ -54,11 +57,6 @@ export default class TextWithCopyButton extends React.Component {
     super();
     this.inputRef = this.inputRef.bind(this);
   }
-
-  state: {
-    supported: boolean,
-    recentlyCopied: boolean
-  };
 
   componentWillMount() {
     const supported =

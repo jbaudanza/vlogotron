@@ -1,7 +1,7 @@
 /* @flow */
 
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 
 import ChooseSongOverlay from "./ChooseSongOverlay";
 import LoginOverlay from "./LoginOverlay";
@@ -21,19 +21,15 @@ function WorkingOverlay(props) {
   );
 }
 
-export default class CreateNewSongOverlay extends React.Component {
-  state: {
-    purchaseSongId: ?string,
-    working: boolean
-  };
-
-  props: {
-    onClose: string,
-    premiumAccountStatus: boolean,
-    onSelectSong: string => void,
-    currentUser: Object
-  };
-
+export default class CreateNewSongOverlay extends React.Component<{
+  onClose: string,
+  premiumAccountStatus: boolean,
+  onSelectSong: string => void,
+  currentUser: Object
+}, {
+  purchaseSongId: ?string,
+  working: boolean
+}> {
   constructor() {
     super();
     this.state = { purchaseSongId: null, working: false };

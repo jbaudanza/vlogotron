@@ -1,12 +1,12 @@
 /* @flow */
 
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 
 import { bindAll } from "lodash";
 import Link from "./Link";
 
-export default class PlayButton extends React.Component {
+export default class PlayButton extends React.Component<$FlowFixMeProps> {
   static defaultProps: {
     enabled: boolean
   };

@@ -1,5 +1,5 @@
 /* @flow */
-import React from "react";
+import * as React from "react";
 
 import { Observable } from "rxjs/Observable";
 import createHistory from "history/createBrowserHistory";

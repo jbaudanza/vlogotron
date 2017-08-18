@@ -1,7 +1,7 @@
 /* @flow */
 
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 
 import Overlay from "./Overlay";
 import ActionLink from "./ActionLink";
@@ -74,19 +74,17 @@ const ErrorMessage = styled.p`
   color: ${colors.red};
 `;
 
-export class PurchaseOverlay extends React.Component {
-  props: {
-    errorMessage: ?string,
-    complete: boolean,
-    songId: string,
-    working: boolean,
-    onChange: StripeCardChangeEvent => void,
-    onPurchase: StripeCard => void,
-    onCancel: Function,
-    onClose: Function,
-    price: number
-  };
-
+export class PurchaseOverlay extends React.Component<{
+  errorMessage: ?string,
+  complete: boolean,
+  songId: string,
+  working: boolean,
+  onChange: StripeCardChangeEvent => void,
+  onPurchase: StripeCard => void,
+  onCancel: Function,
+  onClose: Function,
+  price: number
+}> {
   card: StripeCard;
 
   constructor() {

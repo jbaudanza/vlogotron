@@ -1,15 +1,14 @@
 /* @flow */
-import React from "react";
+import * as React from "react";
 
-export default class SynchronizedVideo extends React.Component {
-  props: {
-    videoClip: Object,
-    playbackStartedAt: ?number,
-    width: ?number,
-    height: ?number,
-    trimStart: number,
-    audioContext: AudioContext
-  };
+export default class SynchronizedVideo extends React.Component<{
+  videoClip: Object,
+  playbackStartedAt: ?number,
+  width: ?number,
+  height: ?number,
+  trimStart: number,
+  audioContext: AudioContext
+}> {
   static defaultProps: Object;
   isPlaying: boolean;
   videoEl: HTMLMediaElement;

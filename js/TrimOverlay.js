@@ -1,6 +1,6 @@
 /* @flow */
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 import { Observable } from "rxjs/Observable";
 import styled from "styled-components";
 
@@ -89,7 +89,8 @@ type VideoPlaybackPositionProps = {
 };
 
 class VideoPlaybackPosition
-  extends React.Component<VideoPlaybackPositionProps> {
+  extends React.Component<> {
+  static defaultProps: VideoPlaybackPositionProps;
   leftBarEl: ?HTMLElement;
   rightBarEl: ?HTMLElement;
   svgCircleEl: ?HTMLElement;
@@ -252,7 +253,7 @@ const AudioPlaybackPositionLine = styled.div`
   background-color: ${colors.darkSkyBlue}
 `;
 
-class AudioPlaybackPositionMarker extends React.Component {
+class AudioPlaybackPositionMarker extends React.Component<$FlowFixMeProps> {
   markerEl: HTMLElement;
   labelEl: HTMLElement;
 
@@ -382,7 +383,8 @@ type Props = {
   onFinish: Function
 };
 
-class TrimOverlay extends React.Component<Props> {
+class TrimOverlay extends React.Component<> {
+  static defaultProps: Props;
   render() {
     const trimmedDuration =
       this.props.audioBuffer.duration *

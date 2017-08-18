@@ -1,7 +1,7 @@
 /* @flow */
 
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 
 import { Observable } from "rxjs/Observable";
 import { Subject } from "rxjs/Subject";
@@ -18,7 +18,7 @@ type TouchGesture = {
   movements$: Observable<?Element>
 };
 
-export default class TouchableArea extends React.Component {
+export default class TouchableArea extends React.Component<$FlowFixMeProps> {
   touches$$: Subject<TouchGesture>;
   touchCancel$: Observable<TouchEvent>;
   touchMove$: Observable<TouchEvent>;
