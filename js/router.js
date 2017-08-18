@@ -99,6 +99,7 @@ export function routeToViewComponent(
         LoadingView
       );
     case "edit-song-board":
+    case "collab-song-board":
     case "record-videos":
       return createControlledComponent(
         migrateController(recordVideosController),

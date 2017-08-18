@@ -144,17 +144,17 @@ function songBoardIdForRoute(route: Route): ?string {
   }
 }
 
-class App extends React.Component {
-  state: {
-    origin: string,
-    locale: string,
-    currentUser?: Object,
-    location: Location,
-    mySongs?: Object,
-    premiumAccountStatus: boolean,
-    component: Function
-  };
+type State = {
+  origin: string,
+  locale: string,
+  currentUser?: Object,
+  location: Location,
+  mySongs?: Object,
+  premiumAccountStatus: boolean,
+  component: Function
+};
 
+class App extends React.Component<{}, State> {
   globalSubscription: Subscription;
   mediaSubscription: Subscription;
   media: Media;
@@ -306,7 +306,7 @@ class App extends React.Component {
 
     promise.then(
       key => {
-        this.props.onNavigate("/song-boards/" + key);
+        this.onNavigate("/song-boards/" + key);
       },
       err => {
         console.error(err);
@@ -370,7 +370,7 @@ class App extends React.Component {
 
     const view = React.createElement(this.state.component, {
       location: this.state.location,
-      shareUrl: this.state.origin + this.state.location.pathname,
+      origin: this.state.origin,
       onNavigate: this.onNavigate,
       onLogin: this.onLogin,
       premiumAccountStatus: this.state.premiumAccountStatus

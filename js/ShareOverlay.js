@@ -1,3 +1,4 @@
+/* @flow */
 import React from "react";
 import styled from "styled-components";
 
@@ -22,7 +23,13 @@ const Header = styled.div`
   }
 `;
 
-class ShareOverlay extends React.Component {
+type Props = {
+  onClose: string,
+  className: string,
+  origin: string
+};
+
+class ShareOverlay extends React.Component<Props> {
   render() {
     return (
       <Overlay onClose={this.props.onClose} className={this.props.className}>

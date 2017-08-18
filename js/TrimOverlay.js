@@ -84,10 +84,15 @@ function percentString(number) {
   return number * 100 + "%";
 }
 
-class VideoPlaybackPosition extends React.Component {
-  leftBarEl: HTMLElement;
-  rightBarEl: HTMLElement;
-  svgCircleEl: HTMLElement;
+type VideoPlaybackPositionProps = {
+  playbackStartedAt: ?number
+};
+
+class VideoPlaybackPosition
+  extends React.Component<VideoPlaybackPositionProps> {
+  leftBarEl: ?HTMLElement;
+  rightBarEl: ?HTMLElement;
+  svgCircleEl: ?HTMLElement;
 
   animationFrame(progress) {
     if (this.leftBarEl) {
@@ -362,7 +367,22 @@ const ActionWrapper = styled.div`
   text-align: center;
 `;
 
-class TrimOverlay extends React.Component {
+type Props = {
+  onClose: string,
+  videoClip: Object,
+  audioBuffer: Object,
+  trimStart: number,
+  trimEnd: number,
+  playbackStartedAt: ?number,
+  className: string,
+  onPlay: Function,
+  onPause: Function,
+  onChangeEnd: Function,
+  onChangeStart: Function,
+  onFinish: Function
+};
+
+class TrimOverlay extends React.Component<Props> {
   render() {
     const trimmedDuration =
       this.props.audioBuffer.duration *
@@ -437,12 +457,6 @@ class TrimOverlay extends React.Component {
     );
   }
 }
-
-TrimOverlay.propTypes = {
-  onClose: PropTypes.string.isRequired,
-  videoClip: PropTypes.object.isRequired,
-  audioBuffer: PropTypes.object.isRequired
-};
 
 const StyledTrimOverlay = styled(TrimOverlay)`
   .content {

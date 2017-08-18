@@ -38,6 +38,7 @@ export default class PlaybackHeader extends React.Component {
 
   render() {
     const title = "vlogotron: remix my face!";
+    const shareUrl = this.props.origin + this.props.location.pathname;
 
     return (
       <PageHeader
@@ -67,7 +68,7 @@ export default class PlaybackHeader extends React.Component {
           >
             <div className="share-buttons">
               <FacebookShareButton
-                url={this.props.shareUrl}
+                url={shareUrl}
                 title={title}
                 className="Share__some-network__share-button"
               >
@@ -75,14 +76,14 @@ export default class PlaybackHeader extends React.Component {
               </FacebookShareButton>
 
               <TwitterShareButton
-                url={this.props.shareUrl}
+                url={shareUrl}
                 title={title}
                 className="Share__some-network__share-button"
               >
                 <TwitterIcon size={25} round />
               </TwitterShareButton>
 
-              <GooglePlusShareButton url={this.props.shareUrl}>
+              <GooglePlusShareButton url={shareUrl}>
                 <GooglePlusIcon size={25} round />
               </GooglePlusShareButton>
             </div>
