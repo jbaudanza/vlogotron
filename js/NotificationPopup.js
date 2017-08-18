@@ -9,25 +9,25 @@ import Link from "./Link";
 import styled from "styled-components";
 
 type Props = {
-  className: string
+  className?: string,
+  photoUrl?: string
 };
 
 class NotificationPopup extends React.Component<Props> {
   render() {
     const name = "Jonathan";
-    const avatar = (
-      <img
-        width={50}
-        height={50}
-        src="https://lh5.googleusercontent.com/-ZOYEtSkY-kg/AAAAAAAAAAI/AAAAAAAABHg/eKUqXXkA_yk/photo.jpg"
-      />
-    );
-    //const avatar = robotSvg;
+    let avatarEl;
+
+    if (this.props.photoUrl) {
+      avatarEl = <img height={50} src={this.props.photoUrl} />;
+    } else {
+      avatarEl = robotSvg;
+    }
 
     return (
       <div className={this.props.className}>
         <AvatarWrapper>
-          {avatar}
+          {avatarEl}
         </AvatarWrapper>
         <p>
           {name} needs your help finishing this song. Pick a square

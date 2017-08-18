@@ -49,7 +49,8 @@ type Props = {
   isPlaying: boolean,
   premiumAccountStatus: boolean,
   onDismissError: Function,
-  audioSources: { [string]: Object }
+  audioSources: { [string]: Object },
+  authorPhotoUrl: string
 };
 
 export default class RecordVideosView extends React.Component<Props> {
@@ -219,7 +220,7 @@ export default class RecordVideosView extends React.Component<Props> {
                   pitchCorrection={this.props.pitchCorrection}
                   ref={this.bindVideoGrid}
                 />
-                <NotificationPopup />
+                <NotificationPopup photoUrl={this.props.authorPhotoUrl} />
               </div>
             : <RecordingNotSupported />}
 

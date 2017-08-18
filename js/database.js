@@ -319,11 +319,18 @@ export function displayNameForUid(
 export function photoUrlForUid(
   database: FirebaseDatabase,
   uid: string
-): Observable<string> {
+): Observable<?string> {
   const ref = database.ref("users").child(uid);
-  return fromFirebaseRef(ref, "value").map(
-    snapshot => snapshot.val().providerData[0].photoURL
-  );
+  return fromFirebaseRef(ref, "value").map(snapshot => {
+    if (snapshot.exists()) {
+      const val = snapshot.val();
+      if (val.providerData.length > 0) {
+        return val.providerData[0].photoURL;
+      }
+    } else {
+      return null;
+    }
+  });
 }
 
 export function waitForTranscode(
