@@ -154,8 +154,7 @@ type State = {
   component: Function
 };
 
-class App extends React.Component<State> {
-  static defaultProps: {};
+class App extends React.Component<{}, State> {
   globalSubscription: Subscription;
   mediaSubscription: Subscription;
   media: Media;

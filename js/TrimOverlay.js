@@ -89,8 +89,7 @@ type VideoPlaybackPositionProps = {
 };
 
 class VideoPlaybackPosition
-  extends React.Component<> {
-  static defaultProps: VideoPlaybackPositionProps;
+  extends React.Component<VideoPlaybackPositionProps> {
   leftBarEl: ?HTMLElement;
   rightBarEl: ?HTMLElement;
   svgCircleEl: ?HTMLElement;
@@ -253,9 +252,9 @@ const AudioPlaybackPositionLine = styled.div`
   background-color: ${colors.darkSkyBlue}
 `;
 
-class AudioPlaybackPositionMarker extends React.Component<$FlowFixMeProps> {
-  markerEl: HTMLElement;
-  labelEl: HTMLElement;
+class AudioPlaybackPositionMarker extends React.Component<{trimStart: number, trimEnd: number}> {
+  markerEl: ?HTMLElement;
+  labelEl: ?HTMLElement;
 
   animationFrame(progress, elapsed) {
     if (this.markerEl) {
@@ -267,8 +266,9 @@ class AudioPlaybackPositionMarker extends React.Component<$FlowFixMeProps> {
       });
     }
 
+    const textContent = formatSeconds(elapsed);
     if (this.labelEl) {
-      this.labelEl.textContent = formatSeconds(elapsed);
+      this.labelEl.textContent = textContent;
     }
   }
 
@@ -383,8 +383,7 @@ type Props = {
   onFinish: Function
 };
 
-class TrimOverlay extends React.Component<> {
-  static defaultProps: Props;
+class TrimOverlay extends React.Component<Props> {
   render() {
     const trimmedDuration =
       this.props.audioBuffer.duration *

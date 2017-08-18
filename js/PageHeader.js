@@ -69,7 +69,21 @@ const PlaybackPositionWrapper = styled(VerticallyCenteredText)`
   span { margin: 0 5px; }
 `;
 
-export default class PageHeader extends React.Component<$FlowFixMeProps> {
+type Props = {
+  className?: string,
+  songTitle: string,
+  authorName: string,
+  playbackPositionInSeconds: number,
+  songLength: number,
+  loading: boolean,
+  onClickPlay: Function,
+  onClickPause: Function,
+  isPlaying: boolean,
+  children: React.Node,
+  onChangeTitle?: Function
+};
+
+export default class PageHeader extends React.Component<Props> {
   render() {
     return (
       <PageHeaderWrapper className={this.props.className}>
@@ -115,15 +129,4 @@ export default class PageHeader extends React.Component<$FlowFixMeProps> {
 
 PageHeader.contextTypes = {
   messages: PropTypes.object.isRequired
-};
-
-PageHeader.propTypes = {
-  songTitle: PropTypes.string.isRequired,
-  authorName: PropTypes.string.isRequired,
-  playbackPositionInSeconds: PropTypes.number.isRequired,
-  songLength: PropTypes.number.isRequired,
-  loading: PropTypes.bool.isRequired,
-  onClickPlay: PropTypes.func.isRequired,
-  onClickPause: PropTypes.func.isRequired,
-  isPlaying: PropTypes.bool.isRequired
 };

@@ -3,6 +3,7 @@
 import PropTypes from "prop-types";
 import * as React from "react";
 
+import type { Observable } from "rxjs/Observable";
 import type { Subscription } from "rxjs/Subscription";
 import { bindAll, bindKey, isEmpty } from "lodash";
 import classNames from "classnames";
@@ -12,7 +13,24 @@ import PlaybackHeader from "./PlaybackHeader";
 import VideoGrid from "./VideoGrid";
 import SubHeader from "./SubHeader";
 
-export default class PlaybackView extends React.Component<$FlowFixMeProps> {
+type Props = {
+  actions: Object,
+  loading: Object,
+  videoClips: {[string]: Object},
+  playCommands$: Observable<Object>,
+  isPlaying: boolean,
+  songLength: number,
+  origin: string,
+  location: Location,
+  songTitle: string,
+  songId: string,
+  onPlay: Function,
+  onPause: Function,
+  authorName: string,
+  playbackPositionInSeconds: number
+};
+
+export default class PlaybackView extends React.Component<Props> {
   constructor() {
     super();
     bindAll(this, "bindVideoGrid");
@@ -32,6 +50,7 @@ export default class PlaybackView extends React.Component<$FlowFixMeProps> {
 
   render() {
     const loadingAsBool = !isEmpty(this.props.loading);
+    const shareUrl = this.props.origin + this.props.location.pathname;
 
     const className = classNames("page-vertical-wrapper", {
       "loading-finished": !loadingAsBool
@@ -55,7 +74,7 @@ export default class PlaybackView extends React.Component<$FlowFixMeProps> {
           loading={loadingAsBool}
           songLength={this.props.songLength}
           authorName={this.props.authorName}
-          shareUrl={this.props.shareUrl}
+          shareUrl={shareUrl}
           playbackPositionInSeconds={this.props.playbackPositionInSeconds}
           onClickPlay={this.props.onPlay}
           onClickPause={this.props.onPause}
@@ -85,16 +104,6 @@ export default class PlaybackView extends React.Component<$FlowFixMeProps> {
     );
   }
 }
-
-PlaybackView.propTypes = {
-  loading: PropTypes.object.isRequired,
-  videoClips: PropTypes.object.isRequired,
-  playCommands$: PropTypes.object.isRequired,
-  isPlaying: PropTypes.bool.isRequired,
-  songLength: PropTypes.number.isRequired,
-  shareUrl: PropTypes.string.isRequired,
-  songTitle: PropTypes.string.isRequired
-};
 
 PlaybackView.contextTypes = {
   messages: PropTypes.object.isRequired

@@ -21,9 +21,24 @@ const FacebookIcon = generateShareIcon("facebook");
 const TwitterIcon = generateShareIcon("twitter");
 const GooglePlusIcon = generateShareIcon("google");
 
-export default class PlaybackHeader extends React.Component<$FlowFixMeProps, {
+type Props = {
+  shareUrl: string,
+  loading: boolean,
+  onClickPlay: Function,
+  onClickPause: Function,
+  remixAction: Object,
+  isPlaying: boolean,
+  songTitle: string,
+  authorName: string,
+  songLength: number,
+  playbackPositionInSeconds: number
+};
+
+type State = {
   shareButtonsVisible: boolean
-}> {
+};
+
+export default class PlaybackHeader extends React.Component<Props, State> {
   constructor() {
     super();
     this.state = { shareButtonsVisible: false };
@@ -36,7 +51,6 @@ export default class PlaybackHeader extends React.Component<$FlowFixMeProps, {
 
   render() {
     const title = "vlogotron: remix my face!";
-    const shareUrl = this.props.origin + this.props.location.pathname;
 
     return (
       <PageHeader
@@ -66,7 +80,7 @@ export default class PlaybackHeader extends React.Component<$FlowFixMeProps, {
           >
             <div className="share-buttons">
               <FacebookShareButton
-                url={shareUrl}
+                url={this.props.shareUrl}
                 title={title}
                 className="Share__some-network__share-button"
               >
@@ -74,14 +88,14 @@ export default class PlaybackHeader extends React.Component<$FlowFixMeProps, {
               </FacebookShareButton>
 
               <TwitterShareButton
-                url={shareUrl}
+                url={this.props.shareUrl}
                 title={title}
                 className="Share__some-network__share-button"
               >
                 <TwitterIcon size={25} round />
               </TwitterShareButton>
 
-              <GooglePlusShareButton url={shareUrl}>
+              <GooglePlusShareButton url={this.props.shareUrl}>
                 <GooglePlusIcon size={25} round />
               </GooglePlusShareButton>
             </div>

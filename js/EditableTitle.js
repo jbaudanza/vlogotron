@@ -9,9 +9,17 @@ import { fontFamily } from "./fonts";
 
 import Link from "./Link";
 
-export default class EditableTitle extends React.Component<$FlowFixMeProps, {
+type Props = {
+  onChange?: Function,
+  value: string,
+  className?: string
+};
+
+type State = {
   newValue: ?string
-}> {
+};
+
+export default class EditableTitle extends React.Component<Props, State> {
   constructor() {
     super();
     this.state = { newValue: null };
@@ -46,7 +54,7 @@ export default class EditableTitle extends React.Component<$FlowFixMeProps, {
       const newValue = this.state.newValue;
       this.setState({ newValue: null });
 
-      if (!isBlank(this.state.newValue)) {
+      if (!isBlank(this.state.newValue) && this.props.onChange) {
         this.props.onChange(this.state.newValue);
       }
     }
@@ -94,11 +102,6 @@ export default class EditableTitle extends React.Component<$FlowFixMeProps, {
     }
   }
 }
-
-EditableTitle.propTypes = {
-  value: PropTypes.string.isRequired,
-  onChange: PropTypes.func
-};
 
 function isBlank(string) {
   return string == null || string.trim() === "";

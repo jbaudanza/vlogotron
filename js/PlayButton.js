@@ -6,7 +6,16 @@ import * as React from "react";
 import { bindAll } from "lodash";
 import Link from "./Link";
 
-export default class PlayButton extends React.Component<$FlowFixMeProps> {
+type Props = {
+  onClickPlay: Function,
+  onClickPause: Function,
+  isPlaying: boolean,
+  className?: string,
+  enabled: boolean,
+  size: number
+};
+
+export default class PlayButton extends React.Component<Props> {
   static defaultProps: {
     enabled: boolean
   };
@@ -25,10 +34,15 @@ export default class PlayButton extends React.Component<$FlowFixMeProps> {
   }
 
   render() {
+    let className = "play-button";
+    if (this.props.className) {
+      className += " " + this.props.className;
+    }
+
     return (
       <Link
         onClick={this.onClick}
-        className={`play-button ${this.props.className}`}
+        className={className}
         enabled={this.props.enabled}
       >
         <svg version="1.1" width={this.props.size} height={this.props.size}>
@@ -38,14 +52,6 @@ export default class PlayButton extends React.Component<$FlowFixMeProps> {
     );
   }
 }
-
-PlayButton.propTypes = {
-  enabled: PropTypes.bool.isRequired,
-  size: PropTypes.number.isRequired,
-  isPlaying: PropTypes.bool.isRequired,
-  onClickPlay: PropTypes.func.isRequired,
-  onClickPause: PropTypes.func.isRequired
-};
 
 PlayButton.defaultProps = {
   enabled: true

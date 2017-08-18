@@ -20,10 +20,39 @@ import CreateNewSongOverlay from "./CreateNewSongOverlay";
 import { notes } from "./VideoGrid";
 
 import type { SongBoardEvent } from "./database";
+import type { Observable } from "rxjs/Observable";
 import type { Subscription } from "rxjs/Subscription";
 import type { SongId } from "./song";
 
-export default class RecordVideosView extends React.Component<$FlowFixMeProps> {
+type Props = {
+  actions: Object,
+  currentUser: Object,
+  onNavigate: Function,
+  loading: Object,
+  videoClips: Object,
+  playCommands$: Observable<Object>,
+  songTitle: string,
+  location: Location,
+  countdownUntilRecord: number,
+  pitchCorrection: number,
+  noteBeingRecorded: string,
+  durationRecorded: number,
+  mediaStream: ?MediaStream,
+  onClearVideoClip: Function,
+  onStartRecording: Function,
+  onStopRecording: Function,
+  onPause: Function,
+  onPlay: Function,
+  playbackPositionInSeconds: number,
+  authorName: string,
+  songLength: number,
+  isPlaying: boolean,
+  premiumAccountStatus: boolean,
+  onDismissError: Function,
+  audioSources: {string: Object}
+};
+
+export default class RecordVideosView extends React.Component<Props> {
   constructor() {
     super();
     bindAll(this, "bindVideoGrid", "onTrim", "onSelectSong");
@@ -31,7 +60,7 @@ export default class RecordVideosView extends React.Component<$FlowFixMeProps> {
 
   subscription: Subscription;
 
-  bindVideoGrid(component: Object) {
+  bindVideoGrid(component: ?Object) {
     if (component) {
       this.subscription = component.playCommands$$.subscribe(
         this.props.actions.subjects.playCommands$$
@@ -205,11 +234,3 @@ RecordVideosView.contextTypes = {
   messages: PropTypes.object.isRequired
 };
 
-RecordVideosView.propTypes = {
-  loading: PropTypes.object.isRequired,
-  videoClips: PropTypes.object.isRequired,
-  playCommands$: PropTypes.object.isRequired,
-  songTitle: PropTypes.string.isRequired,
-  onNavigate: PropTypes.func.isRequired,
-  location: PropTypes.object.isRequired
-};

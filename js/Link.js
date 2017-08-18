@@ -4,11 +4,21 @@ import * as React from "react";
 import { omit } from "lodash";
 import classNames from "classnames";
 
-class Link extends React.Component<$FlowFixMeProps> {
+type Props = {
+  href?: string,
+  className?: string,
+  enabled?: boolean,
+  onClick?: Function,
+  children: React.Node
+};
+
+class Link extends React.Component<Props> {
   onClick(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
-    this.props.onClick(event);
+
+    if (this.props.onClick)
+      this.props.onClick(event);
   }
 
   render() {
@@ -46,11 +56,5 @@ class Link extends React.Component<$FlowFixMeProps> {
     }
   }
 }
-
-Link.propTypes = {
-  href: PropTypes.string,
-  onClick: PropTypes.func,
-  enabled: PropTypes.bool
-};
 
 export default Link;

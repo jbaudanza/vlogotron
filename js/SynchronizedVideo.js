@@ -1,17 +1,19 @@
 /* @flow */
 import * as React from "react";
 
-export default class SynchronizedVideo extends React.Component<{
+type Props = {
   videoClip: Object,
   playbackStartedAt: ?number,
-  width: ?number,
-  height: ?number,
+  width?: number,
+  height?: number,
   trimStart: number,
   audioContext: AudioContext
-}> {
-  static defaultProps: Object;
+};
+
+export default class SynchronizedVideo extends React.Component<Props> {
   isPlaying: boolean;
-  videoEl: HTMLMediaElement;
+  videoEl: ?HTMLMediaElement;
+  static defaultProps: { trimStart: number };
 
   constructor() {
     super();
@@ -54,18 +56,19 @@ export default class SynchronizedVideo extends React.Component<{
 
   startPlayback() {
     if (this.videoEl) {
+      const videoEl = this.videoEl;
       // It seems that local videos stored in a blob have the duration
       // attribute set to Infinity. This might be a problem when trimming
       // videos
       let offset;
-      if (isFinite(this.videoEl.duration)) {
-        offset = this.props.trimStart * this.videoEl.duration;
+      if (isFinite(videoEl.duration)) {
+        offset = this.props.trimStart * videoEl.duration;
       } else {
         offset = 0;
       }
 
-      this.videoEl.currentTime = offset;
-      const promise = this.videoEl.play();
+      videoEl.currentTime = offset;
+      const promise = videoEl.play();
       this.isPlaying = true;
 
       // Older versions of Firefox don't return a promise
@@ -79,7 +82,7 @@ export default class SynchronizedVideo extends React.Component<{
                 this.props.playbackStartedAt;
 
               if (delta > 0 && this.videoEl) {
-                this.videoEl.currentTime = offset + delta;
+                videoEl.currentTime = offset + delta;
               }
             }
           })
@@ -100,14 +103,15 @@ export default class SynchronizedVideo extends React.Component<{
 
   stopPlayback() {
     if (this.videoEl) {
-      this.videoEl.pause();
-      this.videoEl.currentTime = 0;
+      const videoEl = this.videoEl;
+      videoEl.pause();
+      videoEl.currentTime = 0;
       this.isPlaying = false;
       this.resetStartPosition();
     }
   }
 
-  setVideoElement(el: HTMLMediaElement) {
+  setVideoElement(el: ?HTMLMediaElement) {
     this.videoEl = el;
     this.isPlaying = false;
   }

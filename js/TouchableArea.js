@@ -18,12 +18,19 @@ type TouchGesture = {
   movements$: Observable<?Element>
 };
 
-export default class TouchableArea extends React.Component<$FlowFixMeProps> {
+type Props = {
+  onTouchStart?: Function,
+  className?: string,
+  style?: Object,
+  children: React.Node
+};
+
+export default class TouchableArea extends React.Component<Props> {
   touches$$: Subject<TouchGesture>;
   touchCancel$: Observable<TouchEvent>;
   touchMove$: Observable<TouchEvent>;
   touchEnd$: Observable<TouchEvent>;
-  rootElement: Element;
+  rootElement: ?Element;
 
   constructor() {
     super();
@@ -36,8 +43,10 @@ export default class TouchableArea extends React.Component<$FlowFixMeProps> {
   }
 
   start(firstEl: Element, movements$: Observable<?Element>) {
-    if (this.props.onTouchStart)
-      this.props.onTouchStart(movements$.startWith(firstEl));
+    if (this.props.onTouchStart) {
+      const cb = this.props.onTouchStart;
+      cb(movements$.startWith(firstEl));
+    }
 
     this.touches$$.next({
       firstEl: firstEl,
@@ -71,7 +80,7 @@ export default class TouchableArea extends React.Component<$FlowFixMeProps> {
     }
   }
 
-  setRootElement(node: Element) {
+  setRootElement(node: ?Element) {
     this.rootElement = node;
 
     this.touchMove$ = Observable.fromEvent(this.rootElement, "touchmove");

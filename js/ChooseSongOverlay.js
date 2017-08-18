@@ -144,7 +144,18 @@ LineItem.contextTypes = {
   locale: PropTypes.string.isRequired
 };
 
-class ChooseSongOverlay extends React.Component<$FlowFixMeProps> {
+type Props = {
+  onSelectSong: Function,
+  onClose: string,
+  onPlay: Function,
+  onPause: Function,
+  onRequestPurchase: Function,
+  price: number,
+  premiumAccountStatus: boolean,
+  currentlyPlaying: string
+};
+
+class ChooseSongOverlay extends React.Component<Props> {
   render() {
     return (
       <Overlay className="choose-song-overlay" onClose={this.props.onClose}>
@@ -170,16 +181,6 @@ class ChooseSongOverlay extends React.Component<$FlowFixMeProps> {
     );
   }
 }
-
-ChooseSongOverlay.propTypes = {
-  onSelectSong: PropTypes.func.isRequired,
-  onClose: PropTypes.string.isRequired,
-  onPlay: PropTypes.func.isRequired,
-  onPause: PropTypes.func.isRequired,
-  onRequestPurchase: PropTypes.func.isRequired,
-  price: PropTypes.number.isRequired,
-  premiumAccountStatus: PropTypes.bool.isRequired
-};
 
 type OuterPropTypes = {
   onSelectSong: string => void,

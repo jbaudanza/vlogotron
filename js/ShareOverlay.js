@@ -29,8 +29,7 @@ type Props = {
   origin: string
 };
 
-class ShareOverlay extends React.Component<> {
-  static defaultProps: Props;
+class ShareOverlay extends React.Component<Props> {
   render() {
     return (
       <Overlay onClose={this.props.onClose} className={this.props.className}>

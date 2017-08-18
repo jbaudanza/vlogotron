@@ -8,7 +8,11 @@ import Link from "./Link";
 
 import styled from "styled-components";
 
-class NotificationPopup extends React.Component<$FlowFixMeProps> {
+type Props = {
+  className: string
+};
+
+class NotificationPopup extends React.Component<Props> {
   render() {
     const name = "Jonathan";
     const avatar = (

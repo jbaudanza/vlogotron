@@ -6,7 +6,13 @@ import * as React from "react";
 import classNames from "classnames";
 import Link from "./Link";
 
-export default class PageTextFooter extends React.Component<$FlowFixMeProps> {
+type Props = {
+  text: string,
+  onDismissError: Function,
+  error?: boolean
+};
+
+export default class PageTextFooter extends React.Component<Props> {
   render() {
     return (
       <div
@@ -37,10 +43,4 @@ export default class PageTextFooter extends React.Component<$FlowFixMeProps> {
 
 PageTextFooter.contextTypes = {
   messages: PropTypes.object.isRequired
-};
-
-PageTextFooter.propTypes = {
-  text: PropTypes.string.isRequired,
-  onDismissError: PropTypes.func.isRequired,
-  error: PropTypes.bool
 };

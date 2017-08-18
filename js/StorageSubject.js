@@ -42,6 +42,7 @@ export default class StorageSubject<T> extends AnonymousSubject<T> {
 
     super(
       /* destination observer */
+      // $FlowFixMe - Doesn't like duck-typed observer
       observer,
       /* source observable */
       Observable.merge(remoteUpdates$, subject$)

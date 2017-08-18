@@ -736,7 +736,7 @@ declare class rxjs$Subject<T> extends rxjs$Observable<T> {
 }
 
 declare class rxjs$AnonymousSubject<T> extends rxjs$Subject<T> {
-  constructor(destination?: Observer<T>, source?: Observable<T>): void;
+  constructor(destination?: rxjs$Observer<T>, source?: rxjs$Observable<T>): void;
 }
 
 declare class rxjs$BehaviorSubject<T> extends rxjs$Subject<T> {

@@ -45,10 +45,17 @@ function onClickInput(event) {
   event.target.select();
 }
 
-export default class TextWithCopyButton extends React.Component<$FlowFixMeProps, {
+type Props = {
+  className?: string,
+  value: string
+};
+
+type State = {
   supported: boolean,
   recentlyCopied: boolean
-}> {
+};
+
+export default class TextWithCopyButton extends React.Component<Props, State> {
   inputEl: HTMLInputElement;
   timeoutId: number;
   inputRef: Function;
