@@ -20,7 +20,7 @@ class NotificationPopup extends React.Component<Props> {
     let avatarEl;
 
     if (this.props.photoURL) {
-      avatarEl = <img height={50} src={this.props.photoURL} />;
+      avatarEl = <img src={this.props.photoURL} />;
     } else {
       avatarEl = robotSvg;
     }
@@ -54,6 +54,12 @@ const AvatarWrapper = styled.div`
   border-radius: ${avatarSize}px;
   overflow: hidden;
   background-color: #CDD6F4;
+
+  img {
+    object-fit: cover;
+    width: ${avatarSize}px;
+    height: ${avatarSize}px;
+  }
 `;
 
 const CloseLink = styled(Link)`

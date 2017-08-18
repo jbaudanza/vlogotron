@@ -301,8 +301,12 @@ export function updateUser(database: FirebaseDatabase, user: FirebaseUser) {
   ref.child("displayName").set(user.displayName);
   ref.child("email").set(user.email);
   ref.child("providerData").set(user.providerData);
-  ref.child("photoURL").set(user.photoURL);
   ref.child("lastSeenAt").set(firebase.database.ServerValue.TIMESTAMP);
+
+  // user.photoURL seems to be producing expired URLs
+  if (user.providerData.length > 0) {
+    ref.child("photoURL").set(user.providerData[0].photoURL);
+  }
 }
 
 export function songById(
