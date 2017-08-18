@@ -16,15 +16,15 @@ export default function createControlledComponent<
     Object,
     Subscription
   ) => InnerPropTypes,
-  Component: Class<React.Component<*, InnerPropTypes, *>>,
+  Component: Class<React.Component<InnerPropTypes>>,
   actionNames: Array<string> = [],
-  InitialComponent: Class<React.Component<*, *, *>>
+  InitialComponent: Class<React.Component>
 ): React.Component<*, *, *> {
   if (!InitialComponent) {
     InitialComponent = Component;
   }
 
-  return class ControlledComponent extends React.Component<*, *, *> {
+  return class ControlledComponent extends React.Component<InnerPropTypes> {
     state: {
       current?: InnerPropTypes
     };

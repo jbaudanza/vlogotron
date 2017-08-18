@@ -5,6 +5,8 @@ import { forEach } from "lodash";
 
 type ObservableTemplate = { [string]: Observable<any> };
 
+type ExtractReturnType = <V>(Observable<V>) => V;
+
 /*
   Like Observable.combineLatest, but works with a template Object for input.
 
@@ -15,9 +17,9 @@ type ObservableTemplate = { [string]: Observable<any> };
     errors: errors$
   });
 */
-export default function combineTemplate(
-  template: ObservableTemplate
-): Observable<Object> {
+export default function combineTemplate<T: ObservableTemplate>(
+  template: T
+): Observable<$ObjMap<T, ExtractReturnType>> {
   const keys = Object.keys(template);
   const observables: Array<Observable<any>> = keys.map(key => template[key]);
 

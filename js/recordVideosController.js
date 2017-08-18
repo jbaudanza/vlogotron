@@ -36,6 +36,33 @@ const escapeKey$ = Observable.fromEvent(document, "keydown").filter(
     - durationRecorded should increment every second, not every event callback
  */
 
+type ViewProps = {
+  currentUser: Object,
+  onNavigate: Function,
+  loading: Object,
+  videoClips: Object,
+  playCommands$: Observable<Object>,
+  songTitle: string,
+  countdownUntilRecord: number,
+  pitchCorrection: number,
+  noteBeingRecorded: string,
+  durationRecorded: number,
+  mediaStream: ?MediaStream,
+  onClearVideoClip: Function,
+  onStartRecording: Function,
+  onStopRecording: Function,
+  onPause: Function,
+  onPlay: Function,
+  playbackPositionInSeconds: number,
+  authorName: string,
+  songLength: number,
+  isPlaying: boolean,
+  onDismissError: Function,
+  audioSources: {string: Object},
+  onLogin: Function,
+  onNavigate: Function
+}
+
 export default function recordVideosController(
   props$: Observable<Object>,
   actions: { [string]: Observable<any> },
@@ -44,7 +71,7 @@ export default function recordVideosController(
   firebase: Object,
   subscription: Subscription,
   navigate: Function
-) {
+) : Observable<ViewProps> {
   const recordingEngine$ = actions.startRecording$
     .switchMap(note => startRecording(note, actions.stopRecording$, escapeKey$))
     .publish();
