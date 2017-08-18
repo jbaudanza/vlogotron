@@ -57,11 +57,12 @@ export default function playbackController(
   return Observable.combineLatest(
     parentView$,
     authorName$,
-    props$.map(props => props.shareUrl),
-    (parentView, authorName, shareUrl) => ({
+    props$,
+    (parentView, authorName, props) => ({
       ...parentView,
       authorName,
-      shareUrl
+      location: props.location,
+      origin: props.origin
     })
   );
 }

@@ -196,6 +196,7 @@ export default function recordVideosController(
       audioSources,
       authorName,
       location: props.location,
+      origin: props.origin,
       onNavigate: props.onNavigate,
       onLogin: props.onLogin,
       premiumAccountStatus: props.premiumAccountStatus
