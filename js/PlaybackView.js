@@ -12,6 +12,7 @@ import Link from "./Link";
 import PlaybackHeader from "./PlaybackHeader";
 import VideoGrid from "./VideoGrid";
 import SubHeader from "./SubHeader";
+import Message from "./Message";
 
 type Props = {
   actions: Object,
@@ -86,10 +87,10 @@ export default class PlaybackView extends React.Component<Props> {
         <div className="page-content">
           <SubHeader>
             <span className="mobile-text">
-              {this.context.messages["mobile-playback-instructions"]()}
+              <Message msgKey="mobile-playback-instructions" />
             </span>
             <span className="desktop-text">
-              {this.context.messages["desktop-playback-instructions"]()}
+              <Message msgKey="desktop-playback-instructions" />
             </span>
           </SubHeader>
           <VideoGrid
@@ -104,7 +105,3 @@ export default class PlaybackView extends React.Component<Props> {
     );
   }
 }
-
-PlaybackView.contextTypes = {
-  messages: PropTypes.object.isRequired
-};
