@@ -113,7 +113,7 @@
     width: 100%;
 
     .start-record-button {
-      display: none;
+      display: black;
       position: absolute;
       top: 5px;
       left: 5px;
@@ -127,10 +127,6 @@
       &:hover {
         background-color: $color-purple;
       }
-    }
-
-    &:hover .start-record-button {
-      display: block;
     }
 
     svg.robot {
