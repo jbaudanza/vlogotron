@@ -20,7 +20,7 @@ $shadow-index: 1;
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: $color-dark-three;
+    background-color: ${colorsdarkThree};
     opacity: 0.85;
     z-index: $shadow-index;
   }

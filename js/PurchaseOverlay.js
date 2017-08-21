@@ -84,7 +84,7 @@ export class PurchaseOverlay
     onChange: StripeCardChangeEvent => void,
     onPurchase: StripeCard => void,
     onCancel: Function,
-    onClose: Function,
+    onClose: string,
     price: number
   }> {
   card: StripeCard;
