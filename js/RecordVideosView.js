@@ -17,6 +17,7 @@ import ChooseSongOverlay from "./ChooseSongOverlay";
 import SubHeader from "./SubHeader";
 import PageHeaderAction from "./PageHeaderAction";
 import CreateNewSongOverlay from "./CreateNewSongOverlay";
+import Message from "./Message";
 
 import { notes } from "./VideoGrid";
 
@@ -176,6 +177,41 @@ export default class RecordVideosView extends React.Component<Props> {
       notes.length -
       intersection(Object.keys(this.props.videoClips), notes).length;
 
+    let subHeaderEl;
+    let notificationPopupEl;
+
+    if (this.props.collaborateMode) {
+      subHeaderEl = (
+        <SubHeader>
+          <span className="mobile-text">
+            <Message msgKey="mobile-playback-instructions" />
+          </span>
+          <span className="desktop-text">
+            <Message msgKey="desktop-playback-instructions" />
+          </span>
+        </SubHeader>
+      );
+      notificationPopupEl = (
+        <CollabIntroNotification
+          authorName={this.props.authorName}
+          photoURL={this.props.authorPhotoURL}
+        />
+      );
+    } else {
+      subHeaderEl = (
+        <SubHeader>
+          <span>
+            <Message msgKey="sub-header-tip-for-op" EMPTY_COUNT={emptyCount} />
+          </span>
+          {" "}
+          <a href="#share">
+            Copy link to share
+          </a>
+        </SubHeader>
+      );
+      notificationPopupEl = <NewSongBoardNotification />;
+    }
+
     return (
       <div className="page-vertical-wrapper record-videos-page">
         <PageHeader
@@ -201,17 +237,7 @@ export default class RecordVideosView extends React.Component<Props> {
         <div className="page-content">
           {this.props.supported
             ? <div>
-                <SubHeader>
-                  <span>
-                    {this.context.messages["sub-header-tip-for-op"]({
-                      EMPTY_COUNT: emptyCount
-                    })}
-                  </span>
-                  {" "}
-                  <a href="#share">
-                    Copy link to share
-                  </a>
-                </SubHeader>
+                {subHeaderEl}
                 <VideoGrid
                   readonly
                   videoClips={this.props.videoClips}
@@ -229,10 +255,7 @@ export default class RecordVideosView extends React.Component<Props> {
                   pitchCorrection={this.props.pitchCorrection}
                   ref={this.bindVideoGrid}
                 />
-                <CollabIntroNotification
-                  authorName={this.props.authorName}
-                  photoURL={this.props.authorPhotoURL}
-                />
+                {notificationPopupEl}
               </div>
             : <RecordingNotSupported />}
 
