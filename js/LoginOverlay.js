@@ -1,6 +1,5 @@
 /* @flow */
 
-import PropTypes from "prop-types";
 import * as React from "react";
 
 import Overlay from "./Overlay";
@@ -21,11 +20,12 @@ const StyledOverlay = styled(Overlay)`
 
 const providers = ["Facebook", "Google", "Twitter"];
 
-export default class LoginOverlay
-  extends React.Component<{
-    onLogin: string => void,
-    onClose: string
-  }> {
+type Props = {
+  onLogin: string => void,
+  onClose?: string
+};
+
+export default class LoginOverlay extends React.Component<Props> {
   render() {
     return (
       <StyledOverlay className="login-overlay" onClose={this.props.onClose}>

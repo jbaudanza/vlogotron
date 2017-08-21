@@ -14,7 +14,7 @@ type Props = {
 
 class Overlay extends React.Component<Props> {
   _keyDownHandler: Function;
-  ref: (?HTMLElement) => void;
+  ref: ?HTMLElement => void;
   rootEl: ?HTMLElement;
 
   constructor() {
@@ -23,7 +23,7 @@ class Overlay extends React.Component<Props> {
   }
 
   ref(el: ?HTMLElement) {
-    this.rootEl = el
+    this.rootEl = el;
   }
 
   componentDidMount() {
@@ -40,7 +40,7 @@ class Overlay extends React.Component<Props> {
       // escape
       event.preventDefault();
       if (this.rootEl) {
-        const closeLinkEl = this.rootEl.querySelector('a.close-link');
+        const closeLinkEl = this.rootEl.querySelector("a.close-link");
         if (closeLinkEl) {
           closeLinkEl.click();
         }
@@ -50,16 +50,22 @@ class Overlay extends React.Component<Props> {
 
   render() {
     const className = ((this.props.className || "") + " overlay").trim();
+    let closeLinkEl;
+    if (this.props.onClose) {
+      closeLinkEl = (
+        <CloseLink href={this.props.onClose} className="close-link">
+          <svg version="1.1" width="22px" height="21px">
+            <use xlinkHref="#svg-close" />
+          </svg>
+        </CloseLink>
+      );
+    }
 
     return (
       <StyledOverlay id="overlay" className={className} innerRef={this.ref}>
         <Shadow />
         <div className="content">
-          <CloseLink href={this.props.onClose} className="close-link">
-            <svg version="1.1" width="22px" height="21px">
-              <use xlinkHref="#svg-close" />
-            </svg>
-          </CloseLink>
+          {closeLinkEl}
           <div className="scroll">
             {this.props.children}
           </div>
