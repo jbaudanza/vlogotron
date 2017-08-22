@@ -86,6 +86,7 @@ export default class VideoCell extends React.Component<Props> {
             {this.context.messages["start-singing-countdown-prompt"]()}
           </div>
           <div className="number">{this.props.countdown}</div>
+          <div>Press ESC to cancel</div>
         </div>
       );
     }
@@ -335,7 +336,7 @@ const StyledVideoCell = styled.div`
     -webkit-text-stroke-color: #333;
   }
   .countdown-label {
-    top: 25px;
+    top: 15px;
     font-weight: bold;
     .text {
       font-size: 17px;
