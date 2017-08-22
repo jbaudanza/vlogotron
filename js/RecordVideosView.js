@@ -252,11 +252,7 @@ export default class RecordVideosView extends React.Component<Props> {
                   loading={this.props.loading}
                   onStartRecording={this.props.onStartRecording}
                   onStopRecording={this.props.onStopRecording}
-                  onClear={
-                    this.props.collaborateMode
-                      ? null
-                      : this.props.onClearVideoClip
-                  }
+                  onClear={this.props.onClearVideoClip}
                   onTrim={this.onTrim}
                   mediaStream={this.props.mediaStream}
                   countdownUntilRecord={this.props.countdownUntilRecord}
