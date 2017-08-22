@@ -6,7 +6,11 @@ export function httpOk(status: number): boolean {
   return status >= 200 && status <= 299;
 }
 
-export function postJSON(url: string, jwt: string, body: Object) {
+export function postJSON(
+  url: string,
+  jwt: ?string,
+  body: Object
+): Observable<XMLHttpRequest> {
   return Observable.create(function(observer) {
     const xhr = new XMLHttpRequest();
 
@@ -14,7 +18,10 @@ export function postJSON(url: string, jwt: string, body: Object) {
 
     xhr.setRequestHeader("Content-type", "application/json");
     xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-    xhr.setRequestHeader("Authorization", "Bearer " + jwt);
+
+    if (jwt) {
+      xhr.setRequestHeader("Authorization", "Bearer " + jwt);
+    }
 
     xhr.onload = () => {
       observer.next(xhr);
@@ -30,4 +37,18 @@ export function postJSON(url: string, jwt: string, body: Object) {
       xhr.abort();
     };
   });
+}
+
+export function postToAPI(endpoint: string, jwt: ?string, requestBody: Object) {
+  return postJSON(
+    "https://us-central1-vlogotron-95daf.cloudfunctions.net/" + endpoint,
+    jwt,
+    requestBody
+  )
+    .do(xhr => {
+      if (!httpOk(xhr.status)) {
+        throw JSON.parse(xhr.responseText);
+      }
+    })
+    .map(xhr => JSON.parse(xhr.responseText));
 }

@@ -58,4 +58,6 @@ function makeApi(handler /*: ApiHandler */) /*: GCFHandler */ {
 }
 
 exports.charge = functions.https.onRequest(makeApi(require("./charge")));
-exports.videoClips = functions.https.onRequest(makeApi(require("./createVideoClip")));
+exports.videoClips = functions.https.onRequest(
+  makeApi(require("./createVideoClip"))
+);

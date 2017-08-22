@@ -3,8 +3,11 @@ import { Observable } from "rxjs/Observable";
 
 import { mapKeys, mapValues, omit } from "lodash";
 
-import type { Song, SongId } from "./song";
 import * as firebase from "firebase";
+
+import { postToAPI } from "./xhr";
+
+import type { Song, SongId } from "./song";
 
 type VideoClipSource = $Exact<{
   src: string,
@@ -39,7 +42,7 @@ export type SongBoardEvent =
       type: "add-video",
       videoClipId: string,
       note: NoteId,
-      uid: string
+      uid?: string
     }
   | {
       type: "remove-video",
@@ -369,23 +372,28 @@ export function songsForUser(
 }
 
 export function createVideoClip(
-  database: FirebaseDatabase,
+  jwt: ?string,
   databaseEntry: Object,
-  videoBlob: Object
+  videoBlob: Blob
 ): Promise<string> {
-  const databaseRef = database.ref("video-clips");
+  const promise: Promise<{ key: string }> = postToAPI(
+    "videoClips",
+    jwt,
+    databaseEntry
+  ).toPromise();
+
+  if (videoBlob.size === 0) {
+    return Promise.reject("Invalid video");
+  }
 
   const uploadRef = firebase
     .storage()
     .refFromURL("gs://vlogotron-uploads/video-clips");
 
-  const ref = databaseRef.push(databaseEntry);
-
-  ref.then(() => uploadRef.child(ref.key).put(videoBlob));
-
-  // This OR is just to make flow happy. It might not be necessary with better
-  // flow-typed defs for firebase.
-  return ref.then(() => ref.key || "");
+  return promise.then(response => {
+    uploadRef.child(response.key).put(videoBlob);
+    return response.key;
+  });
 }
 
 export function premiumAccountStatus(database: FirebaseDatabase, uid: string) {

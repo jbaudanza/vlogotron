@@ -15,7 +15,7 @@ import {
   updateSongBoard,
   createVideoClip
 } from "./database";
-import type { SongBoardEvent } from "./database";
+import type { SongBoardEvent, FirebaseUser } from "./database";
 import { songs } from "./song";
 
 import {
@@ -67,7 +67,7 @@ type ViewProps = {
 export default function recordVideosController(
   props$: Observable<Object>,
   actions: { [string]: Observable<any> },
-  currentUser$: Observable<?Object>,
+  currentUser$: Observable<?FirebaseUser>,
   mediaStore: Media,
   firebase: Object,
   subscription: Subscription,
@@ -86,26 +86,32 @@ export default function recordVideosController(
 
   const finalMedia$ = recordingEngine$.switchMap(o => o.media$);
 
-  const nonNullUser$: Observable<Object> = currentUser$.nonNull();
+  const nonNullUser$: Observable<FirebaseUser> = currentUser$.nonNull();
+  const jwt$: Observable<?string> = currentUser$.switchMap(user => {
+    if (user) return user.getToken();
+    else return Observable.of(null);
+  });
+  const currentUid$: Observable<?string> = currentUser$.map(
+    user => (user ? user.uid : null)
+  );
 
-  const uploadedEvents$: Observable<SongBoardEvent> = finalMedia$
-    .withLatestFrom(nonNullUser$, (media, currentUser): Promise<
-      SongBoardEvent
-    > =>
-      createVideoClip(
-        firebase.database(),
-        {
-          uid: currentUser.uid,
-          note: media.note,
-          timestamp: firebase.database.ServerValue.TIMESTAMP
-        },
-        media.videoBlob
-      ).then(videoClipId => ({
-        type: "add-video",
-        videoClipId: videoClipId,
-        note: media.note,
-        uid: currentUser.uid
-      }))
+  const songBoardId$ = mediaStore.songBoard$.map(
+    songBoard => songBoard.songBoardId
+  );
+
+  const uploadedEvents$: Observable<
+    SongBoardEvent
+  > = finalMedia$
+    .withLatestFrom(
+      jwt$,
+      currentUid$,
+      songBoardId$,
+      (media, jwt, uid, songBoardId): Promise<SongBoardEvent> =>
+        createVideoClip(
+          jwt,
+          { note: media.note, sessionId: getSessionId(), songBoardId },
+          media.videoBlob
+        ).then(videoClipId => makeAddVideoEvent(videoClipId, media.note, uid))
     )
     .mergeAll();
 
@@ -124,9 +130,6 @@ export default function recordVideosController(
     clearedEvents$,
     uploadedEvents$,
     songBoardEdits$
-  );
-  const songBoardId$ = mediaStore.songBoard$.map(
-    songBoard => songBoard.songBoardId
   );
 
   subscription.add(
@@ -214,6 +217,23 @@ export default function recordVideosController(
       songBoardId
     })
   );
+}
+
+function makeAddVideoEvent(
+  videoClipId: string,
+  note: string,
+  uid: ?string
+): SongBoardEvent {
+  if (uid) {
+    return {
+      type: "add-video",
+      videoClipId,
+      note,
+      uid
+    };
+  } else {
+    return { type: "add-video", videoClipId, note };
+  }
 }
 
 function getUserMedia() {
@@ -378,3 +398,23 @@ const countdown$ = Observable.interval(1000)
   .map(x => countdownSeconds - x - 1)
   .filter(x => x > 0) // Leave out the last 0 value
   .startWith(countdownSeconds);
+
+function getSessionId(): string {
+  if (typeof localStorage["sessionId"] === "string") {
+    return localStorage["sessionId"];
+  } else {
+    const newId = generateId();
+    localStorage["sessionId"] = newId;
+    return newId;
+  }
+}
+
+function dec2hex(dec: number): string {
+  return ("0" + dec.toString(16)).substr(-2);
+}
+
+function generateId(): string {
+  const array = new Uint8Array(16);
+  window.crypto.getRandomValues(array);
+  return Array.from(array, dec2hex).join("");
+}

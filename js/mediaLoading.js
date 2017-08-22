@@ -93,10 +93,9 @@ export function subscribeToSongBoardId(
     return mapValues(songBoard.videoClips, (v: VideoClip) => v.videoClipId);
   });
 
-  const remoteVideoClips$ = videoClipsForClipIds(
-    videoClipIds$,
-    firebase
-  ).publishReplay();
+  const remoteVideoClips$ = videoClipsForClipIds(videoClipIds$, firebase)
+    .startWith({})
+    .publishReplay();
 
   const videoClips$ = Observable.combineLatest(
     localVideoStore$,

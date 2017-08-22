@@ -17,7 +17,7 @@ import colors from "./colors";
 import { fontFamily } from "./fonts";
 import combineTemplate from "./combineTemplate";
 import createControlledComponent from "./createControlledComponent";
-import { postJSON, httpOk } from "./xhr";
+import { postToAPI } from "./xhr";
 import type { FirebaseUser } from "./database";
 
 const stripe = Stripe("pk_test_DHTDixORQV3rdO8tLqEAU72l");
@@ -60,15 +60,7 @@ function createStripeCharge(
     metadata: { songId }
   };
 
-  return postJSON(
-    "https://us-central1-vlogotron-95daf.cloudfunctions.net/charge",
-    jwt,
-    requestBody
-  ).do(xhr => {
-    if (!httpOk(xhr.status)) {
-      throw JSON.parse(xhr.responseText);
-    }
-  });
+  return postToAPI("charge", jwt, requestBody);
 }
 
 const ErrorMessage = styled.p`
