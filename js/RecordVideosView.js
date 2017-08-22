@@ -127,7 +127,11 @@ export default class RecordVideosView extends React.Component<Props> {
     }
 
     let overlay;
-    if (!this.props.currentUser && this.props.supported) {
+    if (
+      !this.props.currentUser &&
+      this.props.supported &&
+      !this.props.collaborateMode
+    ) {
       overlay = <LoginOverlay onLogin={this.props.onLogin} />;
     }
 

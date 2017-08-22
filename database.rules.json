@@ -28,9 +28,8 @@
     },
     "song-boards": {
       "$songBoardId": {
-        ".read": "!data.child('deletedAt').exists() && (data.child('visibility').val() === 'everyone' || data.child('uid').val() === auth.uid)",
-        ".write": "data.exists() ? (data.child('uid').val() === auth.uid) : (auth != null)",
-        ".validate": "newData.child('uid').val() === auth.uid"
+        ".read": true,
+        ".write": true
       }
     },
     "remixes": {
