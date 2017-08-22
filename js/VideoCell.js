@@ -102,7 +102,7 @@ export default class VideoCell extends React.Component<Props> {
             </span>
             <div className="record-status">
               <svg version="1.1" width="10px" height="10px">
-                <circle cx="5" cy="5" r="5">
+                <circle cx="5" cy="5" r="5" fill={colors.red}>
                   <animate
                     attributeType="XML"
                     attributeName="opacity"
@@ -273,10 +273,6 @@ const StyledVideoCell = styled.div`
 
     svg {
       margin-right: 5px;
-    }
-
-    circle {
-      fill: $color-red;
     }
   }
 
