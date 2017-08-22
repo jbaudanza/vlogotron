@@ -1,3 +1,4 @@
+/* @flow */
 import PropTypes from "prop-types";
 import React from "react";
 
@@ -23,15 +24,32 @@ const StyledSpinner = styled(Spinner)`
   fill: #fff;
 `;
 
-import "./VideoCell.scss";
+type Props = {
+  note: string,
+  label: string,
+  octave: number,
+  playbackStartedAt: number,
+  spinner: boolean,
+  mediaStream?: MediaStream,
+  onStartRecording: Function,
+  onStopRecording: Function,
+  onTrim: Function,
+  onClear: Function,
+  videoClip: Object,
+  readonly: boolean,
+  countdown: number,
+  durationRecorded?: number,
+  pitchCorrection?: number,
+  audioContext: AudioContext
+};
 
-export default class VideoCell extends React.Component {
+export default class VideoCell extends React.Component<Props> {
   constructor() {
     super();
     bindAll(this, "setVideoStream", "onClear", "onTrim");
   }
 
-  setVideoStream(videoEl) {
+  setVideoStream(videoEl: ?HTMLVideoElement) {
     if (videoEl && this.props.mediaStream) {
       videoEl.srcObject = this.props.mediaStream;
       videoEl.play();
@@ -96,13 +114,17 @@ export default class VideoCell extends React.Component {
                 </circle>
               </svg>
               <span className="duration">
-                {formatSeconds(this.props.durationRecorded)}
+                {this.props.durationRecorded != null
+                  ? formatSeconds(this.props.durationRecorded)
+                  : null}
               </span>
             </div>
           </Link>
         );
 
-        pitchGuideEl = <PitchGuide value={this.props.pitchCorrection} />;
+        if (this.props.pitchCorrection != null) {
+          pitchGuideEl = <PitchGuide value={this.props.pitchCorrection} />;
+        }
       }
     } else if (this.props.videoClip) {
       videoEl = (
@@ -185,7 +207,7 @@ export default class VideoCell extends React.Component {
     }
 
     return (
-      <div
+      <StyledVideoCell
         className={classNames("video-cell touchable", {
           playing: this.props.playbackStartedAt != null,
           sharp: this.props.note.includes("#")
@@ -201,7 +223,7 @@ export default class VideoCell extends React.Component {
         {trimEl}
         {spinnerEl}
         {pitchGuideEl}
-      </div>
+      </StyledVideoCell>
     );
   }
 }
@@ -223,3 +245,153 @@ VideoCell.propTypes = {
   readonly: PropTypes.bool,
   countdown: PropTypes.number
 };
+
+const StyledVideoCell = styled.div`
+  background-color: ${colors.blueGrey};
+  display: block;
+  float: left;
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow: 0 3px 10px 0 ${colors.cloudyBlueTwo};
+  box-sizing: border-box;
+  cursor: pointer;
+
+  // TODO: This z-index seems necessary to get the overflow:hidden to crop
+  // the shade element. I'm not sure why this is necessary, because the
+  // shade doesn't have a z-index
+  z-index: 1;
+
+  .record-status {
+    position: absolute;
+    left: 5px;
+    top: 12.5px;
+    font-size: 14px;
+
+    svg {
+      margin-right: 5px;
+    }
+
+    circle {
+      fill: $color-red;
+    }
+  }
+
+  .shade {
+    cursor: pointer;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    opacity: 0.6;
+    background-color: ${colors.lightBlueGrey};
+    transition: opacity .1s ease-in-out;
+  }
+  &.playing .shade {
+    opacity: 0;
+  }
+
+  .clear-button {
+    position: absolute;
+    bottom: 8px;
+    right: 12.5px;
+  }
+
+  .trim-button {
+    position: absolute;
+    top: 8px;
+    left: 12.5px;
+  }
+
+  a {
+    text-decoration: none;
+    color: #333;
+  }
+
+  .note-label {
+    position: absolute;
+    bottom: 5px;
+    left: 12.5px;
+    width: 9.7px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    sub {
+      margin-left: 2px;
+    }
+  }
+  .countdown-label, .stop-action {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    text-align: center;
+    color: white;
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: #333;
+  }
+  .countdown-label {
+    top: 25px;
+    font-weight: bold;
+    .text {
+      font-size: 17px;
+    }
+    .number {
+      font-size: 23px;
+    }
+  }
+  .stop-action {
+    padding-top: 50px;
+    font-size: 17px;
+    font-weight: bold;
+  }
+
+  &.playing {
+    background-color: ${colors.purple};
+  }
+
+  .empty-video {
+    text-align: center;
+    display: block;
+    height: 100%;
+    width: 100%;
+
+    .start-record-button {
+      display: black;
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      width: 25px;
+      height: 25px;
+      border: 1px solid ${colors.cloudyBlue};
+      border-radius: 5px;
+      svg {
+        margin-top: 2px;
+      }
+      &:hover {
+        background-color: ${colors.purple};
+      }
+    }
+
+    svg.robot {
+      fill: ${colors.cloudyBlue};
+      stroke: ${colors.cloudyBlue};
+      margin-top: 13px;
+    }
+  }
+
+  video {
+    height: 100%;
+    // TODO: This magic number might need to change if we change the video sizes
+    margin-left: -19%;
+  }
+
+  .pitch-guide {
+    position: absolute;
+    bottom: 0;
+    left: 5px;
+    right: 5px;
+  }
+`;
