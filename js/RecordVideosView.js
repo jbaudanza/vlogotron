@@ -228,15 +228,17 @@ export default class RecordVideosView extends React.Component<Props> {
           onClickPlay={this.props.onPlay}
           onClickPause={this.props.onPause}
         >
-          <div className="actions">
-            <PageHeaderAction href="#choose-song">
-              Change melody
-            </PageHeaderAction>
+          {this.props.collaborateMode
+            ? null
+            : <div className="actions">
+                <PageHeaderAction href="#choose-song">
+                  Change melody
+                </PageHeaderAction>
 
-            <PageHeaderAction>
-              Delete
-            </PageHeaderAction>
-          </div>
+                <PageHeaderAction>
+                  Delete
+                </PageHeaderAction>
+              </div>}
         </PageHeader>
         <div className="page-content">
           {this.props.supported

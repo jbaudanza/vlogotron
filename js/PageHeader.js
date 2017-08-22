@@ -13,8 +13,11 @@ import EditableTitle from "./EditableTitle";
 // XXX: Duplicated in Page.scss
 const headerHeight = 63;
 
+const sidePadding = 24;
+
 const PageHeaderWrapper = styled.div.attrs({ className: "page-header" })`
-  padding: 0 24px;
+  padding: 0 ${sidePadding}px;
+  position: relative;
 
   flex: 0 0 ${headerHeight}px;
 
@@ -29,6 +32,10 @@ const playButtonSize = 32;
 
 const HeaderLeft = styled.div`
   display: flex;
+  position: absolute;
+  left: ${sidePadding}px;
+  top: 0;
+  bottom: 0;
 
   .play-button {
     margin-top: ${headerHeight / 2 - playButtonSize / 2}px;
