@@ -34,7 +34,7 @@ type Props = {
   onStartRecording: Function,
   onStopRecording: Function,
   onTrim: Function,
-  onClear: Function,
+  onClear?: Function,
   videoClip: Object,
   readonly: boolean,
   countdown: number,
@@ -64,7 +64,7 @@ export default class VideoCell extends React.Component<Props> {
     if (
       window.confirm(this.context.messages["delete-video-clip-confirmation"]())
     ) {
-      this.props.onClear();
+      if (this.props.onClear) this.props.onClear();
     }
   }
 
@@ -141,13 +141,15 @@ export default class VideoCell extends React.Component<Props> {
 
       if (this.props.playbackStartedAt == null) {
         if (!this.props.readonly) {
-          clearEl = (
-            <Link onClick={this.onClear} className="clear-button">
-              <svg version="1.1" width="11px" height="11px">
-                <use xlinkHref="#svg-trash" fill="white" />
-              </svg>
-            </Link>
-          );
+          if (this.props.onClear) {
+            clearEl = (
+              <Link onClick={this.onClear} className="clear-button">
+                <svg version="1.1" width="11px" height="11px">
+                  <use xlinkHref="#svg-trash" fill="white" />
+                </svg>
+              </Link>
+            );
+          }
 
           trimEl = (
             <Link onClick={this.onTrim} className="trim-button">
