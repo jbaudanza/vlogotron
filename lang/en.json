@@ -12,7 +12,7 @@
   "update-action": "update",
   "free-action": "free",
   "ok-action": "OK",
-  "start-singing-countdown-prompt": "Start singing in",
+  "start-singing-countdown-prompt": "Start singing this note in",
   "default-song-title": "Untitled Song",
   "song-chooser-prompt": "Choose a song...",
   "stop-recording-prompt": "Click to stop recording",

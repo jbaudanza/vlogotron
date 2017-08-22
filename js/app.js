@@ -381,7 +381,9 @@ class App extends React.Component<{}, State> {
       <PageWrapper onClick={this.onClick}>
         <SvgAssets />
         <Page
-          sidebarVisible={true}
+          sidebarVisible={isSidebarVisible(
+            pathnameToRoute(this.state.location.pathname)
+          )}
           onChangeLocale={this.onChangeLocale}
           onLogout={this.onLogout}
           isLoggedIn={isLoggedIn}
@@ -399,6 +401,10 @@ class App extends React.Component<{}, State> {
       </PageWrapper>
     );
   }
+}
+
+function isSidebarVisible(route) {
+  return route.name !== "collab-song-board";
 }
 
 App.childContextTypes = {
