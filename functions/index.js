@@ -1,9 +1,14 @@
+/* @flow */
+
 const functions = require("firebase-functions");
 
 const doTranscodeJob = require("./transcoder");
 
 const admin = require("firebase-admin");
 admin.initializeApp(functions.config().firebase);
+
+const cors = require("./cors");
+const auth = require("./auth");
 
 exports.transcodeVideo = functions.storage
   .bucket("vlogotron-uploads")
@@ -37,6 +42,20 @@ exports.accessLog = functions.https.onRequest((req, res) => {
   res.status(200).send("true;");
 });
 
-exports.charge = functions.https.onRequest(
-  require("./charge").bind(null, admin)
-);
+/*::
+  type ApiHandler = (Object, ExpressRequest, http$ServerResponse) => void;
+  type GCFHandler = (ExpressRequest, http$ServerResponse) => void;
+*/
+
+function makeApi(handler /*: ApiHandler */) /*: GCFHandler */ {
+  return function(req, res) {
+    cors(req, res, () => {
+      auth(admin, req, res, () => {
+        handler(admin, req, res);
+      });
+    });
+  };
+}
+
+exports.charge = functions.https.onRequest(makeApi(require("./charge")));
+exports.videoClips = functions.https.onRequest(makeApi(require("./createVideoClip")));
