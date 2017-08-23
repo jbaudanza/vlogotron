@@ -34,7 +34,8 @@ const VideoCropper = styled.div`
 
   video {
     height: 100%;
-    margin-left: -19%;
+    width: 100%;
+    object-fit: cover;
   }
 `;
 

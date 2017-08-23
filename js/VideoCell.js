@@ -383,8 +383,8 @@ const StyledVideoCell = styled.div`
 
   video {
     height: 100%;
-    // TODO: This magic number might need to change if we change the video sizes
-    margin-left: -19%;
+    width: 100%;
+    object-fit: cover;
   }
 
   .pitch-guide {
