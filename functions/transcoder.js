@@ -112,29 +112,34 @@ function waitForFileToExist(filename) {
 function transcode(inputFilename, outputDirectory, baseFilename) {
   const fullPath = path.join(outputDirectory, baseFilename);
 
+  const fps = 24;
+
   return new Promise((resolve, reject) => {
     ffmpeg(inputFilename)
       .output(fullPath + "-audio.mp4")
       .audioCodec("aac")
       .noVideo()
       .format("mp4")
-      // Note: I left the audio codecs comments out, in case we ever want them
+      // Note: I left the audio codecs commented out, in case we ever want them
       // for some reason. For now, there's no need to keep audio in the videos
       .size("?x150")
       .output(fullPath + ".mp4")
       //.audioCodec('aac')
       .noAudio()
       .videoCodec("libx264")
+      .fps(fps)
       .format("mp4")
       .output(fullPath + ".webm")
       //.audioCodec('libvorbis')
       .noAudio()
       .videoCodec("libvpx")
+      .fps(fps)
       .format("webm")
       .output(fullPath + ".ogv")
       //.audioCodec('libvorbis')
       .noAudio()
       .videoCodec("libtheora")
+      .fps(fps)
       .format("ogv")
       .screenshots({
         count: 1,

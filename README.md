@@ -35,6 +35,7 @@
         "name": "video-clips/-Kil1E5ssCvOQg3gtmbE",
         "bucket": "vlogotron-uploads",
         "resourceState": "exists"
+        "mediaLink": ""
     }
     ```
 
