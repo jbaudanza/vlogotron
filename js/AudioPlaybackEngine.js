@@ -22,6 +22,12 @@ export type AudioSource = {
   videoClipId: string
 };
 
+export type UIPlaybackCommand = {
+  when: number,
+  duration$: Observable<Object>,
+  noteName: string
+};
+
 export type AudioSourceMap = { [string]: AudioSource };
 
 // This is the minimum amount of time we will try to schedule audio in the
@@ -45,7 +51,7 @@ export function startLivePlaybackEngine(
   const stream$ = observableWithGainNode(destinationNode =>
     playCommands$
       .withLatestFrom(audioSources$)
-      .map(([cmd, audioSources]) => {
+      .map(([cmd, audioSources]): ?UIPlaybackCommand => {
         const when = audioContext.currentTime + batchTime;
         let event = null;
 
@@ -80,7 +86,7 @@ export function startLivePlaybackEngine(
 
         return event;
       })
-      .filter(x => x !== null)
+      .nonNull()
   ).publish();
 
   subscription.add(stream$.connect());
@@ -243,7 +249,10 @@ export function startScriptedPlayback(
             .takeUntil(playUntil$)
             .concatWith({});
 
-          const event$ = syncWithAudio(audioContext, startAt).map(when => ({
+          const event$ = syncWithAudio(
+            audioContext,
+            startAt
+          ).map((when): UIPlaybackCommand => ({
             noteName,
             when,
             duration$
