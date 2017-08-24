@@ -1,13 +1,19 @@
+/* @flow */
+
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 import { Observable } from "rxjs/Observable";
 import { Subject } from "rxjs/Subject";
+import type { Subscription } from "rxjs/Subscription";
 
 import { omit, bindAll } from "lodash";
 
 import TouchableArea from "./TouchableArea";
 import VideoCell from "./VideoCell";
 
+import type { UIPlaybackCommand } from "./AudioPlaybackEngine";
+
+// $FlowFixMe: Flow doesn't support scss
 import "./VideoGrid.scss";
 
 // prettier-ignore
@@ -19,9 +25,35 @@ export const notes = ["C3", "D3", "E3", "F3",
 // prettier-ignore
 const noteLabels = ["do", "re", "mi", "fa", "so", "la", "ti"];
 
-export default class VideoGrid extends React.Component {
-  constructor(props) {
-    super(props);
+type VideoCellProps = React.ElementProps<typeof VideoCell>;
+
+type Props = {
+  playCommands$: Object,
+  readonly: boolean,
+  videoClips: Object,
+  countdownUntilRecord?: number,
+  durationRecorded?: number,
+  onStartRecording?: Function,
+  onStopRecording?: Function,
+  onTrim?: Function,
+  onClear?: Function,
+  noteBeingRecorded?: string,
+  mediaStream?: MediaStream,
+  loading: Object,
+  pitchCorrection?: number
+};
+
+type State = {
+  playing: Object
+};
+
+export default class VideoGrid extends React.Component<Props, State> {
+  playCommands$$: Observable<Object>;
+  componentWillUnmount$: Subject<Object>;
+  subscription: Subscription;
+
+  constructor() {
+    super();
     this.state = {
       playing: {}
     };
@@ -37,14 +69,14 @@ export default class VideoGrid extends React.Component {
       .subscribe(this.onPlayCommand);
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps: Props) {
     if (nextProps.playCommands$ !== this.props.playCommands$) {
       this.subscription.unsubscribe();
       this.subscription = nextProps.playCommands$.subscribe(this.onPlayCommand);
     }
   }
 
-  onPlayCommand(command) {
+  onPlayCommand(command: UIPlaybackCommand) {
     const note = command.noteName;
     this.state.playing[note] = command.when;
     this.forceUpdate();
@@ -58,26 +90,33 @@ export default class VideoGrid extends React.Component {
   componentWillUnmount() {
     this.subscription.unsubscribe();
     this.componentWillUnmount$.next({});
-    this.componentWillUnmount$.complete({});
+    this.componentWillUnmount$.complete();
   }
 
-  propsForCell(index, note) {
-    const props = {
+  propsForCell(index: number, note: string): VideoCellProps {
+    const props: VideoCellProps = {
       videoClip: this.props.videoClips[note],
       playbackStartedAt: this.state.playing[note],
       note: note,
       readonly: this.props.readonly,
       spinner: !!this.props.loading[note],
       label: noteLabels[index % noteLabels.length],
-      octave: Math.floor(index / noteLabels.length) + 1
+      octave: Math.floor(index / noteLabels.length) + 1,
+      audioContext: this.context.audioContext
     };
 
     if (!this.props.readonly) {
-      Object.assign(props, {
-        onStartRecording: this.props.onStartRecording.bind(this, note),
-        onStopRecording: this.props.onStopRecording.bind(this, note),
-        onTrim: this.props.onTrim.bind(this, note)
-      });
+      if (this.props.onStartRecording) {
+        props.onStartRecording = this.props.onStartRecording.bind(this, note);
+      }
+
+      if (this.props.onStopRecording) {
+        props.onStopRecording = this.props.onStopRecording.bind(this, note);
+      }
+
+      if (this.props.onTrim) {
+        props.onTrim = this.props.onTrim.bind(this, note);
+      }
 
       if (this.props.onClear) {
         props.onClear = this.props.onClear.bind(this, note);
@@ -100,7 +139,7 @@ export default class VideoGrid extends React.Component {
     return props;
   }
 
-  bindTouchableArea(touchableArea) {
+  bindTouchableArea(touchableArea: ?TouchableArea) {
     // Reduces into something like: {'play': 'C', 'pause': 'A'}
     function reduceToCommands(lastCommand, note) {
       const nextCommand = {};
@@ -120,7 +159,7 @@ export default class VideoGrid extends React.Component {
       this.playCommands$$ = touchableArea.touches$$.map(touch =>
         touch.movements$
           .startWith(touch.firstEl)
-          .map(x => (x ? x.dataset.note : null)) // Map to current note
+          .map(x => (x instanceof HTMLElement ? x.dataset.note : null)) // Map to current note
           .distinctUntilChanged()
           .concatWith(null)
           .scan(reduceToCommands, {})
@@ -131,30 +170,12 @@ export default class VideoGrid extends React.Component {
     return (
       <TouchableArea className="video-container" ref={this.bindTouchableArea}>
         {notes.map((note, index) => (
-          <VideoCell
-            key={note}
-            {...this.propsForCell(index, note)}
-            audioContext={this.context.audioContext}
-          />
+          <VideoCell key={note} {...this.propsForCell(index, note)} />
         ))}
       </TouchableArea>
     );
   }
 }
-
-VideoGrid.propTypes = {
-  playCommands$: PropTypes.object.isRequired,
-  readonly: PropTypes.bool.isRequired,
-  videoClips: PropTypes.object.isRequired,
-  countdownUntilRecord: PropTypes.number,
-  durationRecorded: PropTypes.number,
-  mediaStream: PropTypes.object,
-  onStartRecording: PropTypes.func,
-  onStopRecording: PropTypes.func,
-  onClear: PropTypes.func,
-  noteBeingRecorded: PropTypes.string,
-  loading: PropTypes.object.isRequired
-};
 
 VideoGrid.contextTypes = {
   audioContext: PropTypes.object

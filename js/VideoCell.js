@@ -31,13 +31,13 @@ type Props = {
   playbackStartedAt: number,
   spinner: boolean,
   mediaStream?: MediaStream,
-  onStartRecording: Function,
-  onStopRecording: Function,
-  onTrim: Function,
+  onStartRecording?: Function,
+  onStopRecording?: Function,
+  onTrim?: Function,
   onClear?: Function,
   videoClip: Object,
   readonly: boolean,
-  countdown: number,
+  countdown?: number,
   durationRecorded?: number,
   pitchCorrection?: number,
   audioContext: AudioContext
@@ -57,7 +57,7 @@ export default class VideoCell extends React.Component<Props> {
   }
 
   onTrim() {
-    this.props.onTrim();
+    if (this.props.onTrim) this.props.onTrim();
   }
 
   onClear() {
@@ -233,20 +233,6 @@ export default class VideoCell extends React.Component<Props> {
 
 VideoCell.contextTypes = {
   messages: PropTypes.object.isRequired
-};
-
-VideoCell.propTypes = {
-  note: PropTypes.string.isRequired,
-  label: PropTypes.string.isRequired,
-  octave: PropTypes.number.isRequired,
-  playbackStartedAt: PropTypes.number,
-  spinner: PropTypes.bool.isRequired,
-  mediaStream: PropTypes.object,
-  onStartRecording: PropTypes.func,
-  onStopRecording: PropTypes.func,
-  videoClip: PropTypes.object,
-  readonly: PropTypes.bool,
-  countdown: PropTypes.number
 };
 
 const StyledVideoCell = styled.div`

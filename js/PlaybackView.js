@@ -39,7 +39,7 @@ export default class PlaybackView extends React.Component<Props> {
 
   subscription: Subscription;
 
-  bindVideoGrid(component: VideoGrid) {
+  bindVideoGrid(component: ?VideoGrid) {
     if (component) {
       this.subscription = component.playCommands$$.subscribe(
         this.props.actions.subjects.playCommands$$

@@ -39,7 +39,7 @@ type Props = {
   pitchCorrection: number,
   noteBeingRecorded: string,
   durationRecorded: number,
-  mediaStream: ?MediaStream,
+  mediaStream?: MediaStream,
   onClearVideoClip: Function,
   onStartRecording: Function,
   onStopRecording: Function,
