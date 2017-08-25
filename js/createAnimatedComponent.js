@@ -1,31 +1,37 @@
 /* @flow */
 import * as React from "react";
 
-export default function createAnimatedComponent(
-  InnerComponent: any,
-  shouldAnimate: Object => boolean,
-  animationFrame: (Object, any) => void
+export default function createAnimatedComponent<Props: Object>(
+  InnerComponent: React.ComponentType<Props>,
+  shouldAnimate: Props => boolean,
+  animationFrame: (Props, any) => void
 ) {
-  return class AnimatedComponent extends React.Component<Object> {
+  return class AnimatedComponent extends React.Component<Props> {
+    constructor() {
+      super();
+      this.setInnerElRef = this.setInnerElRef.bind(this);
+    }
+
     frameId: number;
-    innerEl: Element;
+    innerEl: ?Element;
+    setInnerElRef: (el: any) => void;
 
     componentWillMount() {
       this.checkProps(this.props);
     }
 
-    setInnerElRef(el: Element) {
+    setInnerElRef(el: any): void {
       if (el) {
         animationFrame(this.props, el);
       }
       this.innerEl = el;
     }
 
-    componentWillUpdate(nextProps: Object) {
+    componentWillUpdate(nextProps: Props) {
       this.checkProps(nextProps);
     }
 
-    checkProps(props: Object) {
+    checkProps(props: Props) {
       if (shouldAnimate(props)) {
         if (!this.frameId) {
           this.schedule();
@@ -58,9 +64,7 @@ export default function createAnimatedComponent(
     }
 
     render() {
-      return (
-        <InnerComponent {...this.props} ref={this.setInnerElRef.bind(this)} />
-      );
+      return <InnerComponent {...this.props} ref={this.setInnerElRef} />;
     }
   };
 }

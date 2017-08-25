@@ -85,12 +85,14 @@ function percentString(number) {
   return number * 100 + "%";
 }
 
-type VideoPlaybackPositionProps = {
-  playbackStartedAt: ?number
+type PlaybackPositionAnimationProps = {
+  playbackStartedAt: ?number,
+  duration: number,
+  getCurrentTime: () => number
 };
 
 class VideoPlaybackPosition
-  extends React.Component<VideoPlaybackPositionProps> {
+  extends React.Component<PlaybackPositionAnimationProps> {
   leftBarEl: ?HTMLElement;
   rightBarEl: ?HTMLElement;
   svgCircleEl: ?HTMLElement;
@@ -254,7 +256,9 @@ const AudioPlaybackPositionLine = styled.div`
 `;
 
 class AudioPlaybackPositionMarker
-  extends React.Component<{ trimStart: number, trimEnd: number }> {
+  extends React.Component<
+    PlaybackPositionAnimationProps & { trimStart: number, trimEnd: number }
+  > {
   markerEl: ?HTMLElement;
   labelEl: ?HTMLElement;
 
@@ -286,14 +290,17 @@ class AudioPlaybackPositionMarker
   }
 }
 
-function createPlaybackPositionAnimation(Component) {
+function createPlaybackPositionAnimation<Props: PlaybackPositionAnimationProps>(
+  Component: React.ComponentType<Props>
+) {
   return createAnimatedComponent(
     Component,
-    props => props.playbackStartedAt,
-    (props, element) => {
+    (props: Props) => props.playbackStartedAt != null,
+    (props: Props, element) => {
       if (props.playbackStartedAt) {
-        const elapsed = props.getCurrentTime() - props.playbackStartedAt;
-        const progress = props.playbackStartedAt ? elapsed / props.duration : 0;
+        const playbackStartedAt = props.playbackStartedAt;
+        const elapsed = props.getCurrentTime() - playbackStartedAt;
+        const progress = playbackStartedAt ? elapsed / props.duration : 0;
         element.animationFrame(progress, elapsed);
       } else {
         element.animationFrame(0);
