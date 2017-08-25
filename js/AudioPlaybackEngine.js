@@ -14,11 +14,12 @@ import type { ScheduledNoteList } from "./song";
 
 import TrimmedAudioBufferSourceNode from "./TrimmedAudioBufferSourceNode";
 
-export type AudioSource = {
+type AudioSource = {
   // audioBuffer will be missing if it hasn't finished loading yet
   audioBuffer?: AudioBuffer,
   trimStart: number,
   trimEnd: number,
+  playbackRate: number,
   videoClipId: string
 };
 
@@ -136,7 +137,8 @@ function buildSourceNode(
 
     // alter playback rate for sharp notes,
     // simply use just intonation for now
-    const pitchRatio = isSharp ? 1.05946 : 1.0;
+    const playbackRate = audioSource.playbackRate;
+    const pitchRatio = isSharp ? 1.05946 * playbackRate : playbackRate;
     source.source.playbackRate.value = pitchRatio;
 
     return [noteName, source];

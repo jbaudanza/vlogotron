@@ -21,6 +21,7 @@ export type VideoClip = {
   videoClipId: string,
   trimStart: number,
   trimEnd: number,
+  playbackRate: number,
   gain: number
 };
 
@@ -131,7 +132,8 @@ function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
         videoClipId: event.videoClipId,
         gain: 0,
         trimStart: 0,
-        trimEnd: 1
+        trimEnd: 1,
+        playbackRate: 1
       };
 
       return {

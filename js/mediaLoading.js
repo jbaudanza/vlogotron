@@ -11,6 +11,7 @@ import type { Route } from "./router";
 
 import { findSongBoard, waitForTranscode } from "./database";
 import type { SongBoard, FirebaseDatabase, VideoClip } from "./database";
+import type { AudioSourceMap } from "./AudioPlaybackEngine";
 
 import {
   clone,
@@ -47,7 +48,7 @@ export type ClearedMedia = {
 export type Media = {
   songBoard$: Observable<SongBoard>,
   videoClips$: Observable<{ [string]: VideoClip }>,
-  audioSources$: Observable<Object>,
+  audioSources$: Observable<AudioSourceMap>,
   clearedEvents$: Subject<ClearedMedia>,
   recordedMedia$: Subject<CapturedMedia>,
   loading$: Observable<Object>
@@ -140,7 +141,8 @@ export function subscribeToSongBoardId(
     songBoard$.map(song =>
       mapValues(song.videoClips, (o: VideoClip) => ({
         trimStart: o.trimStart,
-        trimEnd: o.trimEnd
+        trimEnd: o.trimEnd,
+        playbackRate: o.playbackRate
       }))
     ),
     (videoClips, trimSettings) => merge({}, videoClips, trimSettings)

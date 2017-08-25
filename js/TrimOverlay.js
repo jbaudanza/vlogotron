@@ -406,6 +406,13 @@ class TrimOverlay extends React.Component<Props> {
       trimEnd: this.props.trimEnd
     };
 
+    // Allow trimStart and trimEnd to be overridden
+    const videoClip = {
+      ...this.props.videoClip,
+      trimStart: this.props.trimStart,
+      trimEnd: this.props.trimEnd
+    };
+
     return (
       <Overlay
         className="trim-overlay"
@@ -417,9 +424,8 @@ class TrimOverlay extends React.Component<Props> {
         <VideoWrapper>
           <VideoCropper>
             <SynchronizedVideo
-              videoClip={this.props.videoClip}
+              videoClip={videoClip}
               audioContext={audioContext}
-              trimStart={this.props.trimStart}
               playbackStartedAt={this.props.playbackStartedAt}
             />
           </VideoCropper>
@@ -488,6 +494,7 @@ function schedulePlaybackNow(
   audioContext,
   trimStart,
   trimEnd,
+  playbackRate,
   audioBuffer,
   playUntil$
 ) {
@@ -499,6 +506,7 @@ function schedulePlaybackNow(
     trimStart,
     trimEnd
   );
+  source.source.playbackRate.value = playbackRate;
   source.connect(audioContext.destination);
   source.start(startAt);
 
@@ -548,6 +556,7 @@ function controller(props$, actions) {
         audioContext,
         trimStart,
         trimEnd,
+        props.videoClip.playbackRate,
         props.audioBuffer,
         actions.pause$
       )
