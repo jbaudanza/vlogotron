@@ -7,35 +7,11 @@ import styled from "styled-components";
 
 import { findWrappingClass } from "./domutils";
 
+import AudioBufferView from "./AudioBufferView";
+import { drawPitch, drawAmplitude } from "./AudioBufferView";
+
 const documentMouseMove$ = Observable.fromEvent(document, "mousemove");
 const documentMouseUp$ = Observable.fromEvent(document, "mouseup");
-
-function draw(array, context, width, height) {
-  const step = array.length / width;
-
-  const amp = height / 2;
-
-  context.fillStyle = "#a0a7c4";
-  context.fillRect(0, 0, width, height);
-
-  context.fillStyle = "#4b57a3";
-
-  // i - index into canvas
-  for (let i = 0; i < width; i++) {
-    let min = 1.0;
-    let max = -1.0;
-
-    // j - index into data array
-    for (let j = 0; j < Math.ceil(step); j++) {
-      const sample = array[Math.floor(i * step) + j];
-
-      if (sample < min) min = sample;
-
-      if (sample > max) max = sample;
-    }
-    context.fillRect(i, (1 + min) * amp, 1, Math.max(1, (max - min) * amp));
-  }
-}
 
 const grabberPadding = 4;
 
@@ -73,7 +49,7 @@ const GrabberLine = styled.div`
   background-color: #fff;
 `;
 
-const Canvas = styled.canvas`
+const StyledAudioBufferView = styled(AudioBufferView)`
   margin-top: ${grabberPadding}px;
 `;
 
@@ -86,7 +62,6 @@ function constrainRange(number) {
 export default class TrimAdjuster extends React.Component {
   constructor(props) {
     super();
-    this.setCanvasRef = this.setCanvasRef.bind(this);
     this.onMouseDownStart = this.onMouseDown.bind(
       this,
       this._filteredOnChangeStart.bind(this),
@@ -122,14 +97,6 @@ export default class TrimAdjuster extends React.Component {
 
     if (value <= 1 && value > this.props.trimStart) {
       this.props.onChangeEnd(value);
-    }
-  }
-
-  setCanvasRef(canvasEl) {
-    if (canvasEl) {
-      const context = canvasEl.getContext("2d");
-      const array = this.props.audioBuffer.getChannelData(0);
-      draw(array, context, canvasEl.width, canvasEl.height);
     }
   }
 
@@ -182,10 +149,11 @@ export default class TrimAdjuster extends React.Component {
         style={{ width: this.props.width, height: this.props.height }}
         innerRef={el => this.wrapperEl = el}
       >
-        <Canvas
+        <StyledAudioBufferView
           width={this.props.width}
           height={this.props.height - grabberPadding * 2}
-          innerRef={this.setCanvasRef}
+          onDraw={drawAmplitude}
+          audioBuffer={this.props.audioBuffer}
         />
         <Shade
           style={{
