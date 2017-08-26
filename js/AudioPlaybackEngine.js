@@ -17,10 +17,14 @@ import TrimmedAudioBufferSourceNode from "./TrimmedAudioBufferSourceNode";
 type AudioSource = {
   // audioBuffer will be missing if it hasn't finished loading yet
   audioBuffer?: AudioBuffer,
+  playbackParams: PlaybackParams
+};
+
+export type PlaybackParams = {
   trimStart: number,
   trimEnd: number,
   playbackRate: number,
-  videoClipId: string
+  gain: number
 };
 
 export type UIPlaybackCommand = {
@@ -130,14 +134,14 @@ function buildSourceNode(
     const source = new TrimmedAudioBufferSourceNode(
       audioContext,
       audioSource.audioBuffer,
-      audioSource.trimStart,
-      audioSource.trimEnd
+      audioSource.playbackParams.trimStart,
+      audioSource.playbackParams.trimEnd
     );
     source.connect(destinationNode);
 
     // alter playback rate for sharp notes,
     // simply use just intonation for now
-    const playbackRate = audioSource.playbackRate;
+    const playbackRate = audioSource.playbackParams.playbackRate;
     const pitchRatio = isSharp ? 1.05946 * playbackRate : playbackRate;
     source.source.playbackRate.value = pitchRatio;
 

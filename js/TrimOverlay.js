@@ -88,6 +88,7 @@ function percentString(number) {
 type PlaybackPositionAnimationProps = {
   playbackStartedAt: ?number,
   duration: number,
+  playbackRate: number,
   getCurrentTime: () => number
 };
 
@@ -409,8 +410,11 @@ class TrimOverlay extends React.Component<Props> {
     // Allow trimStart and trimEnd to be overridden
     const videoClip = {
       ...this.props.videoClip,
-      trimStart: this.props.trimStart,
-      trimEnd: this.props.trimEnd
+      playbackParams: {
+        ...this.props.videoClip.playbackParams,
+        trimStart: this.props.trimStart,
+        trimEnd: this.props.trimEnd
+      }
     };
 
     return (
@@ -556,7 +560,7 @@ function controller(props$, actions) {
         audioContext,
         trimStart,
         trimEnd,
-        props.videoClip.playbackRate,
+        props.videoClip.playbackParams.playbackRate,
         props.audioBuffer,
         actions.pause$
       )

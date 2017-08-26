@@ -8,6 +8,7 @@ import * as firebase from "firebase";
 import { postToAPI } from "./xhr";
 
 import type { Song, SongId } from "./song";
+import type { PlaybackParams } from "./AudioPlaybackEngine";
 
 type VideoClipSource = $Exact<{
   src: string,
@@ -19,10 +20,7 @@ type VideoClipId = string; // Looks like firebase id
 
 export type VideoClip = {
   videoClipId: string,
-  trimStart: number,
-  trimEnd: number,
-  playbackRate: number,
-  gain: number
+  playbackParams: PlaybackParams
 };
 
 type VideoClipSources = {
@@ -125,15 +123,19 @@ function updateVideoClip(
   }
 }
 
+const defaultPlaybackParams = {
+  gain: 0,
+  trimStart: 0,
+  trimEnd: 1,
+  playbackRate: 1
+};
+
 function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
   switch (event.type) {
     case "add-video":
       const videoClip: VideoClip = {
         videoClipId: event.videoClipId,
-        gain: 0,
-        trimStart: 0,
-        trimEnd: 1,
-        playbackRate: 1
+        playbackParams: defaultPlaybackParams
       };
 
       return {
@@ -149,15 +151,14 @@ function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
       const value = event.value;
       return updateVideoClip(acc, event.note, videoClip => ({
         ...videoClip,
-        gain: value
+        playbackParams: { ...videoClip.playbackParams, gain: value }
       }));
 
     case "update-trim":
       const { trimStart, trimEnd } = event;
       return updateVideoClip(acc, event.note, videoClip => ({
         ...videoClip,
-        trimStart,
-        trimEnd
+        playbackParams: { ...videoClip.playbackParams, trimStart, trimEnd }
       }));
 
     case "update-song":

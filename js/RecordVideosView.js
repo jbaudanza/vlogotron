@@ -148,8 +148,8 @@ export default class RecordVideosView extends React.Component<Props> {
             onClose={this.props.location.pathname}
             videoClip={this.props.videoClips[note]}
             audioBuffer={this.props.audioSources[note].audioBuffer}
-            trimStart={this.props.audioSources[note].trimStart}
-            trimEnd={this.props.audioSources[note].trimEnd}
+            trimStart={this.props.audioSources[note].playbackParams.trimStart}
+            trimEnd={this.props.audioSources[note].playbackParams.trimEnd}
             onFinish={this.onFinishTrim.bind(this, note)}
           />
         );

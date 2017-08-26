@@ -26,7 +26,8 @@ export default class SynchronizedVideo extends React.Component<Props> {
 
   resetStartPosition() {
     if (this.videoEl && isFinite(this.videoEl.duration) && !this.isPlaying) {
-      const offset = this.props.videoClip.trimStart * this.videoEl.duration;
+      const offset =
+        this.props.videoClip.playbackParams.trimStart * this.videoEl.duration;
       this.videoEl.currentTime = offset;
     }
   }
@@ -47,7 +48,10 @@ export default class SynchronizedVideo extends React.Component<Props> {
       this.startPlayback();
     }
 
-    if (prevProps.videoClip.trimStart != this.props.videoClip.trimStart) {
+    if (
+      prevProps.videoClip.playbackParams.trimStart !=
+      this.props.videoClip.playbackParams.trimStart
+    ) {
       this.resetStartPosition();
     }
   }
@@ -60,12 +64,13 @@ export default class SynchronizedVideo extends React.Component<Props> {
       // videos
       let offset;
       if (isFinite(videoEl.duration)) {
-        offset = this.props.videoClip.trimStart * videoEl.duration;
+        offset =
+          this.props.videoClip.playbackParams.trimStart * videoEl.duration;
       } else {
         offset = 0;
       }
 
-      videoEl.playbackRate = this.props.videoClip.playbackRate;
+      videoEl.playbackRate = this.props.videoClip.playbackParams.playbackRate;
       videoEl.currentTime = offset;
       const promise = videoEl.play();
       this.isPlaying = true;

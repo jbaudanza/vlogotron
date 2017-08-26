@@ -134,18 +134,16 @@ export function subscribeToSongBoardId(
     (x, y) => merge({}, x, y)
   );
 
-  // This tacks on trimStart and trimEnd to the videoClip. It might be nice to
+  // This tacks on playbackParams to the videoClip. It might be nice to
   // clean this up a bit
   const videoClipsWithTrim$ = Observable.combineLatest(
     videoClips$,
     songBoard$.map(song =>
       mapValues(song.videoClips, (o: VideoClip) => ({
-        trimStart: o.trimStart,
-        trimEnd: o.trimEnd,
-        playbackRate: o.playbackRate
+        playbackParams: o.playbackParams
       }))
     ),
-    (videoClips, trimSettings) => merge({}, videoClips, trimSettings)
+    (videoClips, playbackParams) => merge({}, videoClips, playbackParams)
   ).map(videoClips => pickBy(videoClips, v => "sources" in v));
 
   return {
