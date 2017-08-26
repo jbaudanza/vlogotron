@@ -301,7 +301,9 @@ function createPlaybackPositionAnimation<Props: PlaybackPositionAnimationProps>(
       if (props.playbackStartedAt) {
         const playbackStartedAt = props.playbackStartedAt;
         const elapsed = props.getCurrentTime() - playbackStartedAt;
-        const progress = playbackStartedAt ? elapsed / props.duration : 0;
+        const progress = playbackStartedAt
+          ? elapsed * props.playbackRate / props.duration
+          : 0;
         element.animationFrame(progress, elapsed);
       } else {
         element.animationFrame(0);
@@ -404,7 +406,8 @@ class TrimOverlay extends React.Component<Props> {
       playbackStartedAt: this.props.playbackStartedAt,
       duration: trimmedDuration,
       trimStart: this.props.trimStart,
-      trimEnd: this.props.trimEnd
+      trimEnd: this.props.trimEnd,
+      playbackRate: this.props.videoClip.playbackParams.playbackRate
     };
 
     // Allow trimStart and trimEnd to be overridden
@@ -451,7 +454,9 @@ class TrimOverlay extends React.Component<Props> {
             {" "}
             |
             {" "}
-            {formatSeconds(trimmedDuration)}
+            {formatSeconds(
+              trimmedDuration / this.props.videoClip.playbackParams.playbackRate
+            )}
           </PlaybackPositionText>
         </VideoWrapper>
 
@@ -514,7 +519,9 @@ function schedulePlaybackNow(
   source.connect(audioContext.destination);
   source.start(startAt);
 
-  const videoFinished$ = Observable.of(null).delay(source.duration * 1000);
+  const videoFinished$ = Observable.of(null).delay(
+    source.duration / playbackRate * 1000
+  );
   const stopEarly$ = playUntil$.take(1);
 
   stopEarly$.subscribe(() => {
