@@ -125,6 +125,12 @@ class VideoPlaybackPosition
     }
   }
 
+  componentDidUpdate() {
+    if (this.props.playbackStartedAt == null) {
+      this.animationFrame(0);
+    }
+  }
+
   render() {
     return (
       <VideoPlaybackPositionWrapper {...this.props}>
