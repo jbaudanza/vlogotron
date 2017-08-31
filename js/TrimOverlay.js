@@ -457,8 +457,9 @@ type Props = {
   className: string,
   onPlay: Function,
   onPause: Function,
-  onChangeEnd: Function,
-  onChangeStart: Function,
+  onChangeEnd: number => void,
+  onChangeStart: number => void,
+  onChangePlaybackRate: number => void,
   onFinish: Function
 };
 
@@ -471,12 +472,21 @@ class TrimOverlay extends React.Component<Props, State> {
     super();
     this.state = { activeTabIndex: 0 };
     this.setActiveTabIndex = this.setActiveTabIndex.bind(this);
+    this.onChangePlaybackRate = this.onChangePlaybackRate.bind(this);
   }
 
   setActiveTabIndex: (index: number) => void;
+  onChangePlaybackRate: (event: Event) => void;
 
   setActiveTabIndex(index: number) {
     this.setState({ activeTabIndex: index });
+  }
+
+  onChangePlaybackRate(event: Event) {
+    const el = event.target;
+    if (el instanceof HTMLInputElement) {
+      this.props.onChangePlaybackRate(parseFloat(el.value));
+    }
   }
 
   render() {
@@ -522,12 +532,23 @@ class TrimOverlay extends React.Component<Props, State> {
         break;
       case 1:
         tabContentEl = (
-          <AudioBufferView
-            width={contentWidth}
-            height={51}
-            onDraw={drawPitch}
-            audioBuffer={this.props.audioBuffer}
-          />
+          <div>
+            <AudioBufferView
+              width={contentWidth}
+              height={51}
+              onDraw={drawPitch}
+              audioBuffer={this.props.audioBuffer}
+            />
+            <input
+              type="range"
+              min={0.5}
+              max={2}
+              value={this.props.playbackRate}
+              step={0.1}
+              onChange={this.onChangePlaybackRate}
+            />
+            {this.props.playbackRate} X
+          </div>
         );
 
         break;
@@ -653,6 +674,7 @@ function schedulePlaybackNow(
 function controller(props$, actions) {
   const initialProps$ = props$.take(1);
 
+  // TODO: Can we get rid of props.trimStart and focus on props.videoClip?
   const trimStart$ = initialProps$
     .map(props => props.trimStart)
     .concat(actions.changeStart$)
@@ -662,10 +684,16 @@ function controller(props$, actions) {
     .concat(actions.changeEnd$)
     .publishReplay();
 
+  const playbackRate$ = initialProps$
+    .map(props => props.videoClip.playbackParams.playbackRate)
+    .concat(actions.changePlaybackRate$)
+    .publishReplay();
+
   // The source observables for these connections will end when the component
   // is unmounted, so there's no need to manage the subscriptions
   trimStart$.connect();
   trimEnd$.connect();
+  playbackRate$.connect();
 
   actions.finish$
     .withLatestFrom(props$, trimStart$, trimEnd$)
@@ -676,13 +704,13 @@ function controller(props$, actions) {
   const unmount$ = props$.ignoreElements().concatWith({});
 
   const playbackStartedAt$ = actions.play$
-    .withLatestFrom(props$, trimStart$, trimEnd$)
-    .switchMap(([action, props, trimStart, trimEnd]) =>
+    .withLatestFrom(props$, trimStart$, trimEnd$, playbackRate$)
+    .switchMap(([action, props, trimStart, trimEnd, playbackRate]) =>
       schedulePlaybackNow(
         audioContext,
         trimStart,
         trimEnd,
-        props.videoClip.playbackParams.playbackRate,
+        playbackRate,
         props.audioBuffer,
         Observable.merge(actions.pause$, unmount$)
       )
@@ -694,13 +722,15 @@ function controller(props$, actions) {
     trimStart$,
     trimEnd$,
     playbackStartedAt$,
-    (props, trimStart, trimEnd, playbackStartedAt) => ({
+    playbackRate$,
+    (props, trimStart, trimEnd, playbackStartedAt, playbackRate) => ({
       videoClip: props.videoClip,
       onClose: props.onClose,
       audioBuffer: props.audioBuffer,
       playbackStartedAt,
       trimStart,
-      trimEnd
+      trimEnd,
+      playbackRate
     })
   );
 }
@@ -710,5 +740,6 @@ export default createControlledComponent(controller, StyledTrimOverlay, [
   "pause",
   "changeStart",
   "changeEnd",
+  "changePlaybackRate",
   "finish"
 ]);
