@@ -12,7 +12,11 @@ type Props = {
   children: React.Node
 };
 
-class Overlay extends React.Component<Props> {
+type State = {
+  hasError: boolean
+};
+
+class Overlay extends React.Component<Props, State> {
   _keyDownHandler: Function;
   ref: ?HTMLElement => void;
   rootEl: ?HTMLElement;
@@ -20,6 +24,11 @@ class Overlay extends React.Component<Props> {
   constructor() {
     super();
     this.ref = this.ref.bind(this);
+    this.state = { hasError: false };
+  }
+
+  componentDidCatch() {
+    this.setState({ hasError: true });
   }
 
   ref(el: ?HTMLElement) {
@@ -67,7 +76,9 @@ class Overlay extends React.Component<Props> {
         <div className="content">
           {closeLinkEl}
           <div className="scroll">
-            {this.props.children}
+            {this.state.hasError
+              ? "This overlay encountered an unexpepted error"
+              : this.props.children}
           </div>
         </div>
       </StyledOverlay>
