@@ -92,6 +92,69 @@ type PlaybackPositionAnimationProps = {
   getCurrentTime: () => number
 };
 
+const InactiveTab = styled.a`
+  display: inline-block;
+  text-decoration: none;
+  color: ${colors.charcoalGrey};
+  font-weight: 400;
+  height: 25px;
+  line-height: 25px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  cursor: pointer;
+  border-left: 1px solid #fff;
+  border-right: 1px solid #fff;
+`;
+
+const ActiveTab = InactiveTab.withComponent("span").extend`
+  border-top: 2px solid ${colors.purple};
+  border-left: 1px solid #D9DBEB;
+  border-right: 1px solid #D9DBEB;
+  cursor: auto;
+`;
+
+function Tab(
+  props: { active: boolean, children: React.Node, onClick: Function }
+) {
+  if (props.active) {
+    return (
+      <ActiveTab>
+        {props.children}
+      </ActiveTab>
+    );
+  } else {
+    return <InactiveTab onClick={props.onClick}>{props.children}</InactiveTab>;
+  }
+}
+
+class TabGroup
+  extends React.Component<{ tabs: Array<string> }, { activeTabIndex: number }> {
+  constructor() {
+    super();
+    this.state = { activeTabIndex: 0 };
+  }
+
+  setActiveTabIndex(index) {
+    this.setState({ activeTabIndex: index });
+  }
+
+  render() {
+    return (
+      <div>
+        {this.props.tabs.map((label, i) => (
+          <Tab
+            active={i === this.state.activeTabIndex}
+            key={i}
+            onClick={this.setActiveTabIndex.bind(this, i)}
+          >
+            {label}
+          </Tab>
+        ))}
+      </div>
+    );
+  }
+}
+
 class VideoPlaybackPosition
   extends React.Component<PlaybackPositionAnimationProps> {
   leftBarEl: ?HTMLElement;
@@ -465,6 +528,8 @@ class TrimOverlay extends React.Component<Props> {
             )}
           </PlaybackPositionText>
         </VideoWrapper>
+
+        <TabGroup tabs={["Trim Video", "Playback Rate", "Volume"]} />
 
         <TrimAdjusterWrapper>
           <TrimAdjuster
