@@ -16,6 +16,9 @@ import { formatSeconds } from "./format";
 import createControlledComponent from "./createControlledComponent";
 import createAnimatedComponent from "./createAnimatedComponent";
 
+import AudioBufferView from "./AudioBufferView";
+import { drawPitch } from "./AudioBufferView";
+
 import audioContext from "./audioContext";
 
 import { times } from "lodash";
@@ -128,24 +131,19 @@ function Tab(
 }
 
 class TabGroup
-  extends React.Component<{ tabs: Array<string> }, { activeTabIndex: number }> {
-  constructor() {
-    super();
-    this.state = { activeTabIndex: 0 };
-  }
-
-  setActiveTabIndex(index) {
-    this.setState({ activeTabIndex: index });
-  }
-
+  extends React.Component<{
+    tabs: Array<string>,
+    activeTabIndex: number,
+    onChange: number => void
+  }> {
   render() {
     return (
       <div>
         {this.props.tabs.map((label, i) => (
           <Tab
-            active={i === this.state.activeTabIndex}
+            active={i === this.props.activeTabIndex}
             key={i}
-            onClick={this.setActiveTabIndex.bind(this, i)}
+            onClick={this.props.onChange.bind(null, i)}
           >
             {label}
           </Tab>
@@ -464,7 +462,23 @@ type Props = {
   onFinish: Function
 };
 
-class TrimOverlay extends React.Component<Props> {
+type State = {
+  activeTabIndex: number
+};
+
+class TrimOverlay extends React.Component<Props, State> {
+  constructor() {
+    super();
+    this.state = { activeTabIndex: 0 };
+    this.setActiveTabIndex = this.setActiveTabIndex.bind(this);
+  }
+
+  setActiveTabIndex: (index: number) => void;
+
+  setActiveTabIndex(index: number) {
+    this.setState({ activeTabIndex: index });
+  }
+
   render() {
     const trimmedDuration =
       this.props.audioBuffer.duration *
@@ -489,13 +503,51 @@ class TrimOverlay extends React.Component<Props> {
       }
     };
 
+    const tabLabels = ["Trim", "Pitch", "Volume"];
+
+    let tabContentEl = null;
+    switch (this.state.activeTabIndex) {
+      case 0:
+        tabContentEl = (
+          <TrimAdjuster
+            audioBuffer={this.props.audioBuffer}
+            trimStart={this.props.trimStart}
+            trimEnd={this.props.trimEnd}
+            onChangeStart={this.props.onChangeStart}
+            onChangeEnd={this.props.onChangeEnd}
+            width={contentWidth}
+            height={51}
+          />
+        );
+        break;
+      case 1:
+        tabContentEl = (
+          <AudioBufferView
+            width={contentWidth}
+            height={51}
+            onDraw={drawPitch}
+            audioBuffer={this.props.audioBuffer}
+          />
+        );
+
+        break;
+
+      case 2:
+        tabContentEl = "volume";
+        break;
+    }
+
     return (
       <Overlay
         className="trim-overlay"
         className={this.props.className}
         onClose={this.props.onClose}
       >
-        <h1>Trim video</h1>
+        <TabGroup
+          activeTabIndex={this.state.activeTabIndex}
+          tabs={tabLabels}
+          onChange={this.setActiveTabIndex}
+        />
 
         <VideoWrapper>
           <VideoCropper>
@@ -529,18 +581,8 @@ class TrimOverlay extends React.Component<Props> {
           </PlaybackPositionText>
         </VideoWrapper>
 
-        <TabGroup tabs={["Trim Video", "Playback Rate", "Volume"]} />
-
         <TrimAdjusterWrapper>
-          <TrimAdjuster
-            audioBuffer={this.props.audioBuffer}
-            trimStart={this.props.trimStart}
-            trimEnd={this.props.trimEnd}
-            onChangeStart={this.props.onChangeStart}
-            onChangeEnd={this.props.onChangeEnd}
-            width={contentWidth}
-            height={51}
-          />
+          {tabContentEl}
           <AnimatedAudioPlaybackPositionMarker {...playbackAnimationProps} />
         </TrimAdjusterWrapper>
 
@@ -557,7 +599,7 @@ class TrimOverlay extends React.Component<Props> {
 const StyledTrimOverlay = styled(TrimOverlay)`
   .content {
     width: ${contentWidth}px;
-    padding: 0 40px 20px 40px;
+    padding: 40px 40px 20px 40px;
     text-align: left;
   }
   // Disable scrolling
@@ -631,6 +673,8 @@ function controller(props$, actions) {
       props.onFinish(trimStart, trimEnd)
     );
 
+  const unmount$ = props$.ignoreElements().concatWith({});
+
   const playbackStartedAt$ = actions.play$
     .withLatestFrom(props$, trimStart$, trimEnd$)
     .switchMap(([action, props, trimStart, trimEnd]) =>
@@ -640,7 +684,7 @@ function controller(props$, actions) {
         trimEnd,
         props.videoClip.playbackParams.playbackRate,
         props.audioBuffer,
-        actions.pause$
+        Observable.merge(actions.pause$, unmount$)
       )
     )
     .startWith(null);

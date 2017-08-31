@@ -8,7 +8,7 @@ import styled from "styled-components";
 import { findWrappingClass } from "./domutils";
 
 import AudioBufferView from "./AudioBufferView";
-import { drawPitch, drawAmplitude, drawBoth } from "./AudioBufferView";
+import { drawAmplitude } from "./AudioBufferView";
 
 const documentMouseMove$ = Observable.fromEvent(document, "mousemove");
 const documentMouseUp$ = Observable.fromEvent(document, "mouseup");
@@ -152,7 +152,7 @@ export default class TrimAdjuster extends React.Component {
         <StyledAudioBufferView
           width={this.props.width}
           height={this.props.height - grabberPadding * 2}
-          onDraw={drawBoth}
+          onDraw={drawAmplitude}
           audioBuffer={this.props.audioBuffer}
         />
         <Shade

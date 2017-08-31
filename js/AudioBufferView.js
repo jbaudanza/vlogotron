@@ -68,15 +68,16 @@ export function drawPitch(
   width: number,
   height: number
 ) {
+  // Clear
+  context.fillStyle = "#a0a7c4";
+  context.fillRect(0, 0, width, height);
+
   const array = mapToPitchBlocks(input);
 
   const octaveSize = 12;
 
   const blockWidth = width / array.length;
   const scaleY = height / octaveSize;
-
-  // context.fillStyle = "#a0a7c4";
-  // context.fillRect(0, 0, width, height);
 
   context.lineWidth = 1;
   context.lineCap = "square";
@@ -116,8 +117,9 @@ export function drawAmplitude(
 
   const amp = height / 2;
 
-  // context.fillStyle = "#a0a7c4";
-  // context.fillRect(0, 0, width, height);
+  // Clear
+  context.fillStyle = "#a0a7c4";
+  context.fillRect(0, 0, width, height);
 
   context.fillStyle = "#4b57a3";
   // XXX: Left off here. Try to come up with a good color scheme for the
