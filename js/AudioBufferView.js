@@ -3,8 +3,10 @@
 import * as React from "react";
 
 import detectPitch from "detect-pitch";
+import asyncDetectPitch from "./asyncDetectPitch";
 
 import { frequencyToNote } from "./frequencies";
+import type { PlaybackParams } from "./AudioPlaybackEngine";
 
 type Props = {
   className?: string,
@@ -50,12 +52,14 @@ export default class AudioBufferView extends React.Component<Props> {
 function mapToPitchBlocks(array: Float32Array): Array<?number> {
   const threshold = 0.5;
   const sampleRate = 44100; // TODO: Pull this off the audioContext
-  const blockSize = sampleRate * 0.100;
 
+  const blockSize = sampleRate * 0.100;
   const blocks = [];
   for (let i = 0; i + blockSize < array.length; i += blockSize) {
     blocks.push(array.subarray(i, i + blockSize));
   }
+
+  blocks.map(block => asyncDetectPitch(block, threshold));
 
   return blocks
     .map(block => detectPitch(block, threshold))
@@ -72,6 +76,7 @@ export function drawPitch(
   context.fillStyle = "#a0a7c4";
   context.fillRect(0, 0, width, height);
 
+  // TODO: This should be run on a worker thread.
   const array = mapToPitchBlocks(input);
 
   const octaveSize = 12;
