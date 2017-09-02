@@ -11,7 +11,7 @@ import type { Route } from "./router";
 
 import { findSongBoard, waitForTranscode } from "./database";
 import type { SongBoard, FirebaseDatabase, VideoClip } from "./database";
-import type { AudioSourceMap } from "./AudioPlaybackEngine";
+import type { AudioSourceMap, PlaybackParams } from "./AudioPlaybackEngine";
 
 import {
   clone,
@@ -58,7 +58,9 @@ export type ClearedMedia = {
 
 export type Media = {
   songBoard$: Observable<SongBoard>,
-  videoClips$: Observable<{ [string]: VideoClip }>,
+  videoClipSources$: Observable<{ [string]: VideoClipSources }>,
+  videoClipIds$: Observable<{ [string]: string }>,
+  playbackParams$: Observable<{ [string]: PlaybackParams }>,
   audioSources$: Observable<AudioSourceMap>,
   clearedEvents$: Subject<ClearedMedia>,
   recordedMedia$: Subject<CapturedMedia>,
@@ -101,15 +103,15 @@ export function subscribeToSongBoardId(
 
   subscription.add(songBoard$.connect());
 
-  const videoClipIds$ = songBoard$.map(function(songBoard) {
-    return mapValues(songBoard.videoClips, (v: VideoClip) => v.videoClipId);
-  });
+  const videoClipIds$ = songBoard$.map(song =>
+    mapValues(song.videoClips, (o: VideoClip) => o.videoClipId)
+  );
 
   const remoteVideoClips$ = videoClipsForClipIds(videoClipIds$, firebase)
     .startWith({})
     .publishReplay();
 
-  const videoClips$ = Observable.combineLatest(
+  const videoClipSources$ = Observable.combineLatest(
     localVideoStore$,
     remoteVideoClips$,
     (local, remote) => ({ ...remote, ...local })
@@ -145,25 +147,19 @@ export function subscribeToSongBoardId(
     (x, y) => merge({}, x, y)
   );
 
-  // This tacks on playbackParams to the videoClip. It might be nice to
-  // clean this up a bit
-  const videoClipsWithTrim$ = Observable.combineLatest(
-    videoClips$,
-    songBoard$.map(song =>
-      mapValues(song.videoClips, (o: VideoClip) => ({
-        playbackParams: o.playbackParams
-      }))
-    ),
-    (videoClips, playbackParams) => merge({}, videoClips, playbackParams)
-  ).map(videoClips => pickBy(videoClips, v => "sources" in v));
+  const playbackParams$ = songBoard$.map(song =>
+    mapValues(song.videoClips, (o: VideoClip) => o.playbackParams)
+  );
 
   return {
     songBoard$,
-    videoClips$: videoClipsWithTrim$,
+    videoClipSources$,
     audioSources$,
     clearedEvents$,
     recordedMedia$,
-    loading$
+    loading$,
+    playbackParams$,
+    videoClipIds$
   };
 }
 

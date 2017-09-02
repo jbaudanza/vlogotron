@@ -25,6 +25,9 @@ import { times } from "lodash";
 
 import TrimmedAudioBufferSourceNode from "./TrimmedAudioBufferSourceNode";
 
+import type { VideoClipSources } from "./mediaLoading";
+import type { PlaybackParams } from "./AudioPlaybackEngine";
+
 const contentWidth = 343;
 
 const VideoCropper = styled.div`
@@ -449,11 +452,10 @@ const ActionWrapper = styled.div`
 
 type Props = {
   onClose: string,
-  videoClip: Object,
+  videoClipId: string,
+  videoClipSources: VideoClipSources,
+  playbackParams: PlaybackParams,
   audioBuffer: AudioBuffer,
-  trimStart: number,
-  trimEnd: number,
-  playbackRate: number,
   playbackStartedAt: ?number,
   className: string,
   onPlay: Function,
@@ -493,25 +495,15 @@ class TrimOverlay extends React.Component<Props, State> {
   render() {
     const trimmedDuration =
       this.props.audioBuffer.duration *
-      (this.props.trimEnd - this.props.trimStart);
+      (this.props.playbackParams.trimEnd - this.props.playbackParams.trimStart);
 
     const playbackAnimationProps = {
       getCurrentTime: getCurrentTime,
       playbackStartedAt: this.props.playbackStartedAt,
       duration: trimmedDuration,
-      trimStart: this.props.trimStart,
-      trimEnd: this.props.trimEnd,
-      playbackRate: this.props.videoClip.playbackParams.playbackRate
-    };
-
-    // Allow trimStart and trimEnd to be overridden
-    const videoClip = {
-      ...this.props.videoClip,
-      playbackParams: {
-        ...this.props.videoClip.playbackParams,
-        trimStart: this.props.trimStart,
-        trimEnd: this.props.trimEnd
-      }
+      trimStart: this.props.playbackParams.trimStart,
+      trimEnd: this.props.playbackParams.trimEnd,
+      playbackRate: this.props.playbackParams.playbackRate
     };
 
     const tabLabels = ["Trim", "Pitch", "Volume"];
@@ -522,8 +514,8 @@ class TrimOverlay extends React.Component<Props, State> {
         tabContentEl = (
           <TrimAdjuster
             audioBuffer={this.props.audioBuffer}
-            trimStart={this.props.trimStart}
-            trimEnd={this.props.trimEnd}
+            trimStart={this.props.playbackParams.trimStart}
+            trimEnd={this.props.playbackParams.trimEnd}
             onChangeStart={this.props.onChangeStart}
             onChangeEnd={this.props.onChangeEnd}
             width={contentWidth}
@@ -544,11 +536,11 @@ class TrimOverlay extends React.Component<Props, State> {
               type="range"
               min={0.5}
               max={2}
-              value={this.props.playbackRate}
+              value={this.props.playbackParams.playbackRate}
               step={0.1}
               onChange={this.onChangePlaybackRate}
             />
-            {this.props.playbackRate} X
+            {this.props.playbackParams.playbackRate} X
           </div>
         );
 
@@ -574,9 +566,9 @@ class TrimOverlay extends React.Component<Props, State> {
         <VideoWrapper>
           <VideoCropper>
             <SynchronizedVideo
-              videoClipId={this.props.videoClip.clipId}
-              videoClip={videoClip}
-              playbackParams={videoClip.playbackParams}
+              videoClipId={this.props.videoClipId}
+              videoClipSources={this.props.videoClipSources}
+              playbackParams={this.props.playbackParams}
               audioContext={audioContext}
               playbackStartedAt={this.props.playbackStartedAt}
             />
@@ -600,7 +592,7 @@ class TrimOverlay extends React.Component<Props, State> {
             |
             {" "}
             {formatSeconds(
-              trimmedDuration / this.props.videoClip.playbackParams.playbackRate
+              trimmedDuration / this.props.playbackParams.playbackRate
             )}
           </PlaybackPositionText>
         </VideoWrapper>
@@ -638,9 +630,7 @@ const batchTime = audioContext.baseLatency || 2 * 128 / audioContext.sampleRate;
 
 function schedulePlaybackNow(
   audioContext,
-  trimStart,
-  trimEnd,
-  playbackRate,
+  playbackParams,
   audioBuffer,
   playUntil$
 ) {
@@ -649,15 +639,15 @@ function schedulePlaybackNow(
   const source = new TrimmedAudioBufferSourceNode(
     audioContext,
     audioBuffer,
-    trimStart,
-    trimEnd
+    playbackParams.trimStart,
+    playbackParams.trimEnd
   );
-  source.source.playbackRate.value = playbackRate;
+  source.source.playbackRate.value = playbackParams.playbackRate;
   source.connect(audioContext.destination);
   source.start(startAt);
 
   const videoFinished$ = Observable.of(null).delay(
-    source.duration / playbackRate * 1000
+    source.duration / playbackParams.playbackRate * 1000
   );
   const stopEarly$ = playUntil$.take(1);
 
@@ -677,43 +667,37 @@ function schedulePlaybackNow(
 function controller(props$, actions) {
   const initialProps$ = props$.take(1);
 
-  // TODO: Can we get rid of props.trimStart and focus on props.videoClip?
-  const trimStart$ = initialProps$
-    .map(props => props.trimStart)
-    .concat(actions.changeStart$)
-    .publishReplay();
-  const trimEnd$ = initialProps$
-    .map(props => props.trimEnd)
-    .concat(actions.changeEnd$)
+  const playbackParamsUpdates$ = Observable.merge(
+    actions.changeStart$.map(v => ({ trimStart: v })),
+    actions.changeEnd$.map(v => ({ trimEnd: v })),
+    actions.changePlaybackRate$.map(v => ({ playbackRate: v }))
+  );
+
+  const playbackParams$ = Observable.merge(
+    initialProps$.map(props => props.playbackParams),
+    playbackParamsUpdates$
+  )
+    .scan((acc, update) => ({ ...acc, ...update }), {})
     .publishReplay();
 
-  const playbackRate$ = initialProps$
-    .map(props => props.videoClip.playbackParams.playbackRate)
-    .concat(actions.changePlaybackRate$)
-    .publishReplay();
-
-  // The source observables for these connections will end when the component
+  // The source observables for this connections will end when the component
   // is unmounted, so there's no need to manage the subscriptions
-  trimStart$.connect();
-  trimEnd$.connect();
-  playbackRate$.connect();
+  playbackParams$.connect();
 
   actions.finish$
-    .withLatestFrom(props$, trimStart$, trimEnd$)
-    .subscribe(([value, props, trimStart, trimEnd]) =>
-      props.onFinish(trimStart, trimEnd)
+    .withLatestFrom(props$, playbackParams$)
+    .subscribe(([value, props, playbackParams]) =>
+      props.onFinish(playbackParams)
     );
 
   const unmount$ = props$.ignoreElements().concatWith({});
 
   const playbackStartedAt$ = actions.play$
-    .withLatestFrom(props$, trimStart$, trimEnd$, playbackRate$)
-    .switchMap(([action, props, trimStart, trimEnd, playbackRate]) =>
+    .withLatestFrom(props$, playbackParams$)
+    .switchMap(([action, props, playbackParams]) =>
       schedulePlaybackNow(
         audioContext,
-        trimStart,
-        trimEnd,
-        playbackRate,
+        playbackParams,
         props.audioBuffer,
         Observable.merge(actions.pause$, unmount$)
       )
@@ -722,18 +706,15 @@ function controller(props$, actions) {
 
   return Observable.combineLatest(
     props$,
-    trimStart$,
-    trimEnd$,
     playbackStartedAt$,
-    playbackRate$,
-    (props, trimStart, trimEnd, playbackStartedAt, playbackRate) => ({
-      videoClip: props.videoClip,
+    playbackParams$,
+    (props, playbackStartedAt, playbackParams) => ({
+      videoClipId: props.videoClipId,
+      videoClipSources: props.videoClipSources,
       onClose: props.onClose,
       audioBuffer: props.audioBuffer,
       playbackStartedAt,
-      trimStart,
-      trimEnd,
-      playbackRate
+      playbackParams
     })
   );
 }

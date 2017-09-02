@@ -7,6 +7,8 @@ import type { Subscription } from "rxjs/Subscription";
 import audioContext from "./audioContext";
 import { start as startCapturing } from "./recording";
 
+import { mapValues } from "lodash";
+
 import { playbackControllerHelper } from "./playbackController";
 
 import {
@@ -24,7 +26,8 @@ import {
   noteLabelsToMidi
 } from "./frequencies";
 
-import type { Media, CapturedMedia } from "./mediaLoading";
+import type { Media, CapturedMedia, VideoClipSources } from "./mediaLoading";
+import type { PlaybackParams } from "./AudioPlaybackEngine";
 
 // Note: keypress doesn't work for escape key. Need to use keydown.
 const escapeKey$ = Observable.fromEvent(document, "keydown").filter(
@@ -41,7 +44,9 @@ type ViewProps = {
   currentUser: Object,
   onNavigate: Function,
   loading: Object,
-  videoClips: Object,
+  videoClipSources: { [string]: VideoClipSources },
+  videoClipIds: { [string]: string },
+  playbackParams: { [string]: PlaybackParams },
   playCommands$: Observable<Object>,
   songTitle: string,
   countdownUntilRecord: number,
@@ -59,7 +64,7 @@ type ViewProps = {
   songLength: number,
   isPlaying: boolean,
   onDismissError: Function,
-  audioSources: { [string]: Object },
+  audioBuffers: { [string]: AudioBuffer },
   onLogin: Function,
   onNavigate: Function
 };
@@ -177,7 +182,9 @@ export default function recordVideosController(
   // $FlowFixMe - We don't have type definitions for combineLatest with this many arguments
   return Observable.combineLatest(
     parentView$,
-    mediaStore.videoClips$,
+    mediaStore.videoClipSources$,
+    mediaStore.videoClipIds$,
+    mediaStore.playbackParams$,
     recordingState$,
     song$,
     mediaStore.loading$,
@@ -188,7 +195,9 @@ export default function recordVideosController(
     props$,
     (
       parentView,
-      videoClips,
+      videoClipSources,
+      videoClipIds,
+      playbackParams,
       recordingState,
       song,
       loading,
@@ -200,13 +209,15 @@ export default function recordVideosController(
     ) => ({
       ...parentView,
       ...recordingState,
-      videoClips,
+      videoClipSources,
+      videoClipIds,
+      playbackParams,
       song,
       loading,
       supported: "MediaRecorder" in window,
       collaborateMode: props.location.pathname.endsWith("/collab"),
       songTitle: song ? song.title : null,
-      audioSources,
+      audioBuffers: mapValues(audioSources, o => o.audioBuffer),
       authorName,
       authorPhotoURL,
       location: props.location,

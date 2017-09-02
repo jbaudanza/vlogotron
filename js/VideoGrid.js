@@ -11,7 +11,8 @@ import { omit, bindAll } from "lodash";
 import TouchableArea from "./TouchableArea";
 import VideoCell from "./VideoCell";
 
-import type { UIPlaybackCommand } from "./AudioPlaybackEngine";
+import type { UIPlaybackCommand, PlaybackParams } from "./AudioPlaybackEngine";
+import type { VideoClipSources } from "./mediaLoading";
 
 // $FlowFixMe: Flow doesn't support scss
 import "./VideoGrid.scss";
@@ -30,7 +31,9 @@ type VideoCellProps = React.ElementProps<typeof VideoCell>;
 type Props = {
   playCommands$: Object,
   readonly: boolean,
-  videoClips: Object,
+  videoClipSources: { [string]: VideoClipSources },
+  playbackParams: { [string]: PlaybackParams },
+  videoClipIds: { [string]: string },
   countdownUntilRecord?: number,
   durationRecorded?: number,
   onStartRecording?: Function,
@@ -95,7 +98,9 @@ export default class VideoGrid extends React.Component<Props, State> {
 
   propsForCell(index: number, note: string): VideoCellProps {
     const props: VideoCellProps = {
-      videoClip: this.props.videoClips[note],
+      videoClipSources: this.props.videoClipSources[note],
+      videoClipId: this.props.videoClipIds[note],
+      playbackParams: this.props.playbackParams[note],
       playbackStartedAt: this.state.playing[note],
       note: note,
       readonly: this.props.readonly,

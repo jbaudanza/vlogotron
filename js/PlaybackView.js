@@ -14,10 +14,15 @@ import VideoGrid from "./VideoGrid";
 import SubHeader from "./SubHeader";
 import Message from "./Message";
 
+import type { VideoClipSources } from "./mediaLoading";
+import type { PlaybackParams } from "./AudioPlaybackEngine";
+
 type Props = {
   actions: Object,
   loading: Object,
-  videoClips: { [string]: Object },
+  videoClipSources: { [string]: VideoClipSources },
+  videoClipIds: { [string]: string },
+  playbackParams: { [string]: PlaybackParams },
   playCommands$: Observable<Object>,
   isPlaying: boolean,
   songLength: number,
@@ -95,7 +100,9 @@ export default class PlaybackView extends React.Component<Props> {
           </SubHeader>
           <VideoGrid
             readonly
-            videoClips={this.props.videoClips}
+            videoClipSources={this.props.videoClipSources}
+            videoClipIds={this.props.videoClipIds}
+            playbackParams={this.props.playbackParams}
             loading={this.props.loading}
             playCommands$={this.props.playCommands$}
             ref={this.bindVideoGrid}

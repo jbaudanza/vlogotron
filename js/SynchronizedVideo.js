@@ -6,7 +6,7 @@ import type { PlaybackParams } from "./AudioPlaybackEngine";
 
 type Props = {
   videoClipId: string,
-  videoClip: VideoClipSources,
+  videoClipSources: VideoClipSources,
   playbackParams: PlaybackParams,
   playbackStartedAt: ?number,
   width?: number,
@@ -129,13 +129,13 @@ export default class SynchronizedVideo extends React.Component<Props> {
         key={this.props.videoClipId}
         playsInline
         muted
-        poster={this.props.videoClip.poster}
+        poster={this.props.videoClipSources.poster}
         ref={this.setVideoElement.bind(this)}
         width={this.props.width}
         height={this.props.height}
         onDurationChange={this.onDurationChange.bind(this)}
       >
-        {this.props.videoClip.sources.map(props => (
+        {this.props.videoClipSources.sources.map(props => (
           <source {...props} key={props.type} />
         ))}
       </video>

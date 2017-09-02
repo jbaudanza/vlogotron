@@ -25,13 +25,17 @@ import type { SongBoardEvent } from "./database";
 import type { Observable } from "rxjs/Observable";
 import type { Subscription } from "rxjs/Subscription";
 import type { SongId } from "./song";
+import type { VideoClipSources } from "./mediaLoading";
+import type { PlaybackParams } from "./AudioPlaybackEngine";
 
 type Props = {
   actions: Object,
   currentUser: Object,
   onNavigate: Function,
   loading: Object,
-  videoClips: Object,
+  videoClipSources: { [string]: VideoClipSources },
+  playbackParams: { [string]: PlaybackParams },
+  videoClipIds: { [string]: string },
   playCommands$: Observable<Object>,
   songTitle: string,
   location: Location,
@@ -51,7 +55,7 @@ type Props = {
   isPlaying: boolean,
   premiumAccountStatus: boolean,
   onDismissError: Function,
-  audioSources: { [string]: Object },
+  audioBuffers: { [string]: AudioBuffer },
   authorPhotoURL: string,
   origin: string,
   songBoardId: string
@@ -92,12 +96,12 @@ export default class RecordVideosView extends React.Component<Props> {
     this.props.onNavigate(this.props.location.pathname);
   }
 
-  onFinishTrim(note: string, trimStart: number, trimEnd: number) {
+  onFinishTrim(note: string, playbackParams: PlaybackParams) {
     this.updateSongBoard({
       type: "update-trim",
       note,
-      trimStart,
-      trimEnd,
+      trimStart: playbackParams.trimStart,
+      trimEnd: playbackParams.trimEnd,
       uid: this.props.currentUser.uid
     });
 
@@ -138,18 +142,14 @@ export default class RecordVideosView extends React.Component<Props> {
     let match;
     if ((match = this.props.location.hash.match(/^#trim\?note=([\w]+)/))) {
       const note = match[1];
-      if (
-        this.props.videoClips[note] &&
-        this.props.audioSources[note] &&
-        this.props.audioSources[note].audioBuffer
-      ) {
+      if (this.props.videoClipSources[note] && this.props.audioBuffers[note]) {
         overlay = (
           <TrimOverlay
             onClose={this.props.location.pathname}
-            videoClip={this.props.videoClips[note]}
-            audioBuffer={this.props.audioSources[note].audioBuffer}
-            trimStart={this.props.audioSources[note].playbackParams.trimStart}
-            trimEnd={this.props.audioSources[note].playbackParams.trimEnd}
+            videoClipId={this.props.videoClipIds[note]}
+            videoClipSources={this.props.videoClipSources[note]}
+            audioBuffer={this.props.audioBuffers[note]}
+            playbackParams={this.props.playbackParams[note]}
             onFinish={this.onFinishTrim.bind(this, note)}
           />
         );
@@ -179,7 +179,7 @@ export default class RecordVideosView extends React.Component<Props> {
 
     const emptyCount =
       notes.length -
-      intersection(Object.keys(this.props.videoClips), notes).length;
+      intersection(Object.keys(this.props.videoClipSources), notes).length;
 
     let subHeaderEl;
     let notificationPopupEl;
@@ -246,7 +246,9 @@ export default class RecordVideosView extends React.Component<Props> {
                 {subHeaderEl}
                 <VideoGrid
                   readonly
-                  videoClips={this.props.videoClips}
+                  videoClipSources={this.props.videoClipSources}
+                  videoClipIds={this.props.videoClipIds}
+                  playbackParams={this.props.playbackParams}
                   playCommands$={this.props.playCommands$}
                   readonly={false}
                   loading={this.props.loading}

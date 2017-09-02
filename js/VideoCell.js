@@ -13,6 +13,8 @@ import Spinner from "./Spinner";
 import styled from "styled-components";
 
 import { formatSeconds } from "./format";
+import type { VideoClipSources } from "./mediaLoading";
+import type { PlaybackParams } from "./AudioPlaybackEngine";
 
 const StyledSpinner = styled(Spinner)`
   position: absolute;
@@ -35,7 +37,9 @@ type Props = {
   onStopRecording?: Function,
   onTrim?: Function,
   onClear?: Function,
-  videoClip: Object,
+  videoClipSources: VideoClipSources,
+  videoClipId: string,
+  playbackParams: PlaybackParams,
   readonly: boolean,
   countdown?: number,
   durationRecorded?: number,
@@ -127,13 +131,13 @@ export default class VideoCell extends React.Component<Props> {
           pitchGuideEl = <PitchGuide value={this.props.pitchCorrection} />;
         }
       }
-    } else if (this.props.videoClip) {
+    } else if (this.props.videoClipSources) {
       videoEl = (
         <SynchronizedVideo
-          key={"playback-" + this.props.videoClip.clipId}
-          videoClipId={this.props.videoClip.clipId}
-          videoClip={this.props.videoClip}
-          playbackParams={this.props.videoClip.playbackParams}
+          key={"playback-" + this.props.videoClipId}
+          videoClipId={this.props.videoClipId}
+          videoClipSources={this.props.videoClipSources}
+          playbackParams={this.props.playbackParams}
           audioContext={this.props.audioContext}
           playbackStartedAt={this.props.playbackStartedAt}
         />
