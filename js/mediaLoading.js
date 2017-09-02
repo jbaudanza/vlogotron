@@ -26,6 +26,17 @@ import {
   identity
 } from "lodash";
 
+type VideoClipSource = $Exact<{
+  src: string,
+  type: string
+}>;
+
+export type VideoClipSources = {
+  poster: string, // TODO: consider renaming to posterUrl
+  audioUrl: string,
+  sources: Array<VideoClipSource> // TODO: consider renaming to videoUrls
+};
+
 import promiseFromTemplate from "./promiseFromTemplate";
 
 const initialSong = {

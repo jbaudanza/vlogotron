@@ -1,8 +1,13 @@
 /* @flow */
 import * as React from "react";
 
+import type { VideoClipSources } from "./mediaLoading";
+import type { PlaybackParams } from "./AudioPlaybackEngine";
+
 type Props = {
-  videoClip: Object,
+  videoClipId: string,
+  videoClip: VideoClipSources,
+  playbackParams: PlaybackParams,
   playbackStartedAt: ?number,
   width?: number,
   height?: number,
@@ -27,7 +32,7 @@ export default class SynchronizedVideo extends React.Component<Props> {
   resetStartPosition() {
     if (this.videoEl && isFinite(this.videoEl.duration) && !this.isPlaying) {
       const offset =
-        this.props.videoClip.playbackParams.trimStart * this.videoEl.duration;
+        this.props.playbackParams.trimStart * this.videoEl.duration;
       this.videoEl.currentTime = offset;
     }
   }
@@ -49,8 +54,7 @@ export default class SynchronizedVideo extends React.Component<Props> {
     }
 
     if (
-      prevProps.videoClip.playbackParams.trimStart !=
-      this.props.videoClip.playbackParams.trimStart
+      prevProps.playbackParams.trimStart != this.props.playbackParams.trimStart
     ) {
       this.resetStartPosition();
     }
@@ -64,13 +68,12 @@ export default class SynchronizedVideo extends React.Component<Props> {
       // videos
       let offset;
       if (isFinite(videoEl.duration)) {
-        offset =
-          this.props.videoClip.playbackParams.trimStart * videoEl.duration;
+        offset = this.props.playbackParams.trimStart * videoEl.duration;
       } else {
         offset = 0;
       }
 
-      videoEl.playbackRate = this.props.videoClip.playbackParams.playbackRate;
+      videoEl.playbackRate = this.props.playbackParams.playbackRate;
       videoEl.currentTime = offset;
       const promise = videoEl.play();
       this.isPlaying = true;
@@ -123,7 +126,7 @@ export default class SynchronizedVideo extends React.Component<Props> {
   render() {
     return (
       <video
-        key={this.props.videoClip.clipId}
+        key={this.props.videoClipId}
         playsInline
         muted
         poster={this.props.videoClip.poster}

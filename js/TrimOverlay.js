@@ -450,9 +450,10 @@ const ActionWrapper = styled.div`
 type Props = {
   onClose: string,
   videoClip: Object,
-  audioBuffer: Object,
+  audioBuffer: AudioBuffer,
   trimStart: number,
   trimEnd: number,
+  playbackRate: number,
   playbackStartedAt: ?number,
   className: string,
   onPlay: Function,
@@ -573,7 +574,9 @@ class TrimOverlay extends React.Component<Props, State> {
         <VideoWrapper>
           <VideoCropper>
             <SynchronizedVideo
+              videoClipId={this.props.videoClip.clipId}
               videoClip={videoClip}
+              playbackParams={videoClip.playbackParams}
               audioContext={audioContext}
               playbackStartedAt={this.props.playbackStartedAt}
             />

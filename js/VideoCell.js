@@ -131,7 +131,9 @@ export default class VideoCell extends React.Component<Props> {
       videoEl = (
         <SynchronizedVideo
           key={"playback-" + this.props.videoClip.clipId}
+          videoClipId={this.props.videoClip.clipId}
           videoClip={this.props.videoClip}
+          playbackParams={this.props.videoClip.playbackParams}
           audioContext={this.props.audioContext}
           playbackStartedAt={this.props.playbackStartedAt}
         />
