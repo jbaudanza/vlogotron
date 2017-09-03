@@ -16,8 +16,7 @@ import { formatSeconds } from "./format";
 import createControlledComponent from "./createControlledComponent";
 import createAnimatedComponent from "./createAnimatedComponent";
 
-import AudioBufferView from "./AudioBufferView";
-import { drawPitch } from "./AudioBufferView";
+import PitchView from "./PitchView";
 
 import audioContext from "./audioContext";
 
@@ -526,10 +525,9 @@ class TrimOverlay extends React.Component<Props, State> {
       case 1:
         tabContentEl = (
           <div>
-            <AudioBufferView
+            <PitchView
               width={contentWidth}
               height={51}
-              onDraw={drawPitch}
               audioBuffer={this.props.audioBuffer}
             />
             <input
