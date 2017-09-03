@@ -13,7 +13,8 @@ type OuterProps = {
   className?: string,
   width: number,
   height: number,
-  audioBuffer: AudioBuffer
+  audioBuffer: AudioBuffer,
+  playbackRate: number
 };
 
 type InnerProps = {
@@ -35,11 +36,11 @@ function sampleBlocks(audioBuffer: AudioBuffer): Array<Float32Array> {
   return blocks;
 }
 
-function sampleCountToPitch(sampleCount, sampleRate): ?number {
+function sampleCountToPitch(sampleCount, sampleRate, playbackRate): ?number {
   if (sampleCount === 0) {
     return null;
   } else {
-    return sampleRate / sampleCount;
+    return sampleRate / sampleCount * playbackRate;
   }
 }
 
@@ -55,15 +56,18 @@ function controller(props$: Observable<OuterProps>): Observable<InnerProps> {
     .map(sampleBlocks)
     .switchMap(blocks =>
       Promise.all(blocks.map(block => asyncDetectPitch(block, threshold)))
-    );
-
-  const pitches$ = sampleCounts$
-    .map(counts => counts.map(count => sampleCountToPitch(count, sampleRate)))
+    )
     .startWith([]);
 
-  return Observable.combineLatest(props$, pitches$, (props, pitches) => ({
+  return Observable.combineLatest(props$, sampleCounts$, (props, counts) => ({
     ...props,
-    pitches
+    pitches: counts.map(count =>
+      sampleCountToPitch(
+        count,
+        props.audioBuffer.sampleRate,
+        props.playbackRate
+      )
+    )
   }));
 }
 

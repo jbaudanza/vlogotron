@@ -529,13 +529,14 @@ class TrimOverlay extends React.Component<Props, State> {
               width={contentWidth}
               height={51}
               audioBuffer={this.props.audioBuffer}
+              playbackRate={this.props.playbackParams.playbackRate}
             />
             <input
               type="range"
               min={0.5}
               max={2}
               value={this.props.playbackParams.playbackRate}
-              step={0.1}
+              step={0.05}
               onChange={this.onChangePlaybackRate}
             />
             {this.props.playbackParams.playbackRate} X
