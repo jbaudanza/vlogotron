@@ -1,8 +1,10 @@
+/* @flow */
+
 import { Observable } from "rxjs/Observable";
 
 import audioContext from "./audioContext";
 import encodeWavSync from "./encodeWavSync";
-import detectPitch from "detect-pitch";
+import asyncDetectPitch from "./asyncDetectPitch";
 
 function mapAudioEventToPitch(event) {
   const array = event.inputBuffer.getChannelData(0);
@@ -11,15 +13,20 @@ function mapAudioEventToPitch(event) {
   // noise to return null.
   const threshold = 0.25;
 
-  const result = detectPitch(array, threshold);
-  if (result === 0) {
-    return null;
-  } else {
-    return audioContext.sampleRate / result;
-  }
+  return asyncDetectPitch(array, threshold).then(result => {
+    if (result === 0) {
+      return null;
+    } else {
+      return audioContext.sampleRate / result;
+    }
+  });
 }
 
-export function start(mediaStream, finish$, abort$) {
+export function start(
+  mediaStream: MediaStream,
+  finish$: Observable<any>,
+  abort$: Observable<any>
+) {
   const takeUntil$ = Observable.merge(finish$, abort$).take(1);
 
   //
@@ -51,7 +58,7 @@ export function start(mediaStream, finish$, abort$) {
     .scan((i, j) => i + j, 0)
     .map(x => x / audioContext.sampleRate);
 
-  const pitch$ = audioProcessEvent$.map(mapAudioEventToPitch);
+  const pitch$ = audioProcessEvent$.switchMap(mapAudioEventToPitch);
 
   const finishedAudioBuffer$ = audioProcessEvent$
     .map(buffersFromAudioProcessEvent)

@@ -1,3 +1,5 @@
+/* @flow */
+
 import { sumBy, uniqBy } from "lodash";
 
 // Based off of:
@@ -19,7 +21,9 @@ import { sumBy, uniqBy } from "lodash";
     // ..etc..
   ]
 */
-export default function encodeWavSync(sampleBatches, sampleRate) {
+type SampleBatches = Array<Array<Float32Array>>;
+
+export default function encodeWavSync(sampleBatches: SampleBatches, sampleRate: number): ArrayBuffer {
   // If for some reason this value ever changes, we also need to change
   // the method we use to write PCM samples into the dataview. For example,
   // 8-bit audio would need to use DataView.setInt8
