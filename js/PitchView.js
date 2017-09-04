@@ -78,7 +78,7 @@ function drawPitch(
   height: number
 ) {
   // Clear
-  context.fillStyle = "#a0a7c4";
+  context.fillStyle = "#eee";
   context.fillRect(0, 0, width, height);
 
   const octaveSize = 12;
@@ -89,6 +89,7 @@ function drawPitch(
   context.lineWidth = 1;
   context.lineCap = "square";
 
+  /*
   const targetY = height - 9 * scaleY;
   //context.strokeStyle = "#bc1838";  //red
   context.strokeStyle = "#29bdec"; // green
@@ -96,12 +97,33 @@ function drawPitch(
   context.moveTo(0, targetY);
   context.lineTo(width, targetY);
   context.stroke();
+  */
 
   context.strokeStyle = "#4b57a3";
 
   for (let i = 0; i < input.length; i++) {
     if (input[i] != null) {
       const midiNote = frequencyToNote(input[i]) % octaveSize;
+
+      const diff = Math.abs(midiNote - 9);
+      if (diff < 0.5) {
+        context.lineWidth = 2;
+        //context.strokeStyle = "#4b57a3";
+        context.strokeStyle = "#29bdec";
+
+        context.shadowColor = "#29bdec";
+        //context.shadowColor = 'black';
+        context.shadowBlur = 5;
+        context.shadowOffsetX = 0;
+        context.shadowOffsetY = 0;
+      } else {
+        context.lineWidth = 1;
+        context.strokeStyle = "#a0a7c4";
+        context.shadowColor = "transparent";
+        context.shadowBlur = 0;
+        context.shadowOffsetX = 0;
+        context.shadowOffsetY = 0;
+      }
 
       const x = i * blockWidth;
       const y = height - midiNote * scaleY;
