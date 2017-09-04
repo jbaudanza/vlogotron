@@ -672,10 +672,8 @@ function schedulePlaybackNow(
   const source = new TrimmedAudioBufferSourceNode(
     audioContext,
     audioBuffer,
-    playbackParams.trimStart,
-    playbackParams.trimEnd
+    playbackParams
   );
-  source.source.playbackRate.value = playbackParams.playbackRate;
   source.connect(audioContext.destination);
   source.start(startAt);
 

@@ -131,19 +131,17 @@ function buildSourceNode(
   const audioSource = audioSources[noteName];
 
   if (audioSource && audioSource.audioBuffer) {
+    // alter playback rate for sharp notes,
+    // simply use just intonation for now
+    let playbackRate = audioSource.playbackParams.playbackRate;
+    playbackRate = isSharp ? 1.05946 * playbackRate : playbackRate;
+
     const source = new TrimmedAudioBufferSourceNode(
       audioContext,
       audioSource.audioBuffer,
-      audioSource.playbackParams.trimStart,
-      audioSource.playbackParams.trimEnd
+      { ...audioSource.playbackParams, playbackRate }
     );
     source.connect(destinationNode);
-
-    // alter playback rate for sharp notes,
-    // simply use just intonation for now
-    const playbackRate = audioSource.playbackParams.playbackRate;
-    const pitchRatio = isSharp ? 1.05946 * playbackRate : playbackRate;
-    source.source.playbackRate.value = pitchRatio;
 
     return [noteName, source];
   } else {
