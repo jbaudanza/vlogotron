@@ -6,6 +6,7 @@ import styled from "styled-components";
 import colors from "./colors";
 import Overlay from "./Overlay";
 import ActionLink from "./ActionLink";
+import AudioBufferView from "./AudioBufferView";
 import TrimAdjuster from "./TrimAdjuster";
 import PlayButton from "./PlayButton";
 import SynchronizedVideo from "./SynchronizedVideo";
@@ -527,8 +528,7 @@ class TrimOverlay extends React.Component<Props, State> {
         tabContentEl = (
           <TrimAdjuster
             audioBuffer={this.props.audioBuffer}
-            trimStart={this.props.playbackParams.trimStart}
-            trimEnd={this.props.playbackParams.trimEnd}
+            playbackParams={this.props.playbackParams}
             onChangeStart={this.props.onChangeStart}
             onChangeEnd={this.props.onChangeEnd}
             width={contentWidth}
@@ -548,8 +548,8 @@ class TrimOverlay extends React.Component<Props, State> {
             />
             <input
               type="range"
-              min={0}
-              max={1}
+              min={0.5}
+              max={2}
               value={this.props.playbackParams.playbackRate}
               step={0.05}
               onChange={this.onChangePlaybackRate}
@@ -563,10 +563,16 @@ class TrimOverlay extends React.Component<Props, State> {
       case 2:
         tabContentEl = (
           <div>
+            <AudioBufferView
+              audioBuffer={this.props.audioBuffer}
+              gain={this.props.playbackParams.gain}
+              width={contentWidth}
+              height={51}
+            />
             <input
               type="range"
-              min={0.5}
-              max={2}
+              min={0}
+              max={1}
               value={this.props.playbackParams.gain}
               step={0.05}
               onChange={this.onChangeGain}

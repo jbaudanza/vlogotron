@@ -18,10 +18,19 @@ type Props = {
 };
 
 export default function AudioBufferView(props: Props) {
+  const input = {
+    audioBuffer: props.audioBuffer,
+    gain: props.gain,
+    colors: {
+      backgroundColor: "#a0a7c4",
+      foregroundColor: "#4b57a3"
+    }
+  };
+
   return (
     <Canvas
       className={props.className}
-      input={props.audioBuffer}
+      input={input}
       width={props.width}
       height={props.height}
       drawFunction={drawAmplitude}
@@ -29,27 +38,33 @@ export default function AudioBufferView(props: Props) {
   );
 }
 
-export function drawAmplitude(
-  context: CanvasRenderingContext2D,
+type DrawInput = {
   audioBuffer: AudioBuffer,
+  gain: number,
+  colors: {
+    backgroundColor: string,
+    foregroundColor: string
+  }
+};
+
+function drawAmplitude(
+  context: CanvasRenderingContext2D,
+  input: DrawInput,
   width: number,
   height: number
 ) {
   // TODO: It would be more correct to mix all channels together
-  const array = audioBuffer.getChannelData(0);
+  const array = input.audioBuffer.getChannelData(0);
 
   const step = array.length / width;
 
   const amp = height / 2;
 
   // Clear
-  context.fillStyle = "#a0a7c4";
+  context.fillStyle = input.colors.backgroundColor;
   context.fillRect(0, 0, width, height);
 
-  context.fillStyle = "#4b57a3";
-  // XXX: Left off here. Try to come up with a good color scheme for the
-  // combined control
-  //context.fillStyle = "#eeeeee";
+  context.fillStyle = input.colors.foregroundColor;
 
   // i - index into canvas
   for (let i = 0; i < width; i++) {
@@ -58,7 +73,7 @@ export function drawAmplitude(
 
     // j - index into data array
     for (let j = 0; j < Math.ceil(step); j++) {
-      const sample = array[Math.floor(i * step) + j];
+      const sample = array[Math.floor(i * step) + j] * input.gain;
 
       if (sample < min) min = sample;
 

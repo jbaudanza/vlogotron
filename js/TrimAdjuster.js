@@ -10,8 +10,9 @@ import styled from "styled-components";
 
 import { findWrappingClass } from "./domutils";
 
+import type { PlaybackParams } from "./AudioPlaybackEngine";
+
 import AudioBufferView from "./AudioBufferView";
-import { drawAmplitude } from "./AudioBufferView";
 
 const documentMouseMove$ = Observable.fromEvent(document, "mousemove");
 const documentMouseUp$ = Observable.fromEvent(document, "mouseup");
@@ -63,8 +64,7 @@ function constrainRange(number) {
 }
 
 type Props = {
-  trimStart: number,
-  trimEnd: number,
+  playbackParams: PlaybackParams,
   onChangeStart: number => void,
   onChangeEnd: number => void,
   width: number,
@@ -73,7 +73,7 @@ type Props = {
 };
 
 export default class TrimAdjuster extends React.Component<Props> {
-  constructor(props: Props) {
+  constructor() {
     super();
     this.onMouseDownStart = this.onMouseDown.bind(
       this,
@@ -108,7 +108,7 @@ export default class TrimAdjuster extends React.Component<Props> {
   _filteredOnChangeStart(value: number) {
     value = constrainRange(value);
 
-    if (value >= 0 && value < this.props.trimEnd) {
+    if (value >= 0 && value < this.props.playbackParams.trimEnd) {
       this.props.onChangeStart(value);
     }
   }
@@ -116,7 +116,7 @@ export default class TrimAdjuster extends React.Component<Props> {
   _filteredOnChangeEnd(value: number) {
     value = constrainRange(value);
 
-    if (value <= 1 && value > this.props.trimStart) {
+    if (value <= 1 && value > this.props.playbackParams.trimStart) {
       this.props.onChangeEnd(value);
     }
   }
@@ -190,19 +190,19 @@ export default class TrimAdjuster extends React.Component<Props> {
         <StyledAudioBufferView
           width={this.props.width}
           height={this.props.height - grabberPadding * 2}
-          onDraw={drawAmplitude}
+          gain={this.props.playbackParams.gain}
           audioBuffer={this.props.audioBuffer}
         />
         <Shade
           style={{
             left: 0,
-            width: this.props.width * this.props.trimStart
+            width: this.props.width * this.props.playbackParams.trimStart
           }}
         />
         <Shade
           style={{
             right: 0,
-            width: this.props.width * (1 - this.props.trimEnd)
+            width: this.props.width * (1 - this.props.playbackParams.trimEnd)
           }}
         />
         <Grabber
@@ -210,7 +210,7 @@ export default class TrimAdjuster extends React.Component<Props> {
           className="grabber"
           onKeyDown={this.onKeyDownTrimStart}
           style={{
-            right: this.props.width * (1 - this.props.trimStart)
+            right: this.props.width * (1 - this.props.playbackParams.trimStart)
           }}
           onMouseDown={this.onMouseDownStart}
         >
@@ -222,7 +222,7 @@ export default class TrimAdjuster extends React.Component<Props> {
           tabIndex={2}
           className="grabber"
           onKeyDown={this.onKeyDownTrimEnd}
-          style={{ left: this.props.width * this.props.trimEnd }}
+          style={{ left: this.props.width * this.props.playbackParams.trimEnd }}
           onMouseDown={this.onMouseDownEnd}
         >
           <GrabberLine count={0} />
