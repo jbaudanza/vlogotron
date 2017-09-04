@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as React from "react";
+import { isEqual } from "lodash";
 
 type CanvasDrawFunction<Input> = (
   CanvasRenderingContext2D,
@@ -45,7 +46,7 @@ export default class Canvas<Input> extends React.Component<CanvasProps<Input>> {
   }
 
   componentDidUpdate(prevProps: CanvasProps<Input>) {
-    if (prevProps.input !== this.props.input) {
+    if (!isEqual(prevProps.input, this.props.input)) {
       this.draw();
     }
   }

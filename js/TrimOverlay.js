@@ -529,6 +529,7 @@ class TrimOverlay extends React.Component<Props, State> {
               width={contentWidth}
               height={51}
               audioBuffer={this.props.audioBuffer}
+              targetNote={9}
               playbackRate={this.props.playbackParams.playbackRate}
             />
             <input

@@ -77,7 +77,7 @@ class Overlay extends React.Component<Props, State> {
           {closeLinkEl}
           <div className="scroll">
             {this.state.hasError
-              ? "This overlay encountered an unexpepted error"
+              ? "This overlay encountered an unexpected error"
               : this.props.children}
           </div>
         </div>

@@ -14,14 +14,16 @@ type OuterProps = {
   width: number,
   height: number,
   audioBuffer: AudioBuffer,
-  playbackRate: number
+  playbackRate: number,
+  targetNote: number
 };
 
 type InnerProps = {
   className?: string,
   width: number,
   height: number,
-  pitches: Array<?number>
+  frequencies: Array<?number>,
+  targetNote: number
 };
 
 function sampleBlocks(audioBuffer: AudioBuffer): Array<Float32Array> {
@@ -61,7 +63,7 @@ function controller(props$: Observable<OuterProps>): Observable<InnerProps> {
 
   return Observable.combineLatest(props$, sampleCounts$, (props, counts) => ({
     ...props,
-    pitches: counts.map(count =>
+    frequencies: counts.map(count =>
       sampleCountToPitch(
         count,
         props.audioBuffer.sampleRate,
@@ -71,54 +73,64 @@ function controller(props$: Observable<OuterProps>): Observable<InnerProps> {
   }));
 }
 
+type DrawPitchInput = {
+  frequencies: Array<?number>,
+  targetNote: number,
+  colors: {
+    backgroundColor: string,
+    targetNoteColor: string,
+    otherNoteColor: string
+  }
+};
+
 function drawPitch(
   context: CanvasRenderingContext2D,
-  input: Array<?number>,
+  input: DrawPitchInput,
   width: number,
   height: number
 ) {
   // Clear
-  context.fillStyle = "#eee";
+  context.fillStyle = input.colors.backgroundColor;
   context.fillRect(0, 0, width, height);
 
   const octaveSize = 12;
 
-  const blockWidth = width / input.length;
+  const blockWidth = width / input.frequencies.length;
   const scaleY = height / octaveSize;
 
   context.lineWidth = 1;
   context.lineCap = "square";
 
+  function noteToY(note) {
+    const diff = input.targetNote - octaveSize / 2;
+    return height - (note - diff) * scaleY;
+  }
+
   /*
-  const targetY = height - 9 * scaleY;
-  //context.strokeStyle = "#bc1838";  //red
-  context.strokeStyle = "#29bdec"; // green
+  const targetY = noteToY(input.targetNote);
+  context.strokeStyle = "black"
   context.beginPath();
   context.moveTo(0, targetY);
-  context.lineTo(width, targetY);
+  context.lineTo(15, targetY);
   context.stroke();
   */
 
-  context.strokeStyle = "#4b57a3";
+  for (let i = 0; i < input.frequencies.length; i++) {
+    const frequency = input.frequencies[i];
+    if (frequency != null) {
+      const midiNote = frequencyToNote(frequency) % octaveSize;
 
-  for (let i = 0; i < input.length; i++) {
-    if (input[i] != null) {
-      const midiNote = frequencyToNote(input[i]) % octaveSize;
-
-      const diff = Math.abs(midiNote - 9);
+      const diff = Math.abs(midiNote - input.targetNote);
       if (diff < 0.5) {
         context.lineWidth = 2;
-        //context.strokeStyle = "#4b57a3";
-        context.strokeStyle = "#29bdec";
-
-        context.shadowColor = "#29bdec";
-        //context.shadowColor = 'black';
+        context.strokeStyle = input.colors.targetNoteColor;
+        context.shadowColor = input.colors.targetNoteColor;
         context.shadowBlur = 5;
         context.shadowOffsetX = 0;
         context.shadowOffsetY = 0;
       } else {
         context.lineWidth = 1;
-        context.strokeStyle = "#a0a7c4";
+        context.strokeStyle = input.colors.otherNoteColor;
         context.shadowColor = "transparent";
         context.shadowBlur = 0;
         context.shadowOffsetX = 0;
@@ -126,7 +138,7 @@ function drawPitch(
       }
 
       const x = i * blockWidth;
-      const y = height - midiNote * scaleY;
+      const y = noteToY(midiNote);
 
       context.beginPath();
       context.moveTo(x, y);
@@ -137,11 +149,21 @@ function drawPitch(
 }
 
 function PitchView(props: InnerProps) {
+  const input = {
+    frequencies: props.frequencies,
+    targetNote: props.targetNote,
+    colors: {
+      backgroundColor: "#eeeeee",
+      targetNoteColor: "#29bdec",
+      otherNoteColor: "#a0a7c4"
+    }
+  };
+
   return (
     <Canvas
       width={props.width}
       height={props.height}
-      input={props.pitches}
+      input={input}
       drawFunction={drawPitch}
     />
   );
