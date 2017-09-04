@@ -1,5 +1,4 @@
 /* @flow */
-import PropTypes from "prop-types";
 import * as React from "react";
 import { Observable } from "rxjs/Observable";
 import styled from "styled-components";
@@ -123,12 +122,16 @@ function Tab(
 ) {
   if (props.active) {
     return (
-      <ActiveTab>
+      <ActiveTab role="tab">
         {props.children}
       </ActiveTab>
     );
   } else {
-    return <InactiveTab onClick={props.onClick}>{props.children}</InactiveTab>;
+    return (
+      <InactiveTab role="tab" onClick={props.onClick}>
+        {props.children}
+      </InactiveTab>
+    );
   }
 }
 
@@ -462,7 +465,9 @@ type Props = {
   onChangeEnd: number => void,
   onChangeStart: number => void,
   onChangePlaybackRate: number => void,
-  onFinish: Function
+  onChangeGain: number => void,
+  onFinish: Function,
+  note: number
 };
 
 type State = {
@@ -475,10 +480,12 @@ class TrimOverlay extends React.Component<Props, State> {
     this.state = { activeTabIndex: 0 };
     this.setActiveTabIndex = this.setActiveTabIndex.bind(this);
     this.onChangePlaybackRate = this.onChangePlaybackRate.bind(this);
+    this.onChangeGain = this.onChangeGain.bind(this);
   }
 
   setActiveTabIndex: (index: number) => void;
   onChangePlaybackRate: (event: Event) => void;
+  onChangeGain: (event: Event) => void;
 
   setActiveTabIndex(index: number) {
     this.setState({ activeTabIndex: index });
@@ -488,6 +495,13 @@ class TrimOverlay extends React.Component<Props, State> {
     const el = event.target;
     if (el instanceof HTMLInputElement) {
       this.props.onChangePlaybackRate(parseFloat(el.value));
+    }
+  }
+
+  onChangeGain(event: Event) {
+    const el = event.target;
+    if (el instanceof HTMLInputElement) {
+      this.props.onChangeGain(parseFloat(el.value));
     }
   }
 
@@ -529,13 +543,13 @@ class TrimOverlay extends React.Component<Props, State> {
               width={contentWidth}
               height={51}
               audioBuffer={this.props.audioBuffer}
-              targetNote={9}
+              targetNote={this.props.note}
               playbackRate={this.props.playbackParams.playbackRate}
             />
             <input
               type="range"
-              min={0.5}
-              max={2}
+              min={0}
+              max={1}
               value={this.props.playbackParams.playbackRate}
               step={0.05}
               onChange={this.onChangePlaybackRate}
@@ -547,7 +561,20 @@ class TrimOverlay extends React.Component<Props, State> {
         break;
 
       case 2:
-        tabContentEl = "volume";
+        tabContentEl = (
+          <div>
+            <input
+              type="range"
+              min={0.5}
+              max={2}
+              value={this.props.playbackParams.gain}
+              step={0.05}
+              onChange={this.onChangeGain}
+            />
+            {this.props.playbackParams.gain} X
+          </div>
+        );
+
         break;
     }
 
@@ -670,7 +697,8 @@ function controller(props$, actions) {
   const playbackParamsUpdates$ = Observable.merge(
     actions.changeStart$.map(v => ({ trimStart: v })),
     actions.changeEnd$.map(v => ({ trimEnd: v })),
-    actions.changePlaybackRate$.map(v => ({ playbackRate: v }))
+    actions.changePlaybackRate$.map(v => ({ playbackRate: v })),
+    actions.changeGain$.map(v => ({ gain: v }))
   );
 
   const playbackParams$ = Observable.merge(
@@ -712,6 +740,7 @@ function controller(props$, actions) {
       videoClipId: props.videoClipId,
       videoClipSources: props.videoClipSources,
       onClose: props.onClose,
+      note: props.note,
       audioBuffer: props.audioBuffer,
       playbackStartedAt,
       playbackParams
@@ -725,5 +754,6 @@ export default createControlledComponent(controller, StyledTrimOverlay, [
   "changeStart",
   "changeEnd",
   "changePlaybackRate",
+  "changeGain",
   "finish"
 ]);

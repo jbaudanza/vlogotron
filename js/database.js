@@ -124,7 +124,7 @@ function updateVideoClip(
 }
 
 const defaultPlaybackParams = {
-  gain: 0,
+  gain: 0.7,
   trimStart: 0,
   trimEnd: 1,
   playbackRate: 1

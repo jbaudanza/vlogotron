@@ -13,7 +13,8 @@ type Props = {
   className?: string,
   width: number,
   height: number,
-  audioBuffer: AudioBuffer
+  audioBuffer: AudioBuffer,
+  gain: number
 };
 
 export default function AudioBufferView(props: Props) {

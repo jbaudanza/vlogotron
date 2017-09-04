@@ -79,7 +79,8 @@ type DrawPitchInput = {
   colors: {
     backgroundColor: string,
     targetNoteColor: string,
-    otherNoteColor: string
+    otherNoteColor: string,
+    targetLineColor: string
   }
 };
 
@@ -101,26 +102,27 @@ function drawPitch(
   context.lineWidth = 1;
   context.lineCap = "square";
 
+  const targetNote = input.targetNote % octaveSize;
+
   function noteToY(note) {
-    const diff = input.targetNote - octaveSize / 2;
-    return height - (note - diff) * scaleY;
+    const diff = targetNote - octaveSize / 2;
+    return height - (note - diff) % octaveSize * scaleY;
   }
 
-  /*
-  const targetY = noteToY(input.targetNote);
-  context.strokeStyle = "black"
+  const targetY = noteToY(targetNote);
+  context.strokeStyle = input.colors.targetLineColor;
+  context.shadowColor = "transparent";
   context.beginPath();
   context.moveTo(0, targetY);
-  context.lineTo(15, targetY);
+  context.lineTo(width, targetY);
   context.stroke();
-  */
 
   for (let i = 0; i < input.frequencies.length; i++) {
     const frequency = input.frequencies[i];
     if (frequency != null) {
       const midiNote = frequencyToNote(frequency) % octaveSize;
 
-      const diff = Math.abs(midiNote - input.targetNote);
+      const diff = Math.abs(midiNote - targetNote);
       if (diff < 0.5) {
         context.lineWidth = 2;
         context.strokeStyle = input.colors.targetNoteColor;
@@ -155,7 +157,8 @@ function PitchView(props: InnerProps) {
     colors: {
       backgroundColor: "#eeeeee",
       targetNoteColor: "#29bdec",
-      otherNoteColor: "#a0a7c4"
+      otherNoteColor: "#a0a7c4",
+      targetLineColor: "#cdcdcd"
     }
   };
 

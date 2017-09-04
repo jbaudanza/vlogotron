@@ -18,6 +18,7 @@ import SubHeader from "./SubHeader";
 import PageHeaderAction from "./PageHeaderAction";
 import CreateNewSongOverlay from "./CreateNewSongOverlay";
 import Message from "./Message";
+import { labelToMidiNote } from "./midi";
 
 import { notes } from "./VideoGrid";
 
@@ -151,6 +152,7 @@ export default class RecordVideosView extends React.Component<Props> {
             audioBuffer={this.props.audioBuffers[note]}
             playbackParams={this.props.playbackParams[note]}
             onFinish={this.onFinishTrim.bind(this, note)}
+            note={labelToMidiNote(note)}
           />
         );
       }

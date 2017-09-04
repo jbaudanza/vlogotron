@@ -1,4 +1,7 @@
-import React from "react";
+/* @flow */
+
+import * as React from "react";
+
 import PropTypes from "prop-types";
 import { Observable } from "rxjs/Observable";
 
@@ -59,8 +62,18 @@ function constrainRange(number) {
   return number;
 }
 
-export default class TrimAdjuster extends React.Component {
-  constructor(props) {
+type Props = {
+  trimStart: number,
+  trimEnd: number,
+  onChangeStart: number => void,
+  onChangeEnd: number => void,
+  width: number,
+  height: number,
+  audioBuffer: AudioBuffer
+};
+
+export default class TrimAdjuster extends React.Component<Props> {
+  constructor(props: Props) {
     super();
     this.onMouseDownStart = this.onMouseDown.bind(
       this,
@@ -82,9 +95,17 @@ export default class TrimAdjuster extends React.Component {
       this._filteredOnChangeEnd.bind(this),
       "trimEnd"
     );
+    this.setWrapperRef = this.setWrapperRef.bind(this);
   }
 
-  _filteredOnChangeStart(value) {
+  onMouseDownStart: MouseEvent => void;
+  onMouseDownEnd: MouseEvent => void;
+  onKeyDownTrimStart: KeyboardEvent => void;
+  onKeyDownTrimEnd: KeyboardEvent => void;
+  setWrapperRef: ?HTMLElement => void;
+  wrapperEl: ?HTMLElement;
+
+  _filteredOnChangeStart(value: number) {
     value = constrainRange(value);
 
     if (value >= 0 && value < this.props.trimEnd) {
@@ -92,7 +113,7 @@ export default class TrimAdjuster extends React.Component {
     }
   }
 
-  _filteredOnChangeEnd(value) {
+  _filteredOnChangeEnd(value: number) {
     value = constrainRange(value);
 
     if (value <= 1 && value > this.props.trimStart) {
@@ -100,7 +121,7 @@ export default class TrimAdjuster extends React.Component {
     }
   }
 
-  onKeyDown(callback, prop, event) {
+  onKeyDown(callback: Function, prop: string, event: KeyboardEvent) {
     let interval;
 
     if (event.shiftKey) {
@@ -118,18 +139,31 @@ export default class TrimAdjuster extends React.Component {
     }
   }
 
-  onMouseDown(callback, edge, event) {
+  onMouseDown(callback: Function, edge: "left" | "right", event: MouseEvent) {
     event.preventDefault();
-    event.target.focus();
 
-    const grabberEl = findWrappingClass(event.target, "grabber");
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+
+    target.focus();
+
+    const grabberEl = findWrappingClass(target, "grabber");
+
+    if (this.wrapperEl == null || grabberEl == null) return;
 
     const rect = this.wrapperEl.getBoundingClientRect();
 
     let grabberOffset;
     let adjust;
 
-    grabberOffset = -(event.clientX - grabberEl.getBoundingClientRect()[edge]);
+    let edgeValue;
+    if (edge === "left") {
+      edgeValue = grabberEl.getBoundingClientRect().left;
+    } else {
+      edgeValue = grabberEl.getBoundingClientRect().right;
+    }
+
+    grabberOffset = -(event.clientX - edgeValue);
 
     if (edge === "left") {
       adjust = +grabberWidth;
@@ -143,11 +177,15 @@ export default class TrimAdjuster extends React.Component {
       .subscribe(callback);
   }
 
+  setWrapperRef(el: ?HTMLElement) {
+    this.wrapperEl = el;
+  }
+
   render() {
     return (
       <TrimAdjusterWrapper
         style={{ width: this.props.width, height: this.props.height }}
-        innerRef={el => this.wrapperEl = el}
+        innerRef={this.setWrapperRef}
       >
         <StyledAudioBufferView
           width={this.props.width}
@@ -195,10 +233,3 @@ export default class TrimAdjuster extends React.Component {
     );
   }
 }
-
-TrimAdjuster.propTypes = {
-  trimStart: PropTypes.number.isRequired,
-  trimEnd: PropTypes.number.isRequired,
-  onChangeStart: PropTypes.func.isRequired,
-  onChangeEnd: PropTypes.func.isRequired
-};
