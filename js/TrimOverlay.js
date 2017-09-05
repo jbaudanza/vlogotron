@@ -109,39 +109,17 @@ type PlaybackPositionAnimationProps = {
   getCurrentTime: () => number
 };
 
-const InactiveTab = styled.a`
+const Tab = styled.a`
   display: block;
   text-decoration: none;
   color: ${colors.charcoalGrey};
   font-weight: 400;
   box-sizing: border-box;
   padding: 10px;
-  cursor: pointer;
-  border-left: 2px solid #D9DBEB;
+  border-left: 2px solid;
+  border-color: ${props => (props.active ? colors.purple : "#D9DBEB")};
+  cursor: ${props => (props.active ? "auto" : "pointer")};
 `;
-
-const ActiveTab = InactiveTab.withComponent("div").extend`
-  border-left: 2px solid ${colors.purple};
-  cursor: auto;
-`;
-
-function Tab(
-  props: { active: boolean, children: React.Node, onClick: Function }
-) {
-  if (props.active) {
-    return (
-      <ActiveTab role="tab">
-        {props.children}
-      </ActiveTab>
-    );
-  } else {
-    return (
-      <InactiveTab role="tab" onClick={props.onClick}>
-        {props.children}
-      </InactiveTab>
-    );
-  }
-}
 
 class VideoPlaybackPosition
   extends React.Component<PlaybackPositionAnimationProps> {
