@@ -12,8 +12,6 @@ import { findWrappingClass } from "./domutils";
 
 import type { PlaybackParams } from "./AudioPlaybackEngine";
 
-import AudioBufferView from "./AudioBufferView";
-
 const documentMouseMove$ = Observable.fromEvent(document, "mousemove");
 const documentMouseUp$ = Observable.fromEvent(document, "mouseup");
 
@@ -28,7 +26,7 @@ const Shade = styled.div`
   position: absolute;
   top: ${grabberPadding}px;
   bottom: ${grabberPadding}px;
-  background-color: #eee;
+  background-color: #a0a7c4;
   opacity: 0.8;
 `;
 
@@ -53,8 +51,12 @@ const GrabberLine = styled.div`
   background-color: #fff;
 `;
 
-const StyledAudioBufferView = styled(AudioBufferView)`
-  margin-top: ${grabberPadding}px;
+const ChildrenWrapper = styled.div`
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: ${grabberPadding}px;
+  top: ${grabberPadding}px;
 `;
 
 function constrainRange(number) {
@@ -69,7 +71,7 @@ type Props = {
   onChangeEnd: number => void,
   width: number,
   height: number,
-  audioBuffer: AudioBuffer
+  children: React.Node
 };
 
 export default class TrimAdjuster extends React.Component<Props> {
@@ -187,12 +189,9 @@ export default class TrimAdjuster extends React.Component<Props> {
         style={{ width: this.props.width, height: this.props.height }}
         innerRef={this.setWrapperRef}
       >
-        <StyledAudioBufferView
-          width={this.props.width}
-          height={this.props.height - grabberPadding * 2}
-          gain={this.props.playbackParams.gain}
-          audioBuffer={this.props.audioBuffer}
-        />
+        <ChildrenWrapper>
+          {this.props.children}
+        </ChildrenWrapper>
         <Shade
           style={{
             left: 0,

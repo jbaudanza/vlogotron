@@ -22,7 +22,7 @@ export default function AudioBufferView(props: Props) {
     audioBuffer: props.audioBuffer,
     gain: props.gain,
     colors: {
-      backgroundColor: "#a0a7c4",
+      backgroundColor: "#eeeeee",
       foregroundColor: "#4b57a3"
     }
   };

@@ -520,55 +520,25 @@ class TrimOverlay extends React.Component<Props, State> {
       playbackRate: this.props.playbackParams.playbackRate
     };
 
-    const tabLabels = ["Trim", "Pitch", "Volume"];
+    const tabLabels = ["Volume", "Pitch"];
 
-    let tabContentEl = null;
+    const trimAdjusterHeight = 51;
+    const audioViewHeight = trimAdjusterHeight - 8;
+
+    let audioViewEl = null;
+    let sliderEl = null;
     switch (this.state.activeTabIndex) {
       case 0:
-        tabContentEl = (
-          <TrimAdjuster
-            audioBuffer={this.props.audioBuffer}
-            playbackParams={this.props.playbackParams}
-            onChangeStart={this.props.onChangeStart}
-            onChangeEnd={this.props.onChangeEnd}
-            width={contentWidth}
-            height={51}
-          />
-        );
-        break;
-      case 1:
-        tabContentEl = (
-          <div>
-            <PitchView
-              width={contentWidth}
-              height={51}
-              audioBuffer={this.props.audioBuffer}
-              targetNote={this.props.note}
-              playbackRate={this.props.playbackParams.playbackRate}
-            />
-            <input
-              type="range"
-              min={0.5}
-              max={2}
-              value={this.props.playbackParams.playbackRate}
-              step={0.05}
-              onChange={this.onChangePlaybackRate}
-            />
-            {this.props.playbackParams.playbackRate} X
-          </div>
-        );
-
-        break;
-
-      case 2:
-        tabContentEl = (
-          <div>
+        audioViewEl = (
             <AudioBufferView
               audioBuffer={this.props.audioBuffer}
               gain={this.props.playbackParams.gain}
               width={contentWidth}
-              height={51}
-            />
+              height={audioViewHeight} />
+        );
+
+        sliderEl = (
+          <div>
             <input
               type="range"
               min={0}
@@ -582,6 +552,31 @@ class TrimOverlay extends React.Component<Props, State> {
         );
 
         break;
+      case 1:
+        audioViewEl = (
+            <PitchView
+              width={contentWidth}
+              height={audioViewHeight}
+              audioBuffer={this.props.audioBuffer}
+              targetNote={this.props.note}
+              playbackRate={this.props.playbackParams.playbackRate}
+            />
+        );
+        sliderEl = (
+          <div>
+            <input
+              type="range"
+              min={0.5}
+              max={2}
+              value={this.props.playbackParams.playbackRate}
+              step={0.05}
+              onChange={this.onChangePlaybackRate}
+            />
+            {this.props.playbackParams.playbackRate} X
+          </div>
+        );
+
+        break;
     }
 
     return (
@@ -590,12 +585,6 @@ class TrimOverlay extends React.Component<Props, State> {
         className={this.props.className}
         onClose={this.props.onClose}
       >
-        <TabGroup
-          activeTabIndex={this.state.activeTabIndex}
-          tabs={tabLabels}
-          onChange={this.setActiveTabIndex}
-        />
-
         <VideoWrapper>
           <VideoCropper>
             <SynchronizedVideo
@@ -631,9 +620,25 @@ class TrimOverlay extends React.Component<Props, State> {
         </VideoWrapper>
 
         <TrimAdjusterWrapper>
-          {tabContentEl}
+          <TrimAdjuster
+            playbackParams={this.props.playbackParams}
+            onChangeStart={this.props.onChangeStart}
+            onChangeEnd={this.props.onChangeEnd}
+            width={contentWidth}
+            height={trimAdjusterHeight}
+          >
+            {audioViewEl}
+          </TrimAdjuster>
           <AnimatedAudioPlaybackPositionMarker {...playbackAnimationProps} />
         </TrimAdjusterWrapper>
+
+        <TabGroup
+          activeTabIndex={this.state.activeTabIndex}
+          tabs={tabLabels}
+          onChange={this.setActiveTabIndex}
+        />
+
+        {sliderEl}
 
         <ActionWrapper>
           <ActionLink onClick={this.props.onFinish}>
