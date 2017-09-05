@@ -90,6 +90,10 @@ function percentString(number) {
   return number * 100 + "%";
 }
 
+function roundedPercentString(number) {
+  return Math.floor(number * 100) + "%";
+}
+
 type PlaybackPositionAnimationProps = {
   playbackStartedAt: ?number,
   duration: number,
@@ -98,23 +102,18 @@ type PlaybackPositionAnimationProps = {
 };
 
 const InactiveTab = styled.a`
-  display: inline-block;
+  display: block;
   text-decoration: none;
   color: ${colors.charcoalGrey};
   font-weight: 400;
-  height: 25px;
-  line-height: 25px;
   box-sizing: border-box;
-  padding: 0 10px;
+  padding: 10px;
   cursor: pointer;
-  border-left: 1px solid #fff;
-  border-right: 1px solid #fff;
+  border-left: 2px solid #D9DBEB;
 `;
 
-const ActiveTab = InactiveTab.withComponent("span").extend`
-  border-top: 2px solid ${colors.purple};
-  border-left: 1px solid #D9DBEB;
-  border-right: 1px solid #D9DBEB;
+const ActiveTab = InactiveTab.withComponent("div").extend`
+  border-left: 2px solid ${colors.purple};
   cursor: auto;
 `;
 
@@ -132,29 +131,6 @@ function Tab(
       <InactiveTab role="tab" onClick={props.onClick}>
         {props.children}
       </InactiveTab>
-    );
-  }
-}
-
-class TabGroup
-  extends React.Component<{
-    tabs: Array<string>,
-    activeTabIndex: number,
-    onChange: number => void
-  }> {
-  render() {
-    return (
-      <div>
-        {this.props.tabs.map((label, i) => (
-          <Tab
-            active={i === this.props.activeTabIndex}
-            key={i}
-            onClick={this.props.onChange.bind(null, i)}
-          >
-            {label}
-          </Tab>
-        ))}
-      </div>
     );
   }
 }
@@ -414,6 +390,10 @@ const PlaybackPositionText = styled.div`
   left: 40px;
 `;
 
+const RangeSlider = styled.input.attrs({ type: "range" })`
+  width: 100%
+`;
+
 function secondCounterController(props$) {
   return props$
     .switchMap(props => {
@@ -450,6 +430,10 @@ const TrimAdjusterWrapper = styled.div`
 
 const ActionWrapper = styled.div`
   margin-top: 40px;
+  text-align: center;
+`;
+
+const PlaybackParamValue = styled.div`
   text-align: center;
 `;
 
@@ -494,6 +478,9 @@ class TrimOverlay extends React.Component<Props, State> {
 
   onChangePlaybackRate(event: Event) {
     const el = event.target;
+
+    if (this.state.activeTabIndex !== 1) this.setActiveTabIndex(1);
+
     if (el instanceof HTMLInputElement) {
       this.props.onChangePlaybackRate(parseFloat(el.value));
     }
@@ -501,6 +488,9 @@ class TrimOverlay extends React.Component<Props, State> {
 
   onChangeGain(event: Event) {
     const el = event.target;
+
+    if (this.state.activeTabIndex !== 0) this.setActiveTabIndex(0);
+
     if (el instanceof HTMLInputElement) {
       this.props.onChangeGain(parseFloat(el.value));
     }
@@ -520,8 +510,6 @@ class TrimOverlay extends React.Component<Props, State> {
       playbackRate: this.props.playbackParams.playbackRate
     };
 
-    const tabLabels = ["Volume", "Pitch"];
-
     const trimAdjusterHeight = 51;
     const audioViewHeight = trimAdjusterHeight - 8;
 
@@ -530,49 +518,46 @@ class TrimOverlay extends React.Component<Props, State> {
     switch (this.state.activeTabIndex) {
       case 0:
         audioViewEl = (
-            <AudioBufferView
-              audioBuffer={this.props.audioBuffer}
-              gain={this.props.playbackParams.gain}
-              width={contentWidth}
-              height={audioViewHeight} />
+          <AudioBufferView
+            audioBuffer={this.props.audioBuffer}
+            gain={this.props.playbackParams.gain}
+            width={contentWidth}
+            height={audioViewHeight}
+          />
         );
 
         sliderEl = (
           <div>
-            <input
-              type="range"
+            <RangeSlider
               min={0}
               max={1}
               value={this.props.playbackParams.gain}
               step={0.05}
               onChange={this.onChangeGain}
             />
-            {this.props.playbackParams.gain} X
           </div>
         );
 
         break;
       case 1:
         audioViewEl = (
-            <PitchView
-              width={contentWidth}
-              height={audioViewHeight}
-              audioBuffer={this.props.audioBuffer}
-              targetNote={this.props.note}
-              playbackRate={this.props.playbackParams.playbackRate}
-            />
+          <PitchView
+            width={contentWidth}
+            height={audioViewHeight}
+            audioBuffer={this.props.audioBuffer}
+            targetNote={this.props.note}
+            playbackRate={this.props.playbackParams.playbackRate}
+          />
         );
         sliderEl = (
           <div>
-            <input
-              type="range"
+            <RangeSlider
               min={0.5}
               max={2}
               value={this.props.playbackParams.playbackRate}
               step={0.05}
               onChange={this.onChangePlaybackRate}
             />
-            {this.props.playbackParams.playbackRate} X
           </div>
         );
 
@@ -632,13 +617,41 @@ class TrimOverlay extends React.Component<Props, State> {
           <AnimatedAudioPlaybackPositionMarker {...playbackAnimationProps} />
         </TrimAdjusterWrapper>
 
-        <TabGroup
-          activeTabIndex={this.state.activeTabIndex}
-          tabs={tabLabels}
-          onChange={this.setActiveTabIndex}
-        />
+        <div>
+          <Tab
+            active={0 === this.state.activeTabIndex}
+            onClick={this.setActiveTabIndex.bind(null, 0)}
+          >
+            Volume
+            <RangeSlider
+              min={0}
+              max={1}
+              value={this.props.playbackParams.gain}
+              step={0.05}
+              onChange={this.onChangeGain}
+            />
+            <PlaybackParamValue>
+              {roundedPercentString(this.props.playbackParams.gain)}
+            </PlaybackParamValue>
+          </Tab>
 
-        {sliderEl}
+          <Tab
+            active={1 === this.state.activeTabIndex}
+            onClick={this.setActiveTabIndex.bind(null, 1)}
+          >
+            Playback Rate
+            <RangeSlider
+              min={0.5}
+              max={2}
+              value={this.props.playbackParams.playbackRate}
+              step={0.05}
+              onChange={this.onChangePlaybackRate}
+            />
+            <PlaybackParamValue>
+              {roundedPercentString(this.props.playbackParams.playbackRate)}
+            </PlaybackParamValue>
+          </Tab>
+        </div>
 
         <ActionWrapper>
           <ActionLink onClick={this.props.onFinish}>
