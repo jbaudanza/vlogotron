@@ -437,7 +437,7 @@ type State = {
   activeTabIndex: number
 };
 
-class TrimOverlay extends React.Component<Props, State> {
+class AdjustClipOverlay extends React.Component<Props, State> {
   constructor() {
     super();
     this.state = { activeTabIndex: 0 };
@@ -606,7 +606,7 @@ class TrimOverlay extends React.Component<Props, State> {
   }
 }
 
-const StyledTrimOverlay = styled(TrimOverlay)`
+const StyledAdjustClipOverlay = styled(AdjustClipOverlay)`
   .content {
     width: ${contentWidth}px;
     padding: 50px 40px 20px 40px;
@@ -713,7 +713,7 @@ function controller(props$, actions) {
   );
 }
 
-export default createControlledComponent(controller, StyledTrimOverlay, [
+export default createControlledComponent(controller, StyledAdjustClipOverlay, [
   "play",
   "pause",
   "changeStart",

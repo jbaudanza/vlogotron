@@ -35,7 +35,7 @@ type Props = {
   mediaStream?: MediaStream,
   onStartRecording?: Function,
   onStopRecording?: Function,
-  onTrim?: Function,
+  onAdjust?: Function,
   onClear?: Function,
   videoClipSources: VideoClipSources,
   videoClipId: string,
@@ -50,7 +50,7 @@ type Props = {
 export default class VideoCell extends React.Component<Props> {
   constructor() {
     super();
-    bindAll(this, "setVideoStream", "onClear", "onTrim");
+    bindAll(this, "setVideoStream", "onClear", "onAdjust");
   }
 
   setVideoStream(videoEl: ?HTMLVideoElement) {
@@ -60,8 +60,8 @@ export default class VideoCell extends React.Component<Props> {
     }
   }
 
-  onTrim() {
-    if (this.props.onTrim) this.props.onTrim();
+  onAdjust() {
+    if (this.props.onAdjust) this.props.onAdjust();
   }
 
   onClear() {
@@ -158,9 +158,9 @@ export default class VideoCell extends React.Component<Props> {
           }
 
           trimEl = (
-            <Link onClick={this.onTrim} className="trim-button">
-              <svg version="1.1" width="16px" height="14px">
-                <use xlinkHref="#svg-trim" fill="white" />
+            <Link onClick={this.onAdjust} className="trim-button">
+              <svg version="1.1" width="14px" height="14px">
+                <use xlinkHref="#svg-settings" fill="white" />
               </svg>
             </Link>
           );

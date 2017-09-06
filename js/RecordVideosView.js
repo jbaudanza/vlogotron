@@ -10,7 +10,7 @@ import VideoGrid from "./VideoGrid";
 import PageHeader from "./PageHeader";
 import PageTextFooter from "./PageTextFooter";
 import LoginOverlay from "./LoginOverlay";
-import TrimOverlay from "./TrimOverlay";
+import AdjustClipOverlay from "./AdjustClipOverlay";
 import ShareOverlay from "./ShareOverlay";
 import NotificationPopup from "./NotificationPopup";
 import ChooseSongOverlay from "./ChooseSongOverlay";
@@ -65,7 +65,7 @@ type Props = {
 export default class RecordVideosView extends React.Component<Props> {
   constructor() {
     super();
-    bindAll(this, "bindVideoGrid", "onTrim", "onSelectSong");
+    bindAll(this, "bindVideoGrid", "onAdjust", "onSelectSong");
   }
 
   subscription: Subscription;
@@ -84,8 +84,8 @@ export default class RecordVideosView extends React.Component<Props> {
     this.props.actions.subjects.editSong$.next(event);
   }
 
-  onTrim(note: string) {
-    this.props.onNavigate("#trim?note=" + note);
+  onAdjust(note: string) {
+    this.props.onNavigate("#adjust?note=" + note);
   }
 
   onSelectSong(songId: SongId) {
@@ -140,11 +140,11 @@ export default class RecordVideosView extends React.Component<Props> {
     }
 
     let match;
-    if ((match = this.props.location.hash.match(/^#trim\?note=([\w]+)/))) {
+    if ((match = this.props.location.hash.match(/^#adjust\?note=([\w]+)/))) {
       const note = match[1];
       if (this.props.videoClipSources[note] && this.props.audioBuffers[note]) {
         overlay = (
-          <TrimOverlay
+          <AdjustClipOverlay
             onClose={this.props.location.pathname}
             videoClipId={this.props.videoClipIds[note]}
             videoClipSources={this.props.videoClipSources[note]}
@@ -256,7 +256,7 @@ export default class RecordVideosView extends React.Component<Props> {
                   onStartRecording={this.props.onStartRecording}
                   onStopRecording={this.props.onStopRecording}
                   onClear={this.props.onClearVideoClip}
-                  onTrim={this.onTrim}
+                  onAdjust={this.onAdjust}
                   mediaStream={this.props.mediaStream}
                   countdownUntilRecord={this.props.countdownUntilRecord}
                   durationRecorded={this.props.durationRecorded}

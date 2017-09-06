@@ -38,8 +38,8 @@ type Props = {
   durationRecorded?: number,
   onStartRecording?: Function,
   onStopRecording?: Function,
-  onTrim?: Function,
-  onClear?: Function,
+  onAdjust?: (string) => void,
+  onClear?: (string) => void,
   noteBeingRecorded?: string,
   mediaStream?: MediaStream,
   loading: Object,
@@ -119,8 +119,8 @@ export default class VideoGrid extends React.Component<Props, State> {
         props.onStopRecording = this.props.onStopRecording.bind(this, note);
       }
 
-      if (this.props.onTrim) {
-        props.onTrim = this.props.onTrim.bind(this, note);
+      if (this.props.onAdjust) {
+        props.onAdjust = this.props.onAdjust.bind(this, note);
       }
 
       if (this.props.onClear) {
