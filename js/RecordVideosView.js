@@ -99,10 +99,9 @@ export default class RecordVideosView extends React.Component<Props> {
 
   onFinishTrim(note: string, playbackParams: PlaybackParams) {
     this.updateSongBoard({
-      type: "update-trim",
+      type: "update-playback-params",
       note,
-      trimStart: playbackParams.trimStart,
-      trimEnd: playbackParams.trimEnd,
+      playbackParams,
       uid: this.props.currentUser.uid
     });
 

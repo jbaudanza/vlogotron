@@ -156,7 +156,7 @@ function PitchView(props: InnerProps) {
     targetNote: props.targetNote,
     colors: {
       backgroundColor: "#eeeeee",
-      targetNoteColor: "#29bdec",
+      targetNoteColor: "#a0a7c4",
       otherNoteColor: "#a0a7c4",
       targetLineColor: "#cdcdcd"
     }

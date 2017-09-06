@@ -49,16 +49,9 @@ export type SongBoardEvent =
       uid: string
     }
   | {
-      type: "update-gain",
-      value: number,
+      type: "update-playback-params",
+      playbackParams: PlaybackParams,
       note: NoteId,
-      uid: string
-    }
-  | {
-      type: "update-trim",
-      note: NoteId,
-      trimStart: number,
-      trimEnd: number,
       uid: string
     }
   | {
@@ -147,18 +140,11 @@ function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
       };
     case "remove-video":
       return { ...acc, videoClips: omit(acc.videoClips, event.note) };
-    case "update-gain":
-      const value = event.value;
+    case "update-playback-params":
+      const playbackParams = event.playbackParams;
       return updateVideoClip(acc, event.note, videoClip => ({
         ...videoClip,
-        playbackParams: { ...videoClip.playbackParams, gain: value }
-      }));
-
-    case "update-trim":
-      const { trimStart, trimEnd } = event;
-      return updateVideoClip(acc, event.note, videoClip => ({
-        ...videoClip,
-        playbackParams: { ...videoClip.playbackParams, trimStart, trimEnd }
+        playbackParams
       }));
 
     case "update-song":

@@ -609,7 +609,7 @@ class TrimOverlay extends React.Component<Props, State> {
 const StyledTrimOverlay = styled(TrimOverlay)`
   .content {
     width: ${contentWidth}px;
-    padding: 40px 40px 20px 40px;
+    padding: 50px 40px 20px 40px;
     text-align: left;
   }
   // Disable scrolling
