@@ -10,6 +10,7 @@ import PitchGuide from "./PitchGuide";
 import SynchronizedVideo from "./SynchronizedVideo";
 import colors from "./colors";
 import Spinner from "./Spinner";
+import RobotAvatar from "./RobotAvatar";
 import styled from "styled-components";
 
 import { formatSeconds } from "./format";
@@ -167,9 +168,6 @@ export default class VideoCell extends React.Component<Props> {
         }
       }
     } else {
-      const svgId = this.props.playbackStartedAt == null
-        ? "#svg-robot-closed"
-        : "#svg-robot-open";
       const className = classNames("empty-video", {
         readonly: this.props.readonly,
         "read-write": !this.props.readonly
@@ -197,9 +195,7 @@ export default class VideoCell extends React.Component<Props> {
       videoEl = (
         <div className={className}>
           {startRecordButton}
-          <svg version="1.1" width="100px" height="125px" className="robot">
-            <use xlinkHref={svgId} />
-          </svg>
+          <StyledRobotAvatar open={this.props.playbackStartedAt != null} />
         </div>
       );
     }
@@ -364,12 +360,6 @@ const StyledVideoCell = styled.div`
         background-color: ${colors.purple};
       }
     }
-
-    svg.robot {
-      fill: ${colors.cloudyBlue};
-      stroke: ${colors.cloudyBlue};
-      margin-top: 13px;
-    }
   }
 
   video {
@@ -384,4 +374,28 @@ const StyledVideoCell = styled.div`
     left: 5px;
     right: 5px;
   }
+`;
+
+const closedRobotColors = {
+  accent: colors.cloudyBlue,
+  outline: colors.cloudyBlue,
+  eyes: "#a0a7c4",
+  face: colors.cloudyBlue,
+  mouth: "#a0a7c4"
+};
+
+const openRobotColors = {
+  accent: colors.cloudyBlue,
+  outline: colors.cloudyBlue,
+  eyes: colors.purple,
+  face: colors.cloudyBlue,
+  mouth: colors.purple
+};
+
+const StyledRobotAvatar = styled(RobotAvatar).attrs({
+  width: "100px",
+  height: "100px",
+  colors: props => (props.open ? openRobotColors : closedRobotColors)
+})`
+  margin-top: 13px;
 `;

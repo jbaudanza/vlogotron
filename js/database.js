@@ -23,12 +23,6 @@ export type VideoClip = {
   playbackParams: PlaybackParams
 };
 
-type VideoClipSources = {
-  posterUrl: string,
-  audioUrl: string,
-  videoUrls: Array<VideoClipSource>
-};
-
 type SerializedSong = Song & {
   parentSong: ?SerializedSong,
   songId: SongId,

@@ -21,6 +21,14 @@ type State = {
   open: boolean
 };
 
+const robotColors = {
+  accent: colors.darkSkyBlue,
+  outline: colors.purple,
+  eyes: "#fff",
+  face: "#8C9EE0",
+  mouth: colors.purple
+};
+
 export default class NotificationPopup extends React.Component<Props, State> {
   constructor() {
     super();
@@ -43,7 +51,9 @@ export default class NotificationPopup extends React.Component<Props, State> {
       if (this.props.photoURL) {
         avatarEl = <img src={this.props.photoURL} />;
       } else {
-        avatarEl = <RobotAvatar />;
+        avatarEl = (
+          <RobotAvatar width="51px" height="51px" colors={robotColors} />
+        );
       }
 
       return (
