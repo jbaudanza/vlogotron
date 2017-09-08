@@ -75,8 +75,7 @@ export default function recordVideosController(
   currentUser$: Observable<?FirebaseUser>,
   mediaStore: Media,
   firebase: Object,
-  subscription: Subscription,
-  navigate: Function
+  subscription: Subscription
 ): Observable<ViewProps> {
   const recordingEngine$ = actions.startRecording$
     .switchMap(note => startRecording(note, actions.stopRecording$, escapeKey$))

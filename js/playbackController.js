@@ -36,8 +36,7 @@ export default function playbackController(
   currentUser$: Observable<?Object>,
   media: Media,
   firebase: FirebaseDatabase,
-  subscription: Subscription,
-  navigate: Function
+  subscription: Subscription
 ) {
   const authorName$ = media.songBoard$.switchMap(songBoard => {
     return displayNameForUid(firebase.database(), songBoard.uid);

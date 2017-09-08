@@ -5,7 +5,11 @@ type TemplateValue = Promise<any> | string | number | Array<any>;
 
 type PromiseTemplate = { [string]: TemplateValue } | Array<TemplateValue>;
 
-type ResolvedValue = string | number | Array<ResolvedValue> | {[string]: ResolvedValue};
+type ResolvedValue =
+  | string
+  | number
+  | Array<ResolvedValue>
+  | { [string]: ResolvedValue };
 type ResolvedTemplate = { [string]: ResolvedValue } | Array<ResolvedValue>;
 
 // Prettier will remove the parens and break flow

@@ -260,12 +260,7 @@ class App extends React.Component<{}, State> {
       );
     }
 
-    const component = routeToViewComponent(
-      route,
-      currentUser$,
-      this.media,
-      firebase
-    );
+    const component = routeToViewComponent(route, this.media, firebase);
 
     this.setState({
       component: component
@@ -374,6 +369,7 @@ class App extends React.Component<{}, State> {
       origin: this.state.origin,
       onNavigate: this.onNavigate,
       onLogin: this.onLogin,
+      currentUser: this.state.currentUser,
       premiumAccountStatus: this.state.premiumAccountStatus
     });
 

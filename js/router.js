@@ -68,7 +68,6 @@ export function pathnameToRoute(pathname: string): Route {
 
 export function routeToViewComponent(
   route: Route,
-  currentUser$: Observable<Object>,
   media: Media,
   firebase: Object
 ): Function {
@@ -79,11 +78,10 @@ export function routeToViewComponent(
       return controllerFn(
         props$,
         actions,
-        currentUser$,
+        props$.map(props => props.currentUser),
         media,
         firebase,
-        subscription,
-        () => false // navigateFn is a no-op
+        subscription
       );
     };
   }
