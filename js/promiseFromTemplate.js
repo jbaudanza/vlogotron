@@ -1,6 +1,22 @@
-export default function promiseFromTemplate(template) {
+/* @noflow */
+// TODO: I didn't get very far with these flow types.
+
+type TemplateValue = Promise<any> | string | number | Array<any>;
+
+type PromiseTemplate = { [string]: TemplateValue } | Array<TemplateValue>;
+
+type ResolvedValue = string | number | Array<ResolvedValue> | {[string]: ResolvedValue};
+type ResolvedTemplate = { [string]: ResolvedValue } | Array<ResolvedValue>;
+
+// Prettier will remove the parens and break flow
+// prettier-ignore
+type ExtractReturnType = <V>(Promise<V>) => V;
+
+export default function promiseFromTemplate<T: PromiseTemplate>(
+  template: T
+): Promise<ResolvedTemplate> {
   return new Promise(function(resolve, reject) {
-    let result;
+    let result: ResolvedTemplate;
 
     if (Array.isArray(template)) {
       result = [];
