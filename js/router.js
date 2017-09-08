@@ -28,22 +28,36 @@ const id = "([\\w-]+)";
 
 const routes = [
   [`/`, "root"],
-  [`/record-videos`, "record-videos"],
-  [`/note-editor`, "note-editor"],
-  [`/songs/${id}`, "view-song", "songId"],
-  [`/songs/${id}/record-videos`, "record-videos", "songId"],
-  [`/songs/${id}/note-editor`, "note-editor", "songId"],
-  [`/songs/${id}/(remix)/record-videos`, "record-videos", "songId", "remix"],
-  [`/songs/${id}/(remix)/note-editor`, "note-editor", "songId", "remix"],
   [`/song-boards/${id}`, "play-song-board", "songBoardId"],
   [`/song-boards/${id}/edit`, "edit-song-board", "songBoardId"],
   [`/song-boards/${id}/collab`, "collab-song-board", "songBoardId"]
 ];
 
-export type Route = {
-  name: string,
-  params: { [string]: string }
-};
+export type Route =
+  | {
+      name: "root",
+      params: {}
+    }
+  | {
+      name: "not-found",
+      params: {}
+    }
+  | {
+      name: "record-videos",
+      params: {}
+    }
+  | {
+      name: "play-song-board",
+      params: { songBoardId: string }
+    }
+  | {
+      name: "edit-song-board",
+      params: { songBoardId: string }
+    }
+  | {
+      name: "collab-song-board",
+      params: { songBoardId: string }
+    };
 
 export function pathnameToRoute(pathname: string): Route {
   for (let i = 0; i < routes.length; i++) {
@@ -56,6 +70,7 @@ export function pathnameToRoute(pathname: string): Route {
         entry.slice(2).map((key, j) => [key, match[1 + j]])
       );
 
+      // $FlowFixMe
       return {
         name: entry[1],
         params: params

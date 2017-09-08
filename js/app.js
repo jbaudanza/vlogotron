@@ -138,7 +138,7 @@ function initializeLocale() {
 function songBoardIdForRoute(route: Route): ?string {
   if (route.name === "root") {
     return "-KrRkEMrrpH0P4YcDgme";
-  } else if ("songBoardId" in route.params) {
+  } else if (typeof route.params.songBoardId === "string") {
     return route.params.songBoardId;
   } else {
     return null;
