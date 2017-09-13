@@ -10,7 +10,7 @@ import { getArrayBuffer } from "./http";
 import type { Route } from "./router";
 
 import { findSongBoard, waitForTranscode } from "./database";
-import type { SongBoard, FirebaseDatabase, VideoClip } from "./database";
+import type { SongBoard, FirebaseAPI, VideoClip } from "./database";
 import type { AudioSourceMap, PlaybackParams } from "./AudioPlaybackEngine";
 
 import {
@@ -70,7 +70,7 @@ export type Media = {
 export function subscribeToSongBoardId(
   songBoardId: string,
   defaultSongTitle: string,
-  firebase: FirebaseDatabase,
+  firebase: FirebaseAPI,
   subscription: Subscription
 ): Media {
   let localVideoStore$;

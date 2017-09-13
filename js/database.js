@@ -63,7 +63,18 @@ export type SongBoard = {
   videoClips: { [NoteId]: VideoClip }
 };
 
-export type FirebaseDatabase = Object;
+export type FirebaseAPI = {
+  database(): FirebaseDatabase,
+  storage(): FirebaseStorage
+};
+
+export type FirebaseDatabase = {
+  ref(string): Object
+};
+
+export type FirebaseStorage = {
+  ref(string): Object
+};
 
 export function createSongBoard(
   database: FirebaseDatabase,

@@ -25,7 +25,7 @@ import {
 import { displayNameForUid } from "./database";
 import combineTemplate from "./combineTemplate";
 
-import type { FirebaseDatabase } from "./database";
+import type { FirebaseAPI } from "./database";
 import type { Subscription } from "rxjs/Subscription";
 import type { ScheduledNoteList } from "./song";
 import type { Media } from "./mediaLoading";
@@ -35,7 +35,7 @@ export default function playbackController(
   actions: Object,
   currentUser$: Observable<?Object>,
   media: Media,
-  firebase: FirebaseDatabase,
+  firebase: FirebaseAPI,
   subscription: Subscription
 ) {
   const authorName$ = media.songBoard$.switchMap(songBoard => {
