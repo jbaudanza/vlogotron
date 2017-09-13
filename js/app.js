@@ -314,7 +314,8 @@ class App extends React.Component<{}, State> {
     return {
       audioContext,
       messages: messages[this.state.locale],
-      locale: this.state.locale
+      locale: this.state.locale,
+      firebase: firebase
     };
   }
 
@@ -406,5 +407,6 @@ function isSidebarVisible(route) {
 App.childContextTypes = {
   audioContext: PropTypes.object,
   messages: PropTypes.object,
+  firebase: PropTypes.object,
   locale: PropTypes.string
 };

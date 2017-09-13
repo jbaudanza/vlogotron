@@ -365,6 +365,27 @@ export function songsForUser(
   );
 }
 
+export function videoClipsForSongBoard(
+  database: FirebaseDatabase,
+  songBoardId: string
+): Observable<Array<string>> {
+  // Note: Perhaps there is now a different between add-video and "select-video"
+  const eventsRef = database
+    .ref("song-boards")
+    .child(songBoardId)
+    .child("events");
+
+  return reduceFirebaseCollection(eventsRef, reduceVideoClipList, []);
+}
+
+function reduceVideoClipList(acc, event) {
+  if (event.type === "add-video") {
+    return acc.concat(event.videoClipId);
+  } else {
+    return acc;
+  }
+}
+
 export function createVideoClip(
   jwt: ?string,
   databaseEntry: Object,

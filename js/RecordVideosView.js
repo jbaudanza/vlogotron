@@ -168,6 +168,16 @@ export default class RecordVideosView extends React.Component<Props> {
       );
     }
 
+    if (this.props.location.hash === "#choose-video-clip") {
+      overlay = (
+        <ChooseVideoClipOverlay
+          onClose={this.props.location.pathname}
+          database={this.context.firebase.database()}
+          songBoardId={this.props.songBoardId}
+        />
+      );
+    }
+
     if (this.props.location.hash === "#share") {
       overlay = (
         <ShareOverlay
@@ -276,7 +286,8 @@ export default class RecordVideosView extends React.Component<Props> {
 }
 
 RecordVideosView.contextTypes = {
-  messages: PropTypes.object.isRequired
+  messages: PropTypes.object.isRequired,
+  firebase: PropTypes.object.isRequired
 };
 
 const CameraIconWrapper = styled.span`

@@ -46,7 +46,8 @@ export default function createControlledComponent<
       const observable$ = controller(
         this.props$.asObservable(),
         this.actions.observables,
-        this.subscription
+        this.subscription,
+        this.props
       );
 
       this.subscription.add(
