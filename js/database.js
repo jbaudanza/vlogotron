@@ -63,21 +63,8 @@ export type SongBoard = {
   videoClips: { [NoteId]: VideoClip }
 };
 
-export type FirebaseAPI = {
-  database(): FirebaseDatabase,
-  storage(): FirebaseStorage
-};
-
-export type FirebaseDatabase = {
-  ref(string): Object
-};
-
-export type FirebaseStorage = {
-  ref(string): Object
-};
-
 export function createSongBoard(
-  database: FirebaseDatabase,
+  database: Firebase$Database,
   uid: string,
   songId: string
 ): Promise<string> {
@@ -172,7 +159,7 @@ function songBoardSnapshot(snapshot): SongBoard {
 }
 
 export function findSongBoard(
-  database: FirebaseDatabase,
+  database: Firebase$Database,
   songBoardId: string
 ): Observable<SongBoard> {
   const songBoardRef = database.ref("song-boards").child(songBoardId);
@@ -192,7 +179,7 @@ export function findSongBoard(
 }
 
 export function updateSongBoard(
-  database: FirebaseDatabase,
+  database: Firebase$Database,
   songId: string,
   event: SongBoardEvent
 ): Promise<Object> {
@@ -204,7 +191,7 @@ export function updateSongBoard(
 }
 
 export function createSong(
-  database: FirebaseDatabase,
+  database: Firebase$Database,
   song: SerializedSong
 ): Promise<string> {
   const songsCollectionRef = database.ref("songs");
@@ -253,7 +240,7 @@ function denormalizedRefsForSong(database, song) {
   return refs;
 }
 
-export function updateSong(database: FirebaseDatabase, song: Object) {
+export function updateSong(database: Firebase$Database, song: Object) {
   const rootRef = database.ref("songs").child(song.songId);
 
   const refs = denormalizedRefsForSong(database, song);
@@ -267,7 +254,7 @@ export function updateSong(database: FirebaseDatabase, song: Object) {
   return rootRef.child("revisions").push(revision).then(ignore => rootRef.key);
 }
 
-export function deleteSong(database: FirebaseDatabase, song: Object) {
+export function deleteSong(database: Firebase$Database, song: Object) {
   const rootRef = database.ref("songs").child(song.songId);
   rootRef.child("deletedAt").set(firebase.database.ServerValue.TIMESTAMP);
 
@@ -276,24 +263,7 @@ export function deleteSong(database: FirebaseDatabase, song: Object) {
   ).then(() => song.songId);
 }
 
-type FirebaseUserInfo = {
-  photoURL: ?string,
-  email: ?string,
-  displayName: ?string,
-  uid: string,
-  providerId: string
-};
-
-export type FirebaseUser = {
-  photoURL: ?string,
-  email: ?string,
-  displayName: ?string,
-  uid: string,
-  providerData: Array<FirebaseUserInfo>,
-  getToken(): Promise<string>
-};
-
-export function updateUser(database: FirebaseDatabase, user: FirebaseUser) {
+export function updateUser(database: Firebase$Database, user: Firebase$User) {
   const ref = database.ref("users").child(user.uid);
   ref.child("displayName").set(user.displayName);
   ref.child("email").set(user.email);
@@ -307,7 +277,7 @@ export function updateUser(database: FirebaseDatabase, user: FirebaseUser) {
 }
 
 export function songById(
-  database: FirebaseDatabase,
+  database: Firebase$Database,
   songId: string
 ): Observable<SerializedSong> {
   const ref = database
@@ -328,7 +298,7 @@ export function songById(
 }
 
 export function displayNameForUid(
-  database: FirebaseDatabase,
+  database: Firebase$Database,
   uid: string
 ): Observable<string> {
   const ref = database.ref("users").child(uid).child("displayName");
@@ -336,7 +306,7 @@ export function displayNameForUid(
 }
 
 export function photoURLForUid(
-  database: FirebaseDatabase,
+  database: Firebase$Database,
   uid: string
 ): Observable<?string> {
   const ref = database.ref("users").child(uid).child("photoURL");
@@ -344,7 +314,7 @@ export function photoURLForUid(
 }
 
 export function waitForTranscode(
-  database: FirebaseDatabase,
+  database: Firebase$Database,
   videoClipId: string
 ): Observable<Object> {
   return fromFirebaseRef(
@@ -356,7 +326,7 @@ export function waitForTranscode(
 }
 
 export function songsForUser(
-  database: FirebaseDatabase,
+  database: Firebase$Database,
   uid: string
 ): Observable<Object> {
   const ref = database.ref("users").child(uid).child("songs");
@@ -366,7 +336,7 @@ export function songsForUser(
 }
 
 export function videoClipsForSongBoard(
-  database: FirebaseDatabase,
+  database: Firebase$Database,
   songBoardId: string
 ): Observable<Array<string>> {
   // Note: Perhaps there is now a different between add-video and "select-video"
@@ -411,7 +381,7 @@ export function createVideoClip(
   });
 }
 
-export function premiumAccountStatus(database: FirebaseDatabase, uid: string) {
+export function premiumAccountStatus(database: Firebase$Database, uid: string) {
   const ref = database.ref("stripe-customers").child(uid).child("premium");
   return fromFirebaseRef(ref, "value").map(snapshot => snapshot.val());
 }

@@ -47,7 +47,6 @@ firebase.initializeApp(config);
 
 import { subscribeToSongBoardId } from "./mediaLoading";
 import type { Media } from "./mediaLoading";
-import type { FirebaseUser } from "./database";
 
 import {
   navigate,
@@ -148,7 +147,7 @@ function songBoardIdForRoute(route: Route): ?string {
 type State = {
   origin: string,
   locale: string,
-  currentUser?: FirebaseUser,
+  currentUser?: Firebase$User,
   location: Location,
   mySongs?: Object,
   premiumAccountStatus: boolean,
@@ -255,12 +254,11 @@ class App extends React.Component<{}, State> {
       this.media = subscribeToSongBoardId(
         newSongBoardId,
         messages[this.state.locale]["default-song-title"](),
-        firebase,
         this.mediaSubscription
       );
     }
 
-    const component = routeToViewComponent(route, this.media, firebase);
+    const component = routeToViewComponent(route, this.media);
 
     this.setState({
       component: component

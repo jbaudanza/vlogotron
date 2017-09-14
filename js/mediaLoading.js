@@ -3,6 +3,8 @@ import { Observable } from "rxjs/Observable";
 import { Subscription } from "rxjs/Subscription";
 import { Subject } from "rxjs/Subject";
 
+import * as firebase from "firebase";
+
 import audioContext from "./audioContext";
 
 import { getArrayBuffer } from "./http";
@@ -10,7 +12,7 @@ import { getArrayBuffer } from "./http";
 import type { Route } from "./router";
 
 import { findSongBoard, waitForTranscode } from "./database";
-import type { SongBoard, FirebaseAPI, VideoClip } from "./database";
+import type { SongBoard, VideoClip } from "./database";
 import type { AudioSourceMap, PlaybackParams } from "./AudioPlaybackEngine";
 
 import {
@@ -70,7 +72,6 @@ export type Media = {
 export function subscribeToSongBoardId(
   songBoardId: string,
   defaultSongTitle: string,
-  firebase: FirebaseAPI,
   subscription: Subscription
 ): Media {
   let localVideoStore$;
@@ -82,11 +83,12 @@ export function subscribeToSongBoardId(
   subscription.add(clearedEvents$);
   subscription.add(recordedMedia$);
 
-  const database = firebase.database();
-
   const emptyObject$ = Observable.of({});
 
-  const songBoard$ = findSongBoard(database, songBoardId).publishReplay();
+  const songBoard$ = findSongBoard(
+    firebase.database(),
+    songBoardId
+  ).publishReplay();
 
   localAudioBuffers$ = Observable.merge(recordedMedia$, clearedEvents$)
     .scan(reduceToLocalAudioBufferStore, {})
@@ -107,7 +109,7 @@ export function subscribeToSongBoardId(
     mapValues(song.videoClips, (o: VideoClip) => o.videoClipId)
   );
 
-  const remoteVideoClips$ = videoClipsForClipIds(videoClipIds$, firebase)
+  const remoteVideoClips$ = videoClipsForClipIds(videoClipIds$)
     .startWith({})
     .publishReplay();
 
@@ -176,7 +178,7 @@ const DEFAULT_SONG_ID = "-KjtoXV7i2sZ8b_Azl1y";
     }
   }
 */
-function videoClipsForClipIds(clipIds$, firebase) {
+function videoClipsForClipIds(clipIds$) {
   const storageRef = firebase.storage().ref("video-clips");
 
   function resultSelector(clipIdToObjectMap, noteToClipIdMap) {

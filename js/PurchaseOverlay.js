@@ -18,7 +18,6 @@ import { fontFamily } from "./fonts";
 import combineTemplate from "./combineTemplate";
 import createControlledComponent from "./createControlledComponent";
 import { postToAPI } from "./xhr";
-import type { FirebaseUser } from "./database";
 
 const stripe = Stripe("pk_test_DHTDixORQV3rdO8tLqEAU72l");
 
@@ -154,7 +153,7 @@ type OuterProps = {
   onClose: string,
   price: number,
   onCancel: Function,
-  currentUser: FirebaseUser,
+  currentUser: Firebase$User,
   onSelectSong: string => void
 };
 

@@ -81,11 +81,7 @@ export function pathnameToRoute(pathname: string): Route {
   return { name: "not-found", params: {} };
 }
 
-export function routeToViewComponent(
-  route: Route,
-  media: Media,
-  firebase: Object
-): Function {
+export function routeToViewComponent(route: Route, media: Media): Function {
   // TODO: Convert all controllers to this new signature and remove this
   // migrateController wrapper
   function migrateController(controllerFn) {
@@ -95,7 +91,6 @@ export function routeToViewComponent(
         actions,
         props$.map(props => props.currentUser),
         media,
-        firebase,
         subscription
       );
     };

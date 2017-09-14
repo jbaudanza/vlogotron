@@ -12,7 +12,6 @@ import Spinner from "./Spinner";
 import createControlledComponent from "./createControlledComponent";
 
 import { bindAll } from "lodash";
-import type { FirebaseUser } from "./database";
 
 function WorkingOverlay(props) {
   return (
@@ -26,7 +25,7 @@ type Props = {
   onClose: string,
   premiumAccountStatus: boolean,
   onSelectSong: string => void,
-  currentUser: FirebaseUser
+  currentUser: Firebase$User
 };
 
 type State = {

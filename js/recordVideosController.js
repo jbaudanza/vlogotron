@@ -3,6 +3,7 @@
 import { Observable } from "rxjs/Observable";
 import { Subject } from "rxjs/Subject";
 import type { Subscription } from "rxjs/Subscription";
+import * as firebase from "firebase";
 
 import audioContext from "./audioContext";
 import { start as startCapturing } from "./recording";
@@ -17,7 +18,7 @@ import {
   updateSongBoard,
   createVideoClip
 } from "./database";
-import type { SongBoardEvent, FirebaseUser } from "./database";
+import type { SongBoardEvent } from "./database";
 import { songs } from "./song";
 
 import {
@@ -72,9 +73,8 @@ type ViewProps = {
 export default function recordVideosController(
   props$: Observable<Object>,
   actions: { [string]: Observable<any> },
-  currentUser$: Observable<?FirebaseUser>,
+  currentUser$: Observable<?Firebase$User>,
   mediaStore: Media,
-  firebase: Object,
   subscription: Subscription
 ): Observable<ViewProps> {
   const recordingEngine$ = actions.startRecording$
@@ -90,7 +90,7 @@ export default function recordVideosController(
 
   const finalMedia$ = recordingEngine$.switchMap(o => o.media$);
 
-  const nonNullUser$: Observable<FirebaseUser> = currentUser$.nonNull();
+  const nonNullUser$: Observable<Firebase$User> = currentUser$.nonNull();
   const jwt$: Observable<?string> = currentUser$.switchMap(user => {
     if (user) return user.getToken();
     else return Observable.of(null);
