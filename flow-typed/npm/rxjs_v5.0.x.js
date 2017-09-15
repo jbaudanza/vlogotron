@@ -385,6 +385,13 @@ declare class rxjs$Observable<+T> {
     resultSelector: (a: A, b: B, c: C, d: D, e: E, f: F, g: G) => H,
   ): rxjs$Observable<H>;
 
+  // JB - Adding type defs for array input. Assumes all input observables
+  // are the same time.
+  static combineLatest<A>(
+    a: Array<rxjs$Observable<A>>,
+    _: void
+  ): rxjs$Observable<Array<A>>;
+
   static combineLatest<A, B>(
     a: rxjs$Observable<A>,
     b: rxjs$Observable<B>,

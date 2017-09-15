@@ -10,6 +10,7 @@ import combineTemplate from "./combineTemplate";
 import { Observable } from "rxjs/Observable";
 
 import { videoClipById } from "./mediaLoading";
+import type { VideoClipSources } from "./mediaLoading";
 import { videoClipsForSongBoard } from "./database";
 import SynchronizedVideo from "./SynchronizedVideo";
 import audioContext from "./audioContext";
@@ -51,8 +52,13 @@ class CreateVideoClipOverlay extends React.Component<InnerProps> {
 }
 
 // Start with null so that combineLatest fires immediately.
-function videoClipByIdWithNull(clipId) {
-  return videoClipById(clipId).startWith(null);
+function videoClipByIdWithNull(clipId): Observable<?VideoClipSources> {
+  const obs$: Observable<?VideoClipSources> = videoClipById(clipId);
+  return obs$.startWith(null);
+}
+
+function removeNulls<T>(input: Array<T>): Array<$NonMaybeType<T>> {
+  return input.filter(i => i != null);
 }
 
 function controller(
@@ -72,7 +78,7 @@ function controller(
   // anytime the list of ids change
   const videoClipSources$ = videoClipIds$
     .switchMap(ids => Observable.combineLatest(ids.map(videoClipByIdWithNull)))
-    .map(ids => ids.filter(id => id != null));
+    .map(removeNulls);
 
   return combineTemplate({
     onClose: props$.map(props => props.onClose),
