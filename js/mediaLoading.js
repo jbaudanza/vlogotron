@@ -28,16 +28,20 @@ import {
   identity
 } from "lodash";
 
-type VideoClipSource = $Exact<{
+type VideoClipSource = {
   src: string,
   type: string
-}>;
+};
 
 export type VideoClipSources = {
-  poster: string, // TODO: consider renaming to posterUrl
+  posterUrl: string,
   audioUrl: string,
-  sources: Array<VideoClipSource> // TODO: consider renaming to videoUrls
+  videoUrls: Array<VideoClipSource>
 };
+
+// Maps notes to videoClipIds and VideoClipSources
+type VideoClipIdMap = { [string]: string };
+type VideoClipMap = { [string]: VideoClipSources };
 
 import promiseFromTemplate from "./promiseFromTemplate";
 
@@ -60,8 +64,8 @@ export type ClearedMedia = {
 
 export type Media = {
   songBoard$: Observable<SongBoard>,
-  videoClipSources$: Observable<{ [string]: VideoClipSources }>,
-  videoClipIds$: Observable<{ [string]: string }>,
+  videoClipSources$: Observable<VideoClipMap>,
+  videoClipIds$: Observable<VideoClipIdMap>,
   playbackParams$: Observable<{ [string]: PlaybackParams }>,
   audioSources$: Observable<AudioSourceMap>,
   clearedEvents$: Subject<ClearedMedia>,
@@ -168,19 +172,9 @@ export function subscribeToSongBoardId(
 // The Entertainer
 const DEFAULT_SONG_ID = "-KjtoXV7i2sZ8b_Azl1y";
 
-/*
-  Emits objects that look like:
-  {
-    [note]: {
-      clipId: 'abcd',
-      sources: [...],
-      poster: 'http://asdfadf'
-    }
-  }
-*/
-function videoClipsForClipIds(clipIds$) {
-  const storageRef = firebase.storage().ref("video-clips");
-
+function videoClipsForClipIds(
+  clipIds$: Observable<VideoClipIdMap>
+): Observable<VideoClipMap> {
   function resultSelector(clipIdToObjectMap, noteToClipIdMap) {
     const result = {};
     forEach(noteToClipIdMap, (clipId, note) => {
@@ -192,7 +186,7 @@ function videoClipsForClipIds(clipIds$) {
   }
 
   return clipIds$.combineKeyValues(
-    videoClipById.bind(null, firebase.database(), storageRef),
+    videoClipById,
     values, // keySelector
     resultSelector
   );
@@ -239,24 +233,28 @@ export function loadAudioBuffersFromVideoClips(
 
 const formats = ["webm", "mp4", "ogv"];
 
-function videoClipById(database, ref, clipId) {
+export function videoClipById(clipId: string): Observable<VideoClipSources> {
   function urlFor(clipId, suffix) {
-    return ref.child(clipId + suffix).getDownloadURL();
+    return firebase
+      .storage()
+      .ref("video-clips")
+      .child(clipId + suffix)
+      .getDownloadURL();
   }
 
   const urls$ = Observable.defer(() =>
     promiseFromTemplate({
       clipId: clipId,
-      sources: formats.map(format => ({
+      videoUrls: formats.map(format => ({
         src: urlFor(clipId, "." + format),
         type: "video/" + format
       })),
-      poster: urlFor(clipId, ".png"),
+      posterUrl: urlFor(clipId, ".png"),
       audioUrl: urlFor(clipId, "-audio.mp4")
     })
   );
 
-  return waitForTranscode(database, clipId).concat(urls$);
+  return waitForTranscode(firebase.database(), clipId).concat(urls$);
 }
 
 // simulate a reduce() call because firebase doesn't have one.
@@ -329,7 +327,7 @@ function reduceToLocalVideoClipStore(acc, obj) {
     return {
       ...acc,
       [obj.note]: {
-        sources: [
+        videoUrls: [
           {
             src: URL.createObjectURL(obj.videoBlob),
             type: obj.videoBlob.type

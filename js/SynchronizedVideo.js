@@ -129,13 +129,13 @@ export default class SynchronizedVideo extends React.Component<Props> {
         key={this.props.videoClipId}
         playsInline
         muted
-        poster={this.props.videoClipSources.poster}
+        poster={this.props.videoClipSources.posterUrl}
         ref={this.setVideoElement.bind(this)}
         width={this.props.width}
         height={this.props.height}
         onDurationChange={this.onDurationChange.bind(this)}
       >
-        {this.props.videoClipSources.sources.map(props => (
+        {this.props.videoClipSources.videoUrls.map(props => (
           <source {...props} key={props.type} />
         ))}
       </video>

@@ -37,9 +37,10 @@ function controller(
   subscription
 ): Observable<InnerProps> {
   const videoClipIds$ = props$
-    .distinctUntilChanged((x, y) => x.songBoardId === y.songBoardId)
-    .switchMap(props =>
-      videoClipsForSongBoard(firebase.database(), props.songBoardId)
+    .map(p => p.songBoardId)
+    .distinctUntilChanged()
+    .switchMap(songBoardId =>
+      videoClipsForSongBoard(firebase.database(), songBoardId)
     )
     .startWith([]);
 
