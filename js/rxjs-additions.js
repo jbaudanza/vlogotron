@@ -44,6 +44,7 @@ import "rxjs/add/observable/concat";
 import "rxjs/add/observable/defer";
 import "rxjs/add/observable/dom/ajax";
 import "rxjs/add/observable/empty";
+import "rxjs/add/observable/forkJoin";
 import "rxjs/add/observable/from";
 import "rxjs/add/observable/fromEvent";
 import "rxjs/add/observable/fromPromise";

@@ -7,9 +7,12 @@ import Overlay from "./Overlay";
 import createControlledComponent from "./createControlledComponent";
 import combineTemplate from "./combineTemplate";
 
-import type { Observable } from "rxjs/Observable";
+import { Observable } from "rxjs/Observable";
 
+import { videoClipById } from "./mediaLoading";
 import { videoClipsForSongBoard } from "./database";
+import SynchronizedVideo from "./SynchronizedVideo";
+import audioContext from "./audioContext";
 
 type OuterProps = {
   songBoardId: string,
@@ -18,17 +21,38 @@ type OuterProps = {
 
 type InnerProps = {
   onClose: string,
-  videoClipIds: Array<string>
+  videoClipSources: Array<VideoClipSources>
 };
 
 class CreateVideoClipOverlay extends React.Component<InnerProps> {
   render() {
     return (
       <Overlay onClose={this.props.onClose}>
-        {this.props.videoClipIds.map(id => <div key={id}>{id}</div>)}
+        {this.props.videoClipSources.map(sources => (
+          <SynchronizedVideo
+            key={sources.clipId}
+            width={100}
+            height={100}
+            videoClipId={sources.clipId}
+            videoClipSources={sources}
+            playbackStartedAt={null}
+            playbackParams={{
+              trimStart: 0,
+              trimEnd: 1,
+              playbackRate: 1,
+              gain: 1
+            }}
+            audioContext={audioContext}
+          />
+        ))}
       </Overlay>
     );
   }
+}
+
+// Start with null so that combineLatest fires immediately.
+function videoClipByIdWithNull(clipId) {
+  return videoClipById(clipId).startWith(null);
 }
 
 function controller(
@@ -44,9 +68,15 @@ function controller(
     )
     .startWith([]);
 
+  // TODO: The problem with switchMap is that it's going to re-query everything
+  // anytime the list of ids change
+  const videoClipSources$ = videoClipIds$
+    .switchMap(ids => Observable.combineLatest(ids.map(videoClipByIdWithNull)))
+    .map(ids => ids.filter(id => id != null));
+
   return combineTemplate({
     onClose: props$.map(props => props.onClose),
-    videoClipIds: videoClipIds$
+    videoClipSources: videoClipSources$
   });
 }
 

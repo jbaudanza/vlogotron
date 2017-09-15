@@ -242,7 +242,7 @@ export function videoClipById(clipId: string): Observable<VideoClipSources> {
       .getDownloadURL();
   }
 
-  const urls$ = Observable.defer(() =>
+  const sources$ = Observable.defer(() =>
     promiseFromTemplate({
       clipId: clipId,
       videoUrls: formats.map(format => ({
@@ -253,8 +253,7 @@ export function videoClipById(clipId: string): Observable<VideoClipSources> {
       audioUrl: urlFor(clipId, "-audio.mp4")
     })
   );
-
-  return waitForTranscode(firebase.database(), clipId).concat(urls$);
+  return waitForTranscode(firebase.database(), clipId).concat(sources$);
 }
 
 // simulate a reduce() call because firebase doesn't have one.
