@@ -5,7 +5,6 @@ import type { VideoClipSources } from "./mediaLoading";
 import type { PlaybackParams } from "./AudioPlaybackEngine";
 
 type Props = {
-  videoClipId: string,
   videoClipSources: VideoClipSources,
   playbackParams: PlaybackParams,
   playbackStartedAt: ?number,
@@ -124,9 +123,14 @@ export default class SynchronizedVideo extends React.Component<Props> {
   }
 
   render() {
+    // The <video> element isn't smart enough to update sources after its
+    // mounted. So, we use this key to force a remount.
+    // TODO: See if there is a length constraint for React keys.
+    const key = JSON.stringify(this.props.videoClipSources);
+
     return (
       <video
-        key={this.props.videoClipId}
+        key={key}
         playsInline
         muted
         poster={this.props.videoClipSources.posterUrl}

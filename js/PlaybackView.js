@@ -21,7 +21,6 @@ type Props = {
   actions: Object,
   loading: Object,
   videoClipSources: { [string]: VideoClipSources },
-  videoClipIds: { [string]: string },
   playbackParams: { [string]: PlaybackParams },
   playCommands$: Observable<Object>,
   isPlaying: boolean,
@@ -101,7 +100,6 @@ export default class PlaybackView extends React.Component<Props> {
           <VideoGrid
             readonly
             videoClipSources={this.props.videoClipSources}
-            videoClipIds={this.props.videoClipIds}
             playbackParams={this.props.playbackParams}
             loading={this.props.loading}
             playCommands$={this.props.playCommands$}

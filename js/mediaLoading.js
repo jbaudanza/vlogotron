@@ -65,7 +65,6 @@ export type ClearedMedia = {
 export type Media = {
   songBoard$: Observable<SongBoard>,
   videoClipSources$: Observable<VideoClipMap>,
-  videoClipIds$: Observable<VideoClipIdMap>,
   playbackParams$: Observable<{ [string]: PlaybackParams }>,
   audioSources$: Observable<AudioSourceMap>,
   clearedEvents$: Subject<ClearedMedia>,
@@ -164,8 +163,7 @@ export function subscribeToSongBoardId(
     clearedEvents$,
     recordedMedia$,
     loading$,
-    playbackParams$,
-    videoClipIds$
+    playbackParams$
   };
 }
 

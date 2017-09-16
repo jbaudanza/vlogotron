@@ -29,12 +29,11 @@ class CreateVideoClipOverlay extends React.Component<InnerProps> {
   render() {
     return (
       <Overlay onClose={this.props.onClose}>
-        {this.props.videoClipSources.map(sources => (
+        {this.props.videoClipSources.map((sources, i) => (
           <SynchronizedVideo
-            key={sources.clipId}
+            key={i}
             width={100}
             height={100}
-            videoClipId={sources.clipId}
             videoClipSources={sources}
             playbackStartedAt={null}
             playbackParams={{

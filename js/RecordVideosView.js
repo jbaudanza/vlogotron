@@ -36,7 +36,6 @@ type Props = {
   loading: Object,
   videoClipSources: { [string]: VideoClipSources },
   playbackParams: { [string]: PlaybackParams },
-  videoClipIds: { [string]: string },
   playCommands$: Observable<Object>,
   songTitle: string,
   location: Location,
@@ -146,7 +145,6 @@ export default class RecordVideosView extends React.Component<Props> {
         overlay = (
           <AdjustClipOverlay
             onClose={this.props.location.pathname}
-            videoClipId={this.props.videoClipIds[note]}
             videoClipSources={this.props.videoClipSources[note]}
             audioBuffer={this.props.audioBuffers[note]}
             playbackParams={this.props.playbackParams[note]}
@@ -258,7 +256,6 @@ export default class RecordVideosView extends React.Component<Props> {
                 <VideoGrid
                   readonly
                   videoClipSources={this.props.videoClipSources}
-                  videoClipIds={this.props.videoClipIds}
                   playbackParams={this.props.playbackParams}
                   playCommands$={this.props.playCommands$}
                   readonly={false}

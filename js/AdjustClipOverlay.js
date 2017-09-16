@@ -417,7 +417,6 @@ const ActionWrapper = styled.div`
 
 type Props = {
   onClose: string,
-  videoClipId: string,
   videoClipSources: VideoClipSources,
   playbackParams: PlaybackParams,
   audioBuffer: AudioBuffer,
@@ -518,7 +517,6 @@ class AdjustClipOverlay extends React.Component<Props, State> {
         <VideoWrapper>
           <VideoCropper>
             <SynchronizedVideo
-              videoClipId={this.props.videoClipId}
               videoClipSources={this.props.videoClipSources}
               playbackParams={this.props.playbackParams}
               audioContext={audioContext}
@@ -702,7 +700,6 @@ function controller(props$, actions) {
     playbackStartedAt$,
     playbackParams$,
     (props, playbackStartedAt, playbackParams) => ({
-      videoClipId: props.videoClipId,
       videoClipSources: props.videoClipSources,
       onClose: props.onClose,
       note: props.note,

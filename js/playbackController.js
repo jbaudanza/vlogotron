@@ -160,7 +160,6 @@ export function playbackControllerHelper(
 
   const viewState$ = combineTemplate({
     videoClipSources: media.videoClipSources$,
-    videoClipIds: media.videoClipIds$,
     playbackParams: media.playbackParams$,
     loading: media.loading$,
     isPlaying: isPlaying$,

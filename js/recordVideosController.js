@@ -46,7 +46,6 @@ type ViewProps = {
   onNavigate: Function,
   loading: Object,
   videoClipSources: { [string]: VideoClipSources },
-  videoClipIds: { [string]: string },
   playbackParams: { [string]: PlaybackParams },
   playCommands$: Observable<Object>,
   songTitle: string,
@@ -182,7 +181,6 @@ export default function recordVideosController(
   return Observable.combineLatest(
     parentView$,
     mediaStore.videoClipSources$,
-    mediaStore.videoClipIds$,
     mediaStore.playbackParams$,
     recordingState$,
     song$,
@@ -195,7 +193,6 @@ export default function recordVideosController(
     (
       parentView,
       videoClipSources,
-      videoClipIds,
       playbackParams,
       recordingState,
       song,
@@ -209,7 +206,6 @@ export default function recordVideosController(
       ...parentView,
       ...recordingState,
       videoClipSources,
-      videoClipIds,
       playbackParams,
       song,
       loading,

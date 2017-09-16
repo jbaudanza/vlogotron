@@ -39,7 +39,6 @@ type Props = {
   onAdjust?: Function,
   onClear?: Function,
   videoClipSources: VideoClipSources,
-  videoClipId: string,
   playbackParams: PlaybackParams,
   readonly: boolean,
   countdown?: number,
@@ -135,8 +134,6 @@ export default class VideoCell extends React.Component<Props> {
     } else if (this.props.videoClipSources) {
       videoEl = (
         <SynchronizedVideo
-          key={"playback-" + this.props.videoClipId}
-          videoClipId={this.props.videoClipId}
           videoClipSources={this.props.videoClipSources}
           playbackParams={this.props.playbackParams}
           audioContext={this.props.audioContext}
