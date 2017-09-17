@@ -159,8 +159,7 @@ export function playbackControllerHelper(
   const songTitle$ = song$.map(song => song.title);
 
   const viewState$ = combineTemplate({
-    videoClipSources: media.videoClipSources$,
-    playbackParams: media.playbackParams$,
+    noteConfiguration: media.noteConfiguration$,
     loading: media.loading$,
     isPlaying: isPlaying$,
     playbackPositionInSeconds: playbackPositionInSeconds$,

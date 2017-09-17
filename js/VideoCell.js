@@ -38,8 +38,8 @@ type Props = {
   onStopRecording?: Function,
   onAdjust?: Function,
   onClear?: Function,
-  videoClipSources: VideoClipSources,
-  playbackParams: PlaybackParams,
+  videoClipSources?: VideoClipSources,
+  playbackParams?: PlaybackParams,
   readonly: boolean,
   countdown?: number,
   durationRecorded?: number,
@@ -131,7 +131,7 @@ export default class VideoCell extends React.Component<Props> {
           pitchGuideEl = <PitchGuide value={this.props.pitchCorrection} />;
         }
       }
-    } else if (this.props.videoClipSources) {
+    } else if (this.props.videoClipSources && this.props.playbackParams) {
       videoEl = (
         <SynchronizedVideo
           videoClipSources={this.props.videoClipSources}

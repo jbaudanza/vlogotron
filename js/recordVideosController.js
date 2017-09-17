@@ -41,41 +41,13 @@ const escapeKey$ = Observable.fromEvent(document, "keydown").filter(
     - durationRecorded should increment every second, not every event callback
  */
 
-type ViewProps = {
-  currentUser: Object,
-  onNavigate: Function,
-  loading: Object,
-  videoClipSources: { [string]: VideoClipSources },
-  playbackParams: { [string]: PlaybackParams },
-  playCommands$: Observable<Object>,
-  songTitle: string,
-  countdownUntilRecord: number,
-  pitchCorrection: number,
-  noteBeingRecorded: string,
-  durationRecorded: number,
-  mediaStream: ?MediaStream,
-  onClearVideoClip: Function,
-  onStartRecording: Function,
-  onStopRecording: Function,
-  onPause: Function,
-  onPlay: Function,
-  playbackPositionInSeconds: number,
-  authorName: string,
-  songLength: number,
-  isPlaying: boolean,
-  onDismissError: Function,
-  audioBuffers: { [string]: AudioBuffer },
-  onLogin: Function,
-  onNavigate: Function
-};
-
 export default function recordVideosController(
   props$: Observable<Object>,
   actions: { [string]: Observable<any> },
   currentUser$: Observable<?Firebase$User>,
   mediaStore: Media,
   subscription: Subscription
-): Observable<ViewProps> {
+) {
   const recordingEngine$ = actions.startRecording$
     .switchMap(note => startRecording(note, actions.stopRecording$, escapeKey$))
     .publish();
@@ -180,8 +152,7 @@ export default function recordVideosController(
   // $FlowFixMe - We don't have type definitions for combineLatest with this many arguments
   return Observable.combineLatest(
     parentView$,
-    mediaStore.videoClipSources$,
-    mediaStore.playbackParams$,
+    mediaStore.noteConfiguration$,
     recordingState$,
     song$,
     mediaStore.loading$,
@@ -192,8 +163,7 @@ export default function recordVideosController(
     props$,
     (
       parentView,
-      videoClipSources,
-      playbackParams,
+      noteConfiguration,
       recordingState,
       song,
       loading,
@@ -205,8 +175,7 @@ export default function recordVideosController(
     ) => ({
       ...parentView,
       ...recordingState,
-      videoClipSources,
-      playbackParams,
+      noteConfiguration,
       song,
       loading,
       supported: "MediaRecorder" in window,

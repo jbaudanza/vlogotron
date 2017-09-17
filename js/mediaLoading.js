@@ -39,6 +39,13 @@ export type VideoClipSources = {
   videoUrls: Array<VideoClipSource>
 };
 
+export type NoteConfiguration = {
+  [string]: {
+    sources: VideoClipSources,
+    playbackParams: PlaybackParams
+  }
+};
+
 // Maps notes to videoClipIds and VideoClipSources
 type VideoClipIdMap = { [string]: string };
 type VideoClipMap = { [string]: VideoClipSources };
@@ -64,8 +71,7 @@ export type ClearedMedia = {
 
 export type Media = {
   songBoard$: Observable<SongBoard>,
-  videoClipSources$: Observable<VideoClipMap>,
-  playbackParams$: Observable<{ [string]: PlaybackParams }>,
+  noteConfiguration$: Observable<NoteConfiguration>,
   audioSources$: Observable<AudioSourceMap>,
   clearedEvents$: Subject<ClearedMedia>,
   recordedMedia$: Subject<CapturedMedia>,
@@ -77,9 +83,6 @@ export function subscribeToSongBoardId(
   defaultSongTitle: string,
   subscription: Subscription
 ): Media {
-  let localVideoStore$;
-  let localAudioBuffers$;
-
   const clearedEvents$ = new Subject();
   const recordedMedia$ = new Subject();
 
@@ -93,12 +96,12 @@ export function subscribeToSongBoardId(
     songBoardId
   ).publishReplay();
 
-  localAudioBuffers$ = Observable.merge(recordedMedia$, clearedEvents$)
+  const localAudioBuffers$ = Observable.merge(recordedMedia$, clearedEvents$)
     .scan(reduceToLocalAudioBufferStore, {})
     .startWith({})
     .publishReplay();
 
-  localVideoStore$ = Observable.merge(recordedMedia$, clearedEvents$)
+  const localVideoStore$ = Observable.merge(recordedMedia$, clearedEvents$)
     .scan(reduceToLocalVideoClipStore, {})
     .startWith({})
     .publishReplay();
@@ -144,7 +147,7 @@ export function subscribeToSongBoardId(
     (remote, local) => pickBy(remote, (value, note: string) => !(note in local))
   );
 
-  // This datastructure contains the AudioBuffers and trimming info for each
+  // This datastructure contains the AudioBuffers and playbackParams for each
   // note.
   const audioSources$ = Observable.combineLatest(
     songBoard$.map(o => o.videoClips),
@@ -156,15 +159,37 @@ export function subscribeToSongBoardId(
     mapValues(song.videoClips, (o: VideoClip) => o.playbackParams)
   );
 
+  const noteConfiguration$ = Observable.combineLatest(
+    videoClipSources$,
+    playbackParams$,
+    buildNoteConfiguration
+  );
+
   return {
     songBoard$,
-    videoClipSources$,
+    noteConfiguration$,
     audioSources$,
     clearedEvents$,
     recordedMedia$,
-    loading$,
-    playbackParams$
+    loading$
   };
+}
+
+const defaultPlaybackParams: PlaybackParams = {
+  trimStart: 0,
+  trimEnd: 1,
+  gain: 1,
+  playbackRate: 1
+};
+
+function buildNoteConfiguration(
+  videoClipSources: { [string]: VideoClipSources },
+  playbackParams: { [string]: PlaybackParams }
+): NoteConfiguration {
+  return mapValues(videoClipSources, (sources, note) => ({
+    playbackParams: playbackParams[note] || defaultPlaybackParams,
+    sources: sources
+  }));
 }
 
 // The Entertainer

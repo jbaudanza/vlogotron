@@ -12,7 +12,7 @@ import TouchableArea from "./TouchableArea";
 import VideoCell from "./VideoCell";
 
 import type { UIPlaybackCommand, PlaybackParams } from "./AudioPlaybackEngine";
-import type { VideoClipSources } from "./mediaLoading";
+import type { NoteConfiguration } from "./mediaLoading";
 
 // $FlowFixMe: Flow doesn't support scss
 import "./VideoGrid.scss";
@@ -31,8 +31,7 @@ type VideoCellProps = React.ElementProps<typeof VideoCell>;
 type Props = {
   playCommands$: Object,
   readonly: boolean,
-  videoClipSources: { [string]: VideoClipSources },
-  playbackParams: { [string]: PlaybackParams },
+  noteConfiguration: NoteConfiguration,
   countdownUntilRecord?: number,
   durationRecorded?: number,
   onStartRecording?: Function,
@@ -97,8 +96,6 @@ export default class VideoGrid extends React.Component<Props, State> {
 
   propsForCell(index: number, note: string): VideoCellProps {
     const props: VideoCellProps = {
-      videoClipSources: this.props.videoClipSources[note],
-      playbackParams: this.props.playbackParams[note],
       playbackStartedAt: this.state.playing[note],
       note: note,
       readonly: this.props.readonly,
@@ -107,6 +104,11 @@ export default class VideoGrid extends React.Component<Props, State> {
       octave: Math.floor(index / noteLabels.length) + 1,
       audioContext: this.context.audioContext
     };
+
+    if (this.props.noteConfiguration[note]) {
+      props.videoClipSources = this.props.noteConfiguration[note].sources;
+      props.playbackParams = this.props.noteConfiguration[note].playbackParams;
+    }
 
     if (!this.props.readonly) {
       if (this.props.onStartRecording) {

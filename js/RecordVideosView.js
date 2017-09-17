@@ -26,7 +26,7 @@ import type { SongBoardEvent } from "./database";
 import type { Observable } from "rxjs/Observable";
 import type { Subscription } from "rxjs/Subscription";
 import type { SongId } from "./song";
-import type { VideoClipSources } from "./mediaLoading";
+import type { NoteConfiguration } from "./mediaLoading";
 import type { PlaybackParams } from "./AudioPlaybackEngine";
 
 type Props = {
@@ -34,8 +34,7 @@ type Props = {
   currentUser: Object,
   onNavigate: Function,
   loading: Object,
-  videoClipSources: { [string]: VideoClipSources },
-  playbackParams: { [string]: PlaybackParams },
+  noteConfiguration: NoteConfiguration,
   playCommands$: Observable<Object>,
   songTitle: string,
   location: Location,
@@ -141,13 +140,13 @@ export default class RecordVideosView extends React.Component<Props> {
     let match;
     if ((match = this.props.location.hash.match(/^#adjust\?note=([\w]+)/))) {
       const note = match[1];
-      if (this.props.videoClipSources[note] && this.props.audioBuffers[note]) {
+      if (this.props.noteConfiguration[note] && this.props.audioBuffers[note]) {
         overlay = (
           <AdjustClipOverlay
             onClose={this.props.location.pathname}
-            videoClipSources={this.props.videoClipSources[note]}
+            videoClipSources={this.props.noteConfiguration[note].sources}
             audioBuffer={this.props.audioBuffers[note]}
-            playbackParams={this.props.playbackParams[note]}
+            playbackParams={this.props.noteConfiguration[note].playbackParams}
             onFinish={this.onFinishTrim.bind(this, note)}
             note={labelToMidiNote(note)}
           />
@@ -188,7 +187,7 @@ export default class RecordVideosView extends React.Component<Props> {
 
     const emptyCount =
       notes.length -
-      intersection(Object.keys(this.props.videoClipSources), notes).length;
+      intersection(Object.keys(this.props.noteConfiguration), notes).length;
 
     let subHeaderEl;
     let notificationPopupEl;
@@ -255,8 +254,7 @@ export default class RecordVideosView extends React.Component<Props> {
                 {subHeaderEl}
                 <VideoGrid
                   readonly
-                  videoClipSources={this.props.videoClipSources}
-                  playbackParams={this.props.playbackParams}
+                  noteConfiguration={this.props.noteConfiguration}
                   playCommands$={this.props.playCommands$}
                   readonly={false}
                   loading={this.props.loading}
