@@ -165,12 +165,19 @@ export default class RecordVideosView extends React.Component<Props> {
       );
     }
 
-    if (this.props.location.hash === "#choose-video-clip") {
+    if (
+      (match = this.props.location.hash.match(
+        /^#choose-video-clip\?note=([\w]+)/
+      ))
+    ) {
+      const note = match[1];
       overlay = (
         <ChooseVideoClipOverlay
           onClose={this.props.location.pathname}
           database={this.context.firebase.database()}
           songBoardId={this.props.songBoardId}
+          currentUser={this.props.currentUser}
+          note={labelToMidiNote(note)}
         />
       );
     }

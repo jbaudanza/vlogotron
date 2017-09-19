@@ -5,6 +5,7 @@ import { mapKeys, mapValues, omit } from "lodash";
 
 import * as firebase from "firebase";
 
+import { uniq } from "lodash";
 import { postToAPI } from "./xhr";
 
 import type { Song, SongId } from "./song";
@@ -32,7 +33,7 @@ type SerializedSong = Song & {
 
 export type SongBoardEvent =
   | {
-      type: "add-video",
+      type: "update-video-clip",
       videoClipId: string,
       note: NoteId,
       uid?: string
@@ -117,7 +118,8 @@ const defaultPlaybackParams = {
 
 function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
   switch (event.type) {
-    case "add-video":
+    case "add-video": // deprecated
+    case "update-video-clip":
       const videoClip: VideoClip = {
         videoClipId: event.videoClipId,
         playbackParams: defaultPlaybackParams
@@ -345,11 +347,11 @@ export function videoClipsForSongBoard(
     .child(songBoardId)
     .child("events");
 
-  return reduceFirebaseCollection(eventsRef, reduceVideoClipList, []);
+  return reduceFirebaseCollection(eventsRef, reduceVideoClipList, []).map(uniq);
 }
 
 function reduceVideoClipList(acc, event) {
-  if (event.type === "add-video") {
+  if (event.type === "add-video" || event.type === "update-video-clip") {
     return acc.concat(event.videoClipId);
   } else {
     return acc;

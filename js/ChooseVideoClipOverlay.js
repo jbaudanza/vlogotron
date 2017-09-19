@@ -9,10 +9,11 @@ import combineTemplate from "./combineTemplate";
 
 import { Observable } from "rxjs/Observable";
 
-import { videoClipById } from "./mediaLoading";
+import { videoClipSourcesById } from "./mediaLoading";
 import type { VideoClipSources } from "./mediaLoading";
-import { videoClipsForSongBoard } from "./database";
+import { videoClipsForSongBoard, updateSongBoard } from "./database";
 import audioContext from "./audioContext";
+import { midiNoteToLabel } from "./midi";
 
 import Overlay from "./Overlay";
 import SynchronizedVideo from "./SynchronizedVideo";
@@ -21,21 +22,40 @@ import ActionLink from "./ActionLink";
 
 type OuterProps = {
   songBoardId: string,
-  onClose: string
+  onClose: string,
+  note: number,
+  currentUser: Firebase$User
 };
 
 type InnerProps = {
   onClose: string,
-  videoClipSources: Array<VideoClipSources>
+  videoClips: Array<VideoClip>
 };
 
-class CreateVideoClipOverlay extends React.Component<InnerProps> {
+type ActionCallbacks = {
+  onPickVideoClip: string => void
+};
+
+type VideoClip = {
+  id: string,
+  sources: VideoClipSources
+};
+
+class CreateVideoClipOverlay
+  extends React.Component<InnerProps & ActionCallbacks> {
   render() {
     return (
       <StyledOverlay onClose={this.props.onClose}>
         <h1>Pick a video</h1>
-        {this.props.videoClipSources.map((sources, i) => (
-          <VideoClip key={i} videoClipSources={sources} />
+        {this.props.videoClips.map(videoClip => (
+          <VideoClipView
+            key={videoClip.id}
+            videoClipSources={videoClip.sources}
+            onPickVideoClip={this.props.onPickVideoClip.bind(
+              null,
+              videoClip.id
+            )}
+          />
         ))}
       </StyledOverlay>
     );
@@ -43,8 +63,10 @@ class CreateVideoClipOverlay extends React.Component<InnerProps> {
 }
 
 // Start with null so that combineLatest fires immediately.
-function videoClipByIdWithNull(clipId): Observable<?VideoClipSources> {
-  const obs$: Observable<?VideoClipSources> = videoClipById(clipId);
+function videoClipByIdWithNull(videoClipId: string): Observable<?VideoClip> {
+  const obs$: Observable<?VideoClip> = videoClipSourcesById(
+    videoClipId
+  ).map(sources => ({ sources, id: videoClipId }));
   return obs$.startWith(null);
 }
 
@@ -57,6 +79,17 @@ function controller(
   actions,
   subscription
 ): Observable<InnerProps> {
+  actions.pickVideoClip$
+    .withLatestFrom(props$, (videoClipId, props) => ([{
+      type: "update-video-clip",
+      videoClipId,
+      note: midiNoteToLabel(props.note),
+      uid: props.currentUser.uid
+    }, props.songBoardId]))
+    .subscribe(([event, songBoardId]) => {
+      updateSongBoard(firebase.database(), songBoardId, event);
+    });
+
   const videoClipIds$ = props$
     .map(p => p.songBoardId)
     .distinctUntilChanged()
@@ -67,13 +100,13 @@ function controller(
 
   // TODO: The problem with switchMap is that it's going to re-query everything
   // anytime the list of ids change
-  const videoClipSources$ = videoClipIds$
+  const videoClips$ = videoClipIds$
     .switchMap(ids => Observable.combineLatest(ids.map(videoClipByIdWithNull)))
     .map(removeNulls);
 
   return combineTemplate({
     onClose: props$.map(props => props.onClose),
-    videoClipSources: videoClipSources$
+    videoClips: videoClips$
   });
 }
 
@@ -86,18 +119,14 @@ const defaultPlaybackParams = {
 
 function noop() {}
 
-function VideoClip(props) {
+type VideoClipProps = {
+  onPickVideoClip: (videoClipId: string) => void,
+  videoClipSources: VideoClipSources
+};
+
+function VideoClipView(props: VideoClipProps) {
   return (
     <VideoWrapper>
-      <StyledPlayButton
-        size={15}
-        isPlaying={false}
-        onClickPlay={noop}
-        onClickPause={noop}
-      />
-      <PickButton>
-        pick
-      </PickButton>
       <SynchronizedVideo
         width={100}
         height={100}
@@ -106,6 +135,15 @@ function VideoClip(props) {
         playbackParams={defaultPlaybackParams}
         audioContext={audioContext}
       />
+      <StyledPlayButton
+        size={15}
+        isPlaying={false}
+        onClickPlay={noop}
+        onClickPause={noop}
+      />
+      <PickButton onClick={props.onPickVideoClip}>
+        pick
+      </PickButton>
     </VideoWrapper>
   );
 }
@@ -148,8 +186,6 @@ const StyledPlayButton = styled(PlayButton)`
   svg { display: block; }
 `;
 
-export default createControlledComponent(
-  controller,
-  CreateVideoClipOverlay,
-  []
-);
+export default createControlledComponent(controller, CreateVideoClipOverlay, [
+  "pickVideoClip"
+]);

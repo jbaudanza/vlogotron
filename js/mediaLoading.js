@@ -209,7 +209,7 @@ function videoClipsForClipIds(
   }
 
   return clipIds$.combineKeyValues(
-    videoClipById,
+    videoClipSourcesById,
     values, // keySelector
     resultSelector
   );
@@ -256,7 +256,9 @@ export function loadAudioBuffersFromVideoClips(
 
 const formats = ["webm", "mp4", "ogv"];
 
-export function videoClipById(clipId: string): Observable<VideoClipSources> {
+export function videoClipSourcesById(
+  clipId: string
+): Observable<VideoClipSources> {
   function urlFor(clipId, suffix) {
     return firebase
       .storage()

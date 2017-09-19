@@ -86,7 +86,9 @@ export default function recordVideosController(
           jwt,
           { note: media.note, sessionId: getSessionId(), songBoardId },
           media.videoBlob
-        ).then(videoClipId => makeAddVideoEvent(videoClipId, media.note, uid))
+        ).then(videoClipId =>
+          makeUpdateVideoClipEvent(videoClipId, media.note, uid)
+        )
     )
     .mergeAll();
 
@@ -194,20 +196,20 @@ export default function recordVideosController(
   );
 }
 
-function makeAddVideoEvent(
+function makeUpdateVideoClipEvent(
   videoClipId: string,
   note: string,
   uid: ?string
 ): SongBoardEvent {
   if (uid) {
     return {
-      type: "add-video",
+      type: "update-video-clip",
       videoClipId,
       note,
       uid
     };
   } else {
-    return { type: "add-video", videoClipId, note };
+    return { type: "update-video-clip", videoClipId, note };
   }
 }
 
