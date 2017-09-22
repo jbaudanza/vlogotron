@@ -80,12 +80,15 @@ function controller(
   subscription
 ): Observable<InnerProps> {
   actions.pickVideoClip$
-    .withLatestFrom(props$, (videoClipId, props) => ([{
-      type: "update-video-clip",
-      videoClipId,
-      note: midiNoteToLabel(props.note),
-      uid: props.currentUser.uid
-    }, props.songBoardId]))
+    .withLatestFrom(props$, (videoClipId, props) => [
+      {
+        type: "update-video-clip",
+        videoClipId,
+        note: midiNoteToLabel(props.note),
+        uid: props.currentUser.uid
+      },
+      props.songBoardId
+    ])
     .subscribe(([event, songBoardId]) => {
       updateSongBoard(firebase.database(), songBoardId, event);
     });

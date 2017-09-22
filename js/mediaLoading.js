@@ -12,7 +12,7 @@ import { getArrayBuffer } from "./http";
 import type { Route } from "./router";
 
 import { findSongBoard, waitForTranscode } from "./database";
-import type { SongBoard, VideoClip } from "./database";
+import type { SongBoard, VideoClip, VideoClipId } from "./database";
 import type { AudioSourceMap, PlaybackParams } from "./AudioPlaybackEngine";
 
 import {
@@ -111,11 +111,11 @@ export function subscribeToSongBoardId(
 
   subscription.add(songBoard$.connect());
 
-  const videoClipIds$ = songBoard$.map(song =>
+  const noteToVideoClipIds$ = songBoard$.map(song =>
     mapValues(song.videoClips, (o: VideoClip) => o.videoClipId)
   );
 
-  const remoteVideoClips$ = videoClipsForClipIds(videoClipIds$)
+  const remoteVideoClips$ = videoClipsForClipIds(noteToVideoClipIds$)
     .startWith({})
     .publishReplay();
 
@@ -125,26 +125,42 @@ export function subscribeToSongBoardId(
     (local, remote) => ({ ...remote, ...local })
   );
 
-  const audioLoading = loadAudioBuffersFromVideoClips(
-    remoteVideoClips$,
-    subscription
+  const videoClipIds$ = noteToVideoClipIds$.map(objectValues);
+
+  const remoteAudioBuffersByVideoClipId$ = loadAudioBuffersFromVideoClipIds(
+    videoClipIds$
+  ).publishReplay();
+
+  subscription.add(remoteAudioBuffersByVideoClipId$.connect());
+
+  const remoteAudioBuffersByNote$ = noteToVideoClipIds$.withLatestFrom(
+    remoteAudioBuffersByVideoClipId$,
+    (noteToVideoClipIds, audioBuffers) =>
+      mapValues(noteToVideoClipIds, id => audioBuffers[id].value)
   );
 
   // Looks like { [note]: [audioBuffer], ... }
   const audioBuffers$ = Observable.combineLatest(
     localAudioBuffers$,
-    audioLoading.audioBuffers$,
+    remoteAudioBuffersByNote$,
     (local, remote) => ({ ...remote, ...local })
   );
 
   subscription.add(remoteVideoClips$.connect());
 
-  // If we have some local recorded audio buffers, we can remove them
-  // from the list of remote audio buffers being loaded.
-  const loading$ = Observable.combineLatest(
-    audioLoading.loading$,
+  const loading$ = noteToVideoClipIds$.withLatestFrom(
+    remoteAudioBuffersByNote$,
     localAudioBuffers$,
-    (remote, local) => pickBy(remote, (value, note: string) => !(note in local))
+    (noteToVideoClipIds, remoteAudioBufferResults, localAudioBuffers) =>
+      mapValues(noteToVideoClipIds, (videoClipId, note) => {
+        // Check to see if the remote audio buffer has loaded (or errored)
+        if (remoteAudioBufferResults[videoClipId]) return false;
+
+        // Check to see if the audio buffer has been recorded locally
+        if (note in localAudioBuffers) return false;
+
+        return true;
+      })
   );
 
   // This datastructure contains the AudioBuffers and playbackParams for each
@@ -195,6 +211,10 @@ function buildNoteConfiguration(
 // The Entertainer
 const DEFAULT_SONG_ID = "-KjtoXV7i2sZ8b_Azl1y";
 
+function objectValues<T>(object: { [string]: T }): Array<T> {
+  return values(object);
+}
+
 function videoClipsForClipIds(
   clipIds$: Observable<VideoClipIdMap>
 ): Observable<VideoClipMap> {
@@ -210,7 +230,7 @@ function videoClipsForClipIds(
 
   return clipIds$.combineKeyValues(
     videoClipSourcesById,
-    values, // keySelector
+    objectValues, // keySelector
     resultSelector
   );
 }
@@ -219,39 +239,28 @@ function gatherPromises(obj) {
   return values(pick(obj.promises, values(obj.clipIds)));
 }
 
-export function loadAudioBuffersFromVideoClips(
-  videoClips$: Observable<Object>,
-  subscription: Subscription
-) {
-  const loadingContext$ = videoClips$
-    .map(o => mapValues(o, v => v.audioUrl)) // { [note]: [url], ... }
-    .scan(reduceToAudioBuffers, {})
-    .publishReplay();
+type AudioBufferResult = {
+  value: ?AudioBuffer,
+  error: ?Error
+};
 
-  // Looks like { [note]: [audioBuffer], ... }
-  const audioBuffers$ = loadingContext$
-    .mergeMap(obj => Observable.merge(...obj.promises))
-    .scan((acc, obj) => ({ ...acc, ...obj }), {})
-    .startWith({})
-    .publishReplay();
-
-  const http$ = loadingContext$.flatMap(c =>
-    Observable.from(values(pick(c.httpMap, c.newUrls)))
-  );
-
-  subscription.add(loadingContext$.connect());
-  subscription.add(audioBuffers$.connect());
-
-  const loading$ = http$
-    .flatMap(http =>
-      Observable.of({ [http.note]: true }).concat(
-        http.response.then(r => ({ [http.note]: false }))
+function audioBufferForVideoClipId(
+  clipId: VideoClipId
+): Observable<AudioBufferResult> {
+  return Observable.fromPromise(
+    urlFor(clipId, "-audio.mp4")
+      .then(getAudioBuffer)
+      .then(
+        value => ({ value, error: null }),
+        error => ({ value: null, error })
       )
-    )
-    .scan((acc, i) => pickBy({ ...acc, ...i }), {})
-    .startWith({});
+  );
+}
 
-  return { loading$, audioBuffers$ };
+function loadAudioBuffersFromVideoClipIds(
+  videoClipIds$: Observable<Array<VideoClipId>>
+): Observable<{ [VideoClipId]: AudioBufferResult }> {
+  return videoClipIds$.combineKeyValues(audioBufferForVideoClipId);
 }
 
 const formats = ["webm", "mp4", "ogv"];
@@ -259,14 +268,6 @@ const formats = ["webm", "mp4", "ogv"];
 export function videoClipSourcesById(
   clipId: string
 ): Observable<VideoClipSources> {
-  function urlFor(clipId, suffix) {
-    return firebase
-      .storage()
-      .ref("video-clips")
-      .child(clipId + suffix)
-      .getDownloadURL();
-  }
-
   const sources$ = Observable.defer(() =>
     promiseFromTemplate({
       clipId: clipId,
@@ -274,11 +275,18 @@ export function videoClipSourcesById(
         src: urlFor(clipId, "." + format),
         type: "video/" + format
       })),
-      posterUrl: urlFor(clipId, ".png"),
-      audioUrl: urlFor(clipId, "-audio.mp4")
+      posterUrl: urlFor(clipId, ".png")
     })
   );
   return waitForTranscode(firebase.database(), clipId).concat(sources$);
+}
+
+function urlFor(clipId, suffix) {
+  return firebase
+    .storage()
+    .ref("video-clips")
+    .child(clipId + suffix)
+    .getDownloadURL();
 }
 
 // simulate a reduce() call because firebase doesn't have one.
@@ -302,34 +310,6 @@ function getAudioBuffer(url) {
   const http = getArrayBuffer(url);
   http.audioBuffer = http.response.then(decodeAudioData);
   return http;
-}
-
-function reduceToAudioBuffers(acc, noteToUrlMap) {
-  const next: Object = {
-    httpMap: clone(acc.httpMap || {}),
-    promises: [],
-    progressList: [],
-    newUrls: []
-  };
-
-  forEach(noteToUrlMap, (url, note) => {
-    if (!next.httpMap[url]) {
-      const http = getAudioBuffer(url);
-      http.note = note;
-
-      next.promises.push(http.audioBuffer.then(buffer => ({ [note]: buffer })));
-      next.progressList.push(http.progress);
-      next.newUrls.push(url);
-
-      next.httpMap[url] = http;
-    }
-  });
-
-  next.active = values(noteToUrlMap)
-    .map(url => next.httpMap[url])
-    .filter(identity);
-
-  return next;
 }
 
 function reduceToLocalAudioBufferStore(acc, finalMedia) {

@@ -707,7 +707,15 @@ declare class rxjs$Observable<+T> {
   debug(s: string): rxjs$Observable<T>;
   concatWith(v: T): rxjs$Observable<T>;
   nonNull(): rxjs$Observable<$NonMaybeType<T>>;
-  combineKeyValues(Function, Function, Function): rxjs$Observable<Object>;
+  combineKeyValues<A>(
+    observableFactory: (string) => rxjs$Observable<A>,
+    keySelector: (T) => Array<string>,
+    resultSelector: Function
+  ): rxjs$Observable<{[string]: A}>;
+
+  combineKeyValues<A>(
+    observableFactory: (string) => rxjs$Observable<A>
+  ): rxjs$Observable<{[string]: A}>;
 }
 
 declare class rxjs$ConnectableObservable<T> extends rxjs$Observable<T> {

@@ -17,7 +17,7 @@ type VideoClipSource = $Exact<{
 }>;
 
 type NoteId = string; // Looks like: "C#4"
-type VideoClipId = string; // Looks like firebase id
+export type VideoClipId = string; // Looks like firebase id
 
 export type VideoClip = {
   videoClipId: string,
