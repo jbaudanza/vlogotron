@@ -1,5 +1,8 @@
 import { Observable } from "rxjs/Observable";
 
+// NOTE: This has been deprecated in favor of the simpler getArrayBuffer in
+// xhr.js. I'm keeping it around for a bit in case I want to use the progess
+// stream for something.
 export function getArrayBuffer(url) {
   const xhr = new XMLHttpRequest();
   xhr.open("GET", url, true);

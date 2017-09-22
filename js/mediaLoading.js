@@ -7,7 +7,7 @@ import * as firebase from "firebase";
 
 import audioContext from "./audioContext";
 
-import { getArrayBuffer } from "./http";
+import { getArrayBuffer } from "./xhr";
 
 import type { Route } from "./router";
 
@@ -307,9 +307,7 @@ function decodeAudioData(arraybuffer) {
 }
 
 function getAudioBuffer(url) {
-  const http = getArrayBuffer(url);
-  http.audioBuffer = http.response.then(decodeAudioData);
-  return http;
+  return getArrayBuffer(url).then(decodeAudioData);
 }
 
 function reduceToLocalAudioBufferStore(acc, finalMedia) {

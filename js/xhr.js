@@ -52,3 +52,17 @@ export function postToAPI(endpoint: string, jwt: ?string, requestBody: Object) {
     })
     .map(xhr => JSON.parse(xhr.responseText));
 }
+
+export function getArrayBuffer(url: string): Promise<ArrayBuffer> {
+  const xhr = new XMLHttpRequest();
+  xhr.open("GET", url, true);
+  xhr.responseType = "arraybuffer";
+  xhr.send(null);
+
+  return new Promise((resolve, reject) => {
+    xhr.onload = function(event) {
+      resolve(xhr.response);
+    };
+    xhr.onerror = reject;
+  });
+}
