@@ -6,22 +6,14 @@ export function httpOk(status: number): boolean {
   return status >= 200 && status <= 299;
 }
 
-export function postJSON(
-  url: string,
-  jwt: ?string,
-  body: Object
+function createXhrObservable(
+  configure: XMLHttpRequest => void
 ): Observable<XMLHttpRequest> {
   return Observable.create(function(observer) {
     const xhr = new XMLHttpRequest();
-
-    xhr.open("POST", url, true);
-
-    xhr.setRequestHeader("Content-type", "application/json");
     xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
 
-    if (jwt) {
-      xhr.setRequestHeader("Authorization", "Bearer " + jwt);
-    }
+    configure(xhr);
 
     xhr.onload = () => {
       observer.next(xhr);
@@ -31,11 +23,27 @@ export function postJSON(
       observer.error(error);
     };
 
-    xhr.send(JSON.stringify(body));
-
     return () => {
       xhr.abort();
     };
+  });
+}
+
+export function postJSON(
+  url: string,
+  jwt: ?string,
+  body: Object
+): Observable<XMLHttpRequest> {
+  return createXhrObservable(function(xhr) {
+    xhr.open("POST", url, true);
+
+    xhr.setRequestHeader("Content-type", "application/json");
+
+    if (jwt) {
+      xhr.setRequestHeader("Authorization", "Bearer " + jwt);
+    }
+
+    xhr.send(JSON.stringify(body));
   });
 }
 
@@ -53,16 +61,10 @@ export function postToAPI(endpoint: string, jwt: ?string, requestBody: Object) {
     .map(xhr => JSON.parse(xhr.responseText));
 }
 
-export function getArrayBuffer(url: string): Promise<ArrayBuffer> {
-  const xhr = new XMLHttpRequest();
-  xhr.open("GET", url, true);
-  xhr.responseType = "arraybuffer";
-  xhr.send(null);
-
-  return new Promise((resolve, reject) => {
-    xhr.onload = function(event) {
-      resolve(xhr.response);
-    };
-    xhr.onerror = reject;
-  });
+export function getArrayBuffer(url: string): Observable<ArrayBuffer> {
+  return createXhrObservable(xhr => {
+    xhr.open("GET", url, true);
+    xhr.responseType = "arraybuffer";
+    xhr.send(null);
+  }).map(xhr => xhr.response);
 }

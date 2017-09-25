@@ -247,14 +247,10 @@ type AudioBufferResult = {
 function audioBufferForVideoClipId(
   clipId: VideoClipId
 ): Observable<AudioBufferResult> {
-  return Observable.fromPromise(
-    urlFor(clipId, "-audio.mp4")
-      .then(getAudioBuffer)
-      .then(
-        value => ({ value, error: null }),
-        error => ({ value: null, error })
-      )
-  );
+  return Observable.fromPromise(urlFor(clipId, "-audio.mp4"))
+    .switchMap(getAudioBuffer)
+    .map(value => ({ value, error: null }))
+    .catch(error => Observable.of({ value: null, error }));
 }
 
 function loadAudioBuffersFromVideoClipIds(
@@ -307,7 +303,7 @@ function decodeAudioData(arraybuffer) {
 }
 
 function getAudioBuffer(url) {
-  return getArrayBuffer(url).then(decodeAudioData);
+  return getArrayBuffer(url).map(decodeAudioData);
 }
 
 function reduceToLocalAudioBufferStore(acc, finalMedia) {
