@@ -7,11 +7,13 @@ export function httpOk(status: number): boolean {
 }
 
 function createXhrObservable(
+  method: string,
+  url: string,
   configure: XMLHttpRequest => void
 ): Observable<XMLHttpRequest> {
   return Observable.create(function(observer) {
     const xhr = new XMLHttpRequest();
-    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    xhr.open(method, url, true);
 
     configure(xhr);
 
@@ -34,10 +36,9 @@ export function postJSON(
   jwt: ?string,
   body: Object
 ): Observable<XMLHttpRequest> {
-  return createXhrObservable(function(xhr) {
-    xhr.open("POST", url, true);
-
+  return createXhrObservable("POST", url, function(xhr) {
     xhr.setRequestHeader("Content-type", "application/json");
+    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
 
     if (jwt) {
       xhr.setRequestHeader("Authorization", "Bearer " + jwt);
@@ -62,8 +63,7 @@ export function postToAPI(endpoint: string, jwt: ?string, requestBody: Object) {
 }
 
 export function getArrayBuffer(url: string): Observable<ArrayBuffer> {
-  return createXhrObservable(xhr => {
-    xhr.open("GET", url, true);
+  return createXhrObservable("GET", url, xhr => {
     xhr.responseType = "arraybuffer";
     xhr.send(null);
   }).map(xhr => xhr.response);

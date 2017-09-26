@@ -133,10 +133,15 @@ export function subscribeToSongBoardId(
 
   subscription.add(remoteAudioBuffersByVideoClipId$.connect());
 
-  const remoteAudioBuffersByNote$ = noteToVideoClipIds$.withLatestFrom(
+  const remoteAudioBuffersByNote$ = Observable.combineLatest(
+    noteToVideoClipIds$,
     remoteAudioBuffersByVideoClipId$,
-    (noteToVideoClipIds, audioBuffers) =>
-      mapValues(noteToVideoClipIds, id => audioBuffers[id].value)
+    (noteToVideoClipIds, audioBuffers) => {
+      return mapValues(
+        noteToVideoClipIds,
+        id => (audioBuffers[id] ? audioBuffers[id].value : null)
+      );
+    }
   );
 
   // Looks like { [note]: [audioBuffer], ... }
@@ -148,8 +153,9 @@ export function subscribeToSongBoardId(
 
   subscription.add(remoteVideoClips$.connect());
 
-  const loading$ = noteToVideoClipIds$.withLatestFrom(
-    remoteAudioBuffersByNote$,
+  const loading$ = Observable.combineLatest(
+    noteToVideoClipIds$,
+    remoteAudioBuffersByVideoClipId$,
     localAudioBuffers$,
     (noteToVideoClipIds, remoteAudioBufferResults, localAudioBuffers) =>
       mapValues(noteToVideoClipIds, (videoClipId, note) => {
@@ -303,7 +309,7 @@ function decodeAudioData(arraybuffer) {
 }
 
 function getAudioBuffer(url) {
-  return getArrayBuffer(url).map(decodeAudioData);
+  return getArrayBuffer(url).switchMap(decodeAudioData);
 }
 
 function reduceToLocalAudioBufferStore(acc, finalMedia) {
