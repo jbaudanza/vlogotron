@@ -7,7 +7,11 @@ import { animationFrame } from "rxjs/scheduler/animationFrame";
 
 import audioContext from "./audioContext";
 import { playbackSchedule } from "./playbackSchedule";
-import { noteLabelsToMidi, noteToFrequency } from "./frequencies";
+import {
+  noteLabelsToMidi,
+  noteToFrequency,
+  shiftFrequency
+} from "./frequencies";
 
 import { songLengthInBeats, beatsToTimestamp, timestampToBeats } from "./song";
 import type { ScheduledNoteList } from "./song";
@@ -125,27 +129,31 @@ function buildSourceNode(
   audioSources: AudioSourceMap,
   destinationNode
 ) {
-  const isSharp = requestedNoteName.indexOf("#") >= 0;
-  const noteName = requestedNoteName.replace("#", "");
+  const sourceNoteName = requestedNoteName.replace("#", "");
 
-  const audioSource = audioSources[noteName];
+  //const sourceMidiNote = 62; // D5
+  const sourceMidiNote = noteLabelsToMidi[sourceNoteName];
+  const midiNote = noteLabelsToMidi[requestedNoteName];
 
-  if (audioSource && audioSource.audioBuffer) {
+  const audioSource = audioSources[sourceNoteName];
+  const audioBuffer = audioSource.audioBuffer;
+
+  if (audioSource && audioBuffer) {
     // alter playback rate for sharp notes,
     // simply use just intonation for now
     let playbackRate = audioSource.playbackParams.playbackRate;
-    playbackRate = isSharp ? 1.05946 * playbackRate : playbackRate;
+
+    playbackRate = playbackRate * shiftFrequency(midiNote - sourceMidiNote);
 
     const source = new TrimmedAudioBufferSourceNode(
       audioContext,
-      audioSource.audioBuffer,
+      audioBuffer,
       { ...audioSource.playbackParams, playbackRate }
     );
     source.connect(destinationNode);
 
-    return [noteName, source];
+    return [sourceNoteName, source];
   } else {
-    const midiNote = noteLabelsToMidi[requestedNoteName];
     const source = audioContext.createOscillator();
     source.type = "square";
     source.frequency.value = noteToFrequency(midiNote);
@@ -155,7 +163,7 @@ function buildSourceNode(
     gainNode.connect(destinationNode);
     source.connect(gainNode);
 
-    return [noteName, source];
+    return [sourceNoteName, source];
   }
 }
 

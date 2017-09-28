@@ -48,3 +48,8 @@ export function noteToFrequency(note) {
 export function frequencyToNote(frequency) {
   return CONST_FIXED_NOTE + Math.log(frequency / CONST_F0) / CONST_LOG_A;
 }
+
+// Returns the multiplier needed to shift a frequency the given number of steps
+export function shiftFrequency(steps) {
+  return Math.pow(CONST_A, steps);
+}
