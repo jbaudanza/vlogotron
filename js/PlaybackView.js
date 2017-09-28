@@ -5,7 +5,7 @@ import * as React from "react";
 
 import type { Observable } from "rxjs/Observable";
 import type { Subscription } from "rxjs/Subscription";
-import { bindAll, bindKey, isEmpty } from "lodash";
+import { bindAll, bindKey, find } from "lodash";
 import classNames from "classnames";
 
 import Link from "./Link";
@@ -53,7 +53,9 @@ export default class PlaybackView extends React.Component<Props> {
   }
 
   render() {
-    const loadingAsBool = !isEmpty(this.props.loading);
+    // This is true if any of the values are true
+    const loadingAsBool = !!find(this.props.loading);
+
     const shareUrl = this.props.origin + this.props.location.pathname;
 
     const className = classNames("page-vertical-wrapper", {

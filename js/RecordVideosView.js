@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import * as React from "react";
 import styled from "styled-components";
 
-import { bindAll, bindKey, forEach, intersection, isEmpty } from "lodash";
+import { bindAll, bindKey, forEach, intersection, find } from "lodash";
 
 import RecordingNotSupported from "./RecordingNotSupported";
 import VideoGrid from "./VideoGrid";
@@ -108,7 +108,8 @@ export default class RecordVideosView extends React.Component<Props> {
   }
 
   render() {
-    const loadingAsBool = !isEmpty(this.props.loading);
+    // This is true if any of the values are true
+    const loadingAsBool = !!find(this.props.loading);
 
     let footer;
     if (this.props.error) {
