@@ -136,9 +136,10 @@ function buildSourceNode(
   const midiNote = noteLabelsToMidi[requestedNoteName];
 
   const audioSource = audioSources[sourceNoteName];
-  const audioBuffer = audioSource.audioBuffer;
 
-  if (audioSource && audioBuffer) {
+  if (audioSource && audioSource.audioBuffer) {
+    const audioBuffer = audioSource.audioBuffer;
+
     // alter playback rate for sharp notes,
     // simply use just intonation for now
     let playbackRate = audioSource.playbackParams.playbackRate;
