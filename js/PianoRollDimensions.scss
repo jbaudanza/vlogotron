@@ -2,3 +2,7 @@ $piano-roll-header-height: 45px;
 $timeline-height: 25px;
 $cell-height: 15px;
 $number-of-notes: 28;
+
+// We need to leave room for the browser to render a scrollbar. This scrollbar
+// seems to be 17px on most platforms, so 20px should be safe.
+$scrollbar-height: 20px;

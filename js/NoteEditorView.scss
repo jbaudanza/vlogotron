@@ -3,6 +3,6 @@
 
   .page-footer-with-piano-roll {
     position: relative;
-    height: $piano-roll-header-height + $number-of-notes * $cell-height + $timeline-height;
+    height: $piano-roll-header-height + $number-of-notes * $cell-height + $timeline-height + $scrollbar-height;
   }
 }

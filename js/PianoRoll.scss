@@ -1,9 +1,13 @@
 @import './colors.scss';
 
 .piano-roll {
+  @import './PianoRollDimensions';
+
   display: flex;
   background-color: $color-dusk;
   position: absolute;
+  height: $number-of-notes * $cell-height + $timeline-height + $scrollbar-height;
+
   left: 0;
   right: 0;
 
@@ -12,8 +16,6 @@
     overflow-x: auto;
     position: relative;
   }
-
-  @import './PianoRollDimensions';
 
   .timeline {
     position: relative;
@@ -49,6 +51,10 @@
 
   .timeline, .row {
     white-space: nowrap;
+  }
+
+  .row {
+    height: $cell-height;
   }
 
   $beat-width: 120px;
@@ -130,6 +136,7 @@
   .note-wrapper {
     position: relative;
     background-color: $color-dark-three;
+    height: $number-of-notes * $cell-height;
   }
 
   .playhead {
