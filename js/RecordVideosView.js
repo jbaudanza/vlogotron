@@ -7,7 +7,15 @@ import { bindAll, bindKey, forEach, intersection, find } from "lodash";
 
 import RecordingNotSupported from "./RecordingNotSupported";
 import VideoGrid from "./VideoGrid";
-import PageHeader from "./PageHeader";
+import {
+  PageHeader,
+  PageHeaderAction,
+  HeaderLeft,
+  HeaderMiddle,
+  HeaderRight,
+  PlaybackControls,
+  SongTitleAndAuthor
+} from "./PageHeader";
 import PageTextFooter from "./PageTextFooter";
 import LoginOverlay from "./LoginOverlay";
 import AdjustClipOverlay from "./AdjustClipOverlay";
@@ -15,7 +23,6 @@ import ShareOverlay from "./ShareOverlay";
 import ChooseVideoClipOverlay from "./ChooseVideoClipOverlay";
 import NotificationPopup from "./NotificationPopup";
 import SubHeader from "./SubHeader";
-import PageHeaderAction from "./PageHeaderAction";
 import CreateNewSongOverlay from "./CreateNewSongOverlay";
 import Message from "./Message";
 import { labelToMidiNote } from "./midi";
@@ -234,27 +241,32 @@ export default class RecordVideosView extends React.Component<Props> {
 
     return (
       <div className="page-vertical-wrapper record-videos-page">
-        <PageHeader
-          isPlaying={this.props.isPlaying}
-          songTitle={this.props.songTitle}
-          songLength={this.props.songLength}
-          authorName={this.props.authorName}
-          loading={loadingAsBool}
-          playbackPositionInSeconds={this.props.playbackPositionInSeconds}
-          onClickPlay={this.props.onPlay}
-          onClickPause={this.props.onPause}
-        >
-          {this.props.collaborateMode
-            ? null
-            : <div className="actions">
-                <PageHeaderAction href="#choose-song">
-                  Change melody
-                </PageHeaderAction>
+        <PageHeader>
+          <HeaderLeft>
+            <PlaybackControls
+              isPlaying={this.props.isPlaying}
+              songLength={this.props.songLength}
+              loading={loadingAsBool}
+              playbackPositionInSeconds={this.props.playbackPositionInSeconds}
+              onClickPlay={this.props.onPlay}
+              onClickPause={this.props.onPause}
+            />
+          </HeaderLeft>
 
-                <PageHeaderAction>
-                  Delete
-                </PageHeaderAction>
-              </div>}
+          <HeaderMiddle>
+
+            <SongTitleAndAuthor
+              authorName={this.props.authorName}
+              songTitle={this.props.songTitle}
+            />
+
+          </HeaderMiddle>
+
+          <HeaderRight>
+            <PageHeaderAction primary>
+              Next
+            </PageHeaderAction>
+          </HeaderRight>
         </PageHeader>
         <div className="page-content">
           {this.props.supported

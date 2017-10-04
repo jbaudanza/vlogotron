@@ -9,13 +9,14 @@ import { formatSeconds } from "./format";
 
 import PlayButton from "./PlayButton";
 import EditableTitle from "./EditableTitle";
+import ActionLink from "./ActionLink";
 
 // XXX: Duplicated in Page.scss
 const headerHeight = 63;
 
 const sidePadding = 24;
 
-const PageHeaderWrapper = styled.div.attrs({ className: "page-header" })`
+export const PageHeader = styled.div.attrs({ className: "page-header" })`
   padding: 0 ${sidePadding}px;
   position: relative;
 
@@ -30,16 +31,12 @@ const PageHeaderWrapper = styled.div.attrs({ className: "page-header" })`
 
 const playButtonSize = 32;
 
-const HeaderLeft = styled.div`
+export const HeaderLeft = styled.div`
   display: flex;
   position: absolute;
   left: ${sidePadding}px;
   top: 0;
   bottom: 0;
-
-  .play-button {
-    margin-top: ${headerHeight / 2 - playButtonSize / 2}px;
-  }
 `;
 
 const VerticallyCenteredText = styled.div`
@@ -48,11 +45,72 @@ const VerticallyCenteredText = styled.div`
   justify-content: center;
 `;
 
-const HeaderMiddle = styled(VerticallyCenteredText)`
+export const HeaderMiddle = styled.div`
   flex-grow: 1;
   margin-left: 12px;
+`;
 
+export const HeaderRight = styled.div`
+`;
+
+const PlaybackPositionWrapper = styled(VerticallyCenteredText)`
+  opacity: 0.7;
+  font-size: 12px;
+  font-weight: 500;
+  span { margin: 0 5px; }
+`;
+
+const StyledPlayButton = styled(PlayButton)`
+  margin-top: ${headerHeight / 2 - playButtonSize / 2}px;
+`;
+
+const PlaybackControlsWrapper = styled.div`
+  display: flex;
+`;
+
+type PlaybackControlProps = {
+  onClickPlay: Function,
+  onClickPause: Function,
+  isPlaying: boolean,
+  loading: boolean,
+  songLength: number,
+  playbackPositionInSeconds: number
+};
+
+export class PlaybackControls extends React.Component<PlaybackControlProps> {
+  render() {
+    return (
+      <PlaybackControlsWrapper>
+        <StyledPlayButton
+          size={playButtonSize}
+          onClickPlay={this.props.onClickPlay}
+          onClickPause={this.props.onClickPause}
+          isPlaying={this.props.isPlaying}
+          enabled={!this.props.loading}
+        />
+        <PlaybackPositionWrapper>
+          <div>
+            <span>
+              {formatSeconds(this.props.playbackPositionInSeconds)}
+            </span>
+            |
+            <span>{formatSeconds(this.props.songLength)}</span>
+          </div>
+        </PlaybackPositionWrapper>
+      </PlaybackControlsWrapper>
+    );
+  }
+}
+
+type SongTitleAndAuthorProps = {
+  songTitle: string,
+  authorName: string,
+  onChangeTitle?: Function
+};
+
+const SongTitleAndAuthorWrapper = styled(VerticallyCenteredText)`
   text-align: center;
+  height: 100%;
 
   font-weight: 500; // medium
   color: white;
@@ -66,74 +124,40 @@ const HeaderMiddle = styled(VerticallyCenteredText)`
   }
 `;
 
-const HeaderRight = styled.div`
-`;
-
-const PlaybackPositionWrapper = styled(VerticallyCenteredText)`
-  opacity: 0.7;
-  font-size: 12px;
-  font-weight: 500;
-  span { margin: 0 5px; }
-`;
-
-type Props = {
-  className?: string,
-  songTitle: string,
-  authorName: string,
-  playbackPositionInSeconds: number,
-  songLength: number,
-  loading: boolean,
-  onClickPlay: Function,
-  onClickPause: Function,
-  isPlaying: boolean,
-  children: React.Node,
-  onChangeTitle?: Function
-};
-
-export default class PageHeader extends React.Component<Props> {
+export class SongTitleAndAuthor
+  extends React.Component<SongTitleAndAuthorProps> {
   render() {
     return (
-      <PageHeaderWrapper className={this.props.className}>
-        <HeaderLeft>
-          <PlayButton
-            size={playButtonSize}
-            onClickPlay={this.props.onClickPlay}
-            onClickPause={this.props.onClickPause}
-            isPlaying={this.props.isPlaying}
-            enabled={!this.props.loading}
+      <SongTitleAndAuthorWrapper>
+        {
+          <EditableTitle
+            value={this.props.songTitle}
+            onChange={this.props.onChangeTitle}
           />
-          <PlaybackPositionWrapper>
-            <div>
-              <span>
-                {formatSeconds(this.props.playbackPositionInSeconds)}
-              </span>
-              |
-              <span>{formatSeconds(this.props.songLength)}</span>
-            </div>
-          </PlaybackPositionWrapper>
-        </HeaderLeft>
-
-        <HeaderMiddle>
-          {
-            <EditableTitle
-              value={this.props.songTitle}
-              onChange={this.props.onChangeTitle}
-            />
-          }
-          <div className="author-name">
-            <span className="by"> by </span>
-            <span className="song-author">{this.props.authorName}</span>
-          </div>
-        </HeaderMiddle>
-
-        <HeaderRight>
-          {this.props.children}
-        </HeaderRight>
-      </PageHeaderWrapper>
+        }
+        <div className="author-name">
+          <span className="by"> by </span>
+          <span className="song-author">{this.props.authorName}</span>
+        </div>
+      </SongTitleAndAuthorWrapper>
     );
   }
 }
 
-PageHeader.contextTypes = {
-  messages: PropTypes.object.isRequired
-};
+const primaryCss = `
+  background-color: white;
+  color: ${colors.duskyBlue};
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: grayscale;
+`;
+
+export const PageHeaderAction = ActionLink.extend`
+  margin: 0 7px;
+  margin-top: ${headerHeight / 2 - 14}px;
+  border: solid 1px white;
+  white-space: nowrap;
+  display: block;
+  float: left;
+
+  ${props => (props.primary ? primaryCss : null)}
+`;
