@@ -2,9 +2,15 @@
 
 import PropTypes from "prop-types";
 import * as React from "react";
-import PageHeaderAction from "./PageHeaderAction";
-
-import PageHeader from "./PageHeader";
+import {
+  PageHeader,
+  PageHeaderAction,
+  HeaderLeft,
+  HeaderMiddle,
+  HeaderRight,
+  PlaybackControls,
+  SongTitleAndAuthor
+} from "./PageHeader";
 
 import { bindAll } from "lodash";
 import classNames from "classnames";
@@ -53,61 +59,73 @@ export default class PlaybackHeader extends React.Component<Props, State> {
     const title = "vlogotron: remix my face!";
 
     return (
-      <PageHeader
-        songTitle={this.props.songTitle}
-        authorName={this.props.authorName}
-        songLength={this.props.songLength}
-        playbackPositionInSeconds={this.props.playbackPositionInSeconds}
-        onClickPlay={this.props.onClickPlay}
-        onClickPause={this.props.onClickPause}
-        isPlaying={this.props.isPlaying}
-        loading={this.props.loading}
-      >
-        <div className="actions">
-          <PageHeaderAction
-            onClick={this.toggleShareButtons}
-            className={classNames("share-action", {
-              "toggled-on": this.state.shareButtonsVisible
-            })}
-          >
-            {this.context.messages["share-action"]()}
-          </PageHeaderAction>
+      <PageHeader>
+        <HeaderLeft>
+          <PlaybackControls
+            songLength={this.props.songLength}
+            playbackPositionInSeconds={this.props.playbackPositionInSeconds}
+            onClickPlay={this.props.onClickPlay}
+            onClickPause={this.props.onClickPause}
+            isPlaying={this.props.isPlaying}
+            loading={this.props.loading}
+          />
 
-          <div
-            className={classNames("share-buttons-wrapper", {
-              visible: this.state.shareButtonsVisible
-            })}
-          >
-            <div className="share-buttons">
-              <FacebookShareButton
-                url={this.props.shareUrl}
-                title={title}
-                className="Share__some-network__share-button"
-              >
-                <FacebookIcon size={25} round />
-              </FacebookShareButton>
+        </HeaderLeft>
 
-              <TwitterShareButton
-                url={this.props.shareUrl}
-                title={title}
-                className="Share__some-network__share-button"
-              >
-                <TwitterIcon size={25} round />
-              </TwitterShareButton>
+        <HeaderMiddle>
+          <SongTitleAndAuthor
+            songTitle={this.props.songTitle}
+            authorName={this.props.authorName}
+          />
+        </HeaderMiddle>
 
-              <GooglePlusShareButton url={this.props.shareUrl}>
-                <GooglePlusIcon size={25} round />
-              </GooglePlusShareButton>
+        <HeaderRight>
+          <div className="actions">
+            <PageHeaderAction
+              onClick={this.toggleShareButtons}
+              className={classNames("share-action", {
+                "toggled-on": this.state.shareButtonsVisible
+              })}
+            >
+              {this.context.messages["share-action"]()}
+            </PageHeaderAction>
+
+            <div
+              className={classNames("share-buttons-wrapper", {
+                visible: this.state.shareButtonsVisible
+              })}
+            >
+              <div className="share-buttons">
+                <FacebookShareButton
+                  url={this.props.shareUrl}
+                  title={title}
+                  className="Share__some-network__share-button"
+                >
+                  <FacebookIcon size={25} round />
+                </FacebookShareButton>
+
+                <TwitterShareButton
+                  url={this.props.shareUrl}
+                  title={title}
+                  className="Share__some-network__share-button"
+                >
+                  <TwitterIcon size={25} round />
+                </TwitterShareButton>
+
+                <GooglePlusShareButton url={this.props.shareUrl}>
+                  <GooglePlusIcon size={25} round />
+                </GooglePlusShareButton>
+              </div>
             </div>
-          </div>
 
-          <PageHeaderAction
-            className="remix-action"
-            {...this.props.remixAction}
-          >
-            {this.context.messages["remix-action"]()}
-          </PageHeaderAction>
-        </div>
+            <PageHeaderAction
+              className="remix-action"
+              {...this.props.remixAction}
+            >
+              {this.context.messages["remix-action"]()}
+            </PageHeaderAction>
+          </div>
+        </HeaderRight>
       </PageHeader>
     );
   }

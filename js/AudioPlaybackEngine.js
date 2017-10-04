@@ -146,11 +146,10 @@ function buildSourceNode(
 
     playbackRate = playbackRate * shiftFrequency(midiNote - sourceMidiNote);
 
-    const source = new TrimmedAudioBufferSourceNode(
-      audioContext,
-      audioBuffer,
-      { ...audioSource.playbackParams, playbackRate }
-    );
+    const source = new TrimmedAudioBufferSourceNode(audioContext, audioBuffer, {
+      ...audioSource.playbackParams,
+      playbackRate
+    });
     source.connect(destinationNode);
 
     return [sourceNoteName, source];

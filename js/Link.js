@@ -32,6 +32,7 @@ class Link extends React.Component<Props> {
       "onClick",
       "children",
       "enabled",
+      "primary",
       "className"
     );
 
