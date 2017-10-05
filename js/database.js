@@ -8,6 +8,8 @@ import * as firebase from "firebase";
 import { uniq } from "lodash";
 import { postToAPI } from "./xhr";
 
+import { songs } from "./song";
+
 import type { Song, SongId } from "./song";
 import type { PlaybackParams } from "./AudioPlaybackEngine";
 
@@ -53,6 +55,11 @@ export type SongBoardEvent =
       type: "update-song",
       songId: SongId,
       uid: string
+    }
+  | {
+      type: "update-title",
+      title: string,
+      uid: string
     };
 
 export type SongBoard = {
@@ -61,6 +68,7 @@ export type SongBoard = {
   createdAt: number,
   updatedAt: number,
   songId: SongId,
+  title: string,
   videoClips: { [NoteId]: VideoClip }
 };
 
@@ -143,6 +151,9 @@ function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
 
     case "update-song":
       return { ...acc, songId: event.songId };
+
+    case "update-title":
+      return { ...acc, title: event.title };
   }
 
   return acc;
@@ -155,6 +166,7 @@ function songBoardSnapshot(snapshot): SongBoard {
     createdAt: val.createdAt,
     updatedAt: val.updatedAt,
     songId: val.songId,
+    title: songs[val.songId].title,
     uid: val.uid,
     videoClips: {}
   };
@@ -170,14 +182,15 @@ export function findSongBoard(
     .map(songBoardSnapshot)
     .first();
 
-  return first$.switchMap(initialSnapshot => {
-    const eventsRef = songBoardRef.child("events");
-    return reduceFirebaseCollection(
-      eventsRef,
-      reduceSongBoard,
-      initialSnapshot
-    );
-  });
+  return first$
+    .switchMap(initialSnapshot => {
+      const eventsRef = songBoardRef.child("events");
+      return reduceFirebaseCollection(
+        eventsRef,
+        reduceSongBoard,
+        initialSnapshot
+      );
+    });
 }
 
 export function updateSongBoard(

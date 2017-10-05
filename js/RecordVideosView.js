@@ -70,7 +70,7 @@ type Props = {
 export default class RecordVideosView extends React.Component<Props> {
   constructor() {
     super();
-    bindAll(this, "bindVideoGrid", "onAdjust", "onSelectSong");
+    bindAll(this, "bindVideoGrid", "onAdjust", "onSelectSong", "onChangeTitle");
   }
 
   subscription: Subscription;
@@ -87,6 +87,14 @@ export default class RecordVideosView extends React.Component<Props> {
 
   updateSongBoard(event: SongBoardEvent) {
     this.props.actions.subjects.editSong$.next(event);
+  }
+
+  onChangeTitle(title: string) {
+    this.props.actions.subjects.editSong$.next({
+      type: "update-title",
+      title,
+      uid: this.props.currentUser.uid
+    });
   }
 
   onAdjust(note: string) {
@@ -243,21 +251,16 @@ export default class RecordVideosView extends React.Component<Props> {
       <div className="page-vertical-wrapper record-videos-page">
         <PageHeader>
           <HeaderLeft>
-            <PlaybackControls
-              isPlaying={this.props.isPlaying}
-              songLength={this.props.songLength}
-              loading={loadingAsBool}
-              playbackPositionInSeconds={this.props.playbackPositionInSeconds}
-              onClickPlay={this.props.onPlay}
-              onClickPause={this.props.onPause}
-            />
+            <PageHeaderAction>
+              Back
+            </PageHeaderAction>
           </HeaderLeft>
 
           <HeaderMiddle>
 
             <SongTitleAndAuthor
-              authorName={this.props.authorName}
               songTitle={this.props.songTitle}
+              onChangeTitle={this.onChangeTitle}
             />
 
           </HeaderMiddle>

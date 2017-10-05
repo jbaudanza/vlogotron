@@ -185,7 +185,6 @@ export default function recordVideosController(
       loading,
       supported: "MediaRecorder" in window,
       collaborateMode: props.location.pathname.endsWith("/collab"),
-      songTitle: song ? song.title : null,
       audioBuffers: mapValues(audioSources, o => o.audioBuffer),
       authorName,
       authorPhotoURL,

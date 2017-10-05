@@ -104,7 +104,7 @@ export class PlaybackControls extends React.Component<PlaybackControlProps> {
 
 type SongTitleAndAuthorProps = {
   songTitle: string,
-  authorName: string,
+  authorName?: string,
   onChangeTitle?: Function
 };
 
@@ -124,24 +124,18 @@ const SongTitleAndAuthorWrapper = styled(VerticallyCenteredText)`
   }
 `;
 
-export class SongTitleAndAuthor
-  extends React.Component<SongTitleAndAuthorProps> {
-  render() {
-    return (
-      <SongTitleAndAuthorWrapper>
-        {
-          <EditableTitle
-            value={this.props.songTitle}
-            onChange={this.props.onChangeTitle}
-          />
-        }
-        <div className="author-name">
-          <span className="by"> by </span>
-          <span className="song-author">{this.props.authorName}</span>
-        </div>
-      </SongTitleAndAuthorWrapper>
-    );
-  }
+export function SongTitleAndAuthor(props: SongTitleAndAuthorProps) {
+  return (
+    <SongTitleAndAuthorWrapper>
+      {<EditableTitle value={props.songTitle} onChange={props.onChangeTitle} />}
+      {props.authorName
+        ? <div className="author-name">
+            <span className="by"> by </span>
+            <span className="song-author">{props.authorName}</span>
+          </div>
+        : null}
+    </SongTitleAndAuthorWrapper>
+  );
 }
 
 const primaryCss = `

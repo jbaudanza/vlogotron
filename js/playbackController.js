@@ -159,7 +159,7 @@ export function playbackControllerHelper(
   subscription.add(scriptedPlaybackContext$$.connect());
 
   const song$ = media.songBoard$.map(songBoard => songs[songBoard.songId]);
-  const songTitle$ = song$.map(song => song.title);
+  const songTitle$ = media.songBoard$.map(songBoard => songBoard.title);
 
   const viewState$ = combineTemplate({
     noteConfiguration: media.noteConfiguration$,
