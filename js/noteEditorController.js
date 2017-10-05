@@ -14,12 +14,15 @@ import { createSong, updateSong } from "./database";
 export default function noteEditorController(
   params,
   actions,
-  currentUser$,
   media,
   firebase,
   subscription,
   navigateFn
 ) {
+  const currentUser$: Observable<?Firebase$User> = props$.map(
+    props => props.currentUser
+  );
+
   const undoEnabled$ = new BehaviorSubject(false);
   const redoEnabled$ = new BehaviorSubject(false);
 

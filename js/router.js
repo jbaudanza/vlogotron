@@ -86,13 +86,7 @@ export function routeToViewComponent(route: Route, media: Media): Function {
   // migrateController wrapper
   function migrateController(controllerFn) {
     return function(props$, actions, subscription) {
-      return controllerFn(
-        props$,
-        actions,
-        props$.map(props => props.currentUser),
-        media,
-        subscription
-      );
+      return controllerFn(props$, actions, media, subscription);
     };
   }
 
