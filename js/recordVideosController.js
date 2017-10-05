@@ -44,7 +44,6 @@ const escapeKey$ = Observable.fromEvent(document, "keydown").filter(
 export default function recordVideosController(
   props$: Observable<Object>,
   actions: { [string]: Observable<any> },
-  currentUser$: Observable<?Firebase$User>,
   mediaStore: Media,
   subscription: Subscription
 ) {
@@ -53,6 +52,10 @@ export default function recordVideosController(
     .publish();
 
   subscription.add(recordingEngine$.connect());
+
+  const currentUser$: Observable<?Firebase$User> = props$.map(
+    props => props.currentUser
+  );
 
   const recordingState$ = Observable.merge(
     recordingEngine$.switchMap(o => o.viewState$),

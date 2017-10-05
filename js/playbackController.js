@@ -33,10 +33,13 @@ import type { Media } from "./mediaLoading";
 export default function playbackController(
   props$: Observable<Object>,
   actions: Object,
-  currentUser$: Observable<?Object>,
   media: Media,
   subscription: Subscription
 ) {
+  const currentUser$: Observable<?Firebase$User> = props$.map(
+    props => props.currentUser
+  );
+
   const authorName$ = media.songBoard$.switchMap(songBoard => {
     return displayNameForUid(firebase.database(), songBoard.uid);
   });
