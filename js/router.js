@@ -24,14 +24,26 @@ export function navigate(href: string) {
   urlHistory.push(href);
 }
 
-const id = "([\\w-]+)";
+const idRegExp = "([\\w-]+)";
 
 const routes = [
   [`/`, "root"],
-  [`/song-boards/${id}`, "play-song-board", "songBoardId"],
-  [`/song-boards/${id}/edit`, "edit-song-board", "songBoardId"],
-  [`/song-boards/${id}/collab`, "collab-song-board", "songBoardId"]
+  [songBoardPath(idRegExp), "play-song-board", "songBoardId"],
+  [recordVideosPath(idRegExp), "record-videos", "songBoardId"],
+  [noteEditorPath(idRegExp), "note-editor", "songBoardId"]
 ];
+
+export function noteEditorPath(songBoardId: string): string {
+  return `/song-boards/${songBoardId}/note-editor`;
+}
+
+export function recordVideosPath(songBoardId: string): string {
+  return `/song-boards/${songBoardId}/record-videos`;
+}
+
+export function songBoardPath(songBoardId: string): string {
+  return `/song-boards/${songBoardId}`;
+}
 
 export type Route =
   | {
@@ -43,19 +55,15 @@ export type Route =
       params: {}
     }
   | {
-      name: "record-videos",
-      params: {}
-    }
-  | {
       name: "play-song-board",
       params: { songBoardId: string }
     }
   | {
-      name: "edit-song-board",
+      name: "record-videos",
       params: { songBoardId: string }
     }
   | {
-      name: "collab-song-board",
+      name: "note-editor",
       params: { songBoardId: string }
     };
 
@@ -100,8 +108,6 @@ export function routeToViewComponent(route: Route, media: Media): Function {
         ["play", "pause", "playCommands$"],
         LoadingView
       );
-    case "edit-song-board":
-    case "collab-song-board":
     case "record-videos":
       return createControlledComponent(
         migrateController(recordVideosController),

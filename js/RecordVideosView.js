@@ -28,6 +28,7 @@ import Message from "./Message";
 import { labelToMidiNote } from "./midi";
 
 import { notes } from "./VideoGrid";
+import { noteEditorPath } from "./router";
 
 import type { SongBoardEvent } from "./database";
 import type { Observable } from "rxjs/Observable";
@@ -266,7 +267,10 @@ export default class RecordVideosView extends React.Component<Props> {
           </HeaderMiddle>
 
           <HeaderRight>
-            <PageHeaderAction primary>
+            <PageHeaderAction
+              href={noteEditorPath(this.props.songBoardId)}
+              primary
+            >
               Next
             </PageHeaderAction>
           </HeaderRight>

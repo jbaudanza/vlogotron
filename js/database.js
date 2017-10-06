@@ -182,15 +182,14 @@ export function findSongBoard(
     .map(songBoardSnapshot)
     .first();
 
-  return first$
-    .switchMap(initialSnapshot => {
-      const eventsRef = songBoardRef.child("events");
-      return reduceFirebaseCollection(
-        eventsRef,
-        reduceSongBoard,
-        initialSnapshot
-      );
-    });
+  return first$.switchMap(initialSnapshot => {
+    const eventsRef = songBoardRef.child("events");
+    return reduceFirebaseCollection(
+      eventsRef,
+      reduceSongBoard,
+      initialSnapshot
+    );
+  });
 }
 
 export function updateSongBoard(
