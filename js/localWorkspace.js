@@ -7,32 +7,13 @@ import type { Subject } from "rxjs/Subject";
 import StorageSubject from "./StorageSubject";
 
 import { concat, omit, merge, findIndex, filter, identity, last } from "lodash";
+import type { Song } from "./song";
 
 type NoteSchedule = [string, number, number];
-
-type Song = {
-  bpm: number,
-  notes: Array<NoteSchedule>,
-  title: string,
-  videoClips: {
-    [string]: {
-      videoClipId: string,
-      trimStart: number,
-      trimEnd: number,
-      gain: number
-    }
-  }
-};
 
 type SongEdit =
   | { action: "change-bpm", bpm: number }
   | { action: "change-title", title: string }
-  | {
-      action: "add-video",
-      videoClipId: string,
-      note: string
-    }
-  | { action: "remove-video", note: string }
   | { action: "clear-all" }
   | { action: "replace-all", notes: Array<NoteSchedule> }
   | { action: "create", note: string, beat: number, duration: number }
@@ -167,33 +148,10 @@ function reduceEditsToNotes(
 
 function reduceEditsToSong(song: Song, edit: SongEdit): Song {
   switch (edit.action) {
-    case "change-trim":
-      const videoClips = merge({}, song.videoClips, {
-        [edit.note]: { trimStart: edit.trimStart, trimEnd: edit.trimEnd }
-      });
-      return { ...song, videoClips };
     case "change-bpm":
       return { ...song, bpm: edit.bpm };
     case "change-title":
       return { ...song, title: edit.title };
-    case "add-video":
-      return {
-        ...song,
-        videoClips: {
-          ...song.videoClips,
-          [edit.note]: {
-            videoClipId: edit.videoClipId,
-            trimStart: 0,
-            trimEnd: 1,
-            gain: 1
-          }
-        }
-      };
-    case "remove-video":
-      return {
-        ...song,
-        videoClips: omit(song.videoClips, edit.note)
-      };
     default:
       return {
         ...song,

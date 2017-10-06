@@ -1,19 +1,57 @@
+/* @flow */
+
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 
 import Link from "./Link";
-import SongEditorHeader from "./SongEditorHeader";
+
+import {
+  PageHeader,
+  PageHeaderAction,
+  HeaderLeft,
+  HeaderMiddle,
+  HeaderRight,
+  PlaybackControls,
+  SongTitleAndAuthor
+} from "./PageHeader";
+
 import VideoGrid from "./VideoGrid";
 import LoginOverlay from "./LoginOverlay";
 import PianoRoll from "./PianoRoll";
 import PianoRollHeader from "./PianoRollHeader";
 import ChooseSongOverlay from "./ChooseSongOverlay";
 
-import { bindAll, bindKey } from "lodash";
+import { bindAll } from "lodash";
+import type { Observable } from "rxjs/Observable";
+import type { Subscription } from "rxjs/Subscription";
+import type { Media, NoteConfiguration } from "./mediaLoading";
 
+// $FlowFixMe
 import "./NoteEditorView.scss";
 
-export default class NoteEditorView extends React.Component {
+type Props = {
+  onNavigate: string => void,
+  loading: Object,
+  location: Object,
+  songTitle: string,
+  saveEnabled: boolean,
+  onLogin: Function,
+  bpm: number,
+  songLength: number,
+  isPlaying: boolean,
+  cellsPerBeat: number,
+  undoEnabled: boolean,
+  redoEnabled: boolean,
+  notes: Array<Object>,
+  playbackStartPosition: number,
+  noteConfiguration: NoteConfiguration,
+  media: Media,
+  playCommands$: Observable<Object>,
+  playbackPositionInBeats$$: Observable<Object>,
+  actions: Object
+};
+
+export default class NoteEditorView extends React.Component<Props> {
   constructor() {
     super();
     bindAll(
@@ -29,7 +67,10 @@ export default class NoteEditorView extends React.Component {
     );
   }
 
-  bindPianoRoll(component) {
+  pianoRollSubscription: Subscription;
+  videoGridSubscription: Subscription;
+
+  bindPianoRoll(component: ?PianoRoll) {
     if (component) {
       this.pianoRollSubscription = component.edits$.subscribe(
         this.props.actions.subjects.editSong$
@@ -42,7 +83,7 @@ export default class NoteEditorView extends React.Component {
     }
   }
 
-  bindVideoGrid(component) {
+  bindVideoGrid(component: ?VideoGrid) {
     if (component) {
       this.videoGridSubscription = component.playCommands$$.subscribe(
         this.props.actions.subjects.playCommands$$
@@ -69,21 +110,24 @@ export default class NoteEditorView extends React.Component {
     this.props.actions.subjects.editSong$.next({ action: "undo" });
   }
 
-  onChangeBpm(bpm) {
+  // TODO: Update this
+  onChangeBpm(bpm: number) {
     this.props.actions.subjects.editSong$.next({
       action: "change-bpm",
       bpm: bpm
     });
   }
 
-  onChangeTitle(title) {
+  // TODO: Update this
+  onChangeTitle(title: string) {
     this.props.actions.subjects.editSong$.next({
       action: "change-title",
       title: title
     });
   }
 
-  onChooseSong(song) {
+  // TODO: Update this
+  onChooseSong(song: Object) {
     this.props.actions.subjects.editSong$.next({
       action: "replace-all",
       notes: song.notes
@@ -97,22 +141,34 @@ export default class NoteEditorView extends React.Component {
       "/record-videos"
     );
 
+    // TODO: This param doesnt exist
     const nextLabel = this.props.newSong
       ? this.context.messages["save-action"]()
       : this.context.messages["update-action"]();
 
     const header = (
-      <SongEditorHeader
-        songTitle={this.props.songTitle}
-        secondaryAction={{ href: prevPathname }}
-        secondaryActionLabel={this.context.messages["back-action"]()}
-        primaryAction={{
-          onClick: this.props.actions.callbacks.onSave,
-          enabled: this.props.saveEnabled
-        }}
-        primaryActionLabel={nextLabel}
-        onChangeTitle={this.onChangeTitle}
-      />
+      <PageHeader>
+        <HeaderLeft>
+          <PageHeaderAction>
+            {this.context.messages["back-action"]()}
+          </PageHeaderAction>
+        </HeaderLeft>
+
+        <HeaderMiddle>
+
+          <SongTitleAndAuthor
+            songTitle={this.props.songTitle}
+            onChangeTitle={this.onChangeTitle}
+          />
+
+        </HeaderMiddle>
+
+        <HeaderRight>
+          <PageHeaderAction primary>
+            {nextLabel}
+          </PageHeaderAction>
+        </HeaderRight>
+      </PageHeader>
     );
 
     // TODO: Factor this out from RecordVideosView
@@ -175,14 +231,12 @@ export default class NoteEditorView extends React.Component {
         <div className="page-content">
           <VideoGrid
             readonly
-            videoClips={this.props.videoClips}
+            noteConfiguration={this.props.noteConfiguration}
             loading={this.props.loading}
             playCommands$={this.props.playCommands$}
-            readonly={true}
-            onClear={this.onClearVideoClip}
-            mediaStream={this.props.mediaStream}
             ref={this.bindVideoGrid}
           />
+
         </div>
         {footer}
         {overlay}
@@ -193,10 +247,4 @@ export default class NoteEditorView extends React.Component {
 
 NoteEditorView.contextTypes = {
   messages: PropTypes.object.isRequired
-};
-
-NoteEditorView.propTypes = {
-  loading: PropTypes.object.isRequired,
-  onNavigate: PropTypes.func.isRequired,
-  location: PropTypes.object.isRequired
 };

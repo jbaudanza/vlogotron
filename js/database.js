@@ -68,9 +68,18 @@ export type SongBoard = {
   createdAt: number,
   updatedAt: number,
   songId: SongId,
+  customSong?: Song,
   title: string,
   videoClips: { [NoteId]: VideoClip }
 };
+
+export function songForSongBoard(songBoard: SongBoard): Song {
+  if (songBoard.customSong && songBoard.songId === "custom") {
+    return songBoard.customSong;
+  } else {
+    return songs[songBoard.songId];
+  }
+}
 
 export function createSongBoard(
   database: Firebase$Database,

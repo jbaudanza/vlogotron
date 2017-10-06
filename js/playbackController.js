@@ -23,7 +23,7 @@ import {
   songLengthInBeats
 } from "./song";
 
-import { displayNameForUid } from "./database";
+import { displayNameForUid, songForSongBoard } from "./database";
 import combineTemplate from "./combineTemplate";
 
 import type { Subscription } from "rxjs/Subscription";
@@ -44,7 +44,7 @@ export default function playbackController(
     return displayNameForUid(firebase.database(), songBoard.uid);
   });
 
-  const song$ = media.songBoard$.map(songBoard => songs[songBoard.songId]);
+  const song$ = media.songBoard$.map(songForSongBoard);
 
   const parentView$ = playbackControllerHelper(
     actions,

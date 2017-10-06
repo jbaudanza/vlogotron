@@ -16,7 +16,8 @@ import {
   displayNameForUid,
   photoURLForUid,
   updateSongBoard,
-  createVideoClip
+  createVideoClip,
+  songForSongBoard
 } from "./database";
 import type { SongBoardEvent } from "./database";
 import { songs } from "./song";
@@ -133,7 +134,7 @@ export default function recordVideosController(
     finalMedia$.subscribe(e => mediaStore.recordedMedia$.next(e))
   );
 
-  const song$ = mediaStore.songBoard$.map(songBoard => songs[songBoard.songId]);
+  const song$ = mediaStore.songBoard$.map(songForSongBoard);
 
   const parentView$ = playbackControllerHelper(
     actions,

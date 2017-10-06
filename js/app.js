@@ -399,7 +399,7 @@ class App extends React.Component<{}, State> {
 }
 
 function isSidebarVisible(route) {
-  return route.name !== "collab-song-board";
+  return !(route.name === "note-editor" || route.name === "record-videos");
 }
 
 App.childContextTypes = {
