@@ -7,17 +7,17 @@ import { BehaviorSubject } from "rxjs/BehaviorSubject";
 
 import { playbackControllerHelper } from "./playbackController";
 
-import { readEvents, writeEvent } from "./localEventStore";
-
 import {
-  updatesForNewSong,
   updatesForNewSongWithUndo,
+  songForLocalWorkspace,
   subjectFor
 } from "./localWorkspace";
 
 import { createSong, updateSong, songForSongBoard } from "./database";
 
+import { songs } from "./song";
 import type { Media } from "./mediaLoading";
+import type { LocalWorkspace } from "./localWorkspace";
 import type { Subscription } from "rxjs/Subscription";
 
 export default function noteEditorController(
@@ -38,10 +38,12 @@ export default function noteEditorController(
   subscription.add(undoEnabled$);
   subscription.add(redoEnabled$);
 
-  // TODO: Initial value probably isn't right
   const workspace$ = media.songBoard$
     .map(songBoard =>
-      subjectFor("vlogotron-workspace" + songBoard.songBoardId, {})
+      subjectFor("vlogotron-workspace-3" + songBoard.songBoardId, {
+        songId: songBoard.songId,
+        customSong: songBoard.customSong
+      })
     )
     .takeUntil(unmount$)
     .publishReplay();
@@ -61,7 +63,9 @@ export default function noteEditorController(
 
   const cellsPerBeat$ = actions.changeCellsPerBeat$.startWith(4);
 
-  const song$ = media.songBoard$.map(songForSongBoard);
+  const song$ = workspace$.switchMap(workspace =>
+    workspace.map(songForLocalWorkspace)
+  );
 
   const parentViewState$ = playbackControllerHelper(
     actions,

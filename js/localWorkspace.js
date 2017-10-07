@@ -3,17 +3,19 @@
 import { Observable } from "rxjs/Observable";
 import type { Subscription } from "rxjs/Subscription";
 import type { Subject } from "rxjs/Subject";
+import { concat, omit, merge, findIndex, filter, identity, last } from "lodash";
 
 import StorageSubject from "./StorageSubject";
 
-import { concat, omit, merge, findIndex, filter, identity, last } from "lodash";
-import type { Song } from "./song";
+import { songs } from "./song";
+import type { SongId, Song } from "./song";
 
 type NoteSchedule = [string, number, number];
 
 type SongEdit =
   | { action: "change-bpm", bpm: number }
   | { action: "change-title", title: string }
+  | { action: "update-song", songId: SongId }
   | { action: "clear-all" }
   | { action: "replace-all", notes: Array<NoteSchedule> }
   | { action: "create", note: string, beat: number, duration: number }
@@ -24,6 +26,11 @@ type SongEdit =
       to: { note: string, beat: number }
     };
 
+export type LocalWorkspace = {
+  songId: SongId,
+  customSong?: Song
+};
+
 export function subjectFor(
   key: string,
   initialValue: Object
@@ -33,10 +40,10 @@ export function subjectFor(
 
 export function updatesForNewSong(
   updateEvents$: Observable<SongEdit>,
-  storage$: StorageSubject<Song>,
+  storage$: StorageSubject<LocalWorkspace>,
   subscription: Subscription
 ) {
-  const accFn = reduceEditsToSong;
+  const accFn = reduceEditsToWorkspace;
 
   subscription.add(
     updateEvents$
@@ -51,7 +58,7 @@ function withUndoStack(value) {
 
 export function updatesForNewSongWithUndo(
   updateEvents$: Observable<SongEdit>,
-  storage$: StorageSubject<Song>,
+  storage$: StorageSubject<LocalWorkspace>,
   subscription: Subscription
 ) {
   const accFn = reduceWithUndoStack;
@@ -103,7 +110,7 @@ function reduceWithUndoStack(acc, edit) {
       redoStack: acc.redoStack.slice(0, -1)
     };
   } else {
-    const next = reduceEditsToSong(acc.current, edit);
+    const next = reduceEditsToWorkspace(acc.current, edit);
 
     return {
       current: next,
@@ -157,5 +164,29 @@ function reduceEditsToSong(song: Song, edit: SongEdit): Song {
         ...song,
         notes: reduceEditsToNotes(song.notes, edit)
       };
+  }
+}
+
+// TODO: This is exactly the same as database.songForSongBoard, but with
+// a different datastructure. This is a code smell.
+export function songForLocalWorkspace(workspace: LocalWorkspace): Song {
+  if (workspace.customSong && workspace.songId === "custom") {
+    return workspace.customSong;
+  } else {
+    return songs[workspace.songId];
+  }
+}
+
+function reduceEditsToWorkspace(
+  workspace: LocalWorkspace,
+  edit: SongEdit
+): LocalWorkspace {
+  if (edit.action === "update-song") {
+    return { songId: edit.songId };
+  } else {
+    return {
+      songId: "custom",
+      customSong: reduceEditsToSong(songForLocalWorkspace(workspace), edit)
+    };
   }
 }
