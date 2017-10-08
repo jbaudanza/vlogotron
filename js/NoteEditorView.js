@@ -115,7 +115,6 @@ export default class NoteEditorView extends React.Component<Props> {
     this.props.actions.subjects.editSong$.next({ action: "undo" });
   }
 
-  // TODO: Update this
   onChangeBpm(bpm: number) {
     this.props.actions.subjects.editSong$.next({
       action: "change-bpm",
@@ -123,7 +122,6 @@ export default class NoteEditorView extends React.Component<Props> {
     });
   }
 
-  // TODO: Update this
   onChangeTitle(title: string) {
     this.props.actions.subjects.editSong$.next({
       action: "change-title",
@@ -145,11 +143,6 @@ export default class NoteEditorView extends React.Component<Props> {
       "/record-videos"
     );
 
-    // TODO: This param doesnt exist
-    const nextLabel = this.props.newSong
-      ? <Message msgKey="save-action" />
-      : <Message msgKey="update-action" />;
-
     const header = (
       <PageHeader>
         <HeaderLeft>
@@ -168,8 +161,12 @@ export default class NoteEditorView extends React.Component<Props> {
         </HeaderMiddle>
 
         <HeaderRight>
-          <PageHeaderAction primary>
-            {nextLabel}
+          <PageHeaderAction
+            primary
+            enabled={this.props.saveEnabled}
+            onClick={this.props.actions.callbacks.onSave}
+          >
+            <Message msgKey="save-action" />
           </PageHeaderAction>
         </HeaderRight>
       </PageHeader>

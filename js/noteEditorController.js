@@ -86,7 +86,7 @@ export default function noteEditorController(
           songBoard.songBoardId,
           event
         ).then(() => {
-          props.onNavigate(songBoardPath(songBoard.songId));
+          props.onNavigate(songBoardPath(songBoard.songBoardId));
           storage$.clear();
         });
       });
