@@ -19,7 +19,9 @@ import VideoGrid from "./VideoGrid";
 import LoginOverlay from "./LoginOverlay";
 import PianoRoll from "./PianoRoll";
 import PianoRollHeader from "./PianoRollHeader";
+import Message from "./Message";
 import ChooseAndPurchaseSongFlow from "./ChooseAndPurchaseSongFlow";
+import { recordVideosPath } from "./router";
 
 import { bindAll } from "lodash";
 import type { Observable } from "rxjs/Observable";
@@ -37,6 +39,7 @@ type Props = {
   saveEnabled: boolean,
   onLogin: Function,
   bpm: number,
+  songBoardId: string,
   songLength: number,
   isPlaying: boolean,
   cellsPerBeat: number,
@@ -144,14 +147,14 @@ export default class NoteEditorView extends React.Component<Props> {
 
     // TODO: This param doesnt exist
     const nextLabel = this.props.newSong
-      ? this.context.messages["save-action"]()
-      : this.context.messages["update-action"]();
+      ? <Message msgKey="save-action" />
+      : <Message msgKey="update-action" />;
 
     const header = (
       <PageHeader>
         <HeaderLeft>
-          <PageHeaderAction>
-            {this.context.messages["back-action"]()}
+          <PageHeaderAction href={recordVideosPath(this.props.songBoardId)}>
+            <Message msgKey="back-action" />
           </PageHeaderAction>
         </HeaderLeft>
 
@@ -245,7 +248,3 @@ export default class NoteEditorView extends React.Component<Props> {
     );
   }
 }
-
-NoteEditorView.contextTypes = {
-  messages: PropTypes.object.isRequired
-};

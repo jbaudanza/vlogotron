@@ -93,6 +93,7 @@ export default function noteEditorController(
 
   const saveEnabled$ = Observable.of(true).concat(actions.save$.mapTo(false));
 
+  // $FlowFixMe - using too many arguments for combineLatest
   return Observable.combineLatest(
     props$,
     parentViewState$,
@@ -101,6 +102,7 @@ export default function noteEditorController(
     undoEnabled$,
     saveEnabled$,
     currentUser$,
+    media.songBoard$,
     (
       props,
       parentViewState,
@@ -108,7 +110,8 @@ export default function noteEditorController(
       redoEnabled,
       undoEnabled,
       saveEnabled,
-      currentUser
+      currentUser,
+      songBoard
     ) => ({
       ...parentViewState,
       cellsPerBeat,
@@ -116,6 +119,7 @@ export default function noteEditorController(
       undoEnabled,
       saveEnabled,
       currentUser,
+      songBoardId: songBoard.songBoardId,
       location: props.location,
       premiumAccountStatus: props.premiumAccountStatus,
       onNavigate: props.onNavigate

@@ -231,8 +231,8 @@ export default class RecordVideosView extends React.Component<Props> {
       <div className="page-vertical-wrapper record-videos-page">
         <PageHeader>
           <HeaderLeft>
-            <PageHeaderAction>
-              Back
+            <PageHeaderAction href="/">
+              <Message msgKey="cancel-action" />
             </PageHeaderAction>
           </HeaderLeft>
 
@@ -250,7 +250,7 @@ export default class RecordVideosView extends React.Component<Props> {
               href={noteEditorPath(this.props.songBoardId)}
               primary
             >
-              Next
+              <Message msgKey="next-action" />
             </PageHeaderAction>
           </HeaderRight>
         </PageHeader>
