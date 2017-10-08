@@ -54,6 +54,7 @@ export type SongBoardEvent =
   | {
       type: "update-song",
       songId: SongId,
+      customSong?: Song,
       uid: string
     }
   | {
@@ -159,7 +160,7 @@ function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
       }));
 
     case "update-song":
-      return { ...acc, songId: event.songId };
+      return { ...acc, songId: event.songId, customSong: event.customSong };
 
     case "update-title":
       return { ...acc, title: event.title };

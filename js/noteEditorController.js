@@ -6,6 +6,7 @@ import { Observable } from "rxjs/Observable";
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
 
 import { playbackControllerHelper } from "./playbackController";
+import { songBoardPath } from "./router";
 
 import {
   updatesForNewSongWithUndo,
@@ -13,15 +14,22 @@ import {
   subjectFor
 } from "./localWorkspace";
 
-import { createSong, updateSong, songForSongBoard } from "./database";
+import { updateSongBoard } from "./database";
 
 import { songs } from "./song";
 import type { Media } from "./mediaLoading";
 import type { LocalWorkspace } from "./localWorkspace";
 import type { Subscription } from "rxjs/Subscription";
 
+type Props = {
+  onNavigate: string => void,
+  currentUser: Firebase$User,
+  location: Location,
+  premiumAccountStatus: boolean
+};
+
 export default function noteEditorController(
-  props$: Observable<Object>,
+  props$: Observable<Props>,
   actions: { [string]: Observable<any> },
   media: Media,
   subscription: Subscription
@@ -57,6 +65,32 @@ export default function noteEditorController(
       subscription
     );
 
+    actions.save$
+      .withLatestFrom(
+        media.songBoard$,
+        storage$,
+        currentUser$.nonNull(),
+        props$,
+        (ignore, a, b, c, d) => [a, b, c, d]
+      )
+      .subscribe(([songBoard, snapshot, user, props]) => {
+        const event = {
+          type: "update-song",
+          songId: snapshot.songId,
+          customSong: snapshot.customSong,
+          uid: user.uid
+        };
+
+        updateSongBoard(
+          firebase.database(),
+          songBoard.songBoardId,
+          event
+        ).then(() => {
+          props.onNavigate(songBoardPath(songBoard.songId));
+          storage$.clear();
+        });
+      });
+
     undo.redoEnabled$.subscribe(redoEnabled$);
     undo.undoEnabled$.subscribe(undoEnabled$);
   });
@@ -75,21 +109,6 @@ export default function noteEditorController(
     media,
     subscription
   );
-
-  actions.save$
-    .withLatestFrom(media.songBoard$, currentUser$, workspace$, (a, b, c) => [
-      a,
-      b,
-      c
-    ])
-    .subscribe(([ignore, songBoard, user, workspace]) => {
-      // TOOD: Update the firebase database here
-      const key = "something";
-      promise.then(key => {
-        navigateFn("/songs/" + key);
-        workspace.clear();
-      });
-    });
 
   const saveEnabled$ = Observable.of(true).concat(actions.save$.mapTo(false));
 
