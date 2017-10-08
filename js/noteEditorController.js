@@ -100,20 +100,25 @@ export default function noteEditorController(
     redoEnabled$,
     undoEnabled$,
     saveEnabled$,
+    currentUser$,
     (
       props,
       parentViewState,
       cellsPerBeat,
       redoEnabled,
       undoEnabled,
-      saveEnabled
+      saveEnabled,
+      currentUser
     ) => ({
       ...parentViewState,
       cellsPerBeat,
       redoEnabled,
       undoEnabled,
       saveEnabled,
-      location: props.location
+      currentUser,
+      location: props.location,
+      premiumAccountStatus: props.premiumAccountStatus,
+      onNavigate: props.onNavigate
     })
   );
 }

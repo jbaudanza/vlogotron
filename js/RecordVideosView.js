@@ -23,7 +23,6 @@ import ShareOverlay from "./ShareOverlay";
 import ChooseVideoClipOverlay from "./ChooseVideoClipOverlay";
 import NotificationPopup from "./NotificationPopup";
 import SubHeader from "./SubHeader";
-import CreateNewSongOverlay from "./CreateNewSongOverlay";
 import Message from "./Message";
 import { labelToMidiNote } from "./midi";
 
@@ -71,7 +70,7 @@ type Props = {
 export default class RecordVideosView extends React.Component<Props> {
   constructor() {
     super();
-    bindAll(this, "bindVideoGrid", "onAdjust", "onSelectSong", "onChangeTitle");
+    bindAll(this, "bindVideoGrid", "onAdjust", "onChangeTitle");
   }
 
   subscription: Subscription;
@@ -100,15 +99,6 @@ export default class RecordVideosView extends React.Component<Props> {
 
   onAdjust(note: string) {
     this.props.onNavigate("#adjust?note=" + note);
-  }
-
-  onSelectSong(songId: SongId) {
-    this.updateSongBoard({
-      type: "update-song",
-      songId: songId,
-      uid: this.props.currentUser.uid
-    });
-    this.props.onNavigate(this.props.location.pathname);
   }
 
   onFinishTrim(note: string, playbackParams: PlaybackParams) {
@@ -169,17 +159,6 @@ export default class RecordVideosView extends React.Component<Props> {
           />
         );
       }
-    }
-
-    if (this.props.location.hash === "#choose-song") {
-      overlay = (
-        <CreateNewSongOverlay
-          onClose={this.props.location.pathname}
-          onSelectSong={this.onSelectSong}
-          currentUser={this.props.currentUser}
-          premiumAccountStatus={this.props.premiumAccountStatus}
-        />
-      );
     }
 
     if (

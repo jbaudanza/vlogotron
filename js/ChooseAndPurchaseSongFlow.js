@@ -1,6 +1,5 @@
 /* @flow */
 
-import PropTypes from "prop-types";
 import * as React from "react";
 
 import ChooseSongOverlay from "./ChooseSongOverlay";
@@ -33,7 +32,7 @@ type State = {
   working: boolean
 };
 
-export default class CreateNewSongOverlay
+export default class ChooseAndPurchaseSongFlow
   extends React.Component<Props, State> {
   constructor() {
     super();

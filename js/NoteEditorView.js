@@ -19,7 +19,7 @@ import VideoGrid from "./VideoGrid";
 import LoginOverlay from "./LoginOverlay";
 import PianoRoll from "./PianoRoll";
 import PianoRollHeader from "./PianoRollHeader";
-import ChooseSongOverlay from "./ChooseSongOverlay";
+import ChooseAndPurchaseSongFlow from "./ChooseAndPurchaseSongFlow";
 
 import { bindAll } from "lodash";
 import type { Observable } from "rxjs/Observable";
@@ -42,7 +42,9 @@ type Props = {
   cellsPerBeat: number,
   undoEnabled: boolean,
   redoEnabled: boolean,
+  premiumAccountStatus: boolean,
   notes: Array<Object>,
+  currentUser: Firebase$User,
   playbackStartPosition: number,
   noteConfiguration: NoteConfiguration,
   media: Media,
@@ -126,11 +128,10 @@ export default class NoteEditorView extends React.Component<Props> {
     });
   }
 
-  // TODO: Update this
-  onChooseSong(song: Object) {
+  onChooseSong(songId: string) {
     this.props.actions.subjects.editSong$.next({
-      action: "replace-all",
-      notes: song.notes
+      action: "update-song",
+      songId
     });
     this.props.onNavigate(this.props.location.pathname);
   }
@@ -180,11 +181,11 @@ export default class NoteEditorView extends React.Component<Props> {
 
     if (this.props.location.hash === "#choose-song") {
       overlay = (
-        <ChooseSongOverlay
-          onSelect={this.onChooseSong}
-          media={this.props.media}
+        <ChooseAndPurchaseSongFlow
+          onSelectSong={this.onChooseSong}
           onClose={this.props.location.pathname}
-          bpm={this.props.bpm}
+          premiumAccountStatus={this.props.premiumAccountStatus}
+          currentUser={this.props.currentUser}
         />
       );
     }

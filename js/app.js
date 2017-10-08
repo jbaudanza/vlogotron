@@ -16,7 +16,6 @@ import SvgAssets from "./SvgAssets";
 import styled from "styled-components";
 
 import SideOverlay from "./SideOverlay";
-import CreateNewSongOverlay from "./CreateNewSongOverlay";
 import LoginOverlay from "./LoginOverlay";
 import MySongsOverlay from "./MySongsOverlay";
 import NavOverlay from "./NavOverlay";
@@ -342,17 +341,16 @@ class App extends React.Component<{}, State> {
       );
       sideOverlayClassName = "nav-overlay";
     } else if (this.state.location.hash === "#create-new") {
-      // TODO:
-      // - consider new names for: CreateNewSongOverlay, and ChooseSongOverlay
       if (this.state.currentUser) {
-        overlay = (
-          <CreateNewSongOverlay
-            onClose={this.state.location.pathname}
-            currentUser={this.state.currentUser}
-            premiumAccountStatus={this.state.premiumAccountStatus}
-            onSelectSong={this.onCreateSongBoard}
-          />
-        );
+        // TODO: Fix this
+        // overlay = (
+        //   <CreateNewSongOverlay
+        //     onClose={this.state.location.pathname}
+        //     currentUser={this.state.currentUser}
+        //     premiumAccountStatus={this.state.premiumAccountStatus}
+        //     onSelectSong={this.onCreateSongBoard}
+        //   />
+        // );
       } else {
         overlay = (
           <LoginOverlay
