@@ -105,7 +105,7 @@ export function routeToViewComponent(route: Route, media: Media): Function {
       return createControlledComponent(
         migrateController(playbackController),
         PlaybackView,
-        ["play", "pause", "playCommands$"],
+        ["play", "pause", "remix", "playCommands$"],
         LoadingView
       );
     case "record-videos":

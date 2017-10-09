@@ -309,10 +309,6 @@ class App extends React.Component<{}, State> {
     deleteSong(firebase.database(), song);
   }
 
-  // TODO:
-  //  - need to prompt for login
-  //  - hook up remix button
-
   onCreateSongBoard(
     parentSongBoardId: ?string,
     songId: ?SongId,
@@ -320,7 +316,13 @@ class App extends React.Component<{}, State> {
   ) {
     const user = this.state.currentUser;
     if (user) {
-      const promise = createSongBoard(firebase.database(), user.uid, songId);
+      const promise = createSongBoard(
+        firebase.database(),
+        user.uid,
+        parentSongBoardId,
+        songId,
+        customSong
+      );
 
       promise.then(
         key => {
@@ -397,6 +399,7 @@ class App extends React.Component<{}, State> {
       origin: this.state.origin,
       onNavigate: this.onNavigate,
       onLogin: this.onLogin,
+      onCreateSongBoard: this.onCreateSongBoard,
       currentUser: this.state.currentUser,
       premiumAccountStatus: this.state.premiumAccountStatus
     });

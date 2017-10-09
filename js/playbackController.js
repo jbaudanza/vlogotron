@@ -46,6 +46,18 @@ export default function playbackController(
 
   const song$ = media.songBoard$.map(songForSongBoard);
 
+  actions.remix$.withLatestFrom(media.songBoard$, props$).subscribe(([
+    ignore,
+    songBoard,
+    props
+  ]) => {
+    props.onCreateSongBoard(
+      songBoard.songBoardId,
+      songBoard.songId,
+      songBoard.customSong
+    );
+  });
+
   const parentView$ = playbackControllerHelper(
     actions,
     currentUser$,

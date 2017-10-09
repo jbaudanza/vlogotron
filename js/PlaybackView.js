@@ -30,6 +30,7 @@ type Props = {
   songId: string,
   onPlay: Function,
   onPause: Function,
+  onRemix: Function,
   authorName: string,
   playbackPositionInSeconds: number
 };
@@ -84,9 +85,7 @@ export default class PlaybackView extends React.Component<Props> {
           playbackPositionInSeconds={this.props.playbackPositionInSeconds}
           onClickPlay={this.props.onPlay}
           onClickPause={this.props.onPause}
-          remixAction={{
-            href: `/songs/${this.props.songId}/remix/record-videos`
-          }}
+          remixAction={{ onClick: this.props.onRemix }}
         />
 
         <div className="page-content">

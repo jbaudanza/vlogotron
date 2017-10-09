@@ -186,7 +186,11 @@ function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
 
 function songBoardSnapshot(snapshot): SongBoard {
   const val = snapshot.val();
-  const title = val.songId ? songs[val.songId].title : "Untitled Song";
+  let title = songForSongBoard(val).title;
+
+  if (val.parentSongBoardId) {
+    title = "Remix of " + title;
+  }
 
   return {
     songBoardId: snapshot.key,
@@ -194,6 +198,7 @@ function songBoardSnapshot(snapshot): SongBoard {
     updatedAt: val.updatedAt,
     songId: val.songId,
     title: title,
+    customSong: val.customSong,
     uid: val.uid,
     videoClips: {}
   };
