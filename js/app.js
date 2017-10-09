@@ -53,8 +53,9 @@ import {
   currentLocation$,
   pathnameToRoute,
   routeToViewComponent,
-  songBoardPath
+  recordVideosPath
 } from "./router";
+
 import type { Route } from "./router";
 
 import messages from "./messages";
@@ -229,7 +230,7 @@ class App extends React.Component<{}, State> {
     );
 
     this.globalSubscription.add(
-      currentUser$.subscribe(this.stateObserver("currentUser"))
+      currentUser$.subscribe(this.updateUser.bind(this))
     );
 
     this.globalSubscription.add(
@@ -241,6 +242,16 @@ class App extends React.Component<{}, State> {
         this.stateObserver("premiumAccountStatus")
       )
     );
+  }
+
+  updateUser(user: Firebase$User) {
+    this.setState({ currentUser: user });
+
+    if (user) {
+      if (this.state.location.hash === "#login-and-create-new") {
+        this.onCreateFreshSongBoard();
+      }
+    }
   }
 
   unsubscribeMedia() {
@@ -285,9 +296,9 @@ class App extends React.Component<{}, State> {
     if (document.body) document.body.scrollTop = 0;
   }
 
-  onLogin(providerString) {
+  onLogin(providerString: string) {
     const provider = new firebase.auth[providerString + "AuthProvider"]();
-    firebase.auth().signInWithPopup(provider);
+    return firebase.auth().signInWithPopup(provider);
   }
 
   onLogout() {
@@ -308,19 +319,20 @@ class App extends React.Component<{}, State> {
     customSong: ?Song
   ) {
     const user = this.state.currentUser;
-    // This is to make flow happy. It shouldn't happen
-    if (!user) return;
+    if (user) {
+      const promise = createSongBoard(firebase.database(), user.uid, songId);
 
-    const promise = createSongBoard(firebase.database(), user.uid, songId);
-
-    promise.then(
-      key => {
-        this.onNavigate(songBoardPath(key));
-      },
-      err => {
-        console.error(err);
-      }
-    );
+      promise.then(
+        key => {
+          this.onNavigate(recordVideosPath(key));
+        },
+        err => {
+          console.error(err);
+        }
+      );
+    } else {
+      this.onNavigate("#login-and-create-new");
+    }
   }
 
   getChildContext() {
@@ -339,7 +351,10 @@ class App extends React.Component<{}, State> {
     let sideOverlayContent;
     let sideOverlayClassName;
 
-    if (this.state.location.hash === "#login") {
+    if (
+      this.state.location.hash === "#login" ||
+      this.state.location.hash === "#login-and-create-new"
+    ) {
       overlay = (
         <LoginOverlay
           onLogin={this.onLogin}

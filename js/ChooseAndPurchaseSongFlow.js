@@ -3,7 +3,6 @@
 import * as React from "react";
 
 import ChooseSongOverlay from "./ChooseSongOverlay";
-import LoginOverlay from "./LoginOverlay";
 import PurchaseOverlay from "./PurchaseOverlay";
 import Overlay from "./Overlay";
 import Spinner from "./Spinner";
