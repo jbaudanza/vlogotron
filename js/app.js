@@ -46,12 +46,14 @@ firebase.initializeApp(config);
 
 import { subscribeToSongBoardId } from "./mediaLoading";
 import type { Media } from "./mediaLoading";
+import type { SongId, Song } from "./song";
 
 import {
   navigate,
   currentLocation$,
   pathnameToRoute,
-  routeToViewComponent
+  routeToViewComponent,
+  songBoardPath
 } from "./router";
 import type { Route } from "./router";
 
@@ -158,6 +160,7 @@ class App extends React.Component<{}, State> {
   mediaSubscription: Subscription;
   media: Media;
   songBoardId: ?string;
+  onCreateFreshSongBoard: Function;
 
   constructor() {
     super();
@@ -170,6 +173,13 @@ class App extends React.Component<{}, State> {
       "onClick",
       "onRouteChange",
       "onCreateSongBoard"
+    );
+
+    this.onCreateFreshSongBoard = this.onCreateSongBoard.bind(
+      this,
+      null,
+      null,
+      null
     );
 
     this.state = {
@@ -288,18 +298,24 @@ class App extends React.Component<{}, State> {
     deleteSong(firebase.database(), song);
   }
 
-  onCreateSongBoard(songId: string) {
+  // TODO:
+  //  - need to prompt for login
+  //  - hook up remix button
+
+  onCreateSongBoard(
+    parentSongBoardId: ?string,
+    songId: ?SongId,
+    customSong: ?Song
+  ) {
     const user = this.state.currentUser;
-    if (
-      !user // This is to make flow happy. It shouldn't happen
-    )
-      return;
+    // This is to make flow happy. It shouldn't happen
+    if (!user) return;
 
     const promise = createSongBoard(firebase.database(), user.uid, songId);
 
     promise.then(
       key => {
-        this.onNavigate("/song-boards/" + key);
+        this.onNavigate(songBoardPath(key));
       },
       err => {
         console.error(err);
@@ -378,6 +394,7 @@ class App extends React.Component<{}, State> {
             pathnameToRoute(this.state.location.pathname)
           )}
           onChangeLocale={this.onChangeLocale}
+          onCreateNew={this.onCreateFreshSongBoard}
           onLogout={this.onLogout}
           isLoggedIn={isLoggedIn}
         >

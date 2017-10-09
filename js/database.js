@@ -77,23 +77,38 @@ export type SongBoard = {
 export function songForSongBoard(songBoard: SongBoard): Song {
   if (songBoard.customSong && songBoard.songId === "custom") {
     return songBoard.customSong;
-  } else {
+  }
+  if (songBoard.songId) {
     return songs[songBoard.songId];
   }
+
+  return {
+    title: "Untitled Song",
+    notes: [],
+    bpm: 120,
+    premium: false
+  };
 }
 
 export function createSongBoard(
   database: Firebase$Database,
   uid: string,
-  songId: string
+  parentSongBoardId: ?string,
+  songId: ?string,
+  customSong: ?Song
 ): Promise<string> {
   const collectionRef = database.ref("song-boards");
 
-  const rootObject = {
+  const rootObject: Object = {
     createdAt: firebase.database.ServerValue.TIMESTAMP,
-    uid: uid,
-    songId: songId
+    uid: uid
   };
+
+  if (songId) rootObject.songId = songId;
+
+  if (customSong) rootObject.customSong = customSong;
+
+  if (parentSongBoardId) rootObject.parentSongBoardId = parentSongBoardId;
 
   const rootWrite = collectionRef.push(rootObject);
 
@@ -171,12 +186,14 @@ function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
 
 function songBoardSnapshot(snapshot): SongBoard {
   const val = snapshot.val();
+  const title = val.songId ? songs[val.songId].title : "Untitled Song";
+
   return {
     songBoardId: snapshot.key,
     createdAt: val.createdAt,
     updatedAt: val.updatedAt,
     songId: val.songId,
-    title: songs[val.songId].title,
+    title: title,
     uid: val.uid,
     videoClips: {}
   };

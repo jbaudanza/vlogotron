@@ -1,13 +1,21 @@
+/* @flow */
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 
 import Link from "./Link";
 
 import { omit } from "lodash";
 
+// $FlowFixMe - scss not supported
 import "./TopNavigation.scss";
 
-export default class TopNavigation extends React.Component {
+type Props = {
+  onLogout: Function,
+  onCreateNew: Function,
+  isLoggedIn: boolean
+};
+
+export default class TopNavigation extends React.Component<Props> {
   render() {
     return (
       <div className="top-navigation">
@@ -28,7 +36,7 @@ export default class TopNavigation extends React.Component {
             />
           : null}
         <NavLink
-          href="#create-new"
+          onClick={this.props.onCreateNew}
           width="30px"
           height="30px"
           icon="#svg-plus"
@@ -56,11 +64,6 @@ export default class TopNavigation extends React.Component {
 
 TopNavigation.contextTypes = {
   messages: PropTypes.object.isRequired
-};
-
-TopNavigation.PropTypes = {
-  onLogout: PropTypes.func.isRequired,
-  isLoggedIn: PropTypes.bool.isRequired
 };
 
 function NavLink(props) {
