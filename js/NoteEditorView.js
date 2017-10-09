@@ -132,7 +132,7 @@ export default class NoteEditorView extends React.Component<Props> {
   onChooseSong(songId: string) {
     this.props.actions.subjects.editSong$.next({
       action: "update-song",
-      songId
+      songId: songId
     });
     this.props.onNavigate(this.props.location.pathname);
   }

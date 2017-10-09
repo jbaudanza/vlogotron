@@ -32,6 +32,7 @@ import {
   premiumAccountStatus,
   createSongBoard
 } from "./database";
+import type { SongBoard } from "./database";
 
 import * as firebase from "firebase";
 
@@ -161,7 +162,6 @@ class App extends React.Component<{}, State> {
   mediaSubscription: Subscription;
   media: Media;
   songBoardId: ?string;
-  onCreateFreshSongBoard: Function;
 
   constructor() {
     super();
@@ -174,13 +174,6 @@ class App extends React.Component<{}, State> {
       "onClick",
       "onRouteChange",
       "onCreateSongBoard"
-    );
-
-    this.onCreateFreshSongBoard = this.onCreateSongBoard.bind(
-      this,
-      null,
-      null,
-      null
     );
 
     this.state = {
@@ -249,7 +242,7 @@ class App extends React.Component<{}, State> {
 
     if (user) {
       if (this.state.location.hash === "#login-and-create-new") {
-        this.onCreateFreshSongBoard();
+        this.onCreateSongBoard();
       }
     }
   }
@@ -309,19 +302,13 @@ class App extends React.Component<{}, State> {
     deleteSong(firebase.database(), song);
   }
 
-  onCreateSongBoard(
-    parentSongBoardId: ?string,
-    songId: ?SongId,
-    customSong: ?Song
-  ) {
+  onCreateSongBoard(parentSongBoard?: SongBoard) {
     const user = this.state.currentUser;
     if (user) {
       const promise = createSongBoard(
         firebase.database(),
         user.uid,
-        parentSongBoardId,
-        songId,
-        customSong
+        parentSongBoard
       );
 
       promise.then(
@@ -412,7 +399,7 @@ class App extends React.Component<{}, State> {
             pathnameToRoute(this.state.location.pathname)
           )}
           onChangeLocale={this.onChangeLocale}
-          onCreateNew={this.onCreateFreshSongBoard}
+          onCreateNew={() => this.onCreateSongBoard()}
           onLogout={this.onLogout}
           isLoggedIn={isLoggedIn}
         >

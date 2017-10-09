@@ -54,7 +54,7 @@ export type SongBoardEvent =
   | {
       type: "update-song",
       songId: SongId,
-      customSong?: Song,
+      customSong: ?Song,
       uid: string
     }
   | {
@@ -69,7 +69,7 @@ export type SongBoard = {
   createdAt: number,
   updatedAt: number,
   songId: SongId,
-  customSong?: Song,
+  customSong: ?Song,
   title: string,
   videoClips: { [NoteId]: VideoClip }
 };
@@ -78,14 +78,15 @@ export function songForSongBoard(songBoard: SongBoard): Song {
   if (songBoard.customSong && songBoard.songId === "custom") {
     return songBoard.customSong;
   }
+
   if (songBoard.songId) {
     return songs[songBoard.songId];
   }
 
   return {
     title: "Untitled Song",
-    notes: [],
     bpm: 120,
+    notes: [],
     premium: false
   };
 }
@@ -93,9 +94,7 @@ export function songForSongBoard(songBoard: SongBoard): Song {
 export function createSongBoard(
   database: Firebase$Database,
   uid: string,
-  parentSongBoardId: ?string,
-  songId: ?string,
-  customSong: ?Song
+  parentSongBoard?: SongBoard
 ): Promise<string> {
   const collectionRef = database.ref("song-boards");
 
@@ -104,11 +103,9 @@ export function createSongBoard(
     uid: uid
   };
 
-  if (songId) rootObject.songId = songId;
-
-  if (customSong) rootObject.customSong = customSong;
-
-  if (parentSongBoardId) rootObject.parentSongBoardId = parentSongBoardId;
+  if (parentSongBoard) {
+    rootObject.parentSongBoard = parentSongBoard;
+  }
 
   const rootWrite = collectionRef.push(rootObject);
 
@@ -186,21 +183,29 @@ function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
 
 function songBoardSnapshot(snapshot): SongBoard {
   const val = snapshot.val();
-  let title = songForSongBoard(val).title;
 
-  if (val.parentSongBoardId) {
-    title = "Remix of " + title;
+  let obj;
+
+  if (val.parentSongBoard) {
+    obj = {
+      title: "Remix of " + val.parentSongBoard.title,
+      videoClips: val.parentSongBoard.videoClips,
+      songId: val.parentSongBoard.songId,
+      customSong: val.parentSongBoard.customSong
+    };
+  } else {
+    obj = {
+      title: "Untitled Song",
+      videoClips: {}
+    };
   }
 
   return {
     songBoardId: snapshot.key,
     createdAt: val.createdAt,
-    updatedAt: val.updatedAt,
-    songId: val.songId,
-    title: title,
-    customSong: val.customSong,
+    updatedAt: val.updatedAt || null,
     uid: val.uid,
-    videoClips: {}
+    ...obj
   };
 }
 
@@ -214,14 +219,15 @@ export function findSongBoard(
     .map(songBoardSnapshot)
     .first();
 
-  return first$.switchMap(initialSnapshot => {
-    const eventsRef = songBoardRef.child("events");
-    return reduceFirebaseCollection(
-      eventsRef,
-      reduceSongBoard,
-      initialSnapshot
-    );
-  });
+  return first$
+    .switchMap(initialSnapshot => {
+      const eventsRef = songBoardRef.child("events");
+      return reduceFirebaseCollection(
+        eventsRef,
+        reduceSongBoard,
+        initialSnapshot
+      );
+    });
 }
 
 export function updateSongBoard(

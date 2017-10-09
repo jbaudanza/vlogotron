@@ -51,11 +51,7 @@ export default function playbackController(
     songBoard,
     props
   ]) => {
-    props.onCreateSongBoard(
-      songBoard.songBoardId,
-      songBoard.songId,
-      songBoard.customSong
-    );
+    props.onCreateSongBoard(songBoard);
   });
 
   const parentView$ = playbackControllerHelper(
