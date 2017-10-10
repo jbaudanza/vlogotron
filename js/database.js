@@ -190,13 +190,25 @@ function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
       );
 
     case "update-song":
-      return { ...acc, songId: event.songId, customSong: event.customSong };
+      return {
+        ...acc,
+        songId: event.songId,
+        customSong: normalizeSong(event.customSong)
+      };
 
     case "update-title":
       return { ...acc, title: event.title };
   }
 
   return acc;
+}
+
+function normalizeSong(input: ?Object) {
+  if (input && Array.isArray(input.notes)) {
+    return input;
+  } else {
+    return { ...input, notes: [] };
+  }
 }
 
 function songBoardSnapshot(snapshot): SongBoard {

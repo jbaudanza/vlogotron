@@ -8,16 +8,14 @@ import { concat, omit, merge, findIndex, filter, identity, last } from "lodash";
 import StorageSubject from "./StorageSubject";
 
 import { songs } from "./song";
-import type { SongId, Song } from "./song";
-
-type NoteSchedule = [string, number, number];
+import type { SongId, Song, ScheduledNoteList, ScheduledNote } from "./song";
 
 type SongEdit =
   | { action: "change-bpm", bpm: number }
   | { action: "change-title", title: string }
   | { action: "update-song", songId: SongId }
   | { action: "clear-all" }
-  | { action: "replace-all", notes: Array<NoteSchedule> }
+  | { action: "replace-all", notes: ScheduledNoteList }
   | { action: "create", note: string, beat: number, duration: number }
   | { action: "delete", note: string, beat: number }
   | {
@@ -121,10 +119,10 @@ function reduceWithUndoStack(acc, edit) {
 }
 
 function reduceEditsToNotes(
-  notes: Array<NoteSchedule>,
+  notes: ScheduledNoteList,
   edit: SongEdit
-): Array<NoteSchedule> {
-  function matcher(location: Object, note: NoteSchedule) {
+): ScheduledNoteList {
+  function matcher(location: Object, note: ScheduledNote) {
     return note[0] === location.note && note[1] === location.beat;
   }
 
@@ -142,7 +140,7 @@ function reduceEditsToNotes(
       if (index !== -1) {
         const oldDuration = notes[index][2];
         return concat(
-          filter(notes, (v: NoteSchedule, i: number) => i !== index), // remove old note
+          filter(notes, (v: ScheduledNote, i: number) => i !== index), // remove old note
           [[edit.to.note, edit.to.beat, oldDuration]] // add new note
         );
       } else {

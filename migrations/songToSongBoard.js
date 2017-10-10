@@ -75,6 +75,10 @@ function labelToMidiNote(label) {
   }
 }
 
+function convertToMidiNotes(notes) {
+  return notes.map(([a,b,c]) => [labelToMidiNote(a), b, c])
+}
+
 const songBoardsRef = admin.database().ref('song-boards');
 
 admin.database().ref('songs').on('value', (collection) => {
@@ -141,7 +145,7 @@ admin.database().ref('songs').on('value', (collection) => {
         customSong: {
           title: revision.title,
           bpm: (revision.bpm || 120),
-          notes: (revision.notes || [])
+          notes: convertToMidiNotes(revision.notes || [])
         }
       });
 
