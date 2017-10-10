@@ -97,7 +97,8 @@ export function createSongBoard(
 
   const rootObject: Object = {
     createdAt: firebase.database.ServerValue.TIMESTAMP,
-    uid: uid
+    uid: uid,
+    visibility: "everyone"
   };
 
   if (parentSongBoard) {
@@ -106,14 +107,16 @@ export function createSongBoard(
 
   const rootWrite = collectionRef.push(rootObject);
 
-  return rootWrite.then(snapshot => {
-    return denormalizeSongBoard(
-      database,
-      uid,
-      snapshot.key,
-      songBoardSnapshot(snapshot)
+  return rootWrite
+    .then(ref => ref.once("value")) // Read it back to get the timestamps
+    .then(snapshot =>
+      denormalizeSongBoard(
+        database,
+        uid,
+        snapshot.key,
+        songBoardSnapshot(snapshot)
+      ).then(() => snapshot.key)
     );
-  });
 }
 
 export function updateSongBoard(
@@ -164,10 +167,7 @@ function denormalizeSongBoard(
     .child(uid)
     .child("song-boards")
     .child(songBoardId)
-    .set(denormalizedSongBoard)
-    .then(snapshot => {
-      return snapshot.key;
-    });
+    .set(denormalizedSongBoard);
 }
 
 function updateVideoClip(
