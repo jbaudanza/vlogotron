@@ -75,9 +75,8 @@ export default function recordVideosController(
     user => (user ? user.uid : null)
   );
 
-  const songBoardId$ = mediaStore.songBoard$.map(
-    songBoard => songBoard.songBoardId
-  );
+  const songBoardId$ = mediaStore.songBoard$
+    .map(songBoard => songBoard.songBoardId);
 
   const uploadedEvents$: Observable<
     SongBoardEvent
@@ -119,12 +118,11 @@ export default function recordVideosController(
   );
 
   subscription.add(
-    songBoardEvents$.withLatestFrom(songBoardId$).subscribe(([
-      event,
-      songBoardId
-    ]) => {
-      updateSongBoard(firebase.database(), songBoardId, event);
-    })
+    songBoardEvents$
+      .withLatestFrom(songBoardId$)
+      .subscribe(([event, songBoardId]) => {
+        updateSongBoard(firebase.database(), songBoardId, event);
+      })
   );
 
   const clearedMedia$ = actions.clearVideoClip$.map((note: string) => ({

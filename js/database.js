@@ -118,14 +118,39 @@ export function createSongBoard(
 
 export function updateSongBoard(
   database: Firebase$Database,
-  songId: string,
+  songBoardId: string,
   event: SongBoardEvent
-): Promise<Object> {
-  return database
-    .ref("song-boards")
-    .child(songId)
-    .child("events")
-    .push({ timestamp: firebase.database.ServerValue.TIMESTAMP, ...event });
+): Promise<string> {
+  const promises = [];
+
+  promises.push(
+    database
+      .ref("song-boards")
+      .child(songBoardId)
+      .child("events")
+      .push({ timestamp: firebase.database.ServerValue.TIMESTAMP, ...event })
+  );
+
+  // TODO: We are pulling the uid off the event, when really we should be
+  // pulling it off of the root songBoard object. It doesn't matter for now,
+  // since this will be the same. But this will need to be updated when we start
+  // allowing multiple users to collaborate on a songboard
+  const denormalizedRef = database
+    .ref("users")
+    .child(event.uid)
+    .child("song-boards")
+    .child(songBoardId);
+  promises.push(
+    denormalizedRef
+      .child("updatedAt")
+      .set(firebase.database.ServerValue.TIMESTAMP)
+  );
+
+  if (event.type === "update-title") {
+    promises.push(denormalizedRef.child("title").set(event.title));
+  }
+
+  return Promise.all(promises).then(() => songBoardId);
 }
 
 function denormalizeSongBoard(
@@ -252,7 +277,7 @@ function songBoardSnapshot(snapshot): SongBoard {
   }
 
   return {
-    songBoardId: songBoardSnapshot.key,
+    songBoardId: snapshot.key,
     createdAt: val.createdAt,
     updatedAt: val.updatedAt || null,
     visibility: val.visibility,
