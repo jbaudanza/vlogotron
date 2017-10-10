@@ -28,7 +28,7 @@ import { findWrappingLink } from "./domutils";
 import {
   updateUser,
   songBoardsForUser,
-  deleteSong,
+  deleteSongBoard,
   premiumAccountStatus,
   createSongBoard
 } from "./database";
@@ -172,6 +172,7 @@ class App extends React.Component<{}, State> {
       "onNavigate",
       "onLogout",
       "onClick",
+      "onDelete",
       "onRouteChange",
       "onCreateSongBoard"
     );
@@ -299,7 +300,10 @@ class App extends React.Component<{}, State> {
   }
 
   onDelete(songBoardId: string) {
-    // TODO:
+    if (this.state.currentUser) {
+      const uid = this.state.currentUser.uid;
+      deleteSongBoard(firebase.database(), uid, songBoardId);
+    }
   }
 
   onCreateSongBoard(parentSongBoard?: SongBoard) {

@@ -14,24 +14,12 @@ import { midiNoteToLabel, labelToMidiNote } from "./midi";
 import type { Song, SongId } from "./song";
 import type { PlaybackParams } from "./AudioPlaybackEngine";
 
-type VideoClipSource = $Exact<{
-  src: string,
-  type: string
-}>;
-
 type NoteId = number; // MIDI note number
 export type VideoClipId = string; // Looks like firebase id
 
 export type VideoClip = {
   videoClipId: string,
   playbackParams: PlaybackParams
-};
-
-type SerializedSong = Song & {
-  parentSong: ?SerializedSong,
-  songId: SongId,
-  videoClips: { [string]: VideoClip },
-  revisionId: string
 };
 
 export type SongBoardEvent =
@@ -126,6 +114,18 @@ export function createSongBoard(
       songBoardSnapshot(snapshot)
     );
   });
+}
+
+export function updateSongBoard(
+  database: Firebase$Database,
+  songId: string,
+  event: SongBoardEvent
+): Promise<Object> {
+  return database
+    .ref("song-boards")
+    .child(songId)
+    .child("events")
+    .push({ timestamp: firebase.database.ServerValue.TIMESTAMP, ...event });
 }
 
 function denormalizeSongBoard(
@@ -281,89 +281,22 @@ export function findSongBoard(
   });
 }
 
-export function updateSongBoard(
+export function deleteSongBoard(
   database: Firebase$Database,
-  songId: string,
-  event: SongBoardEvent
-): Promise<Object> {
-  return database
-    .ref("song-boards")
-    .child(songId)
-    .child("events")
-    .push({ timestamp: firebase.database.ServerValue.TIMESTAMP, ...event });
-}
+  uid: string,
+  songBoardId: string
+) {
+  const rootRef = database.ref("song-boards").child(songBoardId);
 
-export function createSong(
-  database: Firebase$Database,
-  song: SerializedSong
-): Promise<string> {
-  const songsCollectionRef = database.ref("songs");
-
-  const rootObject = {
-    ...omit(song, "notes"),
-    createdAt: firebase.database.ServerValue.TIMESTAMP,
-    updatedAt: firebase.database.ServerValue.TIMESTAMP
-  };
-
-  if ("parentSong" in song) {
-    rootObject.parentSong = song.parentSong;
-  }
-
-  return songsCollectionRef.push(rootObject).then(songRef => {
-    songRef.child("revisions").push({
-      timestamp: firebase.database.ServerValue.TIMESTAMP,
-      ...convertToFirebaseKeys(song)
-    });
-
-    denormalizedRefsForSong(database, {
-      ...song,
-      songId: songRef.key
-    }).forEach(ref => {
-      ref.set(rootObject);
-    });
-
-    return songRef.key;
-  });
-}
-
-function denormalizedRefsForSong(database, song) {
-  const refs = [];
-
-  refs.push(
-    database.ref("users").child(song.uid).child("songs").child(song.songId)
-  );
-
-  const parentSong = song.parentSong;
-  if (parentSong) {
-    refs.push(
-      database.ref("remixes").child(parentSong.songId).child(song.songId)
-    );
-  }
-
-  return refs;
-}
-
-export function updateSong(database: Firebase$Database, song: Object) {
-  const rootRef = database.ref("songs").child(song.songId);
-
-  const refs = denormalizedRefsForSong(database, song);
-  refs.concat(rootRef).forEach(ref => {
-    ref.child("updatedAt").set(firebase.database.ServerValue.TIMESTAMP);
-    ref.child("title").set(song.title);
-  });
-
-  const revision = convertToFirebaseKeys(omit(song, "createdAt", "updatedAt"));
-
-  return rootRef.child("revisions").push(revision).then(ignore => rootRef.key);
-}
-
-export function deleteSong(database: Firebase$Database, song: Object) {
-  const rootRef = database.ref("songs").child(song.songId);
-  rootRef.child("deletedAt").set(firebase.database.ServerValue.TIMESTAMP);
-
-  return Promise.all(
-    denormalizedRefsForSong(database, song).map(ref => ref.remove())
-  ).then(() => song.songId);
+  return Promise.all([
+    rootRef.child("deletedAt").set(firebase.database.ServerValue.TIMESTAMP),
+    database
+      .ref("users")
+      .child(uid)
+      .child("song-boards")
+      .child(songBoardId)
+      .remove()
+  ]);
 }
 
 export function updateUser(database: Firebase$Database, user: Firebase$User) {
@@ -377,27 +310,6 @@ export function updateUser(database: Firebase$Database, user: Firebase$User) {
   if (user.providerData.length > 0) {
     ref.child("photoURL").set(user.providerData[0].photoURL);
   }
-}
-
-export function songById(
-  database: Firebase$Database,
-  songId: string
-): Observable<SerializedSong> {
-  const ref = database
-    .ref("songs")
-    .child(songId)
-    .child("revisions")
-    .orderByKey()
-    .limitToLast(1);
-
-  return fromFirebaseRef(ref, "child_added")
-    .map(snapshot => ({
-      songId,
-      revisionId: snapshot.key,
-      ...snapshot.val()
-    }))
-    .map(convertFromFirebaseKeys)
-    .map(fillInDefaults);
 }
 
 export function displayNameForUid(
