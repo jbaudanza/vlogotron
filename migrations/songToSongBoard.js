@@ -13,38 +13,6 @@ admin.initializeApp({
   databaseURL: "https://vlogotron-95daf.firebaseio.com"
 });
 
-/*
-FIELDS:
-  bpm
- createdAt
- parentSong
- revisions
- timestamp
- title
- uid
- updatedAt
- videoClips
- visibility
-
- REVISIONS:
- bpm
- notes
- parentSong
- timestamp
- title
- uid
- videoClips
- visibility
-
- NEW SCHEMA:
- createdAt
- updatedAt
- parentSong
- events
- uid
- visibility
-*/
-
 const MIDI_NOTES = [
   "C",
   "C#",
@@ -81,98 +49,156 @@ function convertToMidiNotes(notes) {
 
 const songBoardsRef = admin.database().ref('song-boards');
 
-admin.database().ref('songs').on('value', (collection) => {
-  let promises = [];
+function migrateSongsToSongBoards() {
+  return admin.database().ref('songs').once('value', (collection) => {
+    let promises = [];
 
-  collection.forEach((songSnapshot) => {
-    const song = songSnapshot.val()
-    const events = [];
+    collection.forEach((songSnapshot) => {
+      const song = songSnapshot.val()
+      const events = [];
 
-    if (song.revisions) {
-      const revision = last(values(song.revisions));
+      if (song.revisions) {
+        const revision = last(values(song.revisions));
 
-      if (revision == null) {
-        console.log("Unable to find a revision");
-        process.exit();
-      }
-
-      for (let noteLabel in revision.videoClips) {
-        const midiValue = labelToMidiNote(noteLabel.replace("sharp", "#"));
-        if (midiValue == null) {
-          console.error("Unable to parse", noteLabel);
+        if (revision == null) {
+          console.log("Unable to find a revision");
           process.exit();
         }
 
-        const value = revision.videoClips[noteLabel];
+        for (let noteLabel in revision.videoClips) {
+          const midiValue = labelToMidiNote(noteLabel.replace("sharp", "#"));
+          if (midiValue == null) {
+            console.error("Unable to parse", noteLabel);
+            process.exit();
+          }
 
-        let videoClipId;
-        let playbackParams = null;
-        if (typeof value === "string") {
-          videoClipId = value;
-        } else {
-          videoClipId = value.videoClipId;
-          playbackParams = {
-            gain: value.gain,
-            trimStart: value.trimStart,
-            trimEnd: value.trimEnd,
-            playbackRate: 1
-          };
+          const value = revision.videoClips[noteLabel];
+
+          let videoClipId;
+          let playbackParams = null;
+          if (typeof value === "string") {
+            videoClipId = value;
+          } else {
+            videoClipId = value.videoClipId;
+            playbackParams = {
+              gain: value.gain,
+              trimStart: value.trimStart,
+              trimEnd: value.trimEnd,
+              playbackRate: 1
+            };
+          }
+
+          events.push({
+            timestamp: song.createdAt,
+            type: "update-video-clip",
+            videoClipId: videoClipId,
+            note: midiValue,
+            uid: song.uid
+          });
+
+          if (playbackParams) {
+            events.push({
+              timestamp: song.createdAt,
+              type: "update-playback-params",
+              playbackParams: playbackParams,
+              note: midiValue,
+              uid: song.uid
+            });
+          }
         }
 
         events.push({
           timestamp: song.createdAt,
-          type: "update-video-clip",
-          videoClipId: videoClipId,
-          note: midiValue,
-          uid: song.uid
+          type: "update-song",
+          songId: "custom",
+          customSong: {
+            title: revision.title,
+            bpm: (revision.bpm || 120),
+            notes: convertToMidiNotes(revision.notes || [])
+          }
         });
 
-        if (playbackParams) {
-          events.push({
-            timestamp: song.createdAt,
-            type: "update-playback-params",
-            playbackParams: playbackParams,
-            note: midiValue,
-            uid: song.uid
-          });
+        events.push({
+          timestamp: song.createdAt,
+          type: "update-title",
+          title: revision.title
+        });
+
+        if (events.length > 0) {
+          console.log("Migrating", songSnapshot.key);
+
+          const songBoard = {
+            createdAt: song.createdAt,
+            updatedAt: song.updatedAt,
+            uid: song.uid,
+            visibility: revision.visibility || song.visibility,
+            title: revision.title,
+            events: events
+          }
+
+          promises.push(
+            songBoardsRef.child(songSnapshot.key).set(songBoard)
+          )
         }
       }
+    })
 
-      events.push({
-        timestamp: song.createdAt,
-        type: "update-song",
-        songId: "custom",
-        customSong: {
-          title: revision.title,
-          bpm: (revision.bpm || 120),
-          notes: convertToMidiNotes(revision.notes || [])
-        }
-      });
-
-      events.push({
-        timestamp: song.createdAt,
-        type: "update-title",
-        title: revision.title
-      });
-
-      if (events.length > 0) {
-        console.log("Migrating", songSnapshot.key);
-
-        const songBoard = {
-          createdAt: song.createdAt,
-          updatedAt: song.updatedAt,
-          uid: song.uid,
-          visibility: revision.visibility || song.visibility,
-          title: revision.title,
-          events: events
-        }
-
-        promises.push(
-          songBoardsRef.child(songSnapshot.key).set(songBoard)
-        )
-      }
-    }
+    return Promise.all(promises);
   })
+}
 
-  Promise.all(promises).then(() => process.exit());
-})
+function titleForSongBoard(songBoard) {
+  let title;
+
+  if (songBoard.parentSongBoard) {
+    title = "Remix of " + songBoard.parentSongBoard.title;
+  } else {
+    title = "Untitled Song";
+  }
+
+  return values(songBoard.events).reduce((acc, event) => {
+    if (event.type === 'update-title')
+      return event.title;
+    else
+      return acc;
+  }, title);
+}
+
+function denormalizeSongBoards() {
+  return songBoardsRef.once('value').then(collection => {
+    const userMap = {};
+
+    collection.forEach((snapshot) => {
+      songBoard = snapshot.val();
+      if (!userMap[songBoard.uid]) {
+        userMap[songBoard.uid] = {};
+      }
+
+      userMap[songBoard.uid][snapshot.key] = {
+        createdAt: songBoard.createdAt,
+        updatedAt: songBoard.updatedAt || songBoard.createdAt,
+        title: titleForSongBoard(songBoard),
+        visibility: "everyone"
+      }
+    })
+
+    const promises = [];
+    for (uid in userMap) {
+      console.log("Denormalizing for user", uid)
+      promises.push(
+        admin.database().ref("users").child(uid).child("song-boards").set(userMap[uid])
+      )
+    }
+    return Promise.all(promises);
+  })
+}
+
+migrateSongsToSongBoards()
+denormalizeSongBoards()
+  .then(() => {
+    console.log("finished")
+    process.exit()
+  }, (err) => {
+    console.error(err);
+    process.exit(1)
+  });

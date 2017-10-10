@@ -72,7 +72,15 @@ export type SongBoard = {
   songId: SongId,
   customSong: ?Song,
   title: string,
+  visibility: string,
   videoClips: { [string]: VideoClip }
+};
+
+export type DenormalizedSongBoard = {
+  title: string,
+  createdAt: number,
+  updatedAt: number,
+  visibility: string
 };
 
 export function songForSongBoard(songBoard: SongBoard): Song {
@@ -110,17 +118,31 @@ export function createSongBoard(
 
   const rootWrite = collectionRef.push(rootObject);
 
-  return rootWrite.then(songBoardRef => {
-    return database
-      .ref("users")
-      .child(uid)
-      .child("song-boards")
-      .child(songBoardRef.key)
-      .set(rootObject)
-      .then(() => {
-        return songBoardRef.key;
-      });
+  return rootWrite.then(snapshot => {
+    return denormalizeSongBoard(
+      database,
+      uid,
+      snapshot.key,
+      songBoardSnapshot(snapshot)
+    );
   });
+}
+
+function denormalizeSongBoard(
+  database: Firebase$Database,
+  uid: string,
+  songBoardId: string,
+  denormalizedSongBoard: DenormalizedSongBoard
+) {
+  return database
+    .ref("users")
+    .child(uid)
+    .child("song-boards")
+    .child(songBoardId)
+    .set(denormalizedSongBoard)
+    .then(snapshot => {
+      return snapshot.key;
+    });
 }
 
 function updateVideoClip(
@@ -213,7 +235,6 @@ function normalizeSong(input: ?Object) {
 
 function songBoardSnapshot(snapshot): SongBoard {
   const val = snapshot.val();
-
   let obj;
 
   if (val.parentSongBoard) {
@@ -231,9 +252,10 @@ function songBoardSnapshot(snapshot): SongBoard {
   }
 
   return {
-    songBoardId: snapshot.key,
+    songBoardId: songBoardSnapshot.key,
     createdAt: val.createdAt,
     updatedAt: val.updatedAt || null,
+    visibility: val.visibility,
     uid: val.uid,
     ...obj
   };
@@ -246,7 +268,7 @@ export function findSongBoard(
   const songBoardRef = database.ref("song-boards").child(songBoardId);
 
   const first$ = fromFirebaseRef(songBoardRef, "value")
-    .map(songBoardSnapshot)
+    .map(snapshot => songBoardSnapshot(snapshot))
     .first();
 
   return first$.switchMap(initialSnapshot => {
@@ -406,11 +428,11 @@ export function waitForTranscode(
     .ignoreElements();
 }
 
-export function songsForUser(
+export function songBoardsForUser(
   database: Firebase$Database,
   uid: string
 ): Observable<Object> {
-  const ref = database.ref("users").child(uid).child("songs");
+  const ref = database.ref("users").child(uid).child("song-boards");
   return fromFirebaseRef(ref, "value").map(snapshot =>
     mapValues(snapshot.val(), (value, key) => ({ ...value, songId: key, uid }))
   );

@@ -1,37 +1,51 @@
+/* @flow */
+
 import PropTypes from "prop-types";
-import React from "react";
+import * as React from "react";
 import { Observable } from "rxjs/Observable";
 
 import { map, bindAll, isEmpty } from "lodash";
 
 import PopupMenuTrigger from "./PopupMenuTrigger";
+import { recordVideosPath, songBoardPath } from "./router";
+
+import type { DenormalizedSongBoard } from "./database";
 
 import Link from "./Link";
 
+// $FlowFixMe - sccs not supported
 import "./MySongsOverlay.scss";
 
-class LineItem extends React.Component {
+type LineItemProps = {
+  songBoardId: string,
+  songBoard: DenormalizedSongBoard,
+  onDelete: string => void
+};
+
+class LineItem extends React.Component<LineItemProps> {
   constructor() {
     super();
     this.onDelete = this.onDelete.bind(this);
   }
+
+  onDelete: Function;
 
   onDelete() {
     const b = window.confirm(
       this.context.messages["delete-song-confirmation"]()
     );
     if (b) {
-      this.props.onDelete(this.props.song);
+      this.props.onDelete(this.props.songBoardId);
     }
   }
 
   render() {
-    const updatedAt = new Date(this.props.song.updatedAt);
+    const updatedAt = new Date(this.props.songBoard.updatedAt);
     const options = [
       [
         "#svg-pencil-2",
         this.context.messages["edit-song-action"](),
-        { href: "/songs/" + this.props.song.songId + "/record-videos" }
+        { href: recordVideosPath(this.props.songBoardId) }
       ],
       [
         "#svg-delete",
@@ -43,15 +57,15 @@ class LineItem extends React.Component {
     return (
       <li>
         <div className="title">
-          <Link href={"/songs/" + this.props.song.songId}>
-            {this.props.song.title}
+          <Link href={songBoardPath(this.props.songBoardId)}>
+            {this.props.songBoard.title}
           </Link>
         </div>
         <div className="updated-at">
           {this.context.messages["last-updated-date"]({ DATE: updatedAt })}
         </div>
         <div className="permissions">
-          {this.props.song.visibility === "everyone"
+          {this.props.songBoard.visibility === "everyone"
             ? this.context.messages["permissions-play-and-remix"]()
             : this.context.messages["permissions-private"]()}
         </div>
@@ -69,7 +83,12 @@ LineItem.contextTypes = {
   messages: PropTypes.object.isRequired
 };
 
-export default class MySongsOverlay extends React.Component {
+type Props = {
+  songBoards: { [string]: DenormalizedSongBoard },
+  onDelete: string => void
+};
+
+export default class MySongsOverlay extends React.Component<Props> {
   render() {
     return (
       <div className="my-songs-overlay">
@@ -77,14 +96,14 @@ export default class MySongsOverlay extends React.Component {
           <h1>{this.context.messages["my-songs-header"]()}</h1>
         </div>
         <div className="scroll">
-          {isEmpty(this.props.songs)
+          {isEmpty(this.props.songBoards)
             ? <div>{this.context.messages["my-songs-empty-list"]()}</div>
             : <ul className="song-list">
-                {map(this.props.songs, (song, songId) => (
+                {map(this.props.songBoards, (songBoard, songBoardId) => (
                   <LineItem
-                    song={song}
-                    key={songId}
-                    songId={songId}
+                    songBoard={songBoard}
+                    key={songBoardId}
+                    songBoardId={songBoardId}
                     onDelete={this.props.onDelete}
                   />
                 ))}
@@ -97,9 +116,4 @@ export default class MySongsOverlay extends React.Component {
 
 MySongsOverlay.contextTypes = {
   messages: PropTypes.object.isRequired
-};
-
-MySongsOverlay.propTypes = {
-  songs: PropTypes.object.isRequired,
-  onDelete: PropTypes.func.isRequired
 };

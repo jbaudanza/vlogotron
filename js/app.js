@@ -27,12 +27,12 @@ import { findWrappingLink } from "./domutils";
 
 import {
   updateUser,
-  songsForUser,
+  songBoardsForUser,
   deleteSong,
   premiumAccountStatus,
   createSongBoard
 } from "./database";
-import type { SongBoard } from "./database";
+import type { SongBoard, DenormalizedSongBoard } from "./database";
 
 import * as firebase from "firebase";
 
@@ -102,9 +102,9 @@ Observable.combineLatest(
   .nonNull()
   .subscribe(navigate);
 
-const mySongs$ = currentUser$.switchMap(user => {
+const mySongBoards$ = currentUser$.switchMap(user => {
   if (user) {
-    return songsForUser(firebase.database(), user.uid);
+    return songBoardsForUser(firebase.database(), user.uid);
   } else {
     return Observable.of({});
   }
@@ -152,7 +152,7 @@ type State = {
   locale: string,
   currentUser?: Firebase$User,
   location: Location,
-  mySongs?: Object,
+  mySongBoards?: { [string]: DenormalizedSongBoard },
   premiumAccountStatus: boolean,
   component: Function
 };
@@ -219,7 +219,7 @@ class App extends React.Component<{}, State> {
     this.globalSubscription.add(currentRoute$.subscribe(this.onRouteChange));
 
     this.globalSubscription.add(
-      mySongs$.subscribe(this.stateObserver("mySongs"))
+      mySongBoards$.subscribe(this.stateObserver("mySongBoards"))
     );
 
     this.globalSubscription.add(
@@ -298,8 +298,8 @@ class App extends React.Component<{}, State> {
     firebase.auth().signOut();
   }
 
-  onDelete(song) {
-    deleteSong(firebase.database(), song);
+  onDelete(songBoardId: string) {
+    // TODO:
   }
 
   onCreateSongBoard(parentSongBoard?: SongBoard) {
@@ -350,9 +350,14 @@ class App extends React.Component<{}, State> {
           onClose={this.state.location.pathname}
         />
       );
-    } else if (this.state.location.hash === "#my-songs") {
+    } else if (
+      this.state.location.hash === "#my-songs" && this.state.mySongBoards
+    ) {
       sideOverlayContent = (
-        <MySongsOverlay songs={this.state.mySongs} onDelete={this.onDelete} />
+        <MySongsOverlay
+          songBoards={this.state.mySongBoards}
+          onDelete={this.onDelete}
+        />
       );
       sideOverlayClassName = "my-songs-overlay";
     } else if (this.state.location.hash === "#nav") {
