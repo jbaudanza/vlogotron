@@ -139,7 +139,7 @@ function initializeLocale() {
 
 function songBoardIdForRoute(route: Route): ?string {
   if (route.name === "root") {
-    return "-KrRkEMrrpH0P4YcDgme";
+    return "-KjtoXV7i2sZ8b_Azl1y"; // The Entertainer
   } else if (typeof route.params.songBoardId === "string") {
     return route.params.songBoardId;
   } else {

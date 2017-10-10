@@ -10,6 +10,7 @@ import { postToAPI } from "./xhr";
 
 import { songs } from "./song";
 
+import { midiNoteToLabel, labelToMidiNote } from "./midi";
 import type { Song, SongId } from "./song";
 import type { PlaybackParams } from "./AudioPlaybackEngine";
 
@@ -18,7 +19,7 @@ type VideoClipSource = $Exact<{
   type: string
 }>;
 
-type NoteId = string; // Looks like: "C#4"
+type NoteId = number; // MIDI note number
 export type VideoClipId = string; // Looks like firebase id
 
 export type VideoClip = {
@@ -29,7 +30,7 @@ export type VideoClip = {
 type SerializedSong = Song & {
   parentSong: ?SerializedSong,
   songId: SongId,
-  videoClips: { [NoteId]: VideoClip },
+  videoClips: { [string]: VideoClip },
   revisionId: string
 };
 
@@ -71,7 +72,7 @@ export type SongBoard = {
   songId: SongId,
   customSong: ?Song,
   title: string,
-  videoClips: { [NoteId]: VideoClip }
+  videoClips: { [string]: VideoClip }
 };
 
 export function songForSongBoard(songBoard: SongBoard): Song {
@@ -124,7 +125,7 @@ export function createSongBoard(
 
 function updateVideoClip(
   songBoard: SongBoard,
-  note: NoteId,
+  note: string,
   fn: VideoClip => VideoClip
 ): SongBoard {
   if (note in songBoard.videoClips) {
@@ -146,10 +147,20 @@ const defaultPlaybackParams = {
   playbackRate: 1
 };
 
+function normalizeToNoteLabel(maybeMidiNote: string | number): string {
+  if (typeof maybeMidiNote === "number") {
+    return midiNoteToLabel(maybeMidiNote);
+  } else {
+    return maybeMidiNote;
+  }
+}
+
 function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
   switch (event.type) {
     case "add-video": // deprecated
     case "update-video-clip":
+      let noteKey = normalizeToNoteLabel(event.note);
+
       const videoClip: VideoClip = {
         videoClipId: event.videoClipId,
         playbackParams: defaultPlaybackParams
@@ -159,17 +170,24 @@ function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
         ...acc,
         videoClips: {
           ...acc.videoClips,
-          [event.note]: videoClip
+          [noteKey]: videoClip
         }
       };
     case "remove-video":
-      return { ...acc, videoClips: omit(acc.videoClips, event.note) };
+      return {
+        ...acc,
+        videoClips: omit(acc.videoClips, normalizeToNoteLabel(event.note))
+      };
     case "update-playback-params":
       const playbackParams = event.playbackParams;
-      return updateVideoClip(acc, event.note, videoClip => ({
-        ...videoClip,
-        playbackParams
-      }));
+      return updateVideoClip(
+        acc,
+        normalizeToNoteLabel(event.note),
+        videoClip => ({
+          ...videoClip,
+          playbackParams
+        })
+      );
 
     case "update-song":
       return { ...acc, songId: event.songId, customSong: event.customSong };
@@ -219,15 +237,14 @@ export function findSongBoard(
     .map(songBoardSnapshot)
     .first();
 
-  return first$
-    .switchMap(initialSnapshot => {
-      const eventsRef = songBoardRef.child("events");
-      return reduceFirebaseCollection(
-        eventsRef,
-        reduceSongBoard,
-        initialSnapshot
-      );
-    });
+  return first$.switchMap(initialSnapshot => {
+    const eventsRef = songBoardRef.child("events");
+    return reduceFirebaseCollection(
+      eventsRef,
+      reduceSongBoard,
+      initialSnapshot
+    );
+  });
 }
 
 export function updateSongBoard(

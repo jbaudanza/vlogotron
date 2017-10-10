@@ -28,6 +28,7 @@ const idRegExp = "([\\w-]+)";
 
 const routes = [
   [`/`, "root"],
+  [`/songs/${idRegExp}`, "play-song-board", "songBoardId"], // deprecated
   [songBoardPath(idRegExp), "play-song-board", "songBoardId"],
   [recordVideosPath(idRegExp), "record-videos", "songBoardId"],
   [noteEditorPath(idRegExp), "note-editor", "songBoardId"]

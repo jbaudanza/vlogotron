@@ -101,10 +101,10 @@ export default class RecordVideosView extends React.Component<Props> {
     this.props.onNavigate("#adjust?note=" + note);
   }
 
-  onFinishTrim(note: string, playbackParams: PlaybackParams) {
+  onFinishAdjust(note: number, playbackParams: PlaybackParams) {
     this.updateSongBoard({
       type: "update-playback-params",
-      note,
+      note: note,
       playbackParams,
       uid: this.props.currentUser.uid
     });
@@ -147,15 +147,21 @@ export default class RecordVideosView extends React.Component<Props> {
     let match;
     if ((match = this.props.location.hash.match(/^#adjust\?note=([\w]+)/))) {
       const note = match[1];
-      if (this.props.noteConfiguration[note] && this.props.audioBuffers[note]) {
+      const midiNote = labelToMidiNote(note);
+
+      if (
+        this.props.noteConfiguration[note] &&
+        this.props.audioBuffers[note] &&
+        midiNote != null
+      ) {
         overlay = (
           <AdjustClipOverlay
             onClose={this.props.location.pathname}
             videoClipSources={this.props.noteConfiguration[note].sources}
             audioBuffer={this.props.audioBuffers[note]}
             playbackParams={this.props.noteConfiguration[note].playbackParams}
-            onFinish={this.onFinishTrim.bind(this, note)}
-            note={labelToMidiNote(note)}
+            onFinish={this.onFinishAdjust.bind(this, midiNote)}
+            note={midiNote}
           />
         );
       }
