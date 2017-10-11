@@ -1,6 +1,7 @@
 [ignore]
 .*/test/
 .*/styled-components/src
+<PROJECT_ROOT>/migrations
 
 [include]
 ./js

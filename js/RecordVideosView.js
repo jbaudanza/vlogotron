@@ -23,11 +23,11 @@ import ShareOverlay from "./ShareOverlay";
 import ChooseVideoClipOverlay from "./ChooseVideoClipOverlay";
 import NotificationPopup from "./NotificationPopup";
 import SubHeader from "./SubHeader";
-import CreateNewSongOverlay from "./CreateNewSongOverlay";
 import Message from "./Message";
 import { labelToMidiNote } from "./midi";
 
 import { notes } from "./VideoGrid";
+import { noteEditorPath } from "./router";
 
 import type { SongBoardEvent } from "./database";
 import type { Observable } from "rxjs/Observable";
@@ -70,7 +70,7 @@ type Props = {
 export default class RecordVideosView extends React.Component<Props> {
   constructor() {
     super();
-    bindAll(this, "bindVideoGrid", "onAdjust", "onSelectSong");
+    bindAll(this, "bindVideoGrid", "onAdjust", "onChangeTitle");
   }
 
   subscription: Subscription;
@@ -89,23 +89,22 @@ export default class RecordVideosView extends React.Component<Props> {
     this.props.actions.subjects.editSong$.next(event);
   }
 
+  onChangeTitle(title: string) {
+    this.props.actions.subjects.editSong$.next({
+      type: "update-title",
+      title,
+      uid: this.props.currentUser.uid
+    });
+  }
+
   onAdjust(note: string) {
     this.props.onNavigate("#adjust?note=" + note);
   }
 
-  onSelectSong(songId: SongId) {
-    this.updateSongBoard({
-      type: "update-song",
-      songId: songId,
-      uid: this.props.currentUser.uid
-    });
-    this.props.onNavigate(this.props.location.pathname);
-  }
-
-  onFinishTrim(note: string, playbackParams: PlaybackParams) {
+  onFinishAdjust(note: number, playbackParams: PlaybackParams) {
     this.updateSongBoard({
       type: "update-playback-params",
-      note,
+      note: note,
       playbackParams,
       uid: this.props.currentUser.uid
     });
@@ -148,29 +147,24 @@ export default class RecordVideosView extends React.Component<Props> {
     let match;
     if ((match = this.props.location.hash.match(/^#adjust\?note=([\w]+)/))) {
       const note = match[1];
-      if (this.props.noteConfiguration[note] && this.props.audioBuffers[note]) {
+      const midiNote = labelToMidiNote(note);
+
+      if (
+        this.props.noteConfiguration[note] &&
+        this.props.audioBuffers[note] &&
+        midiNote != null
+      ) {
         overlay = (
           <AdjustClipOverlay
             onClose={this.props.location.pathname}
             videoClipSources={this.props.noteConfiguration[note].sources}
             audioBuffer={this.props.audioBuffers[note]}
             playbackParams={this.props.noteConfiguration[note].playbackParams}
-            onFinish={this.onFinishTrim.bind(this, note)}
-            note={labelToMidiNote(note)}
+            onFinish={this.onFinishAdjust.bind(this, midiNote)}
+            note={midiNote}
           />
         );
       }
-    }
-
-    if (this.props.location.hash === "#choose-song") {
-      overlay = (
-        <CreateNewSongOverlay
-          onClose={this.props.location.pathname}
-          onSelectSong={this.onSelectSong}
-          currentUser={this.props.currentUser}
-          premiumAccountStatus={this.props.premiumAccountStatus}
-        />
-      );
     }
 
     if (
@@ -243,28 +237,26 @@ export default class RecordVideosView extends React.Component<Props> {
       <div className="page-vertical-wrapper record-videos-page">
         <PageHeader>
           <HeaderLeft>
-            <PlaybackControls
-              isPlaying={this.props.isPlaying}
-              songLength={this.props.songLength}
-              loading={loadingAsBool}
-              playbackPositionInSeconds={this.props.playbackPositionInSeconds}
-              onClickPlay={this.props.onPlay}
-              onClickPause={this.props.onPause}
-            />
+            <PageHeaderAction href="/">
+              <Message msgKey="cancel-action" />
+            </PageHeaderAction>
           </HeaderLeft>
 
           <HeaderMiddle>
 
             <SongTitleAndAuthor
-              authorName={this.props.authorName}
               songTitle={this.props.songTitle}
+              onChangeTitle={this.onChangeTitle}
             />
 
           </HeaderMiddle>
 
           <HeaderRight>
-            <PageHeaderAction primary>
-              Next
+            <PageHeaderAction
+              href={noteEditorPath(this.props.songBoardId)}
+              primary
+            >
+              <Message msgKey="next-action" />
             </PageHeaderAction>
           </HeaderRight>
         </PageHeader>

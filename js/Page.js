@@ -1,5 +1,5 @@
-import PropTypes from "prop-types";
-import React from "react";
+/* @flow */
+import * as React from "react";
 
 import classNames from "classnames";
 
@@ -7,9 +7,20 @@ import TopNavigation from "./TopNavigation";
 import Link from "./Link";
 import FinePrint from "./FinePrint";
 
+// $FlowFixMe - scss not supported
 import "./Page.scss";
 
-export default class Page extends React.Component {
+type Props = {
+  onLogout: Function,
+  onCreateNew: Function,
+  isLoggedIn: boolean,
+  sidebarVisible: boolean,
+  className?: string,
+  onChangeLocale: string => void,
+  children: React.Node
+};
+
+export default class Page extends React.Component<Props> {
   render() {
     return (
       <div className={classNames("page", this.props.className)}>
@@ -22,6 +33,7 @@ export default class Page extends React.Component {
             <div className="logo">VLOGOTRON</div>
             <TopNavigation
               onLogout={this.props.onLogout}
+              onCreateNew={this.props.onCreateNew}
               isLoggedIn={this.props.isLoggedIn}
             />
           </div>
@@ -46,14 +58,3 @@ export default class Page extends React.Component {
     );
   }
 }
-
-Page.contextTypes = {
-  messages: PropTypes.object.isRequired
-};
-
-Page.PropTypes = {
-  sidebarVisible: PropTypes.bool.isRequired,
-  onChangeLocale: PropTypes.func.isRequired,
-  onLogout: PropTypes.func.isRequired,
-  isLoggedIn: PropTypes.bool.isRequired
-};

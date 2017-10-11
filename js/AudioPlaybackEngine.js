@@ -7,11 +7,9 @@ import { animationFrame } from "rxjs/scheduler/animationFrame";
 
 import audioContext from "./audioContext";
 import { playbackSchedule } from "./playbackSchedule";
-import {
-  noteLabelsToMidi,
-  noteToFrequency,
-  shiftFrequency
-} from "./frequencies";
+import { noteToFrequency, shiftFrequency } from "./frequencies";
+
+import { midiNoteToLabel, labelToMidiNote } from "./midi";
 
 import { songLengthInBeats, beatsToTimestamp, timestampToBeats } from "./song";
 import type { ScheduledNoteList } from "./song";
@@ -67,7 +65,7 @@ export function startLivePlaybackEngine(
         if (cmd.play) {
           const inputNoteName = cmd.play;
           const [noteName, node] = buildSourceNode(
-            cmd.play,
+            labelToMidiNote(cmd.play) || 0,
             audioSources,
             destinationNode
           );
@@ -125,15 +123,15 @@ function observableWithGainNode(observableFactory) {
 }
 
 function buildSourceNode(
-  requestedNoteName,
+  requestedMidiNote: number,
   audioSources: AudioSourceMap,
   destinationNode
 ) {
+  const requestedNoteName = midiNoteToLabel(requestedMidiNote);
   const sourceNoteName = requestedNoteName.replace("#", "");
 
   //const sourceMidiNote = 62; // D5
-  const sourceMidiNote = noteLabelsToMidi[sourceNoteName];
-  const midiNote = noteLabelsToMidi[requestedNoteName];
+  const sourceMidiNote = labelToMidiNote(sourceNoteName) || 0;
 
   const audioSource = audioSources[sourceNoteName];
 
@@ -144,7 +142,8 @@ function buildSourceNode(
     // simply use just intonation for now
     let playbackRate = audioSource.playbackParams.playbackRate;
 
-    playbackRate = playbackRate * shiftFrequency(midiNote - sourceMidiNote);
+    playbackRate =
+      playbackRate * shiftFrequency(requestedMidiNote - sourceMidiNote);
 
     const source = new TrimmedAudioBufferSourceNode(audioContext, audioBuffer, {
       ...audioSource.playbackParams,
@@ -156,7 +155,7 @@ function buildSourceNode(
   } else {
     const source = audioContext.createOscillator();
     source.type = "square";
-    source.frequency.value = noteToFrequency(midiNote);
+    source.frequency.value = noteToFrequency(requestedMidiNote);
 
     const gainNode = audioContext.createGain();
     gainNode.gain.value = 0.05;

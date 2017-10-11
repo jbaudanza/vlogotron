@@ -1,6 +1,5 @@
 /* @flow */
 
-import PropTypes from "prop-types";
 import * as React from "react";
 import {
   PageHeader,
@@ -14,6 +13,7 @@ import {
 
 import { bindAll } from "lodash";
 import classNames from "classnames";
+import Message from "./Message";
 
 import { ShareButtons, generateShareIcon } from "react-share";
 
@@ -87,7 +87,7 @@ export default class PlaybackHeader extends React.Component<Props, State> {
                 "toggled-on": this.state.shareButtonsVisible
               })}
             >
-              {this.context.messages["share-action"]()}
+              <Message msgKey="share-action" />
             </PageHeaderAction>
 
             <div
@@ -122,7 +122,7 @@ export default class PlaybackHeader extends React.Component<Props, State> {
               className="remix-action"
               {...this.props.remixAction}
             >
-              {this.context.messages["remix-action"]()}
+              <Message msgKey="remix-action" />
             </PageHeaderAction>
           </div>
         </HeaderRight>
@@ -130,15 +130,3 @@ export default class PlaybackHeader extends React.Component<Props, State> {
     );
   }
 }
-
-PlaybackHeader.contextTypes = {
-  messages: PropTypes.object.isRequired
-};
-
-PlaybackHeader.propTypes = {
-  loading: PropTypes.bool.isRequired,
-  onClickPlay: PropTypes.func.isRequired,
-  onClickPause: PropTypes.func.isRequired,
-  remixAction: PropTypes.object.isRequired,
-  isPlaying: PropTypes.bool.isRequired
-};

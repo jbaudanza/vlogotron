@@ -1,10 +1,11 @@
+import { Observable } from "rxjs/Observable";
+
 import PropTypes from "prop-types";
 import React from "react";
 import classNames from "classnames";
 
 import { range, flatten, bindAll, identity, isEqual, max } from "lodash";
-
-import { Observable } from "rxjs/Observable";
+import { midiNoteToLabel, labelToMidiNote } from "./midi";
 
 import TouchableArea from "./TouchableArea";
 import NoteLabel from "./NoteLabel";
@@ -84,7 +85,8 @@ function widthToBeat(width) {
 }
 
 function stylesForNote(note) {
-  const match = note[0].match(/([A-Z]#?)(\d)/);
+  const label = midiNoteToLabel(note[0]);
+  const match = label.match(/([A-Z]#?)(\d)/);
   if (match) {
     const row = rowMap[match[1]] + (5 - match[2]) * 12;
 
@@ -102,14 +104,14 @@ function mapElementToBeat(el) {
   if (isEmptyCell(el)) {
     return {
       beat: parseFloat(el.dataset.beat),
-      note: el.parentNode.dataset.note
+      note: labelToMidiNote(el.parentNode.dataset.note) || 0
     };
   }
 
   if (isNoteCell(el)) {
     return {
       beat: parseFloat(el.dataset.beat),
-      note: el.dataset.note
+      note: labelToMidiNote(el.dataset.note) || 0
     };
   }
 }

@@ -7,6 +7,7 @@ import * as firebase from "firebase";
 
 import audioContext from "./audioContext";
 import { start as startCapturing } from "./recording";
+import { labelToMidiNote } from "./midi";
 
 import { mapValues } from "lodash";
 
@@ -16,7 +17,8 @@ import {
   displayNameForUid,
   photoURLForUid,
   updateSongBoard,
-  createVideoClip
+  createVideoClip,
+  songForSongBoard
 } from "./database";
 import type { SongBoardEvent } from "./database";
 import { songs } from "./song";
@@ -90,19 +92,23 @@ export default function recordVideosController(
           { note: media.note, sessionId: getSessionId(), songBoardId },
           media.videoBlob
         ).then(videoClipId =>
-          makeUpdateVideoClipEvent(videoClipId, media.note, uid)
+          makeUpdateVideoClipEvent(
+            videoClipId,
+            labelToMidiNote(media.note) || 40,
+            uid
+          )
         )
     )
     .mergeAll();
 
-  const clearedEvents$ = actions.clearVideoClip$.withLatestFrom(
-    nonNullUser$,
-    (note: string, user: Object) => ({
+  const clearedEvents$ = actions.clearVideoClip$
+    .map(labelToMidiNote)
+    .nonNull()
+    .withLatestFrom(nonNullUser$, (note: number, user: Object) => ({
       type: "remove-video",
       note: note,
       uid: user.uid
-    })
-  );
+    }));
 
   const songBoardEdits$: Observable<SongBoardEvent> = actions.editSong$;
 
@@ -133,7 +139,7 @@ export default function recordVideosController(
     finalMedia$.subscribe(e => mediaStore.recordedMedia$.next(e))
   );
 
-  const song$ = mediaStore.songBoard$.map(songBoard => songs[songBoard.songId]);
+  const song$ = mediaStore.songBoard$.map(songForSongBoard);
 
   const parentView$ = playbackControllerHelper(
     actions,
@@ -185,7 +191,6 @@ export default function recordVideosController(
       loading,
       supported: "MediaRecorder" in window,
       collaborateMode: props.location.pathname.endsWith("/collab"),
-      songTitle: song ? song.title : null,
       audioBuffers: mapValues(audioSources, o => o.audioBuffer),
       authorName,
       authorPhotoURL,
@@ -201,7 +206,7 @@ export default function recordVideosController(
 
 function makeUpdateVideoClipEvent(
   videoClipId: string,
-  note: string,
+  note: number,
   uid: ?string
 ): SongBoardEvent {
   if (uid) {

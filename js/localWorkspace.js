@@ -3,38 +3,19 @@
 import { Observable } from "rxjs/Observable";
 import type { Subscription } from "rxjs/Subscription";
 import type { Subject } from "rxjs/Subject";
+import { concat, omit, merge, findIndex, filter, identity, last } from "lodash";
 
 import StorageSubject from "./StorageSubject";
 
-import { concat, omit, merge, findIndex, filter, identity, last } from "lodash";
-
-type NoteSchedule = [string, number, number];
-
-type Song = {
-  bpm: number,
-  notes: Array<NoteSchedule>,
-  title: string,
-  videoClips: {
-    [string]: {
-      videoClipId: string,
-      trimStart: number,
-      trimEnd: number,
-      gain: number
-    }
-  }
-};
+import { songs } from "./song";
+import type { SongId, Song, ScheduledNoteList, ScheduledNote } from "./song";
 
 type SongEdit =
   | { action: "change-bpm", bpm: number }
   | { action: "change-title", title: string }
-  | {
-      action: "add-video",
-      videoClipId: string,
-      note: string
-    }
-  | { action: "remove-video", note: string }
+  | { action: "update-song", songId: SongId }
   | { action: "clear-all" }
-  | { action: "replace-all", notes: Array<NoteSchedule> }
+  | { action: "replace-all", notes: ScheduledNoteList }
   | { action: "create", note: string, beat: number, duration: number }
   | { action: "delete", note: string, beat: number }
   | {
@@ -42,6 +23,11 @@ type SongEdit =
       from: { note: string, beat: number },
       to: { note: string, beat: number }
     };
+
+export type LocalWorkspace = {
+  songId: SongId,
+  customSong?: Song
+};
 
 export function subjectFor(
   key: string,
@@ -52,10 +38,10 @@ export function subjectFor(
 
 export function updatesForNewSong(
   updateEvents$: Observable<SongEdit>,
-  storage$: StorageSubject<Song>,
+  storage$: StorageSubject<LocalWorkspace>,
   subscription: Subscription
 ) {
-  const accFn = reduceEditsToSong;
+  const accFn = reduceEditsToWorkspace;
 
   subscription.add(
     updateEvents$
@@ -70,7 +56,7 @@ function withUndoStack(value) {
 
 export function updatesForNewSongWithUndo(
   updateEvents$: Observable<SongEdit>,
-  storage$: StorageSubject<Song>,
+  storage$: StorageSubject<LocalWorkspace>,
   subscription: Subscription
 ) {
   const accFn = reduceWithUndoStack;
@@ -122,7 +108,7 @@ function reduceWithUndoStack(acc, edit) {
       redoStack: acc.redoStack.slice(0, -1)
     };
   } else {
-    const next = reduceEditsToSong(acc.current, edit);
+    const next = reduceEditsToWorkspace(acc.current, edit);
 
     return {
       current: next,
@@ -133,10 +119,10 @@ function reduceWithUndoStack(acc, edit) {
 }
 
 function reduceEditsToNotes(
-  notes: Array<NoteSchedule>,
+  notes: ScheduledNoteList,
   edit: SongEdit
-): Array<NoteSchedule> {
-  function matcher(location: Object, note: NoteSchedule) {
+): ScheduledNoteList {
+  function matcher(location: Object, note: ScheduledNote) {
     return note[0] === location.note && note[1] === location.beat;
   }
 
@@ -154,7 +140,7 @@ function reduceEditsToNotes(
       if (index !== -1) {
         const oldDuration = notes[index][2];
         return concat(
-          filter(notes, (v: NoteSchedule, i: number) => i !== index), // remove old note
+          filter(notes, (v: ScheduledNote, i: number) => i !== index), // remove old note
           [[edit.to.note, edit.to.beat, oldDuration]] // add new note
         );
       } else {
@@ -167,37 +153,38 @@ function reduceEditsToNotes(
 
 function reduceEditsToSong(song: Song, edit: SongEdit): Song {
   switch (edit.action) {
-    case "change-trim":
-      const videoClips = merge({}, song.videoClips, {
-        [edit.note]: { trimStart: edit.trimStart, trimEnd: edit.trimEnd }
-      });
-      return { ...song, videoClips };
     case "change-bpm":
       return { ...song, bpm: edit.bpm };
     case "change-title":
       return { ...song, title: edit.title };
-    case "add-video":
-      return {
-        ...song,
-        videoClips: {
-          ...song.videoClips,
-          [edit.note]: {
-            videoClipId: edit.videoClipId,
-            trimStart: 0,
-            trimEnd: 1,
-            gain: 1
-          }
-        }
-      };
-    case "remove-video":
-      return {
-        ...song,
-        videoClips: omit(song.videoClips, edit.note)
-      };
     default:
       return {
         ...song,
         notes: reduceEditsToNotes(song.notes, edit)
       };
+  }
+}
+
+// TODO: This is exactly the same as database.songForSongBoard, but with
+// a different datastructure. This is a code smell.
+export function songForLocalWorkspace(workspace: LocalWorkspace): Song {
+  if (workspace.customSong && workspace.songId === "custom") {
+    return workspace.customSong;
+  } else {
+    return songs[workspace.songId];
+  }
+}
+
+function reduceEditsToWorkspace(
+  workspace: LocalWorkspace,
+  edit: SongEdit
+): LocalWorkspace {
+  if (edit.action === "update-song") {
+    return { songId: edit.songId };
+  } else {
+    return {
+      songId: "custom",
+      customSong: reduceEditsToSong(songForLocalWorkspace(workspace), edit)
+    };
   }
 }

@@ -23,7 +23,7 @@ import {
   songLengthInBeats
 } from "./song";
 
-import { displayNameForUid } from "./database";
+import { displayNameForUid, songForSongBoard } from "./database";
 import combineTemplate from "./combineTemplate";
 
 import type { Subscription } from "rxjs/Subscription";
@@ -44,7 +44,15 @@ export default function playbackController(
     return displayNameForUid(firebase.database(), songBoard.uid);
   });
 
-  const song$ = media.songBoard$.map(songBoard => songs[songBoard.songId]);
+  const song$ = media.songBoard$.map(songForSongBoard);
+
+  actions.remix$.withLatestFrom(media.songBoard$, props$).subscribe(([
+    ignore,
+    songBoard,
+    props
+  ]) => {
+    props.onCreateSongBoard(songBoard);
+  });
 
   const parentView$ = playbackControllerHelper(
     actions,
@@ -159,7 +167,7 @@ export function playbackControllerHelper(
   subscription.add(scriptedPlaybackContext$$.connect());
 
   const song$ = media.songBoard$.map(songBoard => songs[songBoard.songId]);
-  const songTitle$ = song$.map(song => song.title);
+  const songTitle$ = media.songBoard$.map(songBoard => songBoard.title);
 
   const viewState$ = combineTemplate({
     noteConfiguration: media.noteConfiguration$,

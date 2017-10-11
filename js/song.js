@@ -1,6 +1,7 @@
 /* @flow */
 
 import { concat, filter, findIndex, max } from "lodash";
+import { labelToMidiNote } from "./midi";
 
 // Consider encoding this like:
 /*
@@ -16,14 +17,14 @@ import { concat, filter, findIndex, max } from "lodash";
 }
 */
 
-export type ScheduledNote = [string, number, number];
+export type ScheduledNote = [number, number, number];
 export type ScheduledNoteList = Array<ScheduledNote>;
-export type Song = {|
+export type Song = {
   title: string,
   notes: ScheduledNoteList,
   bpm: number,
   premium: boolean
-|};
+};
 export type SongId = string;
 export type SongMap = { [SongId]: Song };
 
@@ -5417,52 +5418,68 @@ const bride = [
   ["B3", 292, 4]
 ];
 
+function labelToNonNullMidiNote(label) {
+  const note = labelToMidiNote(label);
+  if (note == null) {
+    console.warn("Unable to parse", label);
+    return 0;
+  } else {
+    return note;
+  }
+}
+
+function migrateNotes(
+  input: Array<[string, number, number]>
+): ScheduledNoteList {
+  return input.map(([a, b, c]) => [labelToNonNullMidiNote(a), b, c]);
+}
+
 export const songs: SongMap = {
   "mary-had-a-little-lamb": {
     title: "Mary had a Little Lamb",
-    notes: maryHadALittleLamb,
+    notes: migrateNotes(maryHadALittleLamb),
     bpm: 120,
     premium: false
   },
   chopsticks: {
     title: "Chopsticks",
-    notes: chopsticks,
+    notes: migrateNotes(chopsticks),
     bpm: 120,
     premium: false
   },
   "happy-birthday": {
     title: "Happy Birthday",
-    notes: happyBirthday,
+    notes: migrateNotes(happyBirthday),
     bpm: 120,
     premium: true
   },
   "turkey-in-the-straw": {
     title: "Turkey in the Straw",
-    notes: turkeyInTheStraw,
+    notes: migrateNotes(turkeyInTheStraw),
     bpm: 120,
     premium: true
   },
   "the-entertainer": {
     title: "The Entertainer",
-    notes: theEntertainer,
+    notes: migrateNotes(theEntertainer),
     bpm: 160,
     premium: true
   },
   "john-jacob": {
     title: "John Jacob Jingleheimer Schmidt",
-    notes: johnJacob,
+    notes: migrateNotes(johnJacob),
     bpm: 120,
     premium: true
   },
   bride: {
     title: "The Bride",
-    notes: bride,
+    notes: migrateNotes(bride),
     bpm: 60,
     premium: true
   },
   civitas: {
     title: "Civitas Sancti Tui",
-    notes: civitas,
+    notes: migrateNotes(civitas),
     bpm: 80,
     premium: true
   }

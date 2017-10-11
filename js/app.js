@@ -16,7 +16,6 @@ import SvgAssets from "./SvgAssets";
 import styled from "styled-components";
 
 import SideOverlay from "./SideOverlay";
-import CreateNewSongOverlay from "./CreateNewSongOverlay";
 import LoginOverlay from "./LoginOverlay";
 import MySongsOverlay from "./MySongsOverlay";
 import NavOverlay from "./NavOverlay";
@@ -28,11 +27,12 @@ import { findWrappingLink } from "./domutils";
 
 import {
   updateUser,
-  songsForUser,
-  deleteSong,
+  songBoardsForUser,
+  deleteSongBoard,
   premiumAccountStatus,
   createSongBoard
 } from "./database";
+import type { SongBoard, DenormalizedSongBoard } from "./database";
 
 import * as firebase from "firebase";
 
@@ -47,13 +47,16 @@ firebase.initializeApp(config);
 
 import { subscribeToSongBoardId } from "./mediaLoading";
 import type { Media } from "./mediaLoading";
+import type { SongId, Song } from "./song";
 
 import {
   navigate,
   currentLocation$,
   pathnameToRoute,
-  routeToViewComponent
+  routeToViewComponent,
+  recordVideosPath
 } from "./router";
+
 import type { Route } from "./router";
 
 import messages from "./messages";
@@ -99,9 +102,9 @@ Observable.combineLatest(
   .nonNull()
   .subscribe(navigate);
 
-const mySongs$ = currentUser$.switchMap(user => {
+const mySongBoards$ = currentUser$.switchMap(user => {
   if (user) {
-    return songsForUser(firebase.database(), user.uid);
+    return songBoardsForUser(firebase.database(), user.uid);
   } else {
     return Observable.of({});
   }
@@ -136,7 +139,7 @@ function initializeLocale() {
 
 function songBoardIdForRoute(route: Route): ?string {
   if (route.name === "root") {
-    return "-KrRkEMrrpH0P4YcDgme";
+    return "-KjtoXV7i2sZ8b_Azl1y"; // The Entertainer
   } else if (typeof route.params.songBoardId === "string") {
     return route.params.songBoardId;
   } else {
@@ -149,7 +152,7 @@ type State = {
   locale: string,
   currentUser?: Firebase$User,
   location: Location,
-  mySongs?: Object,
+  mySongBoards?: { [string]: DenormalizedSongBoard },
   premiumAccountStatus: boolean,
   component: Function
 };
@@ -169,6 +172,7 @@ class App extends React.Component<{}, State> {
       "onNavigate",
       "onLogout",
       "onClick",
+      "onDelete",
       "onRouteChange",
       "onCreateSongBoard"
     );
@@ -216,11 +220,11 @@ class App extends React.Component<{}, State> {
     this.globalSubscription.add(currentRoute$.subscribe(this.onRouteChange));
 
     this.globalSubscription.add(
-      mySongs$.subscribe(this.stateObserver("mySongs"))
+      mySongBoards$.subscribe(this.stateObserver("mySongBoards"))
     );
 
     this.globalSubscription.add(
-      currentUser$.subscribe(this.stateObserver("currentUser"))
+      currentUser$.subscribe(this.updateUser.bind(this))
     );
 
     this.globalSubscription.add(
@@ -232,6 +236,16 @@ class App extends React.Component<{}, State> {
         this.stateObserver("premiumAccountStatus")
       )
     );
+  }
+
+  updateUser(user: Firebase$User) {
+    this.setState({ currentUser: user });
+
+    if (user) {
+      if (this.state.location.hash === "#login-and-create-new") {
+        this.onCreateSongBoard();
+      }
+    }
   }
 
   unsubscribeMedia() {
@@ -276,36 +290,42 @@ class App extends React.Component<{}, State> {
     if (document.body) document.body.scrollTop = 0;
   }
 
-  onLogin(providerString) {
+  onLogin(providerString: string) {
     const provider = new firebase.auth[providerString + "AuthProvider"]();
-    firebase.auth().signInWithPopup(provider);
+    return firebase.auth().signInWithPopup(provider);
   }
 
   onLogout() {
     firebase.auth().signOut();
   }
 
-  onDelete(song) {
-    deleteSong(firebase.database(), song);
+  onDelete(songBoardId: string) {
+    if (this.state.currentUser) {
+      const uid = this.state.currentUser.uid;
+      deleteSongBoard(firebase.database(), uid, songBoardId);
+    }
   }
 
-  onCreateSongBoard(songId: string) {
+  onCreateSongBoard(parentSongBoard?: SongBoard) {
     const user = this.state.currentUser;
-    if (
-      !user // This is to make flow happy. It shouldn't happen
-    )
-      return;
+    if (user) {
+      const promise = createSongBoard(
+        firebase.database(),
+        user.uid,
+        parentSongBoard
+      );
 
-    const promise = createSongBoard(firebase.database(), user.uid, songId);
-
-    promise.then(
-      key => {
-        this.onNavigate("/song-boards/" + key);
-      },
-      err => {
-        console.error(err);
-      }
-    );
+      promise.then(
+        key => {
+          this.onNavigate(recordVideosPath(key));
+        },
+        err => {
+          console.error(err);
+        }
+      );
+    } else {
+      this.onNavigate("#login-and-create-new");
+    }
   }
 
   getChildContext() {
@@ -324,16 +344,24 @@ class App extends React.Component<{}, State> {
     let sideOverlayContent;
     let sideOverlayClassName;
 
-    if (this.state.location.hash === "#login") {
+    if (
+      this.state.location.hash === "#login" ||
+      this.state.location.hash === "#login-and-create-new"
+    ) {
       overlay = (
         <LoginOverlay
           onLogin={this.onLogin}
           onClose={this.state.location.pathname}
         />
       );
-    } else if (this.state.location.hash === "#my-songs") {
+    } else if (
+      this.state.location.hash === "#my-songs" && this.state.mySongBoards
+    ) {
       sideOverlayContent = (
-        <MySongsOverlay songs={this.state.mySongs} onDelete={this.onDelete} />
+        <MySongsOverlay
+          songBoards={this.state.mySongBoards}
+          onDelete={this.onDelete}
+        />
       );
       sideOverlayClassName = "my-songs-overlay";
     } else if (this.state.location.hash === "#nav") {
@@ -342,17 +370,16 @@ class App extends React.Component<{}, State> {
       );
       sideOverlayClassName = "nav-overlay";
     } else if (this.state.location.hash === "#create-new") {
-      // TODO:
-      // - consider new names for: CreateNewSongOverlay, and ChooseSongOverlay
       if (this.state.currentUser) {
-        overlay = (
-          <CreateNewSongOverlay
-            onClose={this.state.location.pathname}
-            currentUser={this.state.currentUser}
-            premiumAccountStatus={this.state.premiumAccountStatus}
-            onSelectSong={this.onCreateSongBoard}
-          />
-        );
+        // TODO: Fix this
+        // overlay = (
+        //   <CreateNewSongOverlay
+        //     onClose={this.state.location.pathname}
+        //     currentUser={this.state.currentUser}
+        //     premiumAccountStatus={this.state.premiumAccountStatus}
+        //     onSelectSong={this.onCreateSongBoard}
+        //   />
+        // );
       } else {
         overlay = (
           <LoginOverlay
@@ -368,6 +395,7 @@ class App extends React.Component<{}, State> {
       origin: this.state.origin,
       onNavigate: this.onNavigate,
       onLogin: this.onLogin,
+      onCreateSongBoard: this.onCreateSongBoard,
       currentUser: this.state.currentUser,
       premiumAccountStatus: this.state.premiumAccountStatus
     });
@@ -380,6 +408,7 @@ class App extends React.Component<{}, State> {
             pathnameToRoute(this.state.location.pathname)
           )}
           onChangeLocale={this.onChangeLocale}
+          onCreateNew={() => this.onCreateSongBoard()}
           onLogout={this.onLogout}
           isLoggedIn={isLoggedIn}
         >
@@ -399,7 +428,7 @@ class App extends React.Component<{}, State> {
 }
 
 function isSidebarVisible(route) {
-  return route.name !== "collab-song-board";
+  return !(route.name === "note-editor" || route.name === "record-videos");
 }
 
 App.childContextTypes = {

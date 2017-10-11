@@ -1,24 +1,41 @@
+/* @flow */
+
+import * as firebase from "firebase";
+
 import { Observable } from "rxjs/Observable";
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
 
 import { playbackControllerHelper } from "./playbackController";
-import { last } from "lodash";
+import { songBoardPath } from "./router";
 
-import { songLengthInSeconds } from "./song";
-import { readEvents, writeEvent } from "./localEventStore";
+import {
+  updatesForNewSongWithUndo,
+  songForLocalWorkspace,
+  subjectFor
+} from "./localWorkspace";
 
-import { updatesForNewSong, updatesForNewSongWithUndo } from "./localWorkspace";
+import { updateSongBoard } from "./database";
 
-import { createSong, updateSong } from "./database";
+import { songs } from "./song";
+import type { Media } from "./mediaLoading";
+import type { LocalWorkspace } from "./localWorkspace";
+import type { Subscription } from "rxjs/Subscription";
+
+type Props = {
+  onNavigate: string => void,
+  currentUser: Firebase$User,
+  location: Location,
+  premiumAccountStatus: boolean
+};
 
 export default function noteEditorController(
-  params,
-  actions,
-  media,
-  firebase,
-  subscription,
-  navigateFn
+  props$: Observable<Props>,
+  actions: { [string]: Observable<any> },
+  media: Media,
+  subscription: Subscription
 ) {
+  const unmount$ = props$.ignoreElements().concatWith(1);
+
   const currentUser$: Observable<?Firebase$User> = props$.map(
     props => props.currentUser
   );
@@ -29,12 +46,50 @@ export default function noteEditorController(
   subscription.add(undoEnabled$);
   subscription.add(redoEnabled$);
 
-  media.workspace$.subscribe(storage$ => {
+  const workspace$ = media.songBoard$
+    .map(songBoard =>
+      subjectFor("vlogotron-workspace-3" + songBoard.songBoardId, {
+        songId: songBoard.songId,
+        customSong: songBoard.customSong
+      })
+    )
+    .takeUntil(unmount$)
+    .publishReplay();
+
+  workspace$.connect();
+
+  workspace$.subscribe(storage$ => {
     const undo = updatesForNewSongWithUndo(
       actions.editSong$,
       storage$,
       subscription
     );
+
+    actions.save$
+      .withLatestFrom(
+        media.songBoard$,
+        storage$,
+        currentUser$.nonNull(),
+        props$,
+        (ignore, a, b, c, d) => [a, b, c, d]
+      )
+      .subscribe(([songBoard, snapshot, user, props]) => {
+        const event = {
+          type: "update-song",
+          songId: snapshot.songId,
+          customSong: snapshot.customSong,
+          uid: user.uid
+        };
+
+        updateSongBoard(
+          firebase.database(),
+          songBoard.songBoardId,
+          event
+        ).then(() => {
+          props.onNavigate(songBoardPath(songBoard.songBoardId));
+          storage$.clear();
+        });
+      });
 
     undo.redoEnabled$.subscribe(redoEnabled$);
     undo.undoEnabled$.subscribe(undoEnabled$);
@@ -42,48 +97,51 @@ export default function noteEditorController(
 
   const cellsPerBeat$ = actions.changeCellsPerBeat$.startWith(4);
 
-  const notes$ = media.song$.map(o => (o ? o.notes : []));
+  const song$ = workspace$.switchMap(workspace =>
+    workspace.map(songForLocalWorkspace)
+  );
 
   const parentViewState$ = playbackControllerHelper(
     actions,
     currentUser$,
-    notes$,
-    media.song$.map(o => (o ? o.bpm : 120)).distinctUntilChanged(),
+    song$.map(o => o.notes),
+    song$.map(o => o.bpm).distinctUntilChanged(),
     media,
     subscription
   );
 
-  actions.save$
-    .withLatestFrom(media.song$, currentUser$, media.workspace$)
-    .subscribe(([ignore, song, user, workspace]) => {
-      const promise = song.songId
-        ? updateSong(firebase.database(), song)
-        : createSong(firebase.database(), {
-            ...song,
-            uid: user.uid,
-            visibility: "everyone"
-          });
-      promise.then(key => {
-        navigateFn("/songs/" + key);
-        workspace.clear();
-      });
-    });
-
   const saveEnabled$ = Observable.of(true).concat(actions.save$.mapTo(false));
 
+  // $FlowFixMe - using too many arguments for combineLatest
   return Observable.combineLatest(
+    props$,
     parentViewState$,
     cellsPerBeat$,
     redoEnabled$,
     undoEnabled$,
     saveEnabled$,
-    (parentViewState, cellsPerBeat, redoEnabled, undoEnabled, saveEnabled) => ({
+    currentUser$,
+    media.songBoard$,
+    (
+      props,
+      parentViewState,
+      cellsPerBeat,
+      redoEnabled,
+      undoEnabled,
+      saveEnabled,
+      currentUser,
+      songBoard
+    ) => ({
       ...parentViewState,
       cellsPerBeat,
       redoEnabled,
       undoEnabled,
       saveEnabled,
-      newSong: params.remix || !params.songId
+      currentUser,
+      songBoardId: songBoard.songBoardId,
+      location: props.location,
+      premiumAccountStatus: props.premiumAccountStatus,
+      onNavigate: props.onNavigate
     })
   );
 }

@@ -8,27 +8,18 @@ import * as firebase from "firebase";
 import { uniq } from "lodash";
 import { postToAPI } from "./xhr";
 
+import { songs } from "./song";
+
+import { midiNoteToLabel, labelToMidiNote } from "./midi";
 import type { Song, SongId } from "./song";
 import type { PlaybackParams } from "./AudioPlaybackEngine";
 
-type VideoClipSource = $Exact<{
-  src: string,
-  type: string
-}>;
-
-type NoteId = string; // Looks like: "C#4"
+type NoteId = number; // MIDI note number
 export type VideoClipId = string; // Looks like firebase id
 
 export type VideoClip = {
   videoClipId: string,
   playbackParams: PlaybackParams
-};
-
-type SerializedSong = Song & {
-  parentSong: ?SerializedSong,
-  songId: SongId,
-  videoClips: { [NoteId]: VideoClip },
-  revisionId: string
 };
 
 export type SongBoardEvent =
@@ -52,6 +43,12 @@ export type SongBoardEvent =
   | {
       type: "update-song",
       songId: SongId,
+      customSong: ?Song,
+      uid: string
+    }
+  | {
+      type: "update-title",
+      title: string,
       uid: string
     };
 
@@ -61,40 +58,121 @@ export type SongBoard = {
   createdAt: number,
   updatedAt: number,
   songId: SongId,
-  videoClips: { [NoteId]: VideoClip }
+  customSong: ?Song,
+  title: string,
+  visibility: string,
+  videoClips: { [string]: VideoClip }
 };
+
+export type DenormalizedSongBoard = {
+  title: string,
+  createdAt: number,
+  updatedAt: number,
+  visibility: string
+};
+
+export function songForSongBoard(songBoard: SongBoard): Song {
+  if (songBoard.customSong && songBoard.songId === "custom") {
+    return songBoard.customSong;
+  }
+
+  if (songBoard.songId) {
+    return songs[songBoard.songId];
+  }
+
+  return {
+    title: "Untitled Song",
+    bpm: 120,
+    notes: [],
+    premium: false
+  };
+}
 
 export function createSongBoard(
   database: Firebase$Database,
   uid: string,
-  songId: string
+  parentSongBoard?: SongBoard
 ): Promise<string> {
   const collectionRef = database.ref("song-boards");
 
-  const rootObject = {
+  const rootObject: Object = {
     createdAt: firebase.database.ServerValue.TIMESTAMP,
     uid: uid,
-    songId: songId
+    visibility: "everyone"
   };
+
+  if (parentSongBoard) {
+    rootObject.parentSongBoard = parentSongBoard;
+  }
 
   const rootWrite = collectionRef.push(rootObject);
 
-  return rootWrite.then(songBoardRef => {
-    return database
-      .ref("users")
-      .child(uid)
-      .child("song-boards")
-      .child(songBoardRef.key)
-      .set(rootObject)
-      .then(() => {
-        return songBoardRef.key;
-      });
-  });
+  return rootWrite
+    .then(ref => ref.once("value")) // Read it back to get the timestamps
+    .then(snapshot =>
+      denormalizeSongBoard(
+        database,
+        uid,
+        snapshot.key,
+        songBoardSnapshot(snapshot)
+      ).then(() => snapshot.key)
+    );
+}
+
+export function updateSongBoard(
+  database: Firebase$Database,
+  songBoardId: string,
+  event: SongBoardEvent
+): Promise<string> {
+  const promises = [];
+
+  promises.push(
+    database
+      .ref("song-boards")
+      .child(songBoardId)
+      .child("events")
+      .push({ timestamp: firebase.database.ServerValue.TIMESTAMP, ...event })
+  );
+
+  // TODO: We are pulling the uid off the event, when really we should be
+  // pulling it off of the root songBoard object. It doesn't matter for now,
+  // since this will be the same. But this will need to be updated when we start
+  // allowing multiple users to collaborate on a songboard
+  const denormalizedRef = database
+    .ref("users")
+    .child(event.uid)
+    .child("song-boards")
+    .child(songBoardId);
+  promises.push(
+    denormalizedRef
+      .child("updatedAt")
+      .set(firebase.database.ServerValue.TIMESTAMP)
+  );
+
+  if (event.type === "update-title") {
+    promises.push(denormalizedRef.child("title").set(event.title));
+  }
+
+  return Promise.all(promises).then(() => songBoardId);
+}
+
+function denormalizeSongBoard(
+  database: Firebase$Database,
+  uid: string,
+  songBoardId: string,
+  denormalizedSongBoard: DenormalizedSongBoard
+) {
+  return database
+    .ref("users")
+    .child(uid)
+    .child("song-boards")
+    .child(songBoardId)
+    .set(denormalizedSongBoard);
 }
 
 function updateVideoClip(
   songBoard: SongBoard,
-  note: NoteId,
+  note: string,
   fn: VideoClip => VideoClip
 ): SongBoard {
   if (note in songBoard.videoClips) {
@@ -116,10 +194,20 @@ const defaultPlaybackParams = {
   playbackRate: 1
 };
 
+function normalizeToNoteLabel(maybeMidiNote: string | number): string {
+  if (typeof maybeMidiNote === "number") {
+    return midiNoteToLabel(maybeMidiNote);
+  } else {
+    return maybeMidiNote;
+  }
+}
+
 function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
   switch (event.type) {
     case "add-video": // deprecated
     case "update-video-clip":
+      let noteKey = normalizeToNoteLabel(event.note);
+
       const videoClip: VideoClip = {
         videoClipId: event.videoClipId,
         playbackParams: defaultPlaybackParams
@@ -129,34 +217,72 @@ function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
         ...acc,
         videoClips: {
           ...acc.videoClips,
-          [event.note]: videoClip
+          [noteKey]: videoClip
         }
       };
     case "remove-video":
-      return { ...acc, videoClips: omit(acc.videoClips, event.note) };
+      return {
+        ...acc,
+        videoClips: omit(acc.videoClips, normalizeToNoteLabel(event.note))
+      };
     case "update-playback-params":
       const playbackParams = event.playbackParams;
-      return updateVideoClip(acc, event.note, videoClip => ({
-        ...videoClip,
-        playbackParams
-      }));
+      return updateVideoClip(
+        acc,
+        normalizeToNoteLabel(event.note),
+        videoClip => ({
+          ...videoClip,
+          playbackParams
+        })
+      );
 
     case "update-song":
-      return { ...acc, songId: event.songId };
+      return {
+        ...acc,
+        songId: event.songId,
+        customSong: normalizeSong(event.customSong)
+      };
+
+    case "update-title":
+      return { ...acc, title: event.title };
   }
 
   return acc;
 }
 
+function normalizeSong(input: ?Object) {
+  if (input && Array.isArray(input.notes)) {
+    return input;
+  } else {
+    return { ...input, notes: [] };
+  }
+}
+
 function songBoardSnapshot(snapshot): SongBoard {
   const val = snapshot.val();
+  let obj;
+
+  if (val.parentSongBoard) {
+    obj = {
+      title: "Remix of " + val.parentSongBoard.title,
+      videoClips: val.parentSongBoard.videoClips,
+      songId: val.parentSongBoard.songId,
+      customSong: val.parentSongBoard.customSong
+    };
+  } else {
+    obj = {
+      title: "Untitled Song",
+      videoClips: {}
+    };
+  }
+
   return {
     songBoardId: snapshot.key,
     createdAt: val.createdAt,
-    updatedAt: val.updatedAt,
-    songId: val.songId,
+    updatedAt: val.updatedAt || null,
+    visibility: val.visibility,
     uid: val.uid,
-    videoClips: {}
+    ...obj
   };
 }
 
@@ -167,7 +293,7 @@ export function findSongBoard(
   const songBoardRef = database.ref("song-boards").child(songBoardId);
 
   const first$ = fromFirebaseRef(songBoardRef, "value")
-    .map(songBoardSnapshot)
+    .map(snapshot => songBoardSnapshot(snapshot))
     .first();
 
   return first$.switchMap(initialSnapshot => {
@@ -180,89 +306,22 @@ export function findSongBoard(
   });
 }
 
-export function updateSongBoard(
+export function deleteSongBoard(
   database: Firebase$Database,
-  songId: string,
-  event: SongBoardEvent
-): Promise<Object> {
-  return database
-    .ref("song-boards")
-    .child(songId)
-    .child("events")
-    .push({ timestamp: firebase.database.ServerValue.TIMESTAMP, ...event });
-}
+  uid: string,
+  songBoardId: string
+) {
+  const rootRef = database.ref("song-boards").child(songBoardId);
 
-export function createSong(
-  database: Firebase$Database,
-  song: SerializedSong
-): Promise<string> {
-  const songsCollectionRef = database.ref("songs");
-
-  const rootObject = {
-    ...omit(song, "notes"),
-    createdAt: firebase.database.ServerValue.TIMESTAMP,
-    updatedAt: firebase.database.ServerValue.TIMESTAMP
-  };
-
-  if ("parentSong" in song) {
-    rootObject.parentSong = song.parentSong;
-  }
-
-  return songsCollectionRef.push(rootObject).then(songRef => {
-    songRef.child("revisions").push({
-      timestamp: firebase.database.ServerValue.TIMESTAMP,
-      ...convertToFirebaseKeys(song)
-    });
-
-    denormalizedRefsForSong(database, {
-      ...song,
-      songId: songRef.key
-    }).forEach(ref => {
-      ref.set(rootObject);
-    });
-
-    return songRef.key;
-  });
-}
-
-function denormalizedRefsForSong(database, song) {
-  const refs = [];
-
-  refs.push(
-    database.ref("users").child(song.uid).child("songs").child(song.songId)
-  );
-
-  const parentSong = song.parentSong;
-  if (parentSong) {
-    refs.push(
-      database.ref("remixes").child(parentSong.songId).child(song.songId)
-    );
-  }
-
-  return refs;
-}
-
-export function updateSong(database: Firebase$Database, song: Object) {
-  const rootRef = database.ref("songs").child(song.songId);
-
-  const refs = denormalizedRefsForSong(database, song);
-  refs.concat(rootRef).forEach(ref => {
-    ref.child("updatedAt").set(firebase.database.ServerValue.TIMESTAMP);
-    ref.child("title").set(song.title);
-  });
-
-  const revision = convertToFirebaseKeys(omit(song, "createdAt", "updatedAt"));
-
-  return rootRef.child("revisions").push(revision).then(ignore => rootRef.key);
-}
-
-export function deleteSong(database: Firebase$Database, song: Object) {
-  const rootRef = database.ref("songs").child(song.songId);
-  rootRef.child("deletedAt").set(firebase.database.ServerValue.TIMESTAMP);
-
-  return Promise.all(
-    denormalizedRefsForSong(database, song).map(ref => ref.remove())
-  ).then(() => song.songId);
+  return Promise.all([
+    rootRef.child("deletedAt").set(firebase.database.ServerValue.TIMESTAMP),
+    database
+      .ref("users")
+      .child(uid)
+      .child("song-boards")
+      .child(songBoardId)
+      .remove()
+  ]);
 }
 
 export function updateUser(database: Firebase$Database, user: Firebase$User) {
@@ -276,27 +335,6 @@ export function updateUser(database: Firebase$Database, user: Firebase$User) {
   if (user.providerData.length > 0) {
     ref.child("photoURL").set(user.providerData[0].photoURL);
   }
-}
-
-export function songById(
-  database: Firebase$Database,
-  songId: string
-): Observable<SerializedSong> {
-  const ref = database
-    .ref("songs")
-    .child(songId)
-    .child("revisions")
-    .orderByKey()
-    .limitToLast(1);
-
-  return fromFirebaseRef(ref, "child_added")
-    .map(snapshot => ({
-      songId,
-      revisionId: snapshot.key,
-      ...snapshot.val()
-    }))
-    .map(convertFromFirebaseKeys)
-    .map(fillInDefaults);
 }
 
 export function displayNameForUid(
@@ -327,11 +365,11 @@ export function waitForTranscode(
     .ignoreElements();
 }
 
-export function songsForUser(
+export function songBoardsForUser(
   database: Firebase$Database,
   uid: string
 ): Observable<Object> {
-  const ref = database.ref("users").child(uid).child("songs");
+  const ref = database.ref("users").child(uid).child("song-boards");
   return fromFirebaseRef(ref, "value").map(snapshot =>
     mapValues(snapshot.val(), (value, key) => ({ ...value, songId: key, uid }))
   );
