@@ -6,6 +6,7 @@
     <meta property="og:url" content="https://www.vlogotron.com/" />
     <meta property="og:image" content="https://www.vlogotron.com/screenshot.png" />
     <script src="https://js.stripe.com/v3/"></script>
+    <script src="/main.js"></script>
   </head>
   <body>
     <div id="mount-node"></div>
@@ -24,20 +25,8 @@
       loadJs(src);
     }
 
-    if (document.location.host === 'www.vlogotron.com') {
-      loadJs("/v1.js");
-    } else {
-      loadJs("/main.js");
-    }
-
-    // TODO: We woudln't need to use the onload event if we didn't have such a
-    // janky way to switch between staging and production.
-    function onLoad() {
-      window.main(document.getElementById('mount-node'));
-    }
-
     if ('AudioContext' in window || 'webkitAudioContext' in window) {
-      document.body.onload = onLoad;
+      window.main(document.getElementById('mount-node'));
     } else {
       document.location = '/browser_not_supported.html';
     }
