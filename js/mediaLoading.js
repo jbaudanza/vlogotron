@@ -175,7 +175,7 @@ export function subscribeToSongBoardId(
     songBoard$.map(o => o.videoClips),
     audioBuffers$.map(o => mapValues(o, audioBuffer => ({ audioBuffer }))),
     (x, y) => merge({}, x, y)
-  );
+  ).map(o => mapValues(o, addDefaultPlaybackParams));
 
   const playbackParams$ = songBoard$.map(song =>
     mapValues(song.videoClips, (o: VideoClip) => o.playbackParams)
@@ -203,6 +203,14 @@ const defaultPlaybackParams: PlaybackParams = {
   gain: 1,
   playbackRate: 1
 };
+
+function addDefaultPlaybackParams(obj) {
+  if ("playbackParams" in obj) {
+    return obj;
+  } else {
+    return { ...obj, playbackParams: defaultPlaybackParams };
+  }
+}
 
 function buildNoteConfiguration(
   videoClipSources: { [string]: VideoClipSources },
