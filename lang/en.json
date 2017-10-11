@@ -48,6 +48,6 @@
   "contact-link": "contact",
   "delete-song-action": "Delete Song",
   "edit-song-action": "Edit Song",
-  "sub-header-tip-for-op": "Hey! You have {EMPTY_COUNT} empty notes, record them now or just leave blank and share with your friends so they can help you fill all in.",
+  "sub-header-tip-for-op": "Hey! You have {EMPTY_COUNT} empty notes, record them now or just leave the robots to sing in your place.",
   "purchase-premium-description": "This one-time purchase of {PRICE, number, currency} gives you access to \"{SONG_NAME}\" and all the other premium songs on Vlogotron."
 }

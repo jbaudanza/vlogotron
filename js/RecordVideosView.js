@@ -212,25 +212,14 @@ export default class RecordVideosView extends React.Component<Props> {
           </span>
         </SubHeader>
       );
-      notificationPopupEl = (
-        <CollabIntroNotification
-          authorName={this.props.authorName}
-          photoURL={this.props.authorPhotoURL}
-        />
-      );
     } else {
       subHeaderEl = (
         <SubHeader>
           <span>
             <Message msgKey="sub-header-tip-for-op" EMPTY_COUNT={emptyCount} />
           </span>
-          {" "}
-          <a href="#share">
-            Copy link to share
-          </a>
         </SubHeader>
       );
-      notificationPopupEl = <NewSongBoardNotification />;
     }
 
     return (
@@ -281,7 +270,6 @@ export default class RecordVideosView extends React.Component<Props> {
                   pitchCorrection={this.props.pitchCorrection}
                   ref={this.bindVideoGrid}
                 />
-                {notificationPopupEl}
               </div>
             : <RecordingNotSupported />}
 
