@@ -27,6 +27,7 @@ import { bindAll } from "lodash";
 import type { Observable } from "rxjs/Observable";
 import type { Subscription } from "rxjs/Subscription";
 import type { Media, NoteConfiguration } from "./mediaLoading";
+import type { ScheduledNoteList } from "./song";
 
 // $FlowFixMe
 import "./NoteEditorView.scss";
@@ -46,7 +47,7 @@ type Props = {
   undoEnabled: boolean,
   redoEnabled: boolean,
   premiumAccountStatus: boolean,
-  notes: Array<Object>,
+  notes: ScheduledNoteList,
   currentUser: Firebase$User,
   playbackStartPosition: number,
   noteConfiguration: NoteConfiguration,

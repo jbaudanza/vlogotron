@@ -1,4 +1,7 @@
+/* @flow */
+
 import { Observable } from "rxjs/Observable";
+import type { Subscription } from "rxjs/Subscription";
 
 import PropTypes from "prop-types";
 import React from "react";
@@ -11,6 +14,9 @@ import TouchableArea from "./TouchableArea";
 import { songLengthInBeats } from "./song";
 import { findWrappingClass } from "./domutils";
 
+import type { ScheduledNoteList } from "./song";
+
+// $FlowFixMe - scss not supported
 import "./PianoRoll.scss";
 
 const documentMouseMove$ = Observable.fromEvent(document, "mousemove");
@@ -19,7 +25,13 @@ const documentMouseUp$ = Observable.fromEvent(document, "mouseup");
 // D#5 ... C3
 const midiRange = range(75, 47, -1);
 
-function Row(props) {
+type RowProps = {
+  cellsPerBeat: number,
+  totalBeats: number,
+  note: number
+};
+
+function Row(props: RowProps) {
   const cellsPerBeat = props.cellsPerBeat;
 
   const className = `row cell-width-${cellsPerBeat}`;
@@ -36,11 +48,11 @@ function Row(props) {
 const cellHeight = 15;
 const cellWidth = 30;
 
-function beatToWidth(beat) {
+function beatToWidth(beat: number): number {
   return beat * cellWidth * 4;
 }
 
-function widthToBeat(width) {
+function widthToBeat(width: number): number {
   return width / (cellWidth * 4);
 }
 
@@ -54,12 +66,16 @@ function stylesForNote(note) {
   };
 }
 
-function mapElementToBeat(el) {
+function mapElementToBeat(el: HTMLElement) {
   if (isEmptyCell(el)) {
-    return {
-      beat: parseFloat(el.dataset.beat),
-      note: parseInt(el.parentNode.dataset.note)
-    };
+    const rowEl = el.parentNode;
+
+    if (rowEl instanceof HTMLElement) {
+      return {
+        beat: parseFloat(el.dataset.beat),
+        note: parseInt(rowEl.dataset.note)
+      };
+    }
   }
 
   if (isNoteCell(el)) {
@@ -70,15 +86,20 @@ function mapElementToBeat(el) {
   }
 }
 
-function isEmptyCell(el) {
-  return el && el.classList.contains("cell");
+function isEmptyCell(el: ?Element) {
+  return el != null && el.classList.contains("cell");
 }
 
-function isNoteCell(el) {
-  return el && el.classList.contains("note");
+function isNoteCell(el: ?Element) {
+  return el != null && el.classList.contains("note");
 }
 
-class Grid extends React.PureComponent {
+type GridProps = {
+  cellsPerBeat: number,
+  totalBeats: number
+};
+
+class Grid extends React.PureComponent<GridProps> {
   render() {
     return (
       <div>
@@ -118,13 +139,23 @@ function drawLinesOnCanvas(canvasEl, totalBeats) {
   }
 }
 
-class Timeline extends React.Component {
+type TimelineProps = {
+  totalBeats: number,
+  playbackStartPosition: ?number,
+  onChangePlaybackStartPosition: (value: ?number) => void
+};
+
+class Timeline extends React.Component<TimelineProps> {
   constructor() {
     super();
     this.bindCanvas = this.bindCanvas.bind(this);
   }
 
-  bindCanvas(canvasEl) {
+  bindCanvas: (el: ?HTMLCanvasElement) => void;
+  canvasEl: ?HTMLCanvasElement;
+  subscription: Subscription;
+
+  bindCanvas(canvasEl: ?HTMLCanvasElement) {
     if (canvasEl) {
       drawLinesOnCanvas(canvasEl, this.props.totalBeats);
       this.setupEventHandler(canvasEl);
@@ -156,7 +187,7 @@ class Timeline extends React.Component {
     }
 
     function startsOnPointer(obj) {
-      return findWrappingClass(obj.startEl, "start-position-pointer");
+      return findWrappingClass(obj.startEl, "start-position-pointer") != null;
     }
 
     // TODO: implement this with touch events
@@ -199,7 +230,7 @@ class Timeline extends React.Component {
 
     const svgWidth = 19;
 
-    if (Number.isFinite(this.props.playbackStartPosition)) {
+    if (this.props.playbackStartPosition != null) {
       const pointerStyle = {
         position: "absolute",
         left: beatToWidth(this.props.playbackStartPosition) - svgWidth / 2,
@@ -240,13 +271,20 @@ class Timeline extends React.Component {
   }
 }
 
-Timeline.propTypes = {
-  totalBeats: PropTypes.number.isRequired,
-  onChangePlaybackStartPosition: PropTypes.func.isRequired,
-  playbackStartPosition: PropTypes.number
+type Props = {
+  cellsPerBeat: number,
+  notes: ScheduledNoteList,
+  playing: Object, // TODO: I dont think we're using this now
+  onChangePlaybackStartPosition: (value: ?number) => void,
+  playbackPosition$$: Observable<Object>,
+  playbackStartPosition: ?number
 };
 
-export default class PianoRoll extends React.Component {
+type State = {
+  isPlaying: boolean
+};
+
+export default class PianoRoll extends React.Component<Props, State> {
   constructor() {
     super();
     this.state = { isPlaying: false };
@@ -259,46 +297,67 @@ export default class PianoRoll extends React.Component {
     );
   }
 
-  bindScroller(el) {
+  innerSubscribe: Subscription;
+  outerSubscribe: Subscription;
+  edits$: Observable<Object>;
+  playbackPositionSpan: ?HTMLSpanElement;
+  scrollerEl: ?HTMLElement;
+  playbackPositionSpan: ?HTMLElement;
+  playheadEl: ?HTMLElement;
+
+  bindScroller(el: ?HTMLElement) {
     this.scrollerEl = el;
   }
 
-  bindPlaybackPosition(el) {
+  bindPlaybackPosition(el: ?HTMLElement) {
     this.playbackPositionSpan = el;
   }
 
-  bindPlayhead(el) {
+  bindPlayhead(el: ?HTMLElement) {
     this.playheadEl = el;
   }
 
-  bindTouchableArea(component) {
+  bindTouchableArea(component: ?TouchableArea) {
     if (component) {
       this.edits$ = component.touches$$.flatMap(event => {
-        const firstBeat = mapElementToBeat(event.firstEl);
+        const firstEl = event.firstEl;
+        if (!(firstEl instanceof HTMLElement)) return Observable.never();
+
+        const firstBeat = mapElementToBeat(firstEl);
+        if (firstBeat == null) return Observable.never();
+
         const moves$ = event.movements$
           .filter(isEmptyCell)
+          .map(element => {
+            if (element instanceof HTMLElement) {
+              return mapElementToBeat(element);
+            } else {
+              return null;
+            }
+          })
+          .nonNull()
           .distinctUntilChanged(isEqual)
           .scan(
-            (last, el) => ({
+            (last, to) => ({
               action: "move",
-              to: mapElementToBeat(el),
+              to: to,
               from: last.to
             }),
             { to: firstBeat }
           );
 
-        if (isEmptyCell(event.firstEl)) {
+        if (isEmptyCell(firstEl)) {
           const create$ = Observable.of({
             action: "create",
             ...firstBeat,
             duration: 1.0 / this.props.cellsPerBeat
           });
           return Observable.merge(create$, moves$);
-        } else if (isNoteCell(event.firstEl)) {
+        } else if (isNoteCell(firstEl)) {
           const deletes$ = event.movements$
             .isEmpty()
             .filter(identity)
-            .mapTo({ action: "delete", ...mapElementToBeat(event.firstEl) });
+            .mapTo({ action: "delete", ...mapElementToBeat(firstEl) });
 
           return Observable.merge(moves$, deletes$);
         } else {
@@ -308,29 +367,42 @@ export default class PianoRoll extends React.Component {
     }
   }
 
-  updatePlaybackPosition(position) {
-    // Move playhead
+  updatePlaybackPosition(position: number) {
     const left = cellWidth * 4 * position;
-    this.playheadEl.style.left = left + "px";
-    this.playheadEl.style.display = "block";
 
-    // Make sure the playhead is in view of the scroller
-    if (
-      this.scrollerEl &&
-      (left > this.scrollerEl.scrollLeft + this.scrollerEl.clientWidth ||
-        left < this.scrollerEl.scrollLeft)
-    ) {
-      this.scrollerEl.scrollLeft = left;
+    // Move playhead
+    if (this.playheadEl) {
+      this.playheadEl.style.left = left + "px";
+      this.playheadEl.style.display = "block";
     }
 
-    // Update span text
-    this.playbackPositionSpan.textContent = position.toFixed(1);
+    // Make sure the playhead is in view of the scroller
+    if (this.scrollerEl) {
+      if (
+        left > this.scrollerEl.scrollLeft + this.scrollerEl.clientWidth ||
+        left < this.scrollerEl.scrollLeft
+      ) {
+        this.scrollerEl.scrollLeft = left;
+      }
+    }
+
+    this.updatePositionText(position);
+  }
+
+  updatePositionText(position: number) {
+    const text = position.toFixed(1);
+    if (this.playbackPositionSpan) {
+      this.playbackPositionSpan.textContent = text;
+    }
   }
 
   stopPlayback() {
-    this.playbackPositionSpan.textContent = (0.0).toFixed(1);
-    this.scrollerEl.scrollLeft = 0;
-    this.playheadEl.style.display = "none";
+    this.updatePositionText(0.0);
+
+    if (this.scrollerEl) this.scrollerEl.scrollLeft = 0;
+
+    if (this.playheadEl) this.playheadEl.style.display = "none";
+
     this.setState({ isPlaying: false });
 
     if (this.innerSubscribe) {
@@ -347,6 +419,7 @@ export default class PianoRoll extends React.Component {
 
         this.innerSubscribe = playbackPosition$.subscribe({
           next: this.updatePlaybackPosition.bind(this),
+          error: console.error,
           complete: this.stopPlayback.bind(this)
         });
       }
@@ -421,12 +494,3 @@ export default class PianoRoll extends React.Component {
     );
   }
 }
-
-PianoRoll.propTypes = {
-  notes: PropTypes.array.isRequired,
-  cellsPerBeat: PropTypes.number.isRequired,
-  playing: PropTypes.object.isRequired,
-  onChangePlaybackStartPosition: PropTypes.func.isRequired,
-  playbackPosition$$: PropTypes.object.isRequired,
-  playbackStartPosition: PropTypes.number
-};

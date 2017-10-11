@@ -285,6 +285,9 @@ declare class rxjs$Observable<+T> {
     initialValue?: U,
   ): rxjs$Observable<U>;
 
+  // JB - Adding missing definition for isEmpty
+  isEmpty(): rxjs$Observable<boolean>;
+
   share(): rxjs$Observable<T>;
 
   skip(count: number): rxjs$Observable<T>;
