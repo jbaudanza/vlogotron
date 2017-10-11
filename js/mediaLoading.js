@@ -253,10 +253,12 @@ type AudioBufferResult = {
 function audioBufferForVideoClipId(
   clipId: VideoClipId
 ): Observable<AudioBufferResult> {
-  return Observable.fromPromise(urlFor(clipId, "-audio.mp4"))
+  const result$ = Observable.defer(() => urlFor(clipId, "-audio.mp4"))
     .switchMap(getAudioBuffer)
     .map(value => ({ value, error: null }))
     .catch(error => Observable.of({ value: null, error }));
+
+  return waitForTranscode(firebase.database(), clipId).concat(result$);
 }
 
 function loadAudioBuffersFromVideoClipIds(
@@ -308,7 +310,7 @@ function decodeAudioData(arraybuffer) {
   );
 }
 
-function getAudioBuffer(url) {
+function getAudioBuffer(url: string): Observable<AudioBuffer> {
   return getArrayBuffer(url).switchMap(decodeAudioData);
 }
 
