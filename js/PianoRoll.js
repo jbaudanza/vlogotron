@@ -104,14 +104,14 @@ function mapElementToBeat(el) {
   if (isEmptyCell(el)) {
     return {
       beat: parseFloat(el.dataset.beat),
-      note: labelToMidiNote(el.parentNode.dataset.note) || 0
+      note: parseInt(el.parentNode.dataset.note)
     };
   }
 
   if (isNoteCell(el)) {
     return {
       beat: parseFloat(el.dataset.beat),
-      note: labelToMidiNote(el.dataset.note) || 0
+      note: parseInt(el.dataset.note)
     };
   }
 }
@@ -156,8 +156,8 @@ class Grid extends React.PureComponent {
             color={props.sharp ? "black" : "white"}
             cellsPerBeat={this.props.cellsPerBeat}
             totalBeats={this.props.totalBeats}
-            key={noteToString(props)}
-            note={noteToString(props)}
+            key={labelToMidiNote(noteToString(props))}
+            note={labelToMidiNote(noteToString(props))}
           />
         ))}
       </div>
