@@ -67,7 +67,10 @@ export default class VideoGrid extends React.Component<Props, State> {
 
     this.subscription = this.props.playCommands$
       .takeUntil(this.componentWillUnmount$)
-      .subscribe(this.onPlayCommand);
+      .subscribe({
+        next: this.onPlayCommand,
+        error: (e) => console.error(e)
+      });
   }
 
   componentWillReceiveProps(nextProps: Props) {
