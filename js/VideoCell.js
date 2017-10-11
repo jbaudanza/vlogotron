@@ -5,7 +5,6 @@ import React from "react";
 import { bindAll } from "lodash";
 import classNames from "classnames";
 import Link from "./Link";
-import NoteLabel from "./NoteLabel";
 import PitchGuide from "./PitchGuide";
 import SynchronizedVideo from "./SynchronizedVideo";
 import colors from "./colors";
@@ -203,7 +202,10 @@ export default class VideoCell extends React.Component<Props> {
 
     if (!this.props.mediaStream) {
       noteLabelEl = (
-        <NoteLabel note={this.props.label} octave={this.props.octave} />
+        <div className="note-label">
+          {this.props.label}
+          <sub>{this.props.octave}</sub>
+        </div>
       );
     }
 

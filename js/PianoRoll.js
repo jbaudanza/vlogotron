@@ -2,13 +2,11 @@ import { Observable } from "rxjs/Observable";
 
 import PropTypes from "prop-types";
 import React from "react";
-import classNames from "classnames";
 
 import { range, flatten, bindAll, identity, isEqual, max } from "lodash";
 import { midiNoteToLabel, labelToMidiNote } from "./midi";
 
 import TouchableArea from "./TouchableArea";
-import NoteLabel from "./NoteLabel";
 
 import { songLengthInBeats } from "./song";
 import { findWrappingClass } from "./domutils";
@@ -18,40 +16,13 @@ import "./PianoRoll.scss";
 const documentMouseMove$ = Observable.fromEvent(document, "mousemove");
 const documentMouseUp$ = Observable.fromEvent(document, "mouseup");
 
-const keys = [
-  ["C", true],
-  ["D", true],
-  ["E", false],
-  ["F", true],
-  ["G", true],
-  ["A", true],
-  ["B", false]
-].reverse();
-
-// TODO: This could probably be derived
-// prettier-ignore
-const rowMap = {
-  "C": 11,
-  "C#": 10,
-  "D": 9,
-  "D#": 8,
-  "E": 7,
-  "F": 6,
-  "F#": 5,
-  "G": 4,
-  "G#": 3,
-  "A": 2,
-  "A#": 1,
-  "B": 0
-};
+// D#5 ... C3
+const midiRange = range(75, 47, -1);
 
 function Row(props) {
   const cellsPerBeat = props.cellsPerBeat;
 
-  const className = classNames(`row cell-width-${cellsPerBeat}`, {
-    white: props.color === "white",
-    black: props.color === "black"
-  });
+  const className = `row cell-width-${cellsPerBeat}`;
 
   return (
     <div className={className} data-note={props.note}>
@@ -60,17 +31,6 @@ function Row(props) {
       ))}
     </div>
   );
-}
-
-function noteToString(props) {
-  let str = props.note;
-  if (props.sharp) {
-    str += "#";
-  }
-  if (props.octave) {
-    str += props.octave;
-  }
-  return str;
 }
 
 const cellHeight = 15;
@@ -85,19 +45,13 @@ function widthToBeat(width) {
 }
 
 function stylesForNote(note) {
-  const label = midiNoteToLabel(note[0]);
-  const match = label.match(/([A-Z]#?)(\d)/);
-  if (match) {
-    const row = rowMap[match[1]] + (5 - match[2]) * 12;
+  const row = midiRange[0] - note[0];
 
-    return {
-      top: (row - 8) * cellHeight,
-      width: beatToWidth(note[2]),
-      left: beatToWidth(note[1])
-    };
-  } else {
-    return {};
-  }
+  return {
+    top: row * cellHeight,
+    width: beatToWidth(note[2]),
+    left: beatToWidth(note[1])
+  };
 }
 
 function mapElementToBeat(el) {
@@ -124,40 +78,16 @@ function isNoteCell(el) {
   return el && el.classList.contains("note");
 }
 
-function mapKeys(octave, keys, fn) {
-  return flatten(keys.map(([note, sharp], i) => fn(note, sharp, octave, i)));
-}
-
-function mapAllKeys(iter) {
-  function fn(note, sharp, octave) {
-    const white = iter({ note, octave, sharp: false });
-
-    if (sharp) {
-      const black = iter({ note, octave, sharp: true });
-      return [black, white];
-    } else {
-      return [white];
-    }
-  }
-
-  return flatten([
-    flatten(mapKeys(5, keys.slice(-2), fn)),
-    flatten(mapKeys(4, keys, fn)),
-    flatten(mapKeys(3, keys, fn))
-  ]);
-}
-
 class Grid extends React.PureComponent {
   render() {
     return (
       <div>
-        {mapAllKeys(props => (
+        {midiRange.map(midiNote => (
           <Row
-            color={props.sharp ? "black" : "white"}
             cellsPerBeat={this.props.cellsPerBeat}
             totalBeats={this.props.totalBeats}
-            key={labelToMidiNote(noteToString(props))}
-            note={labelToMidiNote(noteToString(props))}
+            key={midiNote}
+            note={midiNote}
           />
         ))}
       </div>
@@ -449,14 +379,10 @@ export default class PianoRoll extends React.Component {
           <div className="song-duration">
             <span ref={this.bindPlaybackPosition} /> / {songLength.toFixed(1)}
           </div>
-          {mapAllKeys(props => (
-            <NoteLabel
-              className={
-                this.props.playing[noteToString(props)] ? "playing" : null
-              }
-              note={noteToString(props)}
-              key={noteToString(props)}
-            />
+          {midiRange.map(midiNote => (
+            <div className="note-label" key={midiNote}>
+              {midiNoteToLabel(midiNote)}
+            </div>
           ))}
         </div>
         <div className="horizontal-scroller" ref={this.bindScroller}>
