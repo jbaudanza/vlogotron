@@ -58,7 +58,7 @@ export default class TouchableArea extends React.Component<Props> {
   ) {
     if (this.props.onTouchStart) {
       const cb = this.props.onTouchStart;
-      cb(movements$.startWith({ clientX, clientY, element: firstEl }));
+      cb(movements$);
     }
 
     this.touches$$.next({

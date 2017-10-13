@@ -167,7 +167,7 @@ export default class VideoGrid extends React.Component<Props, State> {
       this.playCommands$$ = touchableArea.touches$$.map(touch =>
         touch.movements$
           .map(gesture => gesture.element)
-          .startWith(touch.firstEl) // TODO: Is this necessary? I think movements$ always includes firstEl
+          .startWith(touch.firstEl)
           .map(x => (x instanceof HTMLElement ? x.dataset.note : null)) // Map to current note
           .distinctUntilChanged()
           .concatWith(null)
