@@ -75,39 +75,6 @@ function isNoteCell(el: ?Element) {
   return el != null && el.classList.contains("note");
 }
 
-type GridProps = {
-  cellsPerBeat: number,
-  totalBeats: number,
-  selection?: GridSelection
-};
-
-class Grid extends React.PureComponent<GridProps> {
-  render() {
-    return (
-      <div>
-        {midiRange.map(midiNote => (
-          <div
-            key={midiNote}
-            className={`row cell-width-${this.props.cellsPerBeat}`}
-            data-note={midiNote}
-          >
-            {range(
-              0,
-              this.props.totalBeats * this.props.cellsPerBeat
-            ).map(i => (
-              <div
-                className="cell touchable"
-                key={i}
-                data-beat={i / this.props.cellsPerBeat}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
-    );
-  }
-}
-
 function drawLinesOnCanvas(canvasEl, totalBeats) {
   const ctx = canvasEl.getContext("2d");
 
