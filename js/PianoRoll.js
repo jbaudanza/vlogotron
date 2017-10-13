@@ -48,28 +48,8 @@ function stylesForNote(note) {
   };
 }
 
-function mapElementToBeat(el: HTMLElement) {
-  if (isEmptyCell(el)) {
-    const rowEl = el.parentNode;
-
-    if (rowEl instanceof HTMLElement) {
-      return {
-        beat: parseFloat(el.dataset.beat),
-        note: parseInt(rowEl.dataset.note)
-      };
-    }
-  }
-
-  if (isNoteCell(el)) {
-    return {
-      beat: parseFloat(el.dataset.beat),
-      note: parseInt(el.dataset.note)
-    };
-  }
-}
-
 function isEmptyCell(el: ?Element) {
-  return el != null && el.classList.contains("cell");
+  return el instanceof HTMLCanvasElement;
 }
 
 function isNoteCell(el: ?Element) {
@@ -283,24 +263,58 @@ export default class PianoRoll extends React.Component<Props, State> {
     this.playheadEl = el;
   }
 
+  mapGestureToGridLocation(
+    element: ?Element,
+    clientX: number,
+    clientY: number
+  ) {
+    if (element instanceof HTMLCanvasElement) {
+      const clientRect = element.getBoundingClientRect();
+
+      const x = clientX - clientRect.left;
+      const y = clientY - clientRect.top;
+
+      const column = Math.floor(x / (beatWidth / this.props.cellsPerBeat));
+      const row = Math.floor(y / cellHeight);
+
+      return {
+        note: midiRange[0] - row,
+        beat: column / this.props.cellsPerBeat
+      };
+    }
+
+    if (isNoteCell(element) && element instanceof HTMLElement) {
+      return {
+        beat: parseFloat(element.dataset.beat),
+        note: parseInt(element.dataset.note)
+      };
+    }
+
+    return null;
+  }
+
   bindTouchableArea(component: ?TouchableArea) {
     if (component) {
       this.edits$ = component.touches$$.flatMap(event => {
         const firstEl = event.firstEl;
         if (!(firstEl instanceof HTMLElement)) return Observable.never();
 
-        const firstBeat = mapElementToBeat(firstEl);
+        const firstBeat = this.mapGestureToGridLocation(
+          firstEl,
+          event.clientX,
+          event.clientY
+        );
         if (firstBeat == null) return Observable.never();
 
         const moves$ = event.movements$
-          .filter(isEmptyCell)
-          .map(element => {
-            if (element instanceof HTMLElement) {
-              return mapElementToBeat(element);
-            } else {
-              return null;
-            }
-          })
+          .filter(event => isEmptyCell(event.element))
+          .map(event =>
+            this.mapGestureToGridLocation(
+              event.element,
+              event.clientX,
+              event.clientY
+            )
+          )
           .nonNull()
           .distinctUntilChanged(isEqual)
           .scan(
@@ -323,7 +337,14 @@ export default class PianoRoll extends React.Component<Props, State> {
           const deletes$ = event.movements$
             .isEmpty()
             .filter(identity)
-            .mapTo({ action: "delete", ...mapElementToBeat(firstEl) });
+            .mapTo({
+              action: "delete",
+              ...this.mapGestureToGridLocation(
+                firstEl,
+                event.clientX,
+                event.clientY
+              )
+            });
 
           return Observable.merge(moves$, deletes$);
         } else {

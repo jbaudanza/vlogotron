@@ -13,9 +13,17 @@ import { findWrappingLink, findWrappingClass } from "./domutils";
 const documentMouseMove$ = Observable.fromEvent(document, "mousemove");
 const documentMouseUp$ = Observable.fromEvent(document, "mouseup");
 
-type TouchGesture = {
+type TouchGestureBegin = {
   firstEl: Element,
-  movements$: Observable<?Element>
+  clientX: number,
+  clientY: number,
+  movements$: Observable<TouchGestureMovement>
+};
+
+type TouchGestureMovement = {
+  element: ?Element,
+  clientX: number,
+  clientY: number
 };
 
 type Props = {
@@ -26,7 +34,7 @@ type Props = {
 };
 
 export default class TouchableArea extends React.Component<Props> {
-  touches$$: Subject<TouchGesture>;
+  touches$$: Subject<TouchGestureBegin>;
   touchCancel$: Observable<TouchEvent>;
   touchMove$: Observable<TouchEvent>;
   touchEnd$: Observable<TouchEvent>;
@@ -42,14 +50,21 @@ export default class TouchableArea extends React.Component<Props> {
     this.touches$$.complete();
   }
 
-  start(firstEl: Element, movements$: Observable<?Element>) {
+  start(
+    firstEl: Element,
+    clientX: number,
+    clientY: number,
+    movements$: Observable<TouchGestureMovement>
+  ) {
     if (this.props.onTouchStart) {
       const cb = this.props.onTouchStart;
-      cb(movements$.startWith(firstEl));
+      cb(movements$.startWith({ clientX, clientY, element: firstEl }));
     }
 
     this.touches$$.next({
       firstEl: firstEl,
+      clientX: clientX,
+      clientY: clientY,
       movements$: movements$
     });
   }
@@ -70,10 +85,14 @@ export default class TouchableArea extends React.Component<Props> {
 
     if (el) {
       const stream$ = documentMouseMove$
-        .map(event => this.findTouchableElement(event.target))
+        .map(event => ({
+          clientX: event.clientX,
+          clientY: event.clientY,
+          element: this.findTouchableElement(event.target)
+        }))
         .takeUntil(documentMouseUp$);
 
-      this.start(el, stream$);
+      this.start(el, event.clientX, event.clientY, stream$);
 
       event.preventDefault();
       event.stopPropagation();
@@ -111,15 +130,17 @@ export default class TouchableArea extends React.Component<Props> {
         );
 
         const stream$ = filterTouches(this.touchMove$)
-          .map(t =>
-            this.findTouchableElement(
+          .map(t => ({
+            clientX: t.clientX,
+            clientY: t.clientY,
+            element: this.findTouchableElement(
               // TODO: This might not work http://stackoverflow.com/a/33464547/667069
               document.elementFromPoint(t.clientX, t.clientY)
             )
-          )
+          }))
           .takeUntil(end$);
 
-        this.start(el, stream$);
+        this.start(el, touch.clientX, touch.clientY, stream$);
       }
     });
 
