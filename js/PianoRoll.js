@@ -11,6 +11,7 @@ import styled from "styled-components";
 import { range, flatten, bindAll, identity, isEqual, max } from "lodash";
 import { midiNoteToLabel, labelToMidiNote } from "./midi";
 
+import PianoRollGrid from "./PianoRollGrid";
 import TouchableArea from "./TouchableArea";
 
 import { songLengthInBeats } from "./song";
@@ -29,16 +30,12 @@ const documentMouseUp$ = Observable.fromEvent(document, "mouseup");
 // D#5 ... C3
 const midiRange = range(75, 47, -1);
 
-const cellHeight = 15;
-const cellWidth = 30;
-
-function beatToWidth(beat: number): number {
-  return beat * cellWidth * 4;
-}
-
-function widthToBeat(width: number): number {
-  return width / (cellWidth * 4);
-}
+import {
+  cellHeight,
+  beatWidth,
+  beatToWidth,
+  widthToBeat
+} from "./PianoRollGeometry";
 
 function stylesForNote(note) {
   const row = midiRange[0] - note[0];
@@ -81,7 +78,7 @@ function isNoteCell(el: ?Element) {
 type GridProps = {
   cellsPerBeat: number,
   totalBeats: number,
-  selection?: Selection
+  selection?: GridSelection
 };
 
 class Grid extends React.PureComponent<GridProps> {
@@ -114,22 +111,24 @@ class Grid extends React.PureComponent<GridProps> {
 function drawLinesOnCanvas(canvasEl, totalBeats) {
   const ctx = canvasEl.getContext("2d");
 
-  const cellWidth = 30;
-
   function drawLine(x, height) {
     ctx.beginPath();
-    ctx.moveTo(x, canvasEl.height * height);
-    ctx.lineTo(x, canvasEl.height);
+    ctx.lineWidth = 1.0;
+    ctx.moveTo(x + 0.5, canvasEl.height * height);
+    ctx.lineTo(x + 0.5, canvasEl.height);
     ctx.strokeStyle = colors.darkBlueGrey;
     ctx.stroke();
   }
 
+  const markersPerBeat = 4;
+  const markerSpacing = beatWidth / markersPerBeat;
+
   for (let beat = 0; beat < totalBeats; beat++) {
-    const x = beat * cellWidth * 4;
+    const x = beatToWidth(beat);
     drawLine(x, 0.25);
 
-    for (let i = 1; i < 4; i++) {
-      drawLine(x + i * cellWidth, 0.75);
+    for (let i = 1; i < markersPerBeat; i++) {
+      drawLine(x + i * markerSpacing, 0.75);
     }
   }
 }
@@ -293,7 +292,7 @@ type CellLocation = {
   column: number
 };
 
-type Selection = {
+export type GridSelection = {
   start: CellLocation,
   end: CellLocation
 };
@@ -382,7 +381,7 @@ export default class PianoRoll extends React.Component<Props, State> {
   }
 
   updatePlaybackPosition(position: number) {
-    const left = cellWidth * 4 * position;
+    const left = beatToWidth(position);
 
     // Move playhead
     if (this.playheadEl) {
@@ -460,7 +459,7 @@ export default class PianoRoll extends React.Component<Props, State> {
     const songLength = songLengthInBeats(this.props.notes);
     const totalBeats = Math.floor(songLength + 8);
 
-    const selection = {
+    const selection: GridSelection = {
       start: {
         row: 1,
         column: 1
@@ -497,9 +496,10 @@ export default class PianoRoll extends React.Component<Props, State> {
             totalBeats={totalBeats}
             isSelecting={this.props.isSelecting}
           >
-            <Grid
+            <PianoRollGrid
               cellsPerBeat={this.props.cellsPerBeat}
               totalBeats={totalBeats}
+              totalNotes={midiRange.length}
               selection={selection}
             />
             <div>
