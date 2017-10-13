@@ -68,10 +68,25 @@ function drawFunction(ctx, props, width, height) {
 }
 
 export default class PianoRollGrid extends React.Component<Props> {
+  onClick(event: MouseEvent) {
+    const target = event.target;
+    if (!(target instanceof HTMLCanvasElement)) return;
+
+    const clientRect = target.getBoundingClientRect();
+
+    const x = event.clientX - clientRect.left;
+    const y = event.clientY - clientRect.top;
+
+    const column = Math.floor(x / (beatWidth / this.props.cellsPerBeat));
+    const row = Math.floor(y / cellHeight);
+  }
+
   render() {
     return (
       <Canvas
+        className="touchable"
         input={this.props}
+        onClick={this.onClick.bind(this)}
         drawFunction={drawFunction}
         height={this.props.totalNotes * cellHeight}
         width={beatToWidth(this.props.totalBeats)}

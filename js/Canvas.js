@@ -1,7 +1,7 @@
 /* @flow */
 
 import * as React from "react";
-import { isEqual } from "lodash";
+import { isEqual, omit } from "lodash";
 
 type CanvasDrawFunction<Input> = (
   CanvasRenderingContext2D,
@@ -13,6 +13,7 @@ type CanvasDrawFunction<Input> = (
 type CanvasProps<Input> = {
   input: Input,
   className?: string,
+  innerRef?: (el: ?HTMLCanvasElement) => void,
   width: number,
   height: number,
   drawFunction: CanvasDrawFunction<Input>
@@ -28,6 +29,8 @@ export default class Canvas<Input> extends React.Component<CanvasProps<Input>> {
   setCanvasRef: (canvasEl: ?HTMLCanvasElement) => void;
 
   setCanvasRef(canvasEl: ?HTMLCanvasElement) {
+    if (this.props.innerRef) this.props.innerRef(canvasEl);
+
     if (canvasEl) {
       this.canvasEl = canvasEl;
       this.draw();
@@ -52,13 +55,8 @@ export default class Canvas<Input> extends React.Component<CanvasProps<Input>> {
   }
 
   render() {
-    return (
-      <canvas
-        className={this.props.className}
-        ref={this.setCanvasRef}
-        width={this.props.width}
-        height={this.props.height}
-      />
-    );
+    const props = omit(this.props, "drawFunction", "input", "innerRef");
+
+    return <canvas ref={this.setCanvasRef} {...props} />;
   }
 }

@@ -13,6 +13,7 @@ import { midiNoteToLabel, labelToMidiNote } from "./midi";
 
 import PianoRollGrid from "./PianoRollGrid";
 import TouchableArea from "./TouchableArea";
+import Canvas from "./Canvas";
 
 import { songLengthInBeats } from "./song";
 import { findWrappingClass } from "./domutils";
@@ -75,14 +76,12 @@ function isNoteCell(el: ?Element) {
   return el != null && el.classList.contains("note");
 }
 
-function drawLinesOnCanvas(canvasEl, totalBeats) {
-  const ctx = canvasEl.getContext("2d");
-
-  function drawLine(x, height) {
+function drawLinesOnCanvas(ctx, totalBeats, width, height) {
+  function drawLine(x, heightMultipler) {
     ctx.beginPath();
     ctx.lineWidth = 1.0;
-    ctx.moveTo(x + 0.5, canvasEl.height * height);
-    ctx.lineTo(x + 0.5, canvasEl.height);
+    ctx.moveTo(x + 0.5, height * heightMultipler);
+    ctx.lineTo(x + 0.5, height);
     ctx.strokeStyle = colors.darkBlueGrey;
     ctx.stroke();
   }
@@ -107,29 +106,14 @@ type TimelineProps = {
 };
 
 class Timeline extends React.Component<TimelineProps> {
-  constructor() {
-    super();
-    this.bindCanvas = this.bindCanvas.bind(this);
-  }
-
   bindCanvas: (el: ?HTMLCanvasElement) => void;
-  canvasEl: ?HTMLCanvasElement;
   subscription: Subscription;
 
   bindCanvas(canvasEl: ?HTMLCanvasElement) {
     if (canvasEl) {
-      drawLinesOnCanvas(canvasEl, this.props.totalBeats);
       this.setupEventHandler(canvasEl);
-      this.canvasEl = canvasEl;
     } else {
       this.subscription.unsubscribe();
-      delete this.canvasEl;
-    }
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (this.props.totalBeats !== prevProps.totalBeats && this.canvasEl) {
-      drawLinesOnCanvas(this.canvasEl, this.props.totalBeats);
     }
   }
 
@@ -216,10 +200,12 @@ class Timeline extends React.Component<TimelineProps> {
         className="timeline"
         style={{ width: beatToWidth(this.props.totalBeats) }}
       >
-        <canvas
-          ref={this.bindCanvas}
+        <Canvas
           width={this.props.totalBeats * 30 * 4}
+          innerRef={this.bindCanvas.bind(this)}
           height={25}
+          drawFunction={drawLinesOnCanvas}
+          input={this.props.totalBeats}
         />
         {range(0, this.props.totalBeats).map(i => (
           <div className="time-marker" key={i} data-beat={i}>
