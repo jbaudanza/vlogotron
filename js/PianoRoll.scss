@@ -118,7 +118,6 @@
   .cell {
     display: inline-block;
     box-sizing: border-box;
-    cursor: pointer;
     border: 1px solid $color-dark-two;
     border-left: none;
     border-top: none;
@@ -131,12 +130,6 @@
     width: 15px;
     background-color: $color-aqua-blue;
     border: 1px solid $color-dark-three;
-  }
-
-  .note-wrapper {
-    position: relative;
-    background-color: $color-dark-three;
-    height: $number-of-notes * $cell-height;
   }
 
   .playhead {

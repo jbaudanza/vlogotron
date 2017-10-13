@@ -9,6 +9,7 @@ export default {
   duskyBlue: "#4b57a3",
   greyishBrown: "#434343",
   duskTwo: "#3b406b",
+  duskThree: "#4e557b",
   charcoalGrey: "#46484f",
   cloudyBlue: "#bdc1d7",
   cloudyBlueTwo: "#bac6db",
@@ -17,5 +18,6 @@ export default {
   dark: "#1f233d",
   darkTwo: "#212642",
   darkThree: "#262b4a",
-  blueGrey: "#a0a7c4"
+  blueGrey: "#a0a7c4",
+  darkBlueGrey: "#363d69"
 };

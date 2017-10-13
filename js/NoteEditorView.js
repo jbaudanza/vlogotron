@@ -57,7 +57,11 @@ type Props = {
   actions: Object
 };
 
-export default class NoteEditorView extends React.Component<Props> {
+type State = {
+  isSelecting: boolean
+};
+
+export default class NoteEditorView extends React.Component<Props, State> {
   constructor() {
     super();
     bindAll(
@@ -69,8 +73,11 @@ export default class NoteEditorView extends React.Component<Props> {
       "onChangeTitle",
       "onRedo",
       "onReset",
-      "onUndo"
+      "onUndo",
+      "onToggleSelecting"
     );
+
+    this.state = { isSelecting: false };
   }
 
   pianoRollSubscription: Subscription;
@@ -121,6 +128,10 @@ export default class NoteEditorView extends React.Component<Props> {
       action: "change-bpm",
       bpm: bpm
     });
+  }
+
+  onToggleSelecting() {
+    this.setState({ isSelecting: !this.state.isSelecting });
   }
 
   onChangeTitle(title: string) {
@@ -197,9 +208,11 @@ export default class NoteEditorView extends React.Component<Props> {
           <PianoRollHeader
             bpm={this.props.bpm}
             onChangeBpm={this.onChangeBpm}
+            onToggleSelecting={this.onToggleSelecting}
             onClickPlay={this.props.actions.callbacks.onPlay}
             onClickPause={this.props.actions.callbacks.onPause}
             isPlaying={this.props.isPlaying}
+            isSelecting={this.state.isSelecting}
             isRecording={false}
             onReset={this.onReset}
             onUndo={this.onUndo}
@@ -214,6 +227,7 @@ export default class NoteEditorView extends React.Component<Props> {
           <PianoRoll
             ref={this.bindPianoRoll}
             notes={this.props.notes}
+            isSelecting={this.state.isSelecting}
             cellsPerBeat={this.props.cellsPerBeat}
             songLength={this.props.songLength}
             playbackPosition$$={this.props.playbackPositionInBeats$$}

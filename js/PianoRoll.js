@@ -6,6 +6,8 @@ import type { Subscription } from "rxjs/Subscription";
 import PropTypes from "prop-types";
 import React from "react";
 
+import styled from "styled-components";
+
 import { range, flatten, bindAll, identity, isEqual, max } from "lodash";
 import { midiNoteToLabel, labelToMidiNote } from "./midi";
 
@@ -13,6 +15,8 @@ import TouchableArea from "./TouchableArea";
 
 import { songLengthInBeats } from "./song";
 import { findWrappingClass } from "./domutils";
+
+import colors from "./colors";
 
 import type { ScheduledNoteList } from "./song";
 
@@ -24,26 +28,6 @@ const documentMouseUp$ = Observable.fromEvent(document, "mouseup");
 
 // D#5 ... C3
 const midiRange = range(75, 47, -1);
-
-type RowProps = {
-  cellsPerBeat: number,
-  totalBeats: number,
-  note: number
-};
-
-function Row(props: RowProps) {
-  const cellsPerBeat = props.cellsPerBeat;
-
-  const className = `row cell-width-${cellsPerBeat}`;
-
-  return (
-    <div className={className} data-note={props.note}>
-      {range(0, props.totalBeats * cellsPerBeat).map(i => (
-        <div className="cell touchable" key={i} data-beat={i / cellsPerBeat} />
-      ))}
-    </div>
-  );
-}
 
 const cellHeight = 15;
 const cellWidth = 30;
@@ -96,7 +80,8 @@ function isNoteCell(el: ?Element) {
 
 type GridProps = {
   cellsPerBeat: number,
-  totalBeats: number
+  totalBeats: number,
+  selection?: Selection
 };
 
 class Grid extends React.PureComponent<GridProps> {
@@ -104,12 +89,22 @@ class Grid extends React.PureComponent<GridProps> {
     return (
       <div>
         {midiRange.map(midiNote => (
-          <Row
-            cellsPerBeat={this.props.cellsPerBeat}
-            totalBeats={this.props.totalBeats}
+          <div
             key={midiNote}
-            note={midiNote}
-          />
+            className={`row cell-width-${this.props.cellsPerBeat}`}
+            data-note={midiNote}
+          >
+            {range(
+              0,
+              this.props.totalBeats * this.props.cellsPerBeat
+            ).map(i => (
+              <div
+                className="cell touchable"
+                key={i}
+                data-beat={i / this.props.cellsPerBeat}
+              />
+            ))}
+          </div>
         ))}
       </div>
     );
@@ -125,7 +120,7 @@ function drawLinesOnCanvas(canvasEl, totalBeats) {
     ctx.beginPath();
     ctx.moveTo(x, canvasEl.height * height);
     ctx.lineTo(x, canvasEl.height);
-    ctx.strokeStyle = "#363d69"; // $color-dark-blue-grey
+    ctx.strokeStyle = colors.darkBlueGrey;
     ctx.stroke();
   }
 
@@ -271,17 +266,36 @@ class Timeline extends React.Component<TimelineProps> {
   }
 }
 
+const NoteWrapper = styled(TouchableArea)`
+  position: relative;
+  background-color: ${colors.darkThree};
+  height: ${midiRange.length * cellHeight}px;
+  width: ${props => beatToWidth(props.totalBeats)}px;
+  cursor: ${props => (props.isSelecting ? "cell" : "pointer")};
+`;
+
 type Props = {
   cellsPerBeat: number,
   notes: ScheduledNoteList,
   playing: Object, // TODO: I dont think we're using this now
   onChangePlaybackStartPosition: (value: ?number) => void,
   playbackPosition$$: Observable<Object>,
-  playbackStartPosition: ?number
+  playbackStartPosition: ?number,
+  isSelecting: boolean
 };
 
 type State = {
   isPlaying: boolean
+};
+
+type CellLocation = {
+  row: number,
+  column: number
+};
+
+type Selection = {
+  start: CellLocation,
+  end: CellLocation
 };
 
 export default class PianoRoll extends React.Component<Props, State> {
@@ -446,6 +460,17 @@ export default class PianoRoll extends React.Component<Props, State> {
     const songLength = songLengthInBeats(this.props.notes);
     const totalBeats = Math.floor(songLength + 8);
 
+    const selection = {
+      start: {
+        row: 1,
+        column: 1
+      },
+      end: {
+        row: 10,
+        column: 5
+      }
+    };
+
     return (
       <div className="piano-roll">
         <div className="row-labels">
@@ -467,14 +492,15 @@ export default class PianoRoll extends React.Component<Props, State> {
             }
           />
 
-          <TouchableArea
-            className="note-wrapper"
-            ref={this.bindTouchableArea}
-            style={{ width: beatToWidth(totalBeats) }}
+          <NoteWrapper
+            innerRef={this.bindTouchableArea}
+            totalBeats={totalBeats}
+            isSelecting={this.props.isSelecting}
           >
             <Grid
               cellsPerBeat={this.props.cellsPerBeat}
               totalBeats={totalBeats}
+              selection={selection}
             />
             <div>
               {this.props.notes.map((note, i) => (
@@ -488,7 +514,7 @@ export default class PianoRoll extends React.Component<Props, State> {
               ))}
             </div>
             <div className="playhead" ref={this.bindPlayhead} />
-          </TouchableArea>
+          </NoteWrapper>
         </div>
       </div>
     );

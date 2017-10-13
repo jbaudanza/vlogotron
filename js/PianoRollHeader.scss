@@ -43,18 +43,6 @@
     float: right;
   }
 
-  .action.disabled {
-    opacity: 0.2;
-  }
-
-  select {
-    background-color: $color-dusk-three;
-    border: none;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-  }
-
   .left-side {
     overflow: hidden;
     a {
@@ -64,11 +52,5 @@
       float: left;
       display: block;
     }
-  }
-
-  .right-side .action {
-    margin-right: 5px;
-    margin-left: 5px;
-    background-color: $color-dusk-three;
   }
 }

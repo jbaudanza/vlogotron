@@ -62,34 +62,6 @@
     display: inline;
   }
 
-  a.action, select.action, span.action {
-    font-size: 11px;
-    font-weight: 600; // semi-bold
-    padding: 0 15px;
-    text-decoration: none;
-    font-family: $font-family;
-
-    display: inline-block;
-    height: 28px;
-    line-height: 28px;
-    opacity: 0.7;
-    border-radius: 49px;
-    color: white;
-    text-transform: uppercase;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    letter-spacing: 0.2px;
-
-    &:hover.enabled {
-      opacity: 1;
-    }
-
-    &.primary {
-      background-color: white;
-      color: $color-purple;
-    }
-  }
-
   .page-content {
     //  The original texture image dump from Zeplin was 1351x696. This was
     //  excessive for a repeated background, so I cropped it down using the

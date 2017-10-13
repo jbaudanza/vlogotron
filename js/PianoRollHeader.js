@@ -3,9 +3,37 @@ import React from "react";
 
 import { range, bindAll } from "lodash";
 import Link from "./Link";
+import ActionLink from "./ActionLink";
+
 import PlayButton from "./PlayButton";
 
+import styled from "styled-components";
+import colors from "./colors";
+
 import "./PianoRollHeader.scss";
+
+const HeaderActionLink = styled(ActionLink)`
+  margin-right: 5px;
+  margin-left: 5px;
+  background-color: ${colors.duskThree};
+
+  &.disabled {
+    opacity: 0.2;
+  }
+`;
+
+const ToggleLink = styled(HeaderActionLink)`
+  color: ${props => (props.toggledOn ? colors.duskThree : "white")};
+  background-color: ${props => (props.toggledOn ? "white" : colors.duskThree)};
+`;
+
+const StyledSelect = ActionLink.withComponent("select").extend`
+  background-color: ${colors.duskThree};
+  border: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+`;
 
 export default class PianoRollHeader extends React.Component {
   constructor() {
@@ -53,24 +81,31 @@ export default class PianoRollHeader extends React.Component {
           </Link>
         </div>
         <div className="right-side">
-          <Link
+          <ToggleLink
+            className="action"
+            toggledOn={this.props.isSelecting}
+            onClick={this.props.onToggleSelecting}
+          >
+            Select
+          </ToggleLink>
+          <HeaderActionLink
             enabled={this.props.undoEnabled}
             onClick={this.props.onUndo}
             className="action"
           >
             {this.context.messages["undo-action"]()}
-          </Link>
-          <Link
+          </HeaderActionLink>
+          <HeaderActionLink
             enabled={this.props.redoEnabled}
             onClick={this.props.onRedo}
             className="action"
           >
             {this.context.messages["redo-action"]()}
-          </Link>
-          <Link onClick={this.props.onReset} className="action">
+          </HeaderActionLink>
+          <HeaderActionLink onClick={this.props.onReset} className="action">
             {this.context.messages["reset-action"]()}
-          </Link>
-          <select
+          </HeaderActionLink>
+          <StyledSelect
             className="action"
             value={this.props.cellsPerBeat}
             onChange={this.onChangeSelect}
@@ -84,8 +119,8 @@ export default class PianoRollHeader extends React.Component {
             </option>
             <option value="2">{this.context.messages["half-notes"]()}</option>
             <option value="1">{this.context.messages["whole-notes"]()}</option>
-          </select>
-          <select
+          </StyledSelect>
+          <StyledSelect
             className="action"
             value={this.props.bpm}
             onChange={this.onChangeBpm}
@@ -95,7 +130,7 @@ export default class PianoRollHeader extends React.Component {
                 {this.context.messages["bpm-with-number"]({ BPM: bpm })}
               </option>
             ))}
-          </select>
+          </StyledSelect>
         </div>
       </div>
     );
