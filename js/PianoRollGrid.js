@@ -54,43 +54,28 @@ function drawFunction(ctx, props, width, height) {
     // TODO: This second if is for flow, and kind of silly. see if you can
     // clean this up
     if (selection != null) {
-      ctx.strokeStyle = "#fff";
-      ctx.lineWidth = 1;
+      ctx.beginPath();
       ctx.rect(
         selectionWidth + 0.5,
         selection.start.column * cellHeight,
         selectionWidth + 0.5,
         selection.end.column * cellHeight
       );
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 1;
       ctx.stroke();
     }
   }
 }
 
-export default class PianoRollGrid extends React.Component<Props> {
-  onClick(event: MouseEvent) {
-    const target = event.target;
-    if (!(target instanceof HTMLCanvasElement)) return;
-
-    const clientRect = target.getBoundingClientRect();
-
-    const x = event.clientX - clientRect.left;
-    const y = event.clientY - clientRect.top;
-
-    const column = Math.floor(x / (beatWidth / this.props.cellsPerBeat));
-    const row = Math.floor(y / cellHeight);
-  }
-
-  render() {
-    return (
-      <Canvas
-        className="touchable"
-        input={this.props}
-        onClick={this.onClick.bind(this)}
-        drawFunction={drawFunction}
-        height={this.props.totalNotes * cellHeight}
-        width={beatToWidth(this.props.totalBeats)}
-      />
-    );
-  }
+export default function PianoRollGrid(props: Props) {
+  return (
+    <Canvas
+      className="touchable"
+      input={props}
+      drawFunction={drawFunction}
+      height={props.totalNotes * cellHeight}
+      width={beatToWidth(props.totalBeats)}
+    />
+  );
 }
