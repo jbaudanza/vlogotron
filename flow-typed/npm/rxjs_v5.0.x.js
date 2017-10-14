@@ -288,6 +288,9 @@ declare class rxjs$Observable<+T> {
   // JB - Adding missing definition for isEmpty
   isEmpty(): rxjs$Observable<boolean>;
 
+  // JB - Adding missing definition for partition
+  partition(predicate: (value: T, index: number, observable: rxjs$Observable<T>) => boolean): [rxjs$Observable<T>, rxjs$Observable<T>];
+
   share(): rxjs$Observable<T>;
 
   skip(count: number): rxjs$Observable<T>;

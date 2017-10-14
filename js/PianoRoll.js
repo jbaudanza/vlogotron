@@ -11,8 +11,8 @@ import styled from "styled-components";
 import { range, flatten, bindAll, identity, isEqual, max } from "lodash";
 import { midiNoteToLabel, labelToMidiNote } from "./midi";
 
-import PianoRollGrid from "./PianoRollGrid";
 import TouchableArea from "./TouchableArea";
+import makeGestureStream from "./makeGestureStream";
 import Canvas from "./Canvas";
 
 import { songLengthInBeats } from "./song";
@@ -37,6 +37,55 @@ import {
   beatToWidth,
   widthToBeat
 } from "./PianoRollGeometry";
+
+function gridDrawFunction(ctx, props, width, height) {
+  ctx.clearRect(0, 0, width, height);
+
+  ctx.strokeStyle = colors.darkTwo;
+  ctx.lineWidth = 1;
+
+  for (let i = 0; i < props.totalNotes; i++) {
+    ctx.beginPath();
+    const y = i * cellHeight + 0.5;
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
+  }
+
+  const totalCells = props.totalBeats * props.cellsPerBeat;
+  const cellWidth = beatWidth / props.cellsPerBeat;
+
+  for (let i = 0; i < totalCells; i++) {
+    ctx.beginPath();
+    // TODO: needs to take cellsPerBeat into account
+    const x = i * cellWidth + 0.5;
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, height);
+    ctx.stroke();
+  }
+
+  const selection = props.selection;
+  console.log("drawing selection", selection);
+
+  if (selection != null) {
+    const selectionWidth = beatToWidth(selection.start.column);
+
+    // TODO: This second if is for flow, and kind of silly. see if you can
+    // clean this up
+    if (selection != null) {
+      ctx.beginPath();
+      ctx.rect(
+        selection.start.column * cellWidth + 0.5,
+        selection.start.row * cellHeight + 0.5,
+        (selection.end.column - selection.start.column) * cellWidth,
+        (selection.end.row - selection.start.row) * cellHeight
+      );
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  }
+}
 
 function stylesForNote(note) {
   const row = midiRange[0] - note[0];
@@ -217,13 +266,26 @@ type Props = {
 };
 
 type State = {
-  isPlaying: boolean
+  isPlaying: boolean,
+  selection: ?GridSelection
 };
 
 type CellLocation = {
   row: number,
   column: number
 };
+
+type GridGesture = {
+  first: CellLocation,
+  rest$: Observable<CellLocation>
+};
+
+function cellLocationToBeatAndNote(location: CellLocation, cellsPerBeat) {
+  return {
+    note: midiRange[0] - location.row,
+    beat: location.column / cellsPerBeat
+  };
+}
 
 export type GridSelection = {
   start: CellLocation,
@@ -233,7 +295,7 @@ export type GridSelection = {
 export default class PianoRoll extends React.Component<Props, State> {
   constructor() {
     super();
-    this.state = { isPlaying: false };
+    this.state = { isPlaying: false, selection: null };
     bindAll(
       this,
       "bindPlayhead",
@@ -250,6 +312,7 @@ export default class PianoRoll extends React.Component<Props, State> {
   scrollerEl: ?HTMLElement;
   playbackPositionSpan: ?HTMLElement;
   playheadEl: ?HTMLElement;
+  gridEl: ?HTMLCanvasElement;
 
   bindScroller(el: ?HTMLElement) {
     this.scrollerEl = el;
@@ -263,6 +326,22 @@ export default class PianoRoll extends React.Component<Props, State> {
     this.playheadEl = el;
   }
 
+  mapCoordsToGridLocation(
+    canvasEl: HTMLCanvasElement,
+    clientX: number,
+    clientY: number
+  ): CellLocation {
+    const clientRect = canvasEl.getBoundingClientRect();
+
+    const x = clientX - clientRect.left;
+    const y = clientY - clientRect.top;
+
+    return {
+      column: Math.floor(x / (beatWidth / this.props.cellsPerBeat)),
+      row: Math.floor(y / cellHeight)
+    };
+  }
+
   mapGestureToGridLocation(
     element: ?Element,
     clientX: number,
@@ -274,28 +353,76 @@ export default class PianoRoll extends React.Component<Props, State> {
       const x = clientX - clientRect.left;
       const y = clientY - clientRect.top;
 
-      const column = Math.floor(x / (beatWidth / this.props.cellsPerBeat));
-      const row = Math.floor(y / cellHeight);
-
-      return {
-        note: midiRange[0] - row,
-        beat: column / this.props.cellsPerBeat
-      };
+      return cellLocationToBeatAndNote(
+        {
+          column: Math.floor(x / (beatWidth / this.props.cellsPerBeat)),
+          row: Math.floor(y / cellHeight)
+        },
+        this.props.cellsPerBeat
+      );
     }
 
     if (isNoteCell(element) && element instanceof HTMLElement) {
       return {
-        beat: parseFloat(element.dataset.beat),
-        note: parseInt(element.dataset.note)
+        column: parseFloat(element.dataset.column),
+        row: parseInt(element.dataset.row)
       };
     }
 
     return null;
   }
 
+  makeGridGestureStream(canvasEl: HTMLCanvasElement): Observable<GridGesture> {
+    return makeGestureStream(canvasEl).map(event => ({
+      first: this.mapCoordsToGridLocation(
+        canvasEl,
+        event.clientX,
+        event.clientY
+      ),
+      rest$: event.movements$.map(event =>
+        this.mapCoordsToGridLocation(canvasEl, event.clientX, event.clientY)
+      )
+    }));
+  }
+
+  bindGrid(canvasEl: ?HTMLCanvasElement) {
+    this.gridEl = canvasEl;
+  }
+
   bindTouchableArea(component: ?TouchableArea) {
     if (component) {
-      this.edits$ = component.touches$$.flatMap(event => {
+      const [
+        touchesForSelections$,
+        touchesForEdits$
+      ] = component.touches$$.partition(event => this.props.isSelecting);
+
+      // XXX: Map touchesForSelections onto an actual selection.
+      /*
+      Ok, here's the issue. The TouchableArea will return any element with a
+      touchable class, BUT we only want to return events related to the canvas.
+      We don't care about notes being touched.
+
+      We may need to break this into two different Touchable Areas with different behaviors.
+
+      In fact, doing so might make the creation gestures easier
+      */
+
+      touchesForSelections$
+        .map(event => {
+          // TODO: It would be more natural for this to return a grid location,
+          // and then map that onto beat/note values later
+          const firstBeat = this.mapGestureToGridLocation(
+            event.firstEl,
+            event.clientX,
+            event.clientY
+          );
+          return firstBeat;
+        })
+        .subscribe(location => {
+          console.log(location);
+        });
+
+      this.edits2$ = touchesForEdits$.flatMap(event => {
         const firstEl = event.firstEl;
         if (!(firstEl instanceof HTMLElement)) return Observable.never();
 
@@ -334,17 +461,14 @@ export default class PianoRoll extends React.Component<Props, State> {
           });
           return Observable.merge(create$, moves$);
         } else if (isNoteCell(firstEl)) {
-          const deletes$ = event.movements$
-            .isEmpty()
-            .filter(identity)
-            .mapTo({
-              action: "delete",
-              ...this.mapGestureToGridLocation(
-                firstEl,
-                event.clientX,
-                event.clientY
-              )
-            });
+          const deletes$ = event.movements$.isEmpty().filter(identity).mapTo({
+            action: "delete",
+            ...this.mapGestureToGridLocation(
+              firstEl,
+              event.clientX,
+              event.clientY
+            )
+          });
 
           return Observable.merge(moves$, deletes$);
         } else {
@@ -415,6 +539,53 @@ export default class PianoRoll extends React.Component<Props, State> {
 
   componentDidMount() {
     this.stopPlayback();
+
+    if (this.gridEl) {
+      const gestures$ = this.makeGridGestureStream(this.gridEl);
+
+      const [gesturesForSelections$, gesturesForEdits$] = gestures$.partition(
+        event => this.props.isSelecting
+      );
+
+      const edits$ = gesturesForEdits$.flatMap(gesture => {
+        const firstBeat = cellLocationToBeatAndNote(
+          gesture.first,
+          this.props.cellsPerBeat
+        );
+
+        const create$ = Observable.of({
+          ...firstBeat,
+          action: "create",
+          duration: 1.0 / this.props.cellsPerBeat
+        });
+        const moves$ = gesture.rest$
+          .map(location =>
+            cellLocationToBeatAndNote(location, this.props.cellsPerBeat)
+          )
+          .distinctUntilChanged(isEqual)
+          .scan(
+            (last, to) => ({
+              action: "move",
+              to: to,
+              from: last.to
+            }),
+            { to: firstBeat }
+          );
+
+        return Observable.merge(create$, moves$);
+      });
+
+      gesturesForSelections$
+        .flatMap(gesture => {
+          return gesture.rest$.map(location => ({
+            start: gesture.first,
+            end: location
+          }));
+        })
+        .subscribe(selection => this.setState({ selection }));
+
+      this.edits$ = edits$;
+    }
   }
 
   componentWillUnmount() {
@@ -433,15 +604,11 @@ export default class PianoRoll extends React.Component<Props, State> {
     const songLength = songLengthInBeats(this.props.notes);
     const totalBeats = Math.floor(songLength + 8);
 
-    const selection: GridSelection = {
-      start: {
-        row: 1,
-        column: 1
-      },
-      end: {
-        row: 10,
-        column: 5
-      }
+    const gridInput = {
+      cellsPerBeat: this.props.cellsPerBeat,
+      totalBeats: totalBeats,
+      totalNotes: midiRange.length,
+      selection: this.state.selection
     };
 
     return (
@@ -470,12 +637,14 @@ export default class PianoRoll extends React.Component<Props, State> {
             totalBeats={totalBeats}
             isSelecting={this.props.isSelecting}
           >
-            <PianoRollGrid
-              cellsPerBeat={this.props.cellsPerBeat}
-              totalBeats={totalBeats}
-              totalNotes={midiRange.length}
-              selection={selection}
+            <Canvas
+              input={gridInput}
+              innerRef={this.bindGrid.bind(this)}
+              drawFunction={gridDrawFunction}
+              height={gridInput.totalNotes * cellHeight}
+              width={beatToWidth(totalBeats)}
             />
+
             <div>
               {this.props.notes.map((note, i) => (
                 <div

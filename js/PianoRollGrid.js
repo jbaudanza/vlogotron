@@ -1,6 +1,7 @@
 /* @flow */
 
 import React from "react";
+import makeGestureStream from "./makeGestureStream";
 
 import {
   cellHeight,
@@ -68,11 +69,19 @@ function drawFunction(ctx, props, width, height) {
   }
 }
 
+function bindEvents(canvasEl) {
+  console.log(bindEvents, canvasEl);
+  if (canvasEl) {
+    const gestures$ = makeGestureStream(canvasEl);
+    gestures$.debug("gestures").subscribe();
+  }
+}
+
 export default function PianoRollGrid(props: Props) {
   return (
     <Canvas
-      className="touchable"
       input={props}
+      innerRef={bindEvents}
       drawFunction={drawFunction}
       height={props.totalNotes * cellHeight}
       width={beatToWidth(props.totalBeats)}
