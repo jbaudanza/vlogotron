@@ -12,7 +12,6 @@ import { range, flatten, bindAll, identity, isEqual, max } from "lodash";
 import { midiNoteToLabel, labelToMidiNote } from "./midi";
 
 import TouchableArea from "./TouchableArea";
-import makeGestureStream from "./makeGestureStream";
 import Canvas from "./Canvas";
 
 import { songLengthInBeats } from "./song";
@@ -21,6 +20,7 @@ import { findWrappingClass } from "./domutils";
 import colors from "./colors";
 
 import type { ScheduledNoteList } from "./song";
+import type { TouchGestureBegin } from "./TouchableArea";
 
 // $FlowFixMe - scss not supported
 import "./PianoRoll.scss";
@@ -277,9 +277,14 @@ type NoteLocation = {
   note: number
 };
 
+type GridGestureEvent = {
+  location: NoteLocation,
+  element: Element
+};
+
 type GridGesture = {
-  first: NoteLocation,
-  rest$: Observable<NoteLocation>
+  first: GridGestureEvent,
+  rest$: Observable<GridGestureEvent>
 };
 
 function cellLocationToBeatAndNote(
@@ -317,7 +322,6 @@ export default class PianoRoll extends React.Component<Props, State> {
   scrollerEl: ?HTMLElement;
   playbackPositionSpan: ?HTMLElement;
   playheadEl: ?HTMLElement;
-  gridEl: ?HTMLCanvasElement;
 
   bindScroller(el: ?HTMLElement) {
     this.scrollerEl = el;
@@ -347,11 +351,11 @@ export default class PianoRoll extends React.Component<Props, State> {
     };
   }
 
-  mapGestureToGridLocation(
+  mapGestureToNoteLocation(
     element: ?Element,
     clientX: number,
     clientY: number
-  ) {
+  ): ?NoteLocation {
     if (element instanceof HTMLCanvasElement) {
       const clientRect = element.getBoundingClientRect();
 
@@ -369,31 +373,57 @@ export default class PianoRoll extends React.Component<Props, State> {
 
     if (isNoteCell(element) && element instanceof HTMLElement) {
       return {
-        column: parseFloat(element.dataset.column),
-        row: parseInt(element.dataset.row)
+        beat: parseFloat(element.dataset.beat),
+        note: parseInt(element.dataset.note)
       };
     }
 
     return null;
   }
 
-  makeGridGestureStream(canvasEl: HTMLCanvasElement): Observable<GridGesture> {
-    return makeGestureStream(canvasEl).map(event => ({
-      first: cellLocationToBeatAndNote(
-        this.mapCoordsToGridLocation(canvasEl, event.clientX, event.clientY),
-        this.props.cellsPerBeat
-      ),
-      rest$: event.movements$.map(event =>
-        cellLocationToBeatAndNote(
-          this.mapCoordsToGridLocation(canvasEl, event.clientX, event.clientY),
-          this.props.cellsPerBeat
-        )
-      )
-    }));
+  mapGridGestureEvent(
+    element: ?Element,
+    clientX: number,
+    clientY: number
+  ): ?GridGestureEvent {
+    if (element == null) return null;
+
+    const location = this.mapGestureToNoteLocation(element, clientX, clientY);
+
+    if (location) return { location, element };
+
+    return null;
   }
 
-  bindGrid(canvasEl: ?HTMLCanvasElement) {
-    this.gridEl = canvasEl;
+  makeGridGestureStream(
+    gestures$: Observable<TouchGestureBegin>
+  ): Observable<GridGesture> {
+    return gestures$
+      .map(gesture => {
+        const first = this.mapGridGestureEvent(
+          gesture.firstEl,
+          gesture.clientX,
+          gesture.clientY
+        );
+
+        if (first) {
+          return {
+            first: first,
+            rest$: gesture.movements$
+              .map(event => {
+                return this.mapGridGestureEvent(
+                  event.element,
+                  event.clientX,
+                  event.clientY
+                );
+              })
+              .nonNull()
+          };
+        } else {
+          return null;
+        }
+      })
+      .nonNull();
   }
 
   bindTouchableArea(component: ?TouchableArea) {
@@ -401,55 +431,23 @@ export default class PianoRoll extends React.Component<Props, State> {
       const [
         touchesForSelections$,
         touchesForEdits$
-      ] = component.touches$$.partition(event => this.props.isSelecting);
-
-      // XXX: Map touchesForSelections onto an actual selection.
-      /*
-      Ok, here's the issue. The TouchableArea will return any element with a
-      touchable class, BUT we only want to return events related to the canvas.
-      We don't care about notes being touched.
-
-      We may need to break this into two different Touchable Areas with different behaviors.
-
-      In fact, doing so might make the creation gestures easier
-      */
+      ] = this.makeGridGestureStream(component.touches$$).partition(
+        event => this.props.isSelecting
+      );
 
       touchesForSelections$
-        .map(event => {
-          // TODO: It would be more natural for this to return a grid location,
-          // and then map that onto beat/note values later
-          const firstBeat = this.mapGestureToGridLocation(
-            event.firstEl,
-            event.clientX,
-            event.clientY
-          );
-          return firstBeat;
+        .flatMap(gesture => {
+          return gesture.rest$.map(event => ({
+            start: gesture.first.location,
+            end: event.location
+          }));
         })
-        .subscribe(location => {
-          console.log(location);
-        });
+        .subscribe(selection => this.setState({ selection }));
 
-      this.edits2$ = touchesForEdits$.flatMap(event => {
-        const firstEl = event.firstEl;
-        if (!(firstEl instanceof HTMLElement)) return Observable.never();
-
-        const firstBeat = this.mapGestureToGridLocation(
-          firstEl,
-          event.clientX,
-          event.clientY
-        );
-        if (firstBeat == null) return Observable.never();
-
-        const moves$ = event.movements$
+      this.edits$ = touchesForEdits$.flatMap(gesture => {
+        const moves$ = gesture.rest$
           .filter(event => isEmptyCell(event.element))
-          .map(event =>
-            this.mapGestureToGridLocation(
-              event.element,
-              event.clientX,
-              event.clientY
-            )
-          )
-          .nonNull()
+          .map(event => event.location)
           .distinctUntilChanged(isEqual)
           .scan(
             (last, to) => ({
@@ -457,24 +455,20 @@ export default class PianoRoll extends React.Component<Props, State> {
               to: to,
               from: last.to
             }),
-            { to: firstBeat }
+            { to: gesture.first.location }
           );
 
-        if (isEmptyCell(firstEl)) {
+        if (isEmptyCell(gesture.first.element)) {
           const create$ = Observable.of({
             action: "create",
-            ...firstBeat,
+            ...gesture.first.location,
             duration: 1.0 / this.props.cellsPerBeat
           });
           return Observable.merge(create$, moves$);
-        } else if (isNoteCell(firstEl)) {
-          const deletes$ = event.movements$.isEmpty().filter(identity).mapTo({
+        } else if (isNoteCell(gesture.first.element)) {
+          const deletes$ = gesture.rest$.isEmpty().filter(identity).mapTo({
             action: "delete",
-            ...this.mapGestureToGridLocation(
-              firstEl,
-              event.clientX,
-              event.clientY
-            )
+            ...gesture.first.location
           });
 
           return Observable.merge(moves$, deletes$);
@@ -546,45 +540,6 @@ export default class PianoRoll extends React.Component<Props, State> {
 
   componentDidMount() {
     this.stopPlayback();
-
-    if (this.gridEl) {
-      const gestures$ = this.makeGridGestureStream(this.gridEl);
-
-      const [gesturesForSelections$, gesturesForEdits$] = gestures$.partition(
-        event => this.props.isSelecting
-      );
-
-      const edits$ = gesturesForEdits$.flatMap(gesture => {
-        const firstBeat = gesture.first;
-
-        const create$ = Observable.of({
-          ...firstBeat,
-          action: "create",
-          duration: 1.0 / this.props.cellsPerBeat
-        });
-        const moves$ = gesture.rest$.distinctUntilChanged(isEqual).scan((
-          last,
-          to
-        ) => ({
-          action: "move",
-          to: to,
-          from: last.to
-        }), { to: firstBeat });
-
-        return Observable.merge(create$, moves$);
-      });
-
-      gesturesForSelections$
-        .flatMap(gesture => {
-          return gesture.rest$.map(location => ({
-            start: gesture.first,
-            end: location
-          }));
-        })
-        .subscribe(selection => this.setState({ selection }));
-
-      this.edits$ = edits$;
-    }
   }
 
   componentWillUnmount() {
@@ -638,7 +593,7 @@ export default class PianoRoll extends React.Component<Props, State> {
           >
             <Canvas
               input={gridInput}
-              innerRef={this.bindGrid.bind(this)}
+              className="touchable"
               drawFunction={gridDrawFunction}
               height={gridInput.totalNotes * cellHeight}
               width={beatToWidth(totalBeats)}

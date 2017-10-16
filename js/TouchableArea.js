@@ -13,7 +13,7 @@ import { findWrappingLink, findWrappingClass } from "./domutils";
 const documentMouseMove$ = Observable.fromEvent(document, "mousemove");
 const documentMouseUp$ = Observable.fromEvent(document, "mouseup");
 
-type TouchGestureBegin = {
+export type TouchGestureBegin = {
   firstEl: Element,
   clientX: number,
   clientY: number,
