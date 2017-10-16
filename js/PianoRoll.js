@@ -65,20 +65,17 @@ function gridDrawFunction(ctx, props, width, height) {
   }
 
   const selection = props.selection;
-  console.log("drawing selection", selection);
 
   if (selection != null) {
-    const selectionWidth = beatToWidth(selection.start.column);
-
     // TODO: This second if is for flow, and kind of silly. see if you can
     // clean this up
     if (selection != null) {
       ctx.beginPath();
       ctx.rect(
-        selection.start.column * cellWidth + 0.5,
-        selection.start.row * cellHeight + 0.5,
-        (selection.end.column - selection.start.column) * cellWidth,
-        (selection.end.row - selection.start.row) * cellHeight
+        selection.start.beat * beatWidth + 0.5,
+        (midiRange[0] - selection.start.note) * cellHeight + 0.5,
+        (selection.end.beat - selection.start.beat) * beatWidth,
+        (selection.start.note - selection.end.note) * cellHeight
       );
       ctx.strokeStyle = "#fff";
       ctx.lineWidth = 1;
@@ -275,12 +272,20 @@ type CellLocation = {
   column: number
 };
 
-type GridGesture = {
-  first: CellLocation,
-  rest$: Observable<CellLocation>
+type NoteLocation = {
+  beat: number,
+  note: number
 };
 
-function cellLocationToBeatAndNote(location: CellLocation, cellsPerBeat) {
+type GridGesture = {
+  first: NoteLocation,
+  rest$: Observable<NoteLocation>
+};
+
+function cellLocationToBeatAndNote(
+  location: CellLocation,
+  cellsPerBeat
+): NoteLocation {
   return {
     note: midiRange[0] - location.row,
     beat: location.column / cellsPerBeat
@@ -288,8 +293,8 @@ function cellLocationToBeatAndNote(location: CellLocation, cellsPerBeat) {
 }
 
 export type GridSelection = {
-  start: CellLocation,
-  end: CellLocation
+  start: NoteLocation,
+  end: NoteLocation
 };
 
 export default class PianoRoll extends React.Component<Props, State> {
@@ -374,13 +379,15 @@ export default class PianoRoll extends React.Component<Props, State> {
 
   makeGridGestureStream(canvasEl: HTMLCanvasElement): Observable<GridGesture> {
     return makeGestureStream(canvasEl).map(event => ({
-      first: this.mapCoordsToGridLocation(
-        canvasEl,
-        event.clientX,
-        event.clientY
+      first: cellLocationToBeatAndNote(
+        this.mapCoordsToGridLocation(canvasEl, event.clientX, event.clientY),
+        this.props.cellsPerBeat
       ),
       rest$: event.movements$.map(event =>
-        this.mapCoordsToGridLocation(canvasEl, event.clientX, event.clientY)
+        cellLocationToBeatAndNote(
+          this.mapCoordsToGridLocation(canvasEl, event.clientX, event.clientY),
+          this.props.cellsPerBeat
+        )
       )
     }));
   }
@@ -548,29 +555,21 @@ export default class PianoRoll extends React.Component<Props, State> {
       );
 
       const edits$ = gesturesForEdits$.flatMap(gesture => {
-        const firstBeat = cellLocationToBeatAndNote(
-          gesture.first,
-          this.props.cellsPerBeat
-        );
+        const firstBeat = gesture.first;
 
         const create$ = Observable.of({
           ...firstBeat,
           action: "create",
           duration: 1.0 / this.props.cellsPerBeat
         });
-        const moves$ = gesture.rest$
-          .map(location =>
-            cellLocationToBeatAndNote(location, this.props.cellsPerBeat)
-          )
-          .distinctUntilChanged(isEqual)
-          .scan(
-            (last, to) => ({
-              action: "move",
-              to: to,
-              from: last.to
-            }),
-            { to: firstBeat }
-          );
+        const moves$ = gesture.rest$.distinctUntilChanged(isEqual).scan((
+          last,
+          to
+        ) => ({
+          action: "move",
+          to: to,
+          from: last.to
+        }), { to: firstBeat });
 
         return Observable.merge(create$, moves$);
       });
