@@ -19,7 +19,7 @@ import { findWrappingClass } from "./domutils";
 
 import colors from "./colors";
 
-import type { ScheduledNoteList } from "./song";
+import type { ScheduledNoteList, ScheduledNote } from "./song";
 import type { TouchGestureBegin } from "./TouchableArea";
 
 // $FlowFixMe - scss not supported
@@ -301,6 +301,30 @@ export type GridSelection = {
   start: NoteLocation,
   end: NoteLocation
 };
+
+function inRange(n: number, i: number, j: number) {
+  const range = [i, j].sort();
+  return n >= range[0] && n <= range[1];
+}
+
+function isNoteInSelection(
+  note: ScheduledNote,
+  selection: GridSelection
+): boolean {
+  return (
+    inRange(note[0], selection.start.note, selection.end.note) &&
+    inRange(note[1], selection.start.beat, selection.end.beat)
+  );
+}
+
+const Note = styled.div`
+  position: absolute;
+  box-sizing: border-box;
+  height: ${cellHeight}px;
+  width: 15px;
+  background-color: ${props => (props.selected ? "red" : colors.aquaGlue)};
+  border: 1px solid ${colors.darkThree};
+`;
 
 export default class PianoRoll extends React.Component<Props, State> {
   constructor() {
@@ -601,11 +625,15 @@ export default class PianoRoll extends React.Component<Props, State> {
 
             <div>
               {this.props.notes.map((note, i) => (
-                <div
-                  className="note touchable"
+                <Note
+                  className="touchable note"
                   key={i}
                   data-note={note[0]}
                   data-beat={note[1]}
+                  selected={
+                    this.state.selection &&
+                      isNoteInSelection(note, this.state.selection)
+                  }
                   style={stylesForNote(note)}
                 />
               ))}

@@ -79,32 +79,7 @@
     flex-shrink: 0;
   }
 
-  .cell:first-child {
-    border-left: 2px solid $color-dark-two;
-  }
-
-  .row:first-child .cell {
-    border-top: 1px solid $color-dark-two;
-  }
-
-  @mixin define-cell-width($n) {
-    .cell-width-#{$n} {
-      .cell {
-        width: $beat-width / $n;
-      }
-      .cell:nth-child(#{$n}n+0) {
-        border-right: 2px solid $color-dark-two;
-      }
-    }
-  }
-
-  @include define-cell-width(1);
-  @include define-cell-width(2);
-  @include define-cell-width(4);
-  @include define-cell-width(8);
-  @include define-cell-width(16);
-
-  .cell, .note-label {
+  .note-label {
     height: $cell-height;
     border-bottom: solid 1px $color-dusk-four;
     box-sizing: border-box;
@@ -113,23 +88,6 @@
   .note-label.playing {
     color: $active-color;
     font-weight: bold;
-  }
-
-  .cell {
-    display: inline-block;
-    box-sizing: border-box;
-    border: 1px solid $color-dark-two;
-    border-left: none;
-    border-top: none;
-  }
-
-  .note {
-    position: absolute;
-    box-sizing: border-box;
-    height: $cell-height;
-    width: 15px;
-    background-color: $color-aqua-blue;
-    border: 1px solid $color-dark-three;
   }
 
   .playhead {
