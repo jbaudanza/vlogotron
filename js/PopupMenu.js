@@ -1,13 +1,23 @@
-import PropTypes from "prop-types";
+/* @flow */
 import React from "react";
 
 import Link from "./Link";
 
+// $FlowFixMe
 import "./PopupMenu.scss";
 
 import classNames from "classnames";
 
-export default class PopupMenu extends React.Component {
+type Props = {
+  options: Array<[string, string, Object]>,
+  targetRect: ClientRect
+};
+
+type State = {
+  windowHeight: number
+};
+
+export default class PopupMenu extends React.Component<Props, State> {
   componentWillMount() {
     this.setState({ windowHeight: window.innerHeight });
   }
@@ -24,7 +34,7 @@ export default class PopupMenu extends React.Component {
       orientation = "above";
     }
 
-    const style = {
+    const style: Object = {
       position: "fixed",
       left: this.props.targetRect.left +
         this.props.targetRect.width / 2 -
@@ -62,8 +72,3 @@ export default class PopupMenu extends React.Component {
     );
   }
 }
-
-PopupMenu.propTypes = {
-  options: PropTypes.array.isRequired,
-  targetRect: PropTypes.object.isRequired
-};
