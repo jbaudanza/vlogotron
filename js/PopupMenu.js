@@ -7,10 +7,11 @@ import Link from "./Link";
 import "./PopupMenu.scss";
 
 import classNames from "classnames";
+import type { Rect } from "./domutils";
 
 type Props = {
   options: Array<[string, string, Object]>,
-  targetRect: ClientRect
+  targetRect: Rect
 };
 
 type State = {

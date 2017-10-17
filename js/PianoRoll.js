@@ -12,10 +12,12 @@ import { range, flatten, bindAll, identity, isEqual, max } from "lodash";
 import { midiNoteToLabel, labelToMidiNote } from "./midi";
 
 import TouchableArea from "./TouchableArea";
+import PopupMenu from "./PopupMenu";
 import Canvas from "./Canvas";
 
 import { songLengthInBeats } from "./song";
 import { findWrappingClass } from "./domutils";
+import type { Rect } from "./domutils";
 
 import colors from "./colors";
 
@@ -37,6 +39,15 @@ import {
   beatToWidth,
   widthToBeat
 } from "./PianoRollGeometry";
+
+function makeSelectionRect(selection: GridSelection): Rect {
+  return {
+    left: selection.start.beat * beatWidth,
+    top: (midiRange[0] - selection.start.note) * cellHeight,
+    width: (selection.end.beat - selection.start.beat) * beatWidth,
+    height: (selection.start.note - selection.end.note) * cellHeight
+  };
+}
 
 function gridDrawFunction(ctx, props, width, height) {
   ctx.clearRect(0, 0, width, height);
@@ -64,23 +75,13 @@ function gridDrawFunction(ctx, props, width, height) {
     ctx.stroke();
   }
 
-  const selection = props.selection;
-
-  if (selection != null) {
-    // TODO: This second if is for flow, and kind of silly. see if you can
-    // clean this up
-    if (selection != null) {
-      ctx.beginPath();
-      ctx.rect(
-        selection.start.beat * beatWidth + 0.5,
-        (midiRange[0] - selection.start.note) * cellHeight + 0.5,
-        (selection.end.beat - selection.start.beat) * beatWidth,
-        (selection.start.note - selection.end.note) * cellHeight
-      );
-      ctx.strokeStyle = "#fff";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
+  if (props.selection != null) {
+    const rect = makeSelectionRect(props.selection);
+    ctx.beginPath();
+    ctx.rect(rect.left + 0.5, rect.top + 0.5, rect.width, rect.height);
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 1;
+    ctx.stroke();
   }
 }
 
@@ -264,7 +265,8 @@ type Props = {
 
 type State = {
   isPlaying: boolean,
-  selection: ?GridSelection
+  selection: ?GridSelection,
+  selectionFinished: boolean
 };
 
 type CellLocation = {
@@ -329,7 +331,7 @@ const Note = styled.div`
 export default class PianoRoll extends React.Component<Props, State> {
   constructor() {
     super();
-    this.state = { isPlaying: false, selection: null };
+    this.state = { isPlaying: false, selection: null, selectionFinished: false };
     bindAll(
       this,
       "bindPlayhead",
@@ -450,6 +452,13 @@ export default class PianoRoll extends React.Component<Props, State> {
       .nonNull();
   }
 
+  subscribeToSelection(selection$: Observable<GridSelection>) {
+    selection$.subscribe({
+      next: (selection) => this.setState({ selection, selectionFinished: false }),
+      complete: () => this.setState({selectionFinished: true})
+    });
+  }
+
   bindTouchableArea(component: ?TouchableArea) {
     if (component) {
       const [
@@ -460,13 +469,13 @@ export default class PianoRoll extends React.Component<Props, State> {
       );
 
       touchesForSelections$
-        .flatMap(gesture => {
+        .map(gesture => {
           return gesture.rest$.map(event => ({
             start: gesture.first.location,
             end: event.location
           }));
         })
-        .subscribe(selection => this.setState({ selection }));
+        .subscribe(this.subscribeToSelection.bind(this));
 
       this.edits$ = touchesForEdits$.flatMap(gesture => {
         const moves$ = gesture.rest$
@@ -589,6 +598,26 @@ export default class PianoRoll extends React.Component<Props, State> {
       selection: this.state.selection
     };
 
+    const popupMenuOptions = [
+      [
+        "#svg-pencil-2",
+        "Copy",
+        {href: '#'},
+      ],
+
+      [
+        "#svg-pencil-2",
+        "Clear",
+        {href: '#'},
+      ],
+
+      [
+        "#svg-pencil-2",
+        "Nevermind",
+        {href: '#'},
+      ]
+    ];
+
     return (
       <div className="piano-roll">
         <div className="row-labels">
@@ -623,6 +652,13 @@ export default class PianoRoll extends React.Component<Props, State> {
               width={beatToWidth(totalBeats)}
             />
 
+            {
+              this.state.selection && this.state.selectionFinished ? (
+                <PopupMenu
+                    options={popupMenuOptions}
+                    targetRect={makeSelectionRect(this.state.selection)} />
+              ) : null
+            }
             <div>
               {this.props.notes.map((note, i) => (
                 <Note
