@@ -6,6 +6,9 @@ import Link from "./Link";
 // $FlowFixMe
 import "./PopupMenu.scss";
 
+import styled from "styled-components";
+import colors from "./colors";
+
 import classNames from "classnames";
 import type { Rect } from "./domutils";
 
@@ -18,6 +21,54 @@ type State = {
   windowHeight: number
 };
 
+const menuBackgroundColor = "#fff";
+const menuWidth = 174;
+const menuPadding = 10;
+const menuOptionHeight = 27;
+
+const Wrapper = styled.div`
+  position: absolute;
+  font-size: 13px;
+  padding: ${menuPadding}px 0;
+  background-color: ${menuBackgroundColor};
+  letter-spacing: 0.2px;
+  width: ${menuWidth}px;
+  box-shadow: 0 2px 7px 0 ${colors.paleGrey};
+  border-radius: 2px;
+  z-index: 2;
+`;
+
+const MenuUL = styled.ul`
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+
+  .icon {
+    margin-right: 15px;
+    margin-top: 5px;
+    float: left;
+  }
+
+  li {
+    padding: 0;
+    margin: 0;
+    height: ${menuOptionHeight}px;
+  }
+
+  li > a {
+    display: block;
+    text-decoration: none;
+    color: ${colors.greyishBrown};
+    padding: 0 15px;
+    height: ${menuOptionHeight}px;
+    line-height: ${menuOptionHeight}px;
+
+    &:hover {
+      background-color: ${colors.paleGrey};
+    }
+  }
+`;
+
 export default class PopupMenu extends React.Component<Props, State> {
   componentWillMount() {
     this.setState({ windowHeight: window.innerHeight });
@@ -25,11 +76,16 @@ export default class PopupMenu extends React.Component<Props, State> {
 
   render() {
     const pointerHeight = 10;
-    const menuHeight = 20 + 27 * this.props.options.length;
-    const menuWidth = 174;
+    const menuHeight =
+      menuPadding * 2 + menuOptionHeight * this.props.options.length;
+
+    const targetRectBottom =
+      this.props.targetRect.top + this.props.targetRect.height;
 
     let orientation;
-    if (this.state.windowHeight - this.props.targetRect.top > menuHeight) {
+    if (
+      this.state.windowHeight - targetRectBottom > menuHeight + pointerHeight
+    ) {
       orientation = "below";
     } else {
       orientation = "above";
@@ -42,12 +98,10 @@ export default class PopupMenu extends React.Component<Props, State> {
         menuWidth / 2
     };
     if (orientation === "above") {
+      console.log(menuHeight, pointerHeight);
       style.top = this.props.targetRect.top - (menuHeight + pointerHeight);
     } else {
-      style.top =
-        this.props.targetRect.top +
-        this.props.targetRect.height +
-        pointerHeight;
+      style.top = targetRectBottom + pointerHeight;
     }
 
     const className = classNames("popup-menu", {
@@ -56,8 +110,8 @@ export default class PopupMenu extends React.Component<Props, State> {
     });
 
     return (
-      <div className={className} style={style}>
-        <ul>
+      <Wrapper className={className} style={style}>
+        <MenuUL>
           {this.props.options.map((option, i) => (
             <li key={i}>
               <Link {...option[2]}>
@@ -68,8 +122,8 @@ export default class PopupMenu extends React.Component<Props, State> {
               </Link>
             </li>
           ))}
-        </ul>
-      </div>
+        </MenuUL>
+      </Wrapper>
     );
   }
 }
