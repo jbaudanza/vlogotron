@@ -49,6 +49,15 @@ function makeSelectionRect(selection: GridSelection): Rect {
   };
 }
 
+function translateRect(left: number, top: number, rect: Rect): Rect {
+  return {
+    left: rect.left + left,
+    top: rect.top + top,
+    width: rect.width,
+    height: rect.height
+  };
+}
+
 function gridDrawFunction(ctx, props, width, height) {
   ctx.clearRect(0, 0, width, height);
 
@@ -266,7 +275,8 @@ type Props = {
 type State = {
   isPlaying: boolean,
   selection: ?GridSelection,
-  selectionFinished: boolean
+  selectionFinished: boolean,
+  gridClientRect: ?ClientRect
 };
 
 type CellLocation = {
@@ -331,7 +341,12 @@ const Note = styled.div`
 export default class PianoRoll extends React.Component<Props, State> {
   constructor() {
     super();
-    this.state = { isPlaying: false, selection: null, selectionFinished: false };
+    this.state = {
+      isPlaying: false,
+      selection: null,
+      selectionFinished: false,
+      gridClientRect: null
+    };
     bindAll(
       this,
       "bindPlayhead",
@@ -454,9 +469,21 @@ export default class PianoRoll extends React.Component<Props, State> {
 
   subscribeToSelection(selection$: Observable<GridSelection>) {
     selection$.subscribe({
-      next: (selection) => this.setState({ selection, selectionFinished: false }),
-      complete: () => this.setState({selectionFinished: true})
+      next: selection => this.setState({ selection, selectionFinished: false }),
+      complete: () => this.setState({ selectionFinished: true })
     });
+  }
+
+  bindGrid(canvasEl: ?HTMLCanvasElement) {
+    if (canvasEl) {
+      this.setState({
+        gridClientRect: canvasEl.getBoundingClientRect()
+      });
+    } else {
+      this.setState({
+        gridClientRect: null
+      });
+    }
   }
 
   bindTouchableArea(component: ?TouchableArea) {
@@ -599,23 +626,11 @@ export default class PianoRoll extends React.Component<Props, State> {
     };
 
     const popupMenuOptions = [
-      [
-        "#svg-pencil-2",
-        "Copy",
-        {href: '#'},
-      ],
+      ["#svg-pencil-2", "Copy", { href: "#" }],
 
-      [
-        "#svg-pencil-2",
-        "Clear",
-        {href: '#'},
-      ],
+      ["#svg-pencil-2", "Clear", { href: "#" }],
 
-      [
-        "#svg-pencil-2",
-        "Nevermind",
-        {href: '#'},
-      ]
+      ["#svg-pencil-2", "Nevermind", { href: "#" }]
     ];
 
     return (
@@ -647,18 +662,24 @@ export default class PianoRoll extends React.Component<Props, State> {
             <Canvas
               input={gridInput}
               className="touchable"
+              innerRef={this.bindGrid.bind(this)}
               drawFunction={gridDrawFunction}
               height={gridInput.totalNotes * cellHeight}
               width={beatToWidth(totalBeats)}
             />
 
-            {
-              this.state.selection && this.state.selectionFinished ? (
-                <PopupMenu
-                    options={popupMenuOptions}
-                    targetRect={makeSelectionRect(this.state.selection)} />
-              ) : null
-            }
+            {this.state.selection &&
+              this.state.selectionFinished &&
+              this.state.gridClientRect
+              ? <PopupMenu
+                  options={popupMenuOptions}
+                  targetRect={translateRect(
+                    this.state.gridClientRect.left,
+                    this.state.gridClientRect.top,
+                    makeSelectionRect(this.state.selection)
+                  )}
+                />
+              : null}
             <div>
               {this.props.notes.map((note, i) => (
                 <Note
