@@ -1,6 +1,7 @@
 /* @flow */
 
 import { Observable } from "rxjs/Observable";
+import { Subject } from "rxjs/Subject";
 import type { Subscription } from "rxjs/Subscription";
 
 import PropTypes from "prop-types";
@@ -23,6 +24,7 @@ import colors from "./colors";
 
 import type { ScheduledNoteList, ScheduledNote } from "./song";
 import type { TouchGestureBegin } from "./TouchableArea";
+import type { SongEdit } from "./localWorkspace";
 
 // $FlowFixMe - scss not supported
 import "./PianoRoll.scss";
@@ -354,11 +356,13 @@ export default class PianoRoll extends React.Component<Props, State> {
       "bindTouchableArea",
       "bindScroller"
     );
+    this.editSubject$ = new Subject();
   }
 
   innerSubscribe: Subscription;
   outerSubscribe: Subscription;
-  edits$: Observable<Object>;
+  edits$: Observable<SongEdit>;
+  editSubject$: Subject<SongEdit>;
   playbackPositionSpan: ?HTMLSpanElement;
   scrollerEl: ?HTMLElement;
   playbackPositionSpan: ?HTMLElement;
@@ -504,7 +508,7 @@ export default class PianoRoll extends React.Component<Props, State> {
         })
         .subscribe(this.subscribeToSelection.bind(this));
 
-      this.edits$ = touchesForEdits$.flatMap(gesture => {
+      const edits$ = touchesForEdits$.flatMap(gesture => {
         const moves$ = gesture.rest$
           .filter(event => isEmptyCell(event.element))
           .map(event => event.location)
@@ -515,7 +519,11 @@ export default class PianoRoll extends React.Component<Props, State> {
               to: to,
               from: last.to
             }),
-            { to: gesture.first.location }
+            {
+              action: "move", // ignored
+              from: gesture.first.location, // ignored
+              to: gesture.first.location // only attribute that matters
+            }
           );
 
         if (isEmptyCell(gesture.first.element)) {
@@ -528,7 +536,7 @@ export default class PianoRoll extends React.Component<Props, State> {
         } else if (isNoteCell(gesture.first.element)) {
           const deletes$ = gesture.rest$.isEmpty().filter(identity).mapTo({
             action: "delete",
-            ...gesture.first.location
+            notes: [gesture.first.location]
           });
 
           return Observable.merge(moves$, deletes$);
@@ -536,6 +544,8 @@ export default class PianoRoll extends React.Component<Props, State> {
           return Observable.never();
         }
       });
+
+      this.edits$ = Observable.merge(edits$, this.editSubject$);
     }
   }
 
@@ -614,6 +624,29 @@ export default class PianoRoll extends React.Component<Props, State> {
     }
   }
 
+  onClickClear() {
+    if (!this.state.selection) return;
+    const selection = this.state.selection;
+
+    const notes = this.props.notes
+      .filter(note => isNoteInSelection(note, selection))
+      .map(tuple => ({ note: tuple[0], beat: tuple[1] }));
+
+    const action = {
+      action: "delete",
+      notes: notes
+    };
+
+    this.editSubject$.next(action);
+  }
+
+  onClickNevermind() {
+    this.setState({
+      selectionFinished: false,
+      selection: null
+    });
+  }
+
   render() {
     const songLength = songLengthInBeats(this.props.notes);
     const totalBeats = Math.floor(songLength + 8);
@@ -628,9 +661,13 @@ export default class PianoRoll extends React.Component<Props, State> {
     const popupMenuOptions = [
       ["#svg-pencil-2", "Copy", { href: "#" }],
 
-      ["#svg-pencil-2", "Clear", { href: "#" }],
+      ["#svg-pencil-2", "Clear", { onClick: this.onClickClear.bind(this) }],
 
-      ["#svg-pencil-2", "Nevermind", { href: "#" }]
+      [
+        "#svg-pencil-2",
+        "Nevermind",
+        { onClick: this.onClickNevermind.bind(this) }
+      ]
     ];
 
     return (

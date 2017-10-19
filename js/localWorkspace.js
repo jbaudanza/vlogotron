@@ -3,25 +3,39 @@
 import { Observable } from "rxjs/Observable";
 import type { Subscription } from "rxjs/Subscription";
 import type { Subject } from "rxjs/Subject";
-import { concat, omit, merge, findIndex, filter, identity, last } from "lodash";
+import {
+  concat,
+  omit,
+  merge,
+  findIndex,
+  find,
+  filter,
+  identity,
+  last
+} from "lodash";
 
 import StorageSubject from "./StorageSubject";
 
 import { songs } from "./song";
 import type { SongId, Song, ScheduledNoteList, ScheduledNote } from "./song";
 
-type SongEdit =
+type NoteLocation = {
+  beat: number,
+  note: number
+};
+
+export type SongEdit =
   | { action: "change-bpm", bpm: number }
   | { action: "change-title", title: string }
   | { action: "update-song", songId: SongId }
   | { action: "clear-all" }
   | { action: "replace-all", notes: ScheduledNoteList }
-  | { action: "create", note: string, beat: number, duration: number }
-  | { action: "delete", note: string, beat: number }
+  | { action: "create", note: number, beat: number, duration: number }
+  | { action: "delete", notes: Array<NoteLocation> }
   | {
       action: "move",
-      from: { note: string, beat: number },
-      to: { note: string, beat: number }
+      from: NoteLocation,
+      to: NoteLocation
     };
 
 export type LocalWorkspace = {
@@ -122,7 +136,7 @@ function reduceEditsToNotes(
   notes: ScheduledNoteList,
   edit: SongEdit
 ): ScheduledNoteList {
-  function matcher(location: Object, note: ScheduledNote) {
+  function matcher(location: NoteLocation, note: ScheduledNote) {
     return note[0] === location.note && note[1] === location.beat;
   }
 
@@ -134,7 +148,8 @@ function reduceEditsToNotes(
     case "create":
       return concat(notes, [[edit.note, edit.beat, edit.duration]]);
     case "delete":
-      return filter(notes, note => !matcher(edit, note));
+      const removedNotes = edit.notes;
+      return filter(notes, i => !find(removedNotes, j => matcher(j, i)));
     case "move":
       const index = findIndex(notes, matcher.bind(null, edit.from));
       if (index !== -1) {
