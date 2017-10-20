@@ -1,3 +1,5 @@
+/* @flow */
+
 import PropTypes from "prop-types";
 import React from "react";
 
@@ -10,6 +12,7 @@ import PlayButton from "./PlayButton";
 import styled from "styled-components";
 import colors from "./colors";
 
+// $FlowFixMe - scss not supported
 import "./PianoRollHeader.scss";
 
 const HeaderActionLink = styled(ActionLink)`
@@ -35,17 +38,35 @@ const StyledSelect = ActionLink.withComponent("select").extend`
   -moz-appearance: none;
 `;
 
-export default class PianoRollHeader extends React.Component {
+
+type Props = {
+  bpm: number,
+  onChangeBpm: (number) => void,
+  onChangeCellsPerBeat: (number) => void,
+  cellsPerBeat: number,
+  isPlaying: boolean,
+  onClickPlay: () => void,
+  onClickPause: () => void,
+  onReset: () => void,
+  onUndo: () => void,
+  onRedo: () => void,
+  onToggleSelecting: () => void,
+  undoEnabled: boolean,
+  redoEnabled: boolean,
+  isSelecting: boolean
+}
+
+export default class PianoRollHeader extends React.Component<Props> {
   constructor() {
     super();
     bindAll(this, "onChangeSelect", "onChangeBpm");
   }
 
-  onChangeSelect(event) {
+  onChangeSelect(event: Event & { target: HTMLSelectElement }) {
     this.props.onChangeCellsPerBeat(parseInt(event.target.value));
   }
 
-  onChangeBpm(event) {
+  onChangeBpm(event: Event & { target: HTMLSelectElement }) {
     this.props.onChangeBpm(parseInt(event.target.value));
   }
 
@@ -60,18 +81,6 @@ export default class PianoRollHeader extends React.Component {
             onClickPlay={this.props.onClickPlay}
             onClickPause={this.props.onClickPause}
           />
-
-          {/*
-          <Link onClick={null} className="record-button">
-            <svg version="1.1" width={28} height={28}>
-              <use
-                xlinkHref={
-                  this.props.isRecording ? "#svg-record-active" : "#svg-record"
-                }
-              />
-            </svg>
-          </Link>
-          */}
 
           <Link href="#choose-song" className="song-chooser">
             <svg version="1.1" width={18} height={16}>
@@ -139,19 +148,4 @@ export default class PianoRollHeader extends React.Component {
 
 PianoRollHeader.contextTypes = {
   messages: PropTypes.object.isRequired
-};
-
-PianoRollHeader.propTypes = {
-  bpm: PropTypes.number.isRequired,
-  onChangeBpm: PropTypes.func.isRequired,
-  onChangeCellsPerBeat: PropTypes.func.isRequired,
-  onReset: PropTypes.func.isRequired,
-  onUndo: PropTypes.func.isRequired,
-  cellsPerBeat: PropTypes.number.isRequired,
-  isRecording: PropTypes.bool.isRequired,
-  isPlaying: PropTypes.bool.isRequired,
-  onClickPlay: PropTypes.func.isRequired,
-  onClickPause: PropTypes.func.isRequired,
-  undoEnabled: PropTypes.bool.isRequired,
-  redoEnabled: PropTypes.bool.isRequired
 };

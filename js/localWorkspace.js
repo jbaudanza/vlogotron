@@ -25,6 +25,8 @@ type NoteLocation = {
 };
 
 export type SongEdit =
+  | { action: "undo" }
+  | { action: "redo" }
   | { action: "change-bpm", bpm: number }
   | { action: "change-title", title: string }
   | { action: "update-song", songId: SongId }

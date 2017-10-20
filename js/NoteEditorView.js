@@ -28,6 +28,7 @@ import type { Observable } from "rxjs/Observable";
 import type { Subscription } from "rxjs/Subscription";
 import type { Media, NoteConfiguration } from "./mediaLoading";
 import type { ScheduledNoteList } from "./song";
+import type { SongEdit } from "./localWorkspace";
 
 // $FlowFixMe
 import "./NoteEditorView.scss";
@@ -54,6 +55,7 @@ type Props = {
   media: Media,
   playCommands$: Observable<Object>,
   playbackPositionInBeats$$: Observable<Object>,
+  onEditSong: SongEdit => void,
   actions: Object
 };
 
@@ -110,24 +112,19 @@ export default class NoteEditorView extends React.Component<Props, State> {
   }
 
   onReset() {
-    this.props.actions.subjects.editSong$.next({
-      action: "clear-all"
-    });
+    this.props.onEditSong({ action: "clear-all" });
   }
 
   onRedo() {
-    this.props.actions.subjects.editSong$.next({ action: "redo" });
+    this.props.onEditSong({ action: "redo" });
   }
 
   onUndo() {
-    this.props.actions.subjects.editSong$.next({ action: "undo" });
+    this.props.onEditSong({ action: "undo" });
   }
 
   onChangeBpm(bpm: number) {
-    this.props.actions.subjects.editSong$.next({
-      action: "change-bpm",
-      bpm: bpm
-    });
+    this.props.onEditSong({ action: "change-bpm", bpm });
   }
 
   onToggleSelecting() {
@@ -135,14 +132,14 @@ export default class NoteEditorView extends React.Component<Props, State> {
   }
 
   onChangeTitle(title: string) {
-    this.props.actions.subjects.editSong$.next({
+    this.props.onEditSong({
       action: "change-title",
-      title: title
+      title
     });
   }
 
   onChooseSong(songId: string) {
-    this.props.actions.subjects.editSong$.next({
+    this.props.onEditSong({
       action: "update-song",
       songId: songId
     });
