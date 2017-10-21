@@ -17,7 +17,7 @@ export type NoteSelection = {
   end: NoteLocation
 };
 
-type SelectionActions = {
+export type SelectionActions = {
   // "normal" mode
   startSelection$: Observable<Object>, // From Header
   stopSelection$: Observable<Object>, // From Header or PianoRoll (Nevermind button)
@@ -34,12 +34,12 @@ type SelectionActions = {
   pasteSelection$: Observable<NoteLocation> // From PianoRoll
 };
 
-type AuditionedNotes = {
+export type AuditionedNotes = {
   origin: NoteLocation,
   notes: ScheduledNoteList
 };
 
-type SelectionViewProps = {
+export type SelectionViewProps = {
   selectionState: SelectionState,
   selection: ?NoteSelection,
   auditioningNotes: ?AuditionedNotes
@@ -50,7 +50,11 @@ type SelectionProps = {
   notes: ScheduledNoteList
 };
 
-type SelectionState = "normal" | "selecting" | "menu-prompt" | "auditioning";
+export type SelectionState =
+  | "normal"
+  | "selecting"
+  | "menu-prompt"
+  | "auditioning";
 
 function inRange(n: number, i: number, j: number) {
   const range = [i, j].sort();
@@ -71,7 +75,7 @@ export function isNoteInSelection(
   Handles all the actions and state management for selecting notes for clearing
   or copy and paste.
  */
-export function selectionController(
+export default function noteSelectionController(
   props$: Observable<SelectionProps>,
   actions: SelectionActions
 ): Observable<SelectionViewProps> {
@@ -87,14 +91,18 @@ export function selectionController(
     ).mapTo("normal"),
     actions.finishSelection$.mapTo("menu-prompt"),
     actions.copySelection$.mapTo("auditioning")
-  );
+  ).startWith("normal");
 
   //
   // Manage current selection
   //
-  const selection$ = selectionState$
-    .switchMap(state => {
-      if (state === "selection") {
+  const showSelection$ = selectionState$
+    .map(state => state === "selecting" || state === "menu-prompt")
+    .distinctUntilChanged();
+
+  const selection$ = showSelection$
+    .switchMap(shouldShow => {
+      if (shouldShow) {
         return Observable.of(null).concat(actions.changeSelection$);
       } else {
         return Observable.of(null);
@@ -107,10 +115,10 @@ export function selectionController(
   //
   // Clear action
   //
-  const clearEdits$ = this.actions.clearAction$
+  const clearEdits$ = actions.clearSelection$
     .withLatestFrom(
       props$,
-      selection$,
+      actions.changeSelection$,
       (ignore, props: SelectionProps, selection: ?NoteSelection): ?SongEdit => {
         if (!selection) return null;
 

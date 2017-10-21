@@ -49,7 +49,8 @@ type Props = {
   onReset: () => void,
   onUndo: () => void,
   onRedo: () => void,
-  onToggleSelecting: () => void,
+  onStartSelection: () => void,
+  onStopSelection: () => void,
   undoEnabled: boolean,
   redoEnabled: boolean,
   isSelecting: boolean
@@ -58,7 +59,7 @@ type Props = {
 export default class PianoRollHeader extends React.Component<Props> {
   constructor() {
     super();
-    bindAll(this, "onChangeSelect", "onChangeBpm");
+    bindAll(this, "onChangeSelect", "onChangeBpm", "onToggleSelecting");
   }
 
   onChangeSelect(event: Event & { target: HTMLSelectElement }) {
@@ -67,6 +68,14 @@ export default class PianoRollHeader extends React.Component<Props> {
 
   onChangeBpm(event: Event & { target: HTMLSelectElement }) {
     this.props.onChangeBpm(parseInt(event.target.value));
+  }
+
+  onToggleSelecting() {
+    if (this.props.isSelecting) {
+      this.props.onStopSelection();
+    } else {
+      this.props.onStartSelection();
+    }
   }
 
   render() {
@@ -92,7 +101,7 @@ export default class PianoRollHeader extends React.Component<Props> {
           <ToggleLink
             className="action"
             toggledOn={this.props.isSelecting}
-            onClick={this.props.onToggleSelecting}
+            onClick={this.onToggleSelecting}
           >
             Select
           </ToggleLink>

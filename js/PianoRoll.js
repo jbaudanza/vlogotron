@@ -25,7 +25,12 @@ import colors from "./colors";
 import type { ScheduledNoteList, ScheduledNote } from "./song";
 import type { TouchGestureBegin } from "./TouchableArea";
 import type { SongEdit } from "./localWorkspace";
-import type { NoteLocation, NoteSelection } from "./noteSelectionController";
+import type {
+  NoteLocation,
+  NoteSelection,
+  AuditionedNotes,
+  SelectionState
+} from "./noteSelectionController";
 
 // $FlowFixMe - scss not supported
 import "./PianoRoll.scss";
@@ -269,10 +274,18 @@ type Props = {
   cellsPerBeat: number,
   notes: ScheduledNoteList,
   playing: Object, // TODO: I dont think we're using this now
-  onChangePlaybackStartPosition: (value: ?number) => void,
   playbackPosition$$: Observable<Object>,
   playbackStartPosition: ?number,
-  isSelecting: boolean
+  selectionState: SelectionState,
+  selection: ?NoteSelection,
+  auditioningNotes: ?AuditionedNotes,
+  onChangePlaybackStartPosition: (value: ?number) => void,
+  onChangeSelection: NoteSelection => void,
+  onFinishSelection: () => void,
+  onClearSelection: () => void,
+  onCopySelection: () => void,
+  onStopSelection: () => void,
+  onPasteSelection: NoteLocation => void
 };
 
 type State = {
@@ -451,8 +464,8 @@ export default class PianoRoll extends React.Component<Props, State> {
 
   subscribeToSelection(selection$: Observable<NoteSelection>) {
     selection$.subscribe({
-      next: selection => this.setState({ selection, selectionFinished: false }),
-      complete: () => this.setState({ selectionFinished: true })
+      next: selection => this.props.onChangeSelection(selection),
+      complete: () => this.props.onFinishSelection()
     });
   }
 
@@ -474,7 +487,7 @@ export default class PianoRoll extends React.Component<Props, State> {
         touchesForSelections$,
         touchesForEdits$
       ] = this.makeGridGestureStream(component.touches$$).partition(
-        event => this.props.isSelecting
+        event => this.props.selectionState === "selecting"
       );
 
       touchesForSelections$
@@ -610,15 +623,15 @@ export default class PianoRoll extends React.Component<Props, State> {
       cellsPerBeat: this.props.cellsPerBeat,
       totalBeats: totalBeats,
       totalNotes: midiRange.length,
-      selection: this.state.selection
+      selection: this.props.selection
     };
 
     const popupMenuOptions = [
-      ["#svg-pencil-2", "Copy", { href: "#" }],
+      ["#svg-pencil-2", "Copy", { onClick: this.props.onCopySelection }],
 
-      ["#svg-pencil-2", "Clear", {}],
+      ["#svg-pencil-2", "Clear", { onClick: this.props.onClearSelection }],
 
-      ["#svg-pencil-2", "Nevermind", {}]
+      ["#svg-pencil-2", "Nevermind", { onClick: this.props.onStopSelection }]
     ];
 
     return (
@@ -645,7 +658,7 @@ export default class PianoRoll extends React.Component<Props, State> {
           <NoteWrapper
             innerRef={this.bindTouchableArea}
             totalBeats={totalBeats}
-            isSelecting={this.props.isSelecting}
+            isSelecting={this.props.selectionState === "selecting"}
           >
             <Canvas
               input={gridInput}
@@ -656,15 +669,15 @@ export default class PianoRoll extends React.Component<Props, State> {
               width={beatToWidth(totalBeats)}
             />
 
-            {this.state.selection &&
-              this.state.selectionFinished &&
+            {this.props.selectionState === "menu-prompt" &&
+              this.props.selection &&
               this.state.gridClientRect
               ? <PopupMenu
                   options={popupMenuOptions}
                   targetRect={translateRect(
                     this.state.gridClientRect.left,
                     this.state.gridClientRect.top,
-                    makeSelectionRect(this.state.selection)
+                    makeSelectionRect(this.props.selection)
                   )}
                 />
               : null}
@@ -676,8 +689,8 @@ export default class PianoRoll extends React.Component<Props, State> {
                   data-note={note[0]}
                   data-beat={note[1]}
                   selected={
-                    this.state.selection &&
-                      isNoteInSelection(note, this.state.selection)
+                    this.props.selection &&
+                      isNoteInSelection(note, this.props.selection)
                   }
                   style={stylesForNote(note)}
                 />

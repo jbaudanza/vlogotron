@@ -32,6 +32,7 @@ import type { SongEdit } from "./localWorkspace";
 import "./NoteEditorView.scss";
 
 import type { ViewProps } from "./noteEditorController";
+import type { NoteSelection, NoteLocation } from "./noteSelectionController";
 
 type ActionCallbacks = {
   onPlay: () => void,
@@ -40,15 +41,18 @@ type ActionCallbacks = {
   onChangeCellsPerBeat: number => void,
   onChangePlaybackStartPosition: number => void,
   onEditSong: SongEdit => void,
+  onStartSelection: () => void,
+  onStopSelection: () => void,
+  onChangeSelection: NoteSelection => void,
+  onFinishSelection: () => void,
+  onClearSelection: () => void,
+  onCopySelection: () => void,
+  onPasteSelection: NoteLocation => void,
   actions: Object
 };
 
-type State = {
-  isSelecting: boolean
-};
-
 export default class NoteEditorView
-  extends React.Component<ViewProps & ActionCallbacks, State> {
+  extends React.Component<ViewProps & ActionCallbacks> {
   constructor() {
     super();
     bindAll(
@@ -60,11 +64,8 @@ export default class NoteEditorView
       "onChangeTitle",
       "onRedo",
       "onReset",
-      "onUndo",
-      "onToggleSelecting"
+      "onUndo"
     );
-
-    this.state = { isSelecting: false };
   }
 
   pianoRollSubscription: Subscription;
@@ -110,10 +111,6 @@ export default class NoteEditorView
 
   onChangeBpm(bpm: number) {
     this.props.onEditSong({ action: "change-bpm", bpm });
-  }
-
-  onToggleSelecting() {
-    this.setState({ isSelecting: !this.state.isSelecting });
   }
 
   onChangeTitle(title: string) {
@@ -190,11 +187,9 @@ export default class NoteEditorView
           <PianoRollHeader
             bpm={this.props.bpm}
             onChangeBpm={this.onChangeBpm}
-            onToggleSelecting={this.onToggleSelecting}
             onClickPlay={this.props.onPlay}
             onClickPause={this.props.onPause}
             isPlaying={this.props.isPlaying}
-            isSelecting={this.state.isSelecting}
             onReset={this.onReset}
             onUndo={this.onUndo}
             onRedo={this.onRedo}
@@ -202,19 +197,30 @@ export default class NoteEditorView
             onChangeCellsPerBeat={this.props.onChangeCellsPerBeat}
             undoEnabled={this.props.undoEnabled}
             redoEnabled={this.props.redoEnabled}
+            isSelecting={this.props.selectionState === "selecting"}
+            onStartSelection={this.props.onStartSelection}
+            onStopSelection={this.props.onStopSelection}
           />
           <PianoRoll
             ref={this.bindPianoRoll}
             notes={this.props.notes}
-            isSelecting={this.state.isSelecting}
             cellsPerBeat={this.props.cellsPerBeat}
             songLength={this.props.songLength}
             playbackPosition$$={this.props.playbackPositionInBeats$$}
             playing={{}}
+            selectionState={this.props.selectionState}
+            selection={this.props.selection}
+            auditioningNotes={this.props.auditioningNotes}
             playbackStartPosition={this.props.playbackStartPosition}
+            onChangeSelection={this.props.onChangeSelection}
+            onClearSelection={this.props.onClearSelection}
+            onCopySelection={this.props.onCopySelection}
+            onFinishSelection={this.props.onFinishSelection}
+            onPasteSelection={this.props.onPasteSelection}
             onChangePlaybackStartPosition={
               this.props.actions.onChangePlaybackStartPosition
             }
+            onStopSelection={this.props.onStopSelection}
           />
         </div>
       </div>

@@ -3,6 +3,8 @@
 $menu-background-color: #fff;
 
 .popup-menu {
+  cursor: pointer;
+
   // arrow pointer - http://www.cssarrowplease.com/
   &:after {
     left: 50%;

@@ -136,7 +136,14 @@ export function routeToViewComponent(route: Route, media: Media): Function {
           "pause",
           "play",
           "playCommands$",
-          "save"
+          "save",
+          "changeSelection",
+          "clearSelection",
+          "copySelection",
+          "finishSelection",
+          "pasteSelection",
+          "startSelection",
+          "stopSelection"
         ],
         LoadingView
       );

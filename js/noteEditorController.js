@@ -4,6 +4,7 @@ import * as firebase from "firebase";
 
 import { Observable } from "rxjs/Observable";
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
+import { Subject } from "rxjs/Subject";
 
 import { playbackControllerHelper } from "./playbackController";
 import { songBoardPath } from "./router";
@@ -14,6 +15,8 @@ import {
   subjectFor
 } from "./localWorkspace";
 
+import noteSelectionController from "./noteSelectionController";
+
 import { updateSongBoard } from "./database";
 import combineTemplate from "./combineTemplate";
 
@@ -23,6 +26,10 @@ import type { LocalWorkspace, SongEdit } from "./localWorkspace";
 import type { Subscription } from "rxjs/Subscription";
 import type { ScheduledNoteList } from "./song";
 import type { PlaybackViewProps } from "./playbackController";
+import type {
+  SelectionViewProps,
+  SelectionActions
+} from "./noteSelectionController";
 
 type Props = {
   onNavigate: string => void,
@@ -47,7 +54,7 @@ type LocalViewProps = {
   currentUser: ?Firebase$User
 };
 
-export type ViewProps = LocalViewProps & PlaybackViewProps;
+export type ViewProps = LocalViewProps & PlaybackViewProps & SelectionViewProps;
 
 type Actions = {
   changeCellsPerBeat$: Observable<number>,
@@ -57,7 +64,7 @@ type Actions = {
 
 export default function noteEditorController(
   props$: Observable<Props>,
-  actions: Actions,
+  actions: Actions & SelectionActions,
   media: Media,
   subscription: Subscription
 ): Observable<ViewProps> {
@@ -85,12 +92,11 @@ export default function noteEditorController(
 
   workspace$.connect();
 
+  const editSong$ = new Subject();
+  actions.editSong$.subscribe(editSong$);
+
   workspace$.subscribe(storage$ => {
-    const undo = updatesForNewSongWithUndo(
-      actions.editSong$,
-      storage$,
-      subscription
-    );
+    const undo = updatesForNewSongWithUndo(editSong$, storage$, subscription);
 
     actions.save$
       .withLatestFrom(
@@ -128,9 +134,11 @@ export default function noteEditorController(
     workspace.map(songForLocalWorkspace)
   );
 
-  const parentViewState$ = playbackControllerHelper(
+  const notes$ = song$.map(o => o.notes);
+
+  const playbackProps$ = playbackControllerHelper(
     actions,
-    song$.map(o => o.notes),
+    notes$,
     song$.map(o => o.bpm).distinctUntilChanged(),
     media,
     subscription
@@ -138,7 +146,7 @@ export default function noteEditorController(
 
   const saveEnabled$ = Observable.of(true).concat(actions.save$.mapTo(false));
 
-  const viewProps$ = combineTemplate({
+  const localProps$ = combineTemplate({
     cellsPerBeat: cellsPerBeat$,
     redoEnabled: redoEnabled$,
     undoEnabled: undoEnabled$,
@@ -146,13 +154,25 @@ export default function noteEditorController(
     songBoardId: media.songBoard$.map(songBoard => songBoard.songBoardId)
   });
 
+  const selectionProps$ = noteSelectionController(
+    notes$.map(notes => ({
+      notes: notes,
+      onSongEdit: action => {
+        editSong$.next(action);
+      }
+    })),
+    actions
+  );
+
   return Observable.combineLatest(
-    parentViewState$,
-    viewProps$,
+    playbackProps$,
+    localProps$,
+    selectionProps$,
     props$,
-    (parent, viewProps, props) => ({
-      ...parent,
-      ...viewProps,
+    (playbackProps, localProps, selectionProps, props) => ({
+      ...playbackProps,
+      ...localProps,
+      ...selectionProps,
       location: props.location,
       premiumAccountStatus: props.premiumAccountStatus,
       onNavigate: props.onNavigate,
