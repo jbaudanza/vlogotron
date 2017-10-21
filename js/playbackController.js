@@ -28,7 +28,7 @@ import combineTemplate from "./combineTemplate";
 
 import type { Subscription } from "rxjs/Subscription";
 import type { ScheduledNoteList } from "./song";
-import type { Media } from "./mediaLoading";
+import type { Media, NoteConfiguration } from "./mediaLoading";
 
 export default function playbackController(
   props$: Observable<Object>,
@@ -76,6 +76,20 @@ export default function playbackController(
   );
 }
 
+export type PlaybackViewProps = {
+  noteConfiguration: NoteConfiguration,
+  loading: { [string]: boolean },
+  isPlaying: boolean,
+  playbackPositionInSeconds: number,
+  playbackStartPosition: number,
+  songLength: number,
+  songTitle: string,
+  notes: ScheduledNoteList,
+  bpm: number,
+  playCommands$: Observable<Object>,
+  playbackPositionInBeats$$: Observable<Object>
+};
+
 export function playbackControllerHelper(
   actions: Object,
   currentUser$: Observable<?Object>,
@@ -83,7 +97,7 @@ export function playbackControllerHelper(
   bpm$: Observable<number>,
   media: Media,
   subscription: Subscription
-) {
+): Observable<PlaybackViewProps> {
   const livePlayCommands$ = combinePlayCommands(
     Observable.merge(
       actions.playCommands$$,

@@ -22,6 +22,7 @@ import type { Media, NoteConfiguration } from "./mediaLoading";
 import type { LocalWorkspace, SongEdit } from "./localWorkspace";
 import type { Subscription } from "rxjs/Subscription";
 import type { ScheduledNoteList } from "./song";
+import type { PlaybackViewProps } from "./playbackController";
 
 type Props = {
   onNavigate: string => void,
@@ -31,28 +32,22 @@ type Props = {
   premiumAccountStatus: boolean
 };
 
-export type ViewProps = {
+type LocalViewProps = {
   onNavigate: string => void,
-  loading: Object,
   location: Object,
   songTitle: string,
   saveEnabled: boolean,
   onLogin: Function,
-  bpm: number,
   songBoardId: string,
   songLength: number,
-  isPlaying: boolean,
   cellsPerBeat: number,
   undoEnabled: boolean,
   redoEnabled: boolean,
   premiumAccountStatus: boolean,
-  notes: ScheduledNoteList,
-  currentUser: ?Firebase$User,
-  playbackStartPosition: number,
-  noteConfiguration: NoteConfiguration,
-  playCommands$: Observable<Object>,
-  playbackPositionInBeats$$: Observable<Object>
+  currentUser: ?Firebase$User
 };
+
+export type ViewProps = LocalViewProps & PlaybackViewProps;
 
 type Actions = {
   changeCellsPerBeat$: Observable<number>,
