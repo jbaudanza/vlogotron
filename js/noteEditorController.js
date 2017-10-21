@@ -130,7 +130,6 @@ export default function noteEditorController(
 
   const parentViewState$ = playbackControllerHelper(
     actions,
-    currentUser$,
     song$.map(o => o.notes),
     song$.map(o => o.bpm).distinctUntilChanged(),
     media,

@@ -143,7 +143,6 @@ export default function recordVideosController(
 
   const parentView$ = playbackControllerHelper(
     actions,
-    currentUser$,
     song$.map(o => o.notes),
     song$.map(o => o.bpm).distinctUntilChanged(),
     mediaStore,
@@ -199,6 +198,7 @@ export default function recordVideosController(
       onNavigate: props.onNavigate,
       onLogin: props.onLogin,
       premiumAccountStatus: props.premiumAccountStatus,
+      currentUser: props.currentUser,
       songBoardId
     })
   );

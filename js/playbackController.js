@@ -56,7 +56,6 @@ export default function playbackController(
 
   const parentView$ = playbackControllerHelper(
     actions,
-    currentUser$,
     song$.map(o => o.notes),
     song$.map(o => o.bpm).distinctUntilChanged(),
     media,
@@ -92,7 +91,6 @@ export type PlaybackViewProps = {
 
 export function playbackControllerHelper(
   actions: Object,
-  currentUser$: Observable<?Object>,
   notes$: Observable<ScheduledNoteList>,
   bpm$: Observable<number>,
   media: Media,
@@ -188,7 +186,6 @@ export function playbackControllerHelper(
     loading: media.loading$,
     isPlaying: isPlaying$,
     playbackPositionInSeconds: playbackPositionInSeconds$,
-    currentUser: currentUser$,
     playbackStartPosition: startPosition$,
     songLength: songLength$,
     songTitle: songTitle$,
