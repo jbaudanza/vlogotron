@@ -38,11 +38,10 @@ const StyledSelect = ActionLink.withComponent("select").extend`
   -moz-appearance: none;
 `;
 
-
 type Props = {
   bpm: number,
-  onChangeBpm: (number) => void,
-  onChangeCellsPerBeat: (number) => void,
+  onChangeBpm: number => void,
+  onChangeCellsPerBeat: number => void,
   cellsPerBeat: number,
   isPlaying: boolean,
   onClickPlay: () => void,
@@ -54,7 +53,7 @@ type Props = {
   undoEnabled: boolean,
   redoEnabled: boolean,
   isSelecting: boolean
-}
+};
 
 export default class PianoRollHeader extends React.Component<Props> {
   constructor() {

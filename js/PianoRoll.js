@@ -25,6 +25,7 @@ import colors from "./colors";
 import type { ScheduledNoteList, ScheduledNote } from "./song";
 import type { TouchGestureBegin } from "./TouchableArea";
 import type { SongEdit } from "./localWorkspace";
+import type { NoteLocation, NoteSelection } from "./noteSelectionController";
 
 // $FlowFixMe - scss not supported
 import "./PianoRoll.scss";
@@ -42,7 +43,7 @@ import {
   widthToBeat
 } from "./PianoRollGeometry";
 
-function makeSelectionRect(selection: GridSelection): Rect {
+function makeSelectionRect(selection: NoteSelection): Rect {
   return {
     left: selection.start.beat * beatWidth,
     top: (midiRange[0] - selection.start.note) * cellHeight,
@@ -276,7 +277,7 @@ type Props = {
 
 type State = {
   isPlaying: boolean,
-  selection: ?GridSelection,
+  selection: ?NoteSelection,
   selectionFinished: boolean,
   gridClientRect: ?ClientRect
 };
@@ -284,11 +285,6 @@ type State = {
 type CellLocation = {
   row: number,
   column: number
-};
-
-type NoteLocation = {
-  beat: number,
-  note: number
 };
 
 type GridGestureEvent = {
@@ -311,25 +307,7 @@ function cellLocationToBeatAndNote(
   };
 }
 
-export type GridSelection = {
-  start: NoteLocation,
-  end: NoteLocation
-};
-
-function inRange(n: number, i: number, j: number) {
-  const range = [i, j].sort();
-  return n >= range[0] && n <= range[1];
-}
-
-function isNoteInSelection(
-  note: ScheduledNote,
-  selection: GridSelection
-): boolean {
-  return (
-    inRange(note[0], selection.start.note, selection.end.note) &&
-    inRange(note[1], selection.start.beat, selection.end.beat)
-  );
-}
+import { isNoteInSelection } from "./noteSelectionController";
 
 const Note = styled.div`
   position: absolute;
@@ -471,7 +449,7 @@ export default class PianoRoll extends React.Component<Props, State> {
       .nonNull();
   }
 
-  subscribeToSelection(selection$: Observable<GridSelection>) {
+  subscribeToSelection(selection$: Observable<NoteSelection>) {
     selection$.subscribe({
       next: selection => this.setState({ selection, selectionFinished: false }),
       complete: () => this.setState({ selectionFinished: true })
@@ -624,29 +602,6 @@ export default class PianoRoll extends React.Component<Props, State> {
     }
   }
 
-  onClickClear() {
-    if (!this.state.selection) return;
-    const selection = this.state.selection;
-
-    const notes = this.props.notes
-      .filter(note => isNoteInSelection(note, selection))
-      .map(tuple => ({ note: tuple[0], beat: tuple[1] }));
-
-    const action = {
-      action: "delete",
-      notes: notes
-    };
-
-    this.editSubject$.next(action);
-  }
-
-  onClickNevermind() {
-    this.setState({
-      selectionFinished: false,
-      selection: null
-    });
-  }
-
   render() {
     const songLength = songLengthInBeats(this.props.notes);
     const totalBeats = Math.floor(songLength + 8);
@@ -661,13 +616,9 @@ export default class PianoRoll extends React.Component<Props, State> {
     const popupMenuOptions = [
       ["#svg-pencil-2", "Copy", { href: "#" }],
 
-      ["#svg-pencil-2", "Clear", { onClick: this.onClickClear.bind(this) }],
+      ["#svg-pencil-2", "Clear", {}],
 
-      [
-        "#svg-pencil-2",
-        "Nevermind",
-        { onClick: this.onClickNevermind.bind(this) }
-      ]
+      ["#svg-pencil-2", "Nevermind", {}]
     ];
 
     return (

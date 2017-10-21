@@ -26,35 +26,19 @@ import { recordVideosPath } from "./router";
 import { bindAll } from "lodash";
 import type { Observable } from "rxjs/Observable";
 import type { Subscription } from "rxjs/Subscription";
-import type { Media, NoteConfiguration } from "./mediaLoading";
-import type { ScheduledNoteList } from "./song";
 import type { SongEdit } from "./localWorkspace";
 
 // $FlowFixMe
 import "./NoteEditorView.scss";
 
-type Props = {
-  onNavigate: string => void,
-  loading: Object,
-  location: Object,
-  songTitle: string,
-  saveEnabled: boolean,
-  onLogin: Function,
-  bpm: number,
-  songBoardId: string,
-  songLength: number,
-  isPlaying: boolean,
-  cellsPerBeat: number,
-  undoEnabled: boolean,
-  redoEnabled: boolean,
-  premiumAccountStatus: boolean,
-  notes: ScheduledNoteList,
-  currentUser: Firebase$User,
-  playbackStartPosition: number,
-  noteConfiguration: NoteConfiguration,
-  media: Media,
-  playCommands$: Observable<Object>,
-  playbackPositionInBeats$$: Observable<Object>,
+import type { ViewProps } from "./noteEditorController";
+
+type ActionCallbacks = {
+  onPlay: () => void,
+  onPause: () => void,
+  onSave: () => void,
+  onChangeCellsPerBeat: number => void,
+  onChangePlaybackStartPosition: number => void,
   onEditSong: SongEdit => void,
   actions: Object
 };
@@ -63,7 +47,8 @@ type State = {
   isSelecting: boolean
 };
 
-export default class NoteEditorView extends React.Component<Props, State> {
+export default class NoteEditorView
+  extends React.Component<ViewProps & ActionCallbacks, State> {
   constructor() {
     super();
     bindAll(
@@ -173,7 +158,7 @@ export default class NoteEditorView extends React.Component<Props, State> {
           <PageHeaderAction
             primary
             enabled={this.props.saveEnabled}
-            onClick={this.props.actions.callbacks.onSave}
+            onClick={this.props.onSave}
           >
             <Message msgKey="save-action" />
           </PageHeaderAction>
@@ -188,7 +173,7 @@ export default class NoteEditorView extends React.Component<Props, State> {
       overlay = <LoginOverlay onLogin={this.props.onLogin} onClose="/" />;
     }
 
-    if (this.props.location.hash === "#choose-song") {
+    if (this.props.location.hash === "#choose-song" && this.props.currentUser) {
       overlay = (
         <ChooseAndPurchaseSongFlow
           onSelectSong={this.onChooseSong}
@@ -206,18 +191,15 @@ export default class NoteEditorView extends React.Component<Props, State> {
             bpm={this.props.bpm}
             onChangeBpm={this.onChangeBpm}
             onToggleSelecting={this.onToggleSelecting}
-            onClickPlay={this.props.actions.callbacks.onPlay}
-            onClickPause={this.props.actions.callbacks.onPause}
+            onClickPlay={this.props.onPlay}
+            onClickPause={this.props.onPause}
             isPlaying={this.props.isPlaying}
             isSelecting={this.state.isSelecting}
-            isRecording={false}
             onReset={this.onReset}
             onUndo={this.onUndo}
             onRedo={this.onRedo}
             cellsPerBeat={this.props.cellsPerBeat}
-            onChangeCellsPerBeat={
-              this.props.actions.callbacks.onChangeCellsPerBeat
-            }
+            onChangeCellsPerBeat={this.props.onChangeCellsPerBeat}
             undoEnabled={this.props.undoEnabled}
             redoEnabled={this.props.redoEnabled}
           />
@@ -231,7 +213,7 @@ export default class NoteEditorView extends React.Component<Props, State> {
             playing={{}}
             playbackStartPosition={this.props.playbackStartPosition}
             onChangePlaybackStartPosition={
-              this.props.actions.callbacks.onChangePlaybackStartPosition
+              this.props.actions.onChangePlaybackStartPosition
             }
           />
         </div>

@@ -15,33 +15,65 @@ import {
 } from "./localWorkspace";
 
 import { updateSongBoard } from "./database";
+import combineTemplate from "./combineTemplate";
 
 import { songs } from "./song";
-import type { Media } from "./mediaLoading";
-import type { LocalWorkspace } from "./localWorkspace";
+import type { Media, NoteConfiguration } from "./mediaLoading";
+import type { LocalWorkspace, SongEdit } from "./localWorkspace";
 import type { Subscription } from "rxjs/Subscription";
+import type { ScheduledNoteList } from "./song";
 
 type Props = {
   onNavigate: string => void,
-  currentUser: Firebase$User,
+  onLogin: Function,
+  currentUser: ?Firebase$User,
   location: Location,
   premiumAccountStatus: boolean
 };
 
+export type ViewProps = {
+  onNavigate: string => void,
+  loading: Object,
+  location: Object,
+  songTitle: string,
+  saveEnabled: boolean,
+  onLogin: Function,
+  bpm: number,
+  songBoardId: string,
+  songLength: number,
+  isPlaying: boolean,
+  cellsPerBeat: number,
+  undoEnabled: boolean,
+  redoEnabled: boolean,
+  premiumAccountStatus: boolean,
+  notes: ScheduledNoteList,
+  currentUser: ?Firebase$User,
+  playbackStartPosition: number,
+  noteConfiguration: NoteConfiguration,
+  playCommands$: Observable<Object>,
+  playbackPositionInBeats$$: Observable<Object>
+};
+
+type Actions = {
+  changeCellsPerBeat$: Observable<number>,
+  save$: Observable<Object>,
+  editSong$: Observable<SongEdit>
+};
+
 export default function noteEditorController(
   props$: Observable<Props>,
-  actions: { [string]: Observable<any> },
+  actions: Actions,
   media: Media,
   subscription: Subscription
-) {
+): Observable<ViewProps> {
   const unmount$ = props$.ignoreElements().concatWith(1);
 
   const currentUser$: Observable<?Firebase$User> = props$.map(
     props => props.currentUser
   );
 
-  const undoEnabled$ = new BehaviorSubject(false);
-  const redoEnabled$ = new BehaviorSubject(false);
+  const undoEnabled$: BehaviorSubject<boolean> = new BehaviorSubject(false);
+  const redoEnabled$: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
   subscription.add(undoEnabled$);
   subscription.add(redoEnabled$);
@@ -112,36 +144,26 @@ export default function noteEditorController(
 
   const saveEnabled$ = Observable.of(true).concat(actions.save$.mapTo(false));
 
-  // $FlowFixMe - using too many arguments for combineLatest
+  const viewProps$ = combineTemplate({
+    cellsPerBeat: cellsPerBeat$,
+    redoEnabled: redoEnabled$,
+    undoEnabled: undoEnabled$,
+    saveEnabled: saveEnabled$,
+    songBoardId: media.songBoard$.map(songBoard => songBoard.songBoardId)
+  });
+
   return Observable.combineLatest(
-    props$,
     parentViewState$,
-    cellsPerBeat$,
-    redoEnabled$,
-    undoEnabled$,
-    saveEnabled$,
-    currentUser$,
-    media.songBoard$,
-    (
-      props,
-      parentViewState,
-      cellsPerBeat,
-      redoEnabled,
-      undoEnabled,
-      saveEnabled,
-      currentUser,
-      songBoard
-    ) => ({
-      ...parentViewState,
-      cellsPerBeat,
-      redoEnabled,
-      undoEnabled,
-      saveEnabled,
-      currentUser,
-      songBoardId: songBoard.songBoardId,
+    viewProps$,
+    props$,
+    (parent, viewProps, props) => ({
+      ...parent,
+      ...viewProps,
       location: props.location,
       premiumAccountStatus: props.premiumAccountStatus,
-      onNavigate: props.onNavigate
+      onNavigate: props.onNavigate,
+      onLogin: props.onLogin,
+      currentUser: props.currentUser
     })
   );
 }
