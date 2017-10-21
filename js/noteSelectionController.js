@@ -112,37 +112,53 @@ export default function noteSelectionController(
 
   selection$.connect();
 
+  function sampleSelectedNotes(when$) {
+    return when$
+      .withLatestFrom(
+        props$,
+        actions.changeSelection$,
+        (ignore, props: SelectionProps, selection: ?NoteSelection) => {
+          if (selection) {
+            const thisSelection = selection;
+            return [
+              props.notes.filter(note =>
+                isNoteInSelection(note, thisSelection)
+              ),
+              thisSelection
+            ];
+          } else {
+            return null;
+          }
+        }
+      )
+      .nonNull();
+  }
+
   //
   // Clear action
   //
-  const clearEdits$ = actions.clearSelection$
-    .withLatestFrom(
-      props$,
-      actions.changeSelection$,
-      (ignore, props: SelectionProps, selection: ?NoteSelection): ?SongEdit => {
-        if (!selection) return null;
-
-        const thisSelection = selection;
-
-        const notes = props.notes
-          .filter(note => isNoteInSelection(note, thisSelection))
-          .map(tuple => ({ note: tuple[0], beat: tuple[1] }));
-
-        return {
-          action: "delete",
-          notes: notes
-        };
-      }
-    )
-    .nonNull();
+  const clearEdits$ = sampleSelectedNotes(actions.clearSelection$).map(([
+    notes,
+    selection
+  ]) => ({
+    action: "delete",
+    notes: notes.map(tuple => ({ note: tuple[0], beat: tuple[1] }))
+  }));
 
   clearEdits$.withLatestFrom(props$).subscribe(([action, props]) => {
     props.onSongEdit(action);
   });
 
+  const auditioningNotes$ = sampleSelectedNotes(actions.copySelection$)
+    .map(([notes, selection]) => ({
+      origin: selection.start,
+      notes: notes
+    }))
+    .startWith(null);
+
   return combineTemplate({
     selectionState: selectionState$,
-    auditioningNotes: Observable.of(null),
+    auditioningNotes: auditioningNotes$,
     selection: selection$
   });
 }
