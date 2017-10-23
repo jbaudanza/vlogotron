@@ -61,6 +61,13 @@ function inRange(n: number, i: number, j: number) {
   return n >= range[0] && n <= range[1];
 }
 
+function topLeftCorner(selection: NoteSelection): NoteLocation {
+  return {
+    beat: Math.min(selection.start.beat, selection.end.beat),
+    note: Math.max(selection.start.note, selection.end.note)
+  };
+}
+
 export function isNoteInSelection(
   note: ScheduledNote,
   selection: NoteSelection
@@ -151,7 +158,7 @@ export default function noteSelectionController(
 
   const auditioningNotes$ = sampleSelectedNotes(actions.copySelection$)
     .map(([notes, selection]) => ({
-      origin: selection.start,
+      origin: topLeftCorner(selection),
       notes: notes
     }))
     .startWith(null);

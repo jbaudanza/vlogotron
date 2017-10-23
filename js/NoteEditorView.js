@@ -197,7 +197,7 @@ export default class NoteEditorView
             onChangeCellsPerBeat={this.props.onChangeCellsPerBeat}
             undoEnabled={this.props.undoEnabled}
             redoEnabled={this.props.redoEnabled}
-            isSelecting={this.props.selectionState === "selecting"}
+            isSelecting={this.props.selectionState !== "normal"}
             onStartSelection={this.props.onStartSelection}
             onStopSelection={this.props.onStopSelection}
           />

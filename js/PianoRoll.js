@@ -102,13 +102,49 @@ function gridDrawFunction(ctx, props, width, height) {
   }
 }
 
-function stylesForNote(note) {
-  const row = midiRange[0] - note[0];
+function positionForNote(location: NoteLocation) {
+  const row = midiRange[0] - location.note;
 
   return {
     top: row * cellHeight,
-    width: beatToWidth(note[2]),
-    left: beatToWidth(note[1])
+    left: beatToWidth(location.beat)
+  };
+}
+
+function translateNotePosition(
+  location: NoteLocation,
+  originalOrigin: NoteLocation,
+  newOrigin: NoteLocation
+) {
+  return {
+    beat: location.beat + (newOrigin.beat - originalOrigin.beat),
+    note: location.note + (newOrigin.note - originalOrigin.note)
+  };
+}
+
+function stylesForNoteWithOrigin(
+  note: ScheduledNote,
+  originalOrigin: NoteLocation,
+  newOrigin: NoteLocation
+) {
+  const pos = positionForNote(
+    translateNotePosition(
+      { note: note[0], beat: note[1] },
+      originalOrigin,
+      newOrigin
+    )
+  );
+  return {
+    ...pos,
+    width: beatToWidth(note[2])
+  };
+}
+
+function stylesForNote(note: ScheduledNote) {
+  const pos = positionForNote({ note: note[0], beat: note[1] });
+  return {
+    ...pos,
+    width: beatToWidth(note[2])
   };
 }
 
@@ -262,6 +298,24 @@ class Timeline extends React.Component<TimelineProps> {
   }
 }
 
+function AuditionedNotesView(props) {
+  return (
+    <div>
+      {props.notes.map((note, i) => (
+        <Note
+          className="note"
+          key={i}
+          style={stylesForNoteWithOrigin(
+            note,
+            props.origin,
+            props.mouseOverOrigin
+          )}
+        />
+      ))}
+    </div>
+  );
+}
+
 const NoteWrapper = styled(TouchableArea)`
   position: relative;
   background-color: ${colors.darkThree};
@@ -290,9 +344,8 @@ type Props = {
 
 type State = {
   isPlaying: boolean,
-  selection: ?NoteSelection,
-  selectionFinished: boolean,
-  gridClientRect: ?ClientRect
+  gridClientRect: ?ClientRect,
+  mouseOverOrigin: ?NoteLocation
 };
 
 type CellLocation = {
@@ -336,16 +389,16 @@ export default class PianoRoll extends React.Component<Props, State> {
     super();
     this.state = {
       isPlaying: false,
-      selection: null,
-      selectionFinished: false,
-      gridClientRect: null
+      gridClientRect: null,
+      mouseOverOrigin: null
     };
     bindAll(
       this,
       "bindPlayhead",
       "bindPlaybackPosition",
       "bindTouchableArea",
-      "bindScroller"
+      "bindScroller",
+      "onMouseMove"
     );
     this.editSubject$ = new Subject();
   }
@@ -584,6 +637,17 @@ export default class PianoRoll extends React.Component<Props, State> {
     }
   }
 
+  onMouseMove(event: MouseEvent) {
+    if (event.target instanceof Element) {
+      const origin = this.mapGestureToNoteLocation(
+        event.target,
+        event.clientX,
+        event.clientY
+      );
+      this.setState({ mouseOverOrigin: origin });
+    }
+  }
+
   componentWillMount() {
     this
       .outerSubscribe = this.props.playbackPosition$$.subscribe(
@@ -634,6 +698,11 @@ export default class PianoRoll extends React.Component<Props, State> {
       ["#svg-pencil-2", "Nevermind", { onClick: this.props.onStopSelection }]
     ];
 
+    const origin = {
+      beat: 0,
+      note: midiRange[0]
+    };
+
     return (
       <div className="piano-roll">
         <div className="row-labels">
@@ -664,6 +733,7 @@ export default class PianoRoll extends React.Component<Props, State> {
               input={gridInput}
               className="touchable"
               innerRef={this.bindGrid.bind(this)}
+              onMouseMove={this.onMouseMove}
               drawFunction={gridDrawFunction}
               height={gridInput.totalNotes * cellHeight}
               width={beatToWidth(totalBeats)}
@@ -696,6 +766,14 @@ export default class PianoRoll extends React.Component<Props, State> {
                 />
               ))}
             </div>
+
+            {this.props.auditioningNotes && this.state.mouseOverOrigin
+              ? <AuditionedNotesView
+                  {...this.props.auditioningNotes}
+                  mouseOverOrigin={this.state.mouseOverOrigin}
+                />
+              : null}
+
             <div className="playhead" ref={this.bindPlayhead} />
           </NoteWrapper>
         </div>
