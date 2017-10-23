@@ -398,7 +398,8 @@ export default class PianoRoll extends React.Component<Props, State> {
       "bindPlaybackPosition",
       "bindTouchableArea",
       "bindScroller",
-      "onMouseMove"
+      "onMouseMove",
+      "onClick"
     );
     this.editSubject$ = new Subject();
   }
@@ -573,8 +574,12 @@ export default class PianoRoll extends React.Component<Props, State> {
         if (isEmptyCell(gesture.first.element)) {
           const create$ = Observable.of({
             action: "create",
-            ...gesture.first.location,
-            duration: 1.0 / this.props.cellsPerBeat
+            notes: [
+              {
+                ...gesture.first.location,
+                duration: 1.0 / this.props.cellsPerBeat
+              }
+            ]
           });
           return Observable.merge(create$, moves$);
         } else if (isNoteCell(gesture.first.element)) {
@@ -637,14 +642,25 @@ export default class PianoRoll extends React.Component<Props, State> {
     }
   }
 
+  onClick(event: MouseEvent) {
+    if (
+      this.props.selectionState === "auditioning" && this.state.mouseOverOrigin
+    ) {
+      this.props.onPasteSelection(this.state.mouseOverOrigin);
+      this.setState({ mouseOverOrigin: null });
+    }
+  }
+
   onMouseMove(event: MouseEvent) {
-    if (event.target instanceof Element) {
-      const origin = this.mapGestureToNoteLocation(
-        event.target,
-        event.clientX,
-        event.clientY
-      );
-      this.setState({ mouseOverOrigin: origin });
+    if (this.props.selectionState === "auditioning") {
+      if (event.target instanceof Element) {
+        const origin = this.mapGestureToNoteLocation(
+          event.target,
+          event.clientX,
+          event.clientY
+        );
+        this.setState({ mouseOverOrigin: origin });
+      }
     }
   }
 
@@ -728,12 +744,17 @@ export default class PianoRoll extends React.Component<Props, State> {
             innerRef={this.bindTouchableArea}
             totalBeats={totalBeats}
             isSelecting={this.props.selectionState === "selecting"}
+            enabled={
+              this.props.selectionState === "normal" ||
+                this.props.selectionState === "selecting"
+            }
           >
             <Canvas
               input={gridInput}
               className="touchable"
               innerRef={this.bindGrid.bind(this)}
               onMouseMove={this.onMouseMove}
+              onClick={this.onClick}
               drawFunction={gridDrawFunction}
               height={gridInput.totalNotes * cellHeight}
               width={beatToWidth(totalBeats)}

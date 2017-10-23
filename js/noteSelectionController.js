@@ -68,6 +68,20 @@ function topLeftCorner(selection: NoteSelection): NoteLocation {
   };
 }
 
+function translateNotesForPasting(
+  pasteLocation: NoteLocation,
+  selection: AuditionedNotes
+): Array<{ beat: number, note: number, duration: number }> {
+  const noteOffset = pasteLocation.note - selection.origin.note;
+  const beatOffset = pasteLocation.beat - selection.origin.beat;
+
+  return selection.notes.map(tuple => ({
+    note: tuple[0] + noteOffset,
+    beat: tuple[1] + beatOffset,
+    duration: tuple[2]
+  }));
+}
+
 export function isNoteInSelection(
   note: ScheduledNote,
   selection: NoteSelection
@@ -152,16 +166,36 @@ export default function noteSelectionController(
     notes: notes.map(tuple => ({ note: tuple[0], beat: tuple[1] }))
   }));
 
-  clearEdits$.withLatestFrom(props$).subscribe(([action, props]) => {
-    props.onSongEdit(action);
-  });
-
-  const auditioningNotes$ = sampleSelectedNotes(actions.copySelection$)
+  const mostRecentAuditionedNotes$ = sampleSelectedNotes(actions.copySelection$)
     .map(([notes, selection]) => ({
       origin: topLeftCorner(selection),
       notes: notes
     }))
     .startWith(null);
+
+  const pasteEdits$ = actions.pasteSelection$.withLatestFrom(
+    mostRecentAuditionedNotes$.nonNull(),
+    (pasteLocation, selection) => {
+      return {
+        action: "create",
+        notes: translateNotesForPasting(pasteLocation, selection)
+      };
+    }
+  );
+
+  const songEdits$ = Observable.merge(clearEdits$, pasteEdits$);
+
+  songEdits$.withLatestFrom(props$).subscribe(([action, props]) => {
+    props.onSongEdit(action);
+  });
+
+  const auditioningNotes$ = Observable.merge(
+    mostRecentAuditionedNotes$,
+    Observable.merge(
+      actions.stopSelection$.mapTo(null),
+      actions.pasteSelection$.mapTo(null)
+    )
+  );
 
   return combineTemplate({
     selectionState: selectionState$,

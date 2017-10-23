@@ -1,6 +1,5 @@
 /* @flow */
 
-import PropTypes from "prop-types";
 import * as React from "react";
 
 import { Observable } from "rxjs/Observable";
@@ -30,7 +29,8 @@ type Props = {
   onTouchStart?: Function,
   className?: string,
   style?: Object,
-  children: React.Node
+  children: React.Node,
+  enabled: boolean
 };
 
 export default class TouchableArea extends React.Component<Props> {
@@ -70,6 +70,8 @@ export default class TouchableArea extends React.Component<Props> {
   }
 
   onMouseDown(event: MouseEvent) {
+    if (!this.props.enabled) return;
+
     const target = event.target;
 
     if (!(target instanceof Element)) return;
@@ -108,6 +110,8 @@ export default class TouchableArea extends React.Component<Props> {
   }
 
   onTouchStart(event: TouchEvent) {
+    if (!this.props.enabled) return;
+
     let anyHandled = false;
 
     forEach(event.changedTouches, touch => {
@@ -168,7 +172,3 @@ export default class TouchableArea extends React.Component<Props> {
     );
   }
 }
-
-TouchableArea.propTypes = {
-  onTouchStart: PropTypes.func
-};

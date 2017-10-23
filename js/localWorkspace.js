@@ -32,7 +32,10 @@ export type SongEdit =
   | { action: "update-song", songId: SongId }
   | { action: "clear-all" }
   | { action: "replace-all", notes: ScheduledNoteList }
-  | { action: "create", note: number, beat: number, duration: number }
+  | {
+      action: "create",
+      notes: Array<{ note: number, beat: number, duration: number }>
+    }
   | { action: "delete", notes: Array<NoteLocation> }
   | {
       action: "move",
@@ -148,7 +151,7 @@ function reduceEditsToNotes(
     case "replace-all":
       return edit.notes;
     case "create":
-      return concat(notes, [[edit.note, edit.beat, edit.duration]]);
+      return concat(notes, edit.notes.map(o => [o.note, o.beat, o.duration]));
     case "delete":
       const removedNotes = edit.notes;
       return filter(notes, i => !find(removedNotes, j => matcher(j, i)));
