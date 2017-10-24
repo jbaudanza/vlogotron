@@ -336,12 +336,17 @@ function AuditionedNotesView(props: AuditionedNotesViewProps) {
   );
 }
 
+const MouseEventWrapper = styled.div`
+  height: ${midiRange.length * cellHeight}px;
+  width: ${props => beatToWidth(props.totalBeats)}px;
+  cursor: ${props => (props.isSelecting ? "cell" : "pointer")};
+`;
+
 const NoteWrapper = styled(TouchableArea)`
   position: relative;
   background-color: ${colors.darkThree};
   height: ${midiRange.length * cellHeight}px;
   width: ${props => beatToWidth(props.totalBeats)}px;
-  cursor: ${props => (props.isSelecting ? "cell" : "pointer")};
 `;
 
 type Props = {
@@ -401,7 +406,7 @@ const Note = styled.div`
   height: ${cellHeight}px;
   width: 15px;
   background-color: ${colors.aquaBlue};
-  box-shadow: ${props => (props.selected ? "0px 0px 10px white" : "none")};
+  box-shadow: ${props => (props.selected ? "0px 0px 4px white" : "none")};
   border: 1px solid ${props => (props.selected ? "white" : colors.darkThree)};
 `;
 
@@ -467,7 +472,11 @@ export default class PianoRoll extends React.Component<Props, State> {
     clientX: number,
     clientY: number
   ): ?NoteLocation {
-    if (element instanceof HTMLCanvasElement) {
+    if (
+      element &&
+      (element instanceof HTMLCanvasElement ||
+        element.classList.contains("mouse-event-wrapper"))
+    ) {
       const clientRect = element.getBoundingClientRect();
 
       const x = clientX - clientRect.left;
@@ -675,8 +684,12 @@ export default class PianoRoll extends React.Component<Props, State> {
   onMouseMove(event: MouseEvent) {
     if (this.props.selectionState === "auditioning") {
       if (event.target instanceof Element) {
-        const origin = this.mapGestureToNoteLocation(
+        const eventWrapper = findWrappingClass(
           event.target,
+          "mouse-event-wrapper"
+        );
+        const origin = this.mapGestureToNoteLocation(
+          eventWrapper,
           event.clientX,
           event.clientY
         );
@@ -761,64 +774,68 @@ export default class PianoRoll extends React.Component<Props, State> {
             }
           />
 
-          <NoteWrapper
-            innerRef={this.bindTouchableArea}
-            totalBeats={totalBeats}
-            isSelecting={this.props.selectionState === "selecting"}
-            enabled={
-              this.props.selectionState === "normal" ||
-                this.props.selectionState === "selecting"
-            }
+          <MouseEventWrapper
+            className="mouse-event-wrapper"
             onClick={this.onClick}
+            onMouseMove={this.onMouseMove}
+            isSelecting={this.props.selectionState === "selecting"}
           >
-            <Canvas
-              input={gridInput}
-              className="touchable"
-              innerRef={this.bindGrid.bind(this)}
-              onMouseMove={this.onMouseMove}
-              drawFunction={gridDrawFunction}
-              height={gridInput.totalNotes * cellHeight}
-              width={beatToWidth(totalBeats)}
-            />
+            <NoteWrapper
+              innerRef={this.bindTouchableArea}
+              totalBeats={totalBeats}
+              enabled={
+                this.props.selectionState === "normal" ||
+                  this.props.selectionState === "selecting"
+              }
+            >
+              <Canvas
+                input={gridInput}
+                className="touchable"
+                innerRef={this.bindGrid.bind(this)}
+                drawFunction={gridDrawFunction}
+                height={gridInput.totalNotes * cellHeight}
+                width={beatToWidth(totalBeats)}
+              />
 
-            {this.props.selectionState === "menu-prompt" &&
-              this.props.selection &&
-              this.state.gridClientRect
-              ? <PopupMenu
-                  options={popupMenuOptions}
-                  targetRect={translateRect(
-                    this.state.gridClientRect.left,
-                    this.state.gridClientRect.top,
-                    makeSelectionRect(this.props.selection)
-                  )}
-                />
-              : null}
-            <div>
-              {this.props.notes.map((note, i) => (
-                <Note
-                  className="touchable note"
-                  key={i}
-                  data-note={note[0]}
-                  data-beat={note[1]}
-                  selected={
-                    this.props.selection &&
-                      isNoteInSelection(note, this.props.selection)
-                  }
-                  style={stylesForNote(note)}
-                />
-              ))}
-            </div>
+              {this.props.selectionState === "menu-prompt" &&
+                this.props.selection &&
+                this.state.gridClientRect
+                ? <PopupMenu
+                    options={popupMenuOptions}
+                    targetRect={translateRect(
+                      this.state.gridClientRect.left,
+                      this.state.gridClientRect.top,
+                      makeSelectionRect(this.props.selection)
+                    )}
+                  />
+                : null}
+              <div>
+                {this.props.notes.map((note, i) => (
+                  <Note
+                    className="touchable note"
+                    key={i}
+                    data-note={note[0]}
+                    data-beat={note[1]}
+                    selected={
+                      this.props.selection &&
+                        isNoteInSelection(note, this.props.selection)
+                    }
+                    style={stylesForNote(note)}
+                  />
+                ))}
+              </div>
 
-            {this.props.auditioningNotes && this.state.mouseOverOrigin
-              ? <AuditionedNotesView
-                  {...this.props.auditioningNotes}
-                  mouseOverOrigin={this.state.mouseOverOrigin}
-                  selection={this.props.selection}
-                />
-              : null}
+              {this.props.auditioningNotes && this.state.mouseOverOrigin
+                ? <AuditionedNotesView
+                    {...this.props.auditioningNotes}
+                    mouseOverOrigin={this.state.mouseOverOrigin}
+                    selection={this.props.selection}
+                  />
+                : null}
 
-            <div className="playhead" ref={this.bindPlayhead} />
-          </NoteWrapper>
+              <div className="playhead" ref={this.bindPlayhead} />
+            </NoteWrapper>
+          </MouseEventWrapper>
         </div>
       </div>
     );
