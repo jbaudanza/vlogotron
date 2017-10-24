@@ -46,3 +46,9 @@
 # Configure Stripe
 
 firebase functions:config:set stripe.token=sk_test_abcdefg
+
+# Using Flow
+
+Inspect a type at a given position:
+
+    yarn run flow type-at-pos js/PianoRoll.js 611 33

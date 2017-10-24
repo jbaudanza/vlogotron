@@ -13,8 +13,9 @@ export type NoteLocation = {
 };
 
 export type NoteSelection = {
-  start: NoteLocation,
-  end: NoteLocation
+  topLeft: NoteLocation,
+  width: number, // measured in beats
+  height: number // measured in midi notes
 };
 
 export type SelectionActions = {
@@ -35,10 +36,8 @@ export type SelectionActions = {
 };
 
 export type AuditionedNotes = {
-  origin: NoteLocation,
-  notes: ScheduledNoteList,
-  width: number,
-  height: number
+  selection: NoteSelection,
+  notes: ScheduledNoteList
 };
 
 export type SelectionViewProps = {
@@ -58,24 +57,12 @@ export type SelectionState =
   | "menu-prompt"
   | "auditioning";
 
-function inRange(n: number, i: number, j: number) {
-  const range = [i, j].sort();
-  return n >= range[0] && n <= range[1];
-}
-
-function topLeftCorner(selection: NoteSelection): NoteLocation {
-  return {
-    beat: Math.min(selection.start.beat, selection.end.beat),
-    note: Math.max(selection.start.note, selection.end.note)
-  };
-}
-
 function translateNotesForPasting(
   pasteLocation: NoteLocation,
   selection: AuditionedNotes
 ): Array<{ beat: number, note: number, duration: number }> {
-  const noteOffset = pasteLocation.note - selection.origin.note;
-  const beatOffset = pasteLocation.beat - selection.origin.beat;
+  const noteOffset = pasteLocation.note - selection.selection.topLeft.note;
+  const beatOffset = pasteLocation.beat - selection.selection.topLeft.beat;
 
   return selection.notes.map(tuple => ({
     note: tuple[0] + noteOffset,
@@ -89,8 +76,8 @@ export function isNoteInSelection(
   selection: NoteSelection
 ): boolean {
   return (
-    inRange(note[0], selection.start.note, selection.end.note) &&
-    inRange(note[1], selection.start.beat, selection.end.beat)
+    note[0] <= selection.topLeft.note && note[0] > selection.topLeft.note - selection.height &&
+    note[1] >= selection.topLeft.beat && note[1] < selection.topLeft.beat + selection.width
   );
 }
 
@@ -170,9 +157,7 @@ export default function noteSelectionController(
 
   const mostRecentAuditionedNotes$ = sampleSelectedNotes(actions.copySelection$)
     .map(([notes, selection]) => ({
-      origin: topLeftCorner(selection),
-      width: Math.abs(selection.start.beat - selection.end.beat),
-      height: Math.abs(selection.start.note - selection.end.note),
+      selection: selection,
       notes: notes
     }))
     .startWith(null);

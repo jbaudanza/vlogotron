@@ -50,10 +50,10 @@ import {
 
 function makeSelectionRect(selection: NoteSelection): Rect {
   return {
-    left: selection.start.beat * beatWidth,
-    top: (midiRange[0] - selection.start.note) * cellHeight,
-    width: (selection.end.beat - selection.start.beat) * beatWidth,
-    height: (selection.start.note - selection.end.note) * cellHeight
+    left: selection.topLeft.beat * beatWidth,
+    top: (midiRange[0] - selection.topLeft.note) * cellHeight,
+    width: selection.width * beatWidth,
+    height: selection.height * cellHeight
   };
 }
 
@@ -306,17 +306,15 @@ const AuditionedNotesWrapper = styled.div`
 `;
 
 type AuditionedNotesViewProps = {
-  height: number,
-  width: number,
   mouseOverOrigin: NoteLocation,
-  origin: NoteLocation,
+  selection: NoteSelection,
   notes: ScheduledNoteList
 };
 
 function AuditionedNotesView(props: AuditionedNotesViewProps) {
   const style: Object = positionForNote(props.mouseOverOrigin);
-  style.width = props.width * beatWidth + "px";
-  style.height = props.height * cellHeight + "px";
+  style.width = props.selection.width * beatWidth + "px";
+  style.height = props.selection.height * cellHeight + "px";
 
   return (
     <div>
@@ -327,7 +325,7 @@ function AuditionedNotesView(props: AuditionedNotesViewProps) {
           key={i}
           style={stylesForNoteWithOrigin(
             note,
-            props.origin,
+            props.selection.topLeft,
             props.mouseOverOrigin
           )}
         />
@@ -395,6 +393,21 @@ function cellLocationToBeatAndNote(
   return {
     note: midiRange[0] - location.row,
     beat: location.column / cellsPerBeat
+  };
+}
+
+function makeSelectionFromGestureEvent(
+  first: NoteLocation,
+  last: NoteLocation,
+  cellsPerBeat: number
+): NoteSelection {
+  return {
+    topLeft: {
+      beat: Math.min(first.beat, last.beat),
+      note: Math.max(first.note, last.note)
+    },
+    width: Math.abs(first.beat - last.beat) + 1 / cellsPerBeat,
+    height: Math.abs(first.note - last.note) + 1
   };
 }
 
@@ -576,12 +589,25 @@ export default class PianoRoll extends React.Component<Props, State> {
 
       touchesForSelections$
         .map(gesture => {
-          return gesture.rest$.map(event => ({
-            start: gesture.first.location,
-            end: event.location
-          }));
+          return gesture.rest$
+            .map(event =>
+              makeSelectionFromGestureEvent(
+                gesture.first.location,
+                event.location,
+                this.props.cellsPerBeat
+              )
+            )
+            .startWith(
+              makeSelectionFromGestureEvent(
+                gesture.first.location,
+                gesture.first.location,
+                this.props.cellsPerBeat
+              )
+            );
         })
-        .subscribe(this.subscribeToSelection.bind(this));
+        .subscribe(x => {
+          this.subscribeToSelection(x);
+        });
 
       const edits$ = touchesForEdits$.flatMap(gesture => {
         const moves$ = gesture.rest$
@@ -829,7 +855,6 @@ export default class PianoRoll extends React.Component<Props, State> {
                 ? <AuditionedNotesView
                     {...this.props.auditioningNotes}
                     mouseOverOrigin={this.state.mouseOverOrigin}
-                    selection={this.props.selection}
                   />
                 : null}
 
