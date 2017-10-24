@@ -27,6 +27,7 @@ type TouchGestureMovement = {
 
 type Props = {
   onTouchStart?: Function,
+  onClick?: MouseEvent => void,
   className?: string,
   style?: Object,
   children: React.Node,
@@ -164,6 +165,7 @@ export default class TouchableArea extends React.Component<Props> {
         ref={this.setRootElement}
         onTouchStart={this.onTouchStart}
         onMouseDown={this.onMouseDown}
+        onClick={this.props.onClick}
         className={this.props.className}
         style={this.props.style}
       >

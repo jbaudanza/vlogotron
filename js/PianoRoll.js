@@ -748,13 +748,13 @@ export default class PianoRoll extends React.Component<Props, State> {
               this.props.selectionState === "normal" ||
                 this.props.selectionState === "selecting"
             }
+            onClick={this.onClick}
           >
             <Canvas
               input={gridInput}
               className="touchable"
               innerRef={this.bindGrid.bind(this)}
               onMouseMove={this.onMouseMove}
-              onClick={this.onClick}
               drawFunction={gridDrawFunction}
               height={gridInput.totalNotes * cellHeight}
               width={beatToWidth(totalBeats)}
