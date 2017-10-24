@@ -36,7 +36,9 @@ export type SelectionActions = {
 
 export type AuditionedNotes = {
   origin: NoteLocation,
-  notes: ScheduledNoteList
+  notes: ScheduledNoteList,
+  width: number,
+  height: number
 };
 
 export type SelectionViewProps = {
@@ -169,6 +171,8 @@ export default function noteSelectionController(
   const mostRecentAuditionedNotes$ = sampleSelectedNotes(actions.copySelection$)
     .map(([notes, selection]) => ({
       origin: topLeftCorner(selection),
+      width: Math.abs(selection.start.beat - selection.end.beat),
+      height: Math.abs(selection.start.note - selection.end.note),
       notes: notes
     }))
     .startWith(null);

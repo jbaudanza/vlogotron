@@ -15,6 +15,7 @@
     "messageformat": "^1.0.2",
     "messageformat-loader": "0.5.0",
     "node-sass": "^4.2.0",
+    "polished": "^1.8.1",
     "prettier": "^1.0.2",
     "prop-types": "^15.5.10",
     "rc-slider": "^8.3.1",

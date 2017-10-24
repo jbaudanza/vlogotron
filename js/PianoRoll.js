@@ -71,6 +71,7 @@ function gridDrawFunction(ctx, props, width, height) {
 
   ctx.strokeStyle = colors.darkTwo;
   ctx.lineWidth = 1;
+  ctx.setLineDash([]);
 
   for (let i = 0; i < props.totalNotes; i++) {
     ctx.beginPath();
@@ -85,7 +86,6 @@ function gridDrawFunction(ctx, props, width, height) {
 
   for (let i = 0; i < totalCells; i++) {
     ctx.beginPath();
-    // TODO: needs to take cellsPerBeat into account
     const x = i * cellWidth + 0.5;
     ctx.moveTo(x, 0);
     ctx.lineTo(x, height);
@@ -95,6 +95,7 @@ function gridDrawFunction(ctx, props, width, height) {
   if (props.selection != null) {
     const rect = makeSelectionRect(props.selection);
     ctx.beginPath();
+    ctx.setLineDash([5, 15]);
     ctx.rect(rect.left + 0.5, rect.top + 0.5, rect.width, rect.height);
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 1;
@@ -298,9 +299,28 @@ class Timeline extends React.Component<TimelineProps> {
   }
 }
 
-function AuditionedNotesView(props) {
+const AuditionedNotesWrapper = styled.div`
+  background-color: white;
+  position: absolute;
+  opacity: 0.25;
+`;
+
+type AuditionedNotesViewProps = {
+  height: number,
+  width: number,
+  mouseOverOrigin: NoteLocation,
+  origin: NoteLocation,
+  notes: ScheduledNoteList
+};
+
+function AuditionedNotesView(props: AuditionedNotesViewProps) {
+  const style: Object = positionForNote(props.mouseOverOrigin);
+  style.width = props.width * beatWidth + "px";
+  style.height = props.height * cellHeight + "px";
+
   return (
     <div>
+      <AuditionedNotesWrapper style={style} />
       {props.notes.map((note, i) => (
         <Note
           className="note"
@@ -380,8 +400,9 @@ const Note = styled.div`
   box-sizing: border-box;
   height: ${cellHeight}px;
   width: 15px;
-  background-color: ${props => (props.selected ? "red" : colors.aquaGlue)};
-  border: 1px solid ${colors.darkThree};
+  background-color: ${colors.aquaBlue};
+  box-shadow: ${props => (props.selected ? "0px 0px 10px white" : "none")};
+  border: 1px solid ${props => (props.selected ? "white" : colors.darkThree)};
 `;
 
 export default class PianoRoll extends React.Component<Props, State> {
@@ -792,6 +813,7 @@ export default class PianoRoll extends React.Component<Props, State> {
               ? <AuditionedNotesView
                   {...this.props.auditioningNotes}
                   mouseOverOrigin={this.state.mouseOverOrigin}
+                  selection={this.props.selection}
                 />
               : null}
 

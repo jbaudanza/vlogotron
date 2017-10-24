@@ -20,6 +20,6 @@ export default {
   darkThree: "#262b4a",
   blueGrey: "#a0a7c4",
   darkBlueGrey: "#363d69",
-  aquaGlue: "#29bdec",
+  aquaBlue: "#29bdec",
   paleGrey: "#dbdde9"
 };
