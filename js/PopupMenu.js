@@ -47,6 +47,8 @@ const MenuUL = styled.ul`
     margin-right: 15px;
     margin-top: 5px;
     float: left;
+    stroke: ${colors.greyishBrown};
+    fill: ${colors.greyishBrown};
   }
 
   li {

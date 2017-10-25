@@ -76,8 +76,10 @@ export function isNoteInSelection(
   selection: NoteSelection
 ): boolean {
   return (
-    note[0] <= selection.topLeft.note && note[0] > selection.topLeft.note - selection.height &&
-    note[1] >= selection.topLeft.beat && note[1] < selection.topLeft.beat + selection.width
+    note[0] <= selection.topLeft.note &&
+    note[0] > selection.topLeft.note - selection.height &&
+    note[1] >= selection.topLeft.beat &&
+    note[1] < selection.topLeft.beat + selection.width
   );
 }
 

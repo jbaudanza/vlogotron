@@ -63,7 +63,7 @@ class Overlay extends React.Component<Props, State> {
     if (this.props.onClose) {
       closeLinkEl = (
         <CloseLink href={this.props.onClose} className="close-link">
-          <svg version="1.1" width="22px" height="21px">
+          <svg version="1.1" width="22px" height="21px" stroke="#BCBCBC">
             <use xlinkHref="#svg-close" />
           </svg>
         </CloseLink>

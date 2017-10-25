@@ -18,7 +18,7 @@ export default class SideOverlay extends React.Component {
         <div className="content-wrapper">
           <div className="content">
             <Link href={this.props.onClose} className="close-link">
-              <svg version="1.1" width="22px" height="21px">
+              <svg version="1.1" width="22px" height="21px" stroke="#BCBCBC">
                 <use xlinkHref="#svg-close" fill="white" />
               </svg>
             </Link>

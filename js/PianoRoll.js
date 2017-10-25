@@ -767,11 +767,11 @@ export default class PianoRoll extends React.Component<Props, State> {
     };
 
     const popupMenuOptions = [
-      ["#svg-pencil-2", "Copy", { onClick: this.props.onCopySelection }],
+      ["#svg-copy", "Copy", { onClick: this.props.onCopySelection }],
 
-      ["#svg-pencil-2", "Clear", { onClick: this.props.onClearSelection }],
+      ["#svg-eraser", "Clear", { onClick: this.props.onClearSelection }],
 
-      ["#svg-pencil-2", "Nevermind", { onClick: this.props.onStopSelection }]
+      ["#svg-close", "Nevermind", { onClick: this.props.onStopSelection }]
     ];
 
     const origin = {
