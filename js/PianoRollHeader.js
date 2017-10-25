@@ -34,6 +34,8 @@ const StyledSelect = ActionLink.withComponent("select").extend`
   background-color: ${colors.duskThree};
   border: none;
   appearance: none;
+  margin-right: 5px;
+  margin-left: 5px;
   -webkit-appearance: none;
   -moz-appearance: none;
 `;
