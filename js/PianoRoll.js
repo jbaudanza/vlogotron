@@ -338,6 +338,7 @@ const MouseEventWrapper = styled.div`
   height: ${midiRange.length * cellHeight}px;
   width: ${props => beatToWidth(props.totalBeats)}px;
   cursor: ${props => (props.isSelecting ? "cell" : "pointer")};
+  user-select: none;
 `;
 
 const NoteWrapper = styled(TouchableArea)`
@@ -441,12 +442,32 @@ export default class PianoRoll extends React.Component<Props, State> {
       "onClick"
     );
     this.editSubject$ = new Subject();
+
+    const autoScrollAmount = 100;
+    const autoScrollAnimationInterval = 100;
+
+    this.inAutoScrollTriggerZone$ = new Subject();
+    this.inAutoScrollTriggerZone$
+      .distinctUntilChanged()
+      .switchMap(direction => {
+        if (direction != null) {
+          return Observable.interval(100)
+            .mapTo(direction)
+            .takeWhile(direction => this.canScroll(direction));
+        } else {
+          return Observable.never();
+        }
+      })
+      .subscribe(direction => {
+        this.autoScroll(direction);
+      });
   }
 
   innerSubscribe: Subscription;
   outerSubscribe: Subscription;
   edits$: Observable<SongEdit>;
   editSubject$: Subject<SongEdit>;
+  inAutoScrollTriggerZone$: Subject<?string>;
   playbackPositionSpan: ?HTMLSpanElement;
   scrollerEl: ?HTMLElement;
   playbackPositionSpan: ?HTMLElement;
@@ -478,6 +499,32 @@ export default class PianoRoll extends React.Component<Props, State> {
       column: Math.floor(x / (beatWidth / this.props.cellsPerBeat)),
       row: Math.floor(y / cellHeight)
     };
+  }
+
+  canScroll(direction: string): boolean {
+    if (this.scrollerEl) {
+      if (direction === "right") {
+        return (
+          this.scrollerEl.scrollLeft <
+          this.scrollerEl.scrollWidth - this.scrollerEl.clientWidth
+        );
+      } else {
+        return this.scrollerEl.scrollLeft > 0;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  autoScroll(direction: string) {
+    if (this.scrollerEl) {
+      const autoScrollAmount = 100;
+      if (direction === "right") {
+        this.scrollerEl.scrollLeft += autoScrollAmount;
+      } else {
+        this.scrollerEl.scrollLeft -= autoScrollAmount;
+      }
+    }
   }
 
   mapGestureToNoteLocation(
@@ -708,6 +755,21 @@ export default class PianoRoll extends React.Component<Props, State> {
   }
 
   onMouseMove(event: MouseEvent) {
+    if (this.scrollerEl) {
+      const rect = this.scrollerEl.getBoundingClientRect();
+
+      const posX = event.clientX - rect.left;
+      const autoScrollTrigger = 100;
+
+      let zone = null;
+      if (rect.width - posX < autoScrollTrigger) {
+        zone = "right";
+      } else if (posX < autoScrollTrigger) {
+        zone = "left";
+      }
+      this.inAutoScrollTriggerZone$.next(zone);
+    }
+
     if (this.props.selectionState === "auditioning") {
       if (event.target instanceof Element) {
         const eventWrapper = findWrappingClass(
@@ -744,6 +806,8 @@ export default class PianoRoll extends React.Component<Props, State> {
   }
 
   componentWillUnmount() {
+    this.inAutoScrollTriggerZone$.complete();
+
     if (this.outerSubscribe) {
       this.outerSubscribe.unsubscribe();
       delete this.outerSubscribe;
