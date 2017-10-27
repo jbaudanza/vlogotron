@@ -18,7 +18,8 @@ type Props = {
 };
 
 type State = {
-  windowHeight: number
+  windowHeight: number,
+  windowWidth: number
 };
 
 const menuBackgroundColor = "#fff";
@@ -73,7 +74,10 @@ const MenuUL = styled.ul`
 
 export default class PopupMenu extends React.Component<Props, State> {
   componentWillMount() {
-    this.setState({ windowHeight: window.innerHeight });
+    this.setState({
+      windowHeight: window.innerHeight,
+      windowWidth: window.innerWidth
+    });
   }
 
   render() {
@@ -93,14 +97,26 @@ export default class PopupMenu extends React.Component<Props, State> {
       orientation = "above";
     }
 
-    const style: Object = {
-      position: "fixed",
-      left: this.props.targetRect.left +
+    // This is the closest to the edge of the screen we will render the menu
+    const edgeBuffer = 10;
+
+    let left = this.props.targetRect.left +
         this.props.targetRect.width / 2 -
         menuWidth / 2
+
+    if (left < edgeBuffer) {
+      left = edgeBuffer;
+    }
+
+    if (left + menuWidth + edgeBuffer > this.state.windowWidth) {
+      left = this.state.windowWidth - menuWidth - edgeBuffer;
+    }
+
+    const style: Object = {
+      position: "fixed",
+      left: left
     };
     if (orientation === "above") {
-      console.log(menuHeight, pointerHeight);
       style.top = this.props.targetRect.top - (menuHeight + pointerHeight);
     } else {
       style.top = targetRectBottom + pointerHeight;
