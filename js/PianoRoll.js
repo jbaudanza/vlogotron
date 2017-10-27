@@ -745,7 +745,7 @@ export default class PianoRoll extends React.Component<Props, State> {
   }
 
   onMouseMove(event: MouseEvent) {
-    if (this.scrollerEl) {
+    if (this.scrollerEl && this.props.selectionState === "selecting") {
       const rect = this.scrollerEl.getBoundingClientRect();
 
       const posX = event.clientX - rect.left;

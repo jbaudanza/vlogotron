@@ -39,7 +39,7 @@ type ActionCallbacks = {
   onPause: () => void,
   onSave: () => void,
   onChangeCellsPerBeat: number => void,
-  onChangePlaybackStartPosition: number => void,
+  onChangePlaybackStartPosition: ?number => void,
   onEditSong: SongEdit => void,
   onStartSelection: () => void,
   onStopSelection: () => void,
@@ -218,7 +218,7 @@ export default class NoteEditorView
             onFinishSelection={this.props.onFinishSelection}
             onPasteSelection={this.props.onPasteSelection}
             onChangePlaybackStartPosition={
-              this.props.actions.onChangePlaybackStartPosition
+              this.props.onChangePlaybackStartPosition
             }
             onStopSelection={this.props.onStopSelection}
           />

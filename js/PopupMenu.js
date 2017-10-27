@@ -100,9 +100,10 @@ export default class PopupMenu extends React.Component<Props, State> {
     // This is the closest to the edge of the screen we will render the menu
     const edgeBuffer = 10;
 
-    let left = this.props.targetRect.left +
-        this.props.targetRect.width / 2 -
-        menuWidth / 2
+    let left =
+      this.props.targetRect.left +
+      this.props.targetRect.width / 2 -
+      menuWidth / 2;
 
     if (left < edgeBuffer) {
       left = edgeBuffer;
