@@ -3,7 +3,7 @@
 import PropTypes from "prop-types";
 import React from "react";
 
-import { range, bindAll } from "lodash";
+import { range, bindAll, omit } from "lodash";
 import Link from "./Link";
 import ActionLink from "./ActionLink";
 
@@ -25,9 +25,23 @@ const HeaderActionLink = styled(ActionLink)`
   }
 `;
 
-const ToggleLink = styled(HeaderActionLink)`
-  color: ${props => (props.toggledOn ? colors.duskThree : "white")};
-  background-color: ${props => (props.toggledOn ? "white" : colors.duskThree)};
+function ToggleLink(props) {
+  const childProps = omit(props, "toggledOn");
+  if (props.toggledOn) {
+    return <ToggledOnHeaderActionLink {...childProps} />;
+  } else {
+    return <ToggledOffHeaderActionLink {...childProps} />;
+  }
+}
+
+const ToggledOnHeaderActionLink = styled(HeaderActionLink)`
+  color: ${colors.duskThree};
+  background-color: white;
+`;
+
+const ToggledOffHeaderActionLink = styled(HeaderActionLink)`
+  color: white;
+  background-color: ${colors.duskThree};
 `;
 
 const StyledSelect = ActionLink.withComponent("select").extend`
