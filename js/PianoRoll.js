@@ -368,7 +368,7 @@ type Props = {
 
 type State = {
   isPlaying: boolean,
-  gridClientRect: ?ClientRect,
+  clientOffset: ?{ left: number, top: number },
   mouseOverOrigin: ?NoteLocation
 };
 
@@ -429,7 +429,7 @@ export default class PianoRoll extends React.Component<Props, State> {
     super();
     this.state = {
       isPlaying: false,
-      gridClientRect: null,
+      clientOffset: null,
       mouseOverOrigin: null
     };
     bindAll(
@@ -437,6 +437,7 @@ export default class PianoRoll extends React.Component<Props, State> {
       "bindPlayhead",
       "bindPlaybackPosition",
       "bindTouchableArea",
+      "bindGrid",
       "bindScroller",
       "onMouseMove",
       "onClick"
@@ -472,6 +473,7 @@ export default class PianoRoll extends React.Component<Props, State> {
   scrollerEl: ?HTMLElement;
   playbackPositionSpan: ?HTMLElement;
   playheadEl: ?HTMLElement;
+  gridCanvasEl: ?HTMLCanvasElement;
 
   bindScroller(el: ?HTMLElement) {
     this.scrollerEl = el;
@@ -611,18 +613,6 @@ export default class PianoRoll extends React.Component<Props, State> {
       next: selection => this.props.onChangeSelection(selection),
       complete: () => this.props.onFinishSelection()
     });
-  }
-
-  bindGrid(canvasEl: ?HTMLCanvasElement) {
-    if (canvasEl) {
-      this.setState({
-        gridClientRect: canvasEl.getBoundingClientRect()
-      });
-    } else {
-      this.setState({
-        gridClientRect: null
-      });
-    }
   }
 
   bindTouchableArea(component: ?TouchableArea) {
@@ -786,6 +776,28 @@ export default class PianoRoll extends React.Component<Props, State> {
     }
   }
 
+  bindGrid(el: ?HTMLCanvasElement) {
+    this.gridCanvasEl = el;
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    if (
+      nextProps.selectionState !== this.props.selectionState &&
+      nextProps.selectionState === "menu-prompt" &&
+      this.gridCanvasEl
+    ) {
+      const rect = this.gridCanvasEl.getBoundingClientRect();
+      this.setState({
+        clientOffset: {
+          left: rect.left,
+          top: rect.top
+        }
+      });
+    } else {
+      this.setState({ clientOffset: null });
+    }
+  }
+
   componentWillMount() {
     this
       .outerSubscribe = this.props.playbackPosition$$.subscribe(
@@ -889,12 +901,12 @@ export default class PianoRoll extends React.Component<Props, State> {
 
               {this.props.selectionState === "menu-prompt" &&
                 this.props.selection &&
-                this.state.gridClientRect
+                this.state.clientOffset
                 ? <PopupMenu
                     options={popupMenuOptions}
                     targetRect={translateRect(
-                      this.state.gridClientRect.left,
-                      this.state.gridClientRect.top,
+                      this.state.clientOffset.left,
+                      this.state.clientOffset.top,
                       makeSelectionRect(this.props.selection)
                     )}
                   />
