@@ -362,7 +362,7 @@ type Props = {
   cellsPerBeat: number,
   notes: ScheduledNoteList,
   playing: Object, // TODO: I dont think we're using this now
-  playbackPosition$$: Observable<Object>,
+  playbackPosition$$: Observable<Observable<number>>,
   playbackStartPosition: ?number,
   selectionState: SelectionState,
   selection: ?NoteSelection,
@@ -815,9 +815,9 @@ export default class PianoRoll extends React.Component<Props, State> {
         this.setState({ isPlaying: true });
 
         this.innerSubscribe = playbackPosition$.subscribe({
-          next: this.updatePlaybackPosition.bind(this),
-          error: console.error,
-          complete: this.stopPlayback.bind(this)
+          next: (value: number) => this.updatePlaybackPosition(value),
+          error: (e: any) => console.error(e),
+          complete: () => this.stopPlayback()
         });
       }
     );
