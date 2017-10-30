@@ -136,6 +136,10 @@ export default function noteEditorController(
 
   const notes$ = song$.map(o => o.notes);
 
+  // TODO: Uncomment this line to reproduce performance issues with rendering
+  // the selection rectangle.
+  //const notes$ = Observable.of([[59, 174, 0.13]]);
+
   const playbackProps$ = playbackControllerHelper(
     actions,
     notes$,

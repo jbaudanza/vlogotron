@@ -86,7 +86,7 @@ export type PlaybackViewProps = {
   notes: ScheduledNoteList,
   bpm: number,
   playCommands$: Observable<Object>,
-  playbackPositionInBeats$$: Observable<Object>
+  playbackPositionInBeats$$: Observable<Observable<number>>
 };
 
 export function playbackControllerHelper(

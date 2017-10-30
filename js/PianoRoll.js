@@ -69,29 +69,39 @@ function translateRect(left: number, top: number, rect: Rect): Rect {
 function gridDrawFunction(ctx, props, width, height) {
   ctx.clearRect(0, 0, width, height);
 
-  ctx.strokeStyle = colors.darkTwo;
-  ctx.lineWidth = 1;
-  ctx.setLineDash([]);
-
+  //
+  // Horiztonal paths
+  //
+  ctx.beginPath();
   for (let i = 0; i < props.totalNotes; i++) {
-    ctx.beginPath();
     const y = i * cellHeight + 0.5;
     ctx.moveTo(0, y);
     ctx.lineTo(width, y);
-    ctx.stroke();
   }
 
+  //
+  // Vertical paths
+  //
   const totalCells = props.totalBeats * props.cellsPerBeat;
   const cellWidth = beatWidth / props.cellsPerBeat;
 
   for (let i = 0; i < totalCells; i++) {
-    ctx.beginPath();
     const x = i * cellWidth + 0.5;
     ctx.moveTo(x, 0);
     ctx.lineTo(x, height);
-    ctx.stroke();
   }
 
+  //
+  // Draw grid
+  //
+  ctx.strokeStyle = colors.darkTwo;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([]);
+  ctx.stroke();
+
+  //
+  // Draw selection
+  //
   if (props.selection != null) {
     const rect = makeSelectionRect(props.selection);
     ctx.beginPath();

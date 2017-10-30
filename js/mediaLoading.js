@@ -52,12 +52,6 @@ type VideoClipMap = { [string]: VideoClipSources };
 
 import promiseFromTemplate from "./promiseFromTemplate";
 
-const initialSong = {
-  videoClips: {},
-  notes: [],
-  bpm: 120
-};
-
 export type CapturedMedia = {
   note: string,
   videoBlob: Blob,
