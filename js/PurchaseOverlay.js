@@ -6,7 +6,7 @@ import * as React from "react";
 import Overlay from "./Overlay";
 import ActionLink from "./ActionLink";
 import Link from "./Link";
-import Spinner from "./Spinner";
+import AnimatedEllipsis from "./AnimatedEllipsis";
 
 import { bindAll } from "lodash";
 import { Observable } from "rxjs/Observable";
@@ -144,7 +144,7 @@ export class PurchaseOverlay
               onClick={this.onClickPurchase}
             >
               {this.props.working
-                ? <StyledSpinner size={20} fill="white" />
+                ? <StyledEllipsis size={20} fill="white" />
                 : this.context.messages["purchase-action"]()}
 
             </ActionLink>
@@ -155,8 +155,9 @@ export class PurchaseOverlay
   }
 }
 
-const StyledSpinner = styled(Spinner)`
-  margin: 3px 18px 0;
+const StyledEllipsis = styled(AnimatedEllipsis)`
+  margin: 0 16px;
+  vertical-align: middle;
 `;
 
 export default createControlledComponent(controller, PurchaseOverlay, [
