@@ -3,10 +3,12 @@ import * as React from "react";
 
 type PropTypes = {
   size: number,
-  className?: string
+  className?: string,
+  fill?: string
 };
 
 export default function Spinner(props: PropTypes) {
+  const fill = props.fill;
   return (
     <svg
       className={props.className}
@@ -23,6 +25,7 @@ export default function Spinner(props: PropTypes) {
         height="20"
         rx="5"
         ry="5"
+        fill={fill}
         transform="rotate(0 50 50) translate(0 -30)"
       >
         {" "}
@@ -42,6 +45,7 @@ export default function Spinner(props: PropTypes) {
         height="20"
         rx="5"
         ry="5"
+        fill={fill}
         transform="rotate(30 50 50) translate(0 -30)"
       >
         {" "}
@@ -61,6 +65,7 @@ export default function Spinner(props: PropTypes) {
         height="20"
         rx="5"
         ry="5"
+        fill={fill}
         transform="rotate(60 50 50) translate(0 -30)"
       >
         {" "}
@@ -80,6 +85,7 @@ export default function Spinner(props: PropTypes) {
         height="20"
         rx="5"
         ry="5"
+        fill={fill}
         transform="rotate(90 50 50) translate(0 -30)"
       >
         {" "}
@@ -99,6 +105,7 @@ export default function Spinner(props: PropTypes) {
         height="20"
         rx="5"
         ry="5"
+        fill={fill}
         transform="rotate(120 50 50) translate(0 -30)"
       >
         {" "}
@@ -118,6 +125,7 @@ export default function Spinner(props: PropTypes) {
         height="20"
         rx="5"
         ry="5"
+        fill={fill}
         transform="rotate(150 50 50) translate(0 -30)"
       >
         {" "}
@@ -137,6 +145,7 @@ export default function Spinner(props: PropTypes) {
         height="20"
         rx="5"
         ry="5"
+        fill={fill}
         transform="rotate(180 50 50) translate(0 -30)"
       >
         {" "}
@@ -156,6 +165,7 @@ export default function Spinner(props: PropTypes) {
         height="20"
         rx="5"
         ry="5"
+        fill={fill}
         transform="rotate(210 50 50) translate(0 -30)"
       >
         {" "}
@@ -175,6 +185,7 @@ export default function Spinner(props: PropTypes) {
         height="20"
         rx="5"
         ry="5"
+        fill={fill}
         transform="rotate(240 50 50) translate(0 -30)"
       >
         {" "}
@@ -194,6 +205,7 @@ export default function Spinner(props: PropTypes) {
         height="20"
         rx="5"
         ry="5"
+        fill={fill}
         transform="rotate(270 50 50) translate(0 -30)"
       >
         {" "}
@@ -213,6 +225,7 @@ export default function Spinner(props: PropTypes) {
         height="20"
         rx="5"
         ry="5"
+        fill={fill}
         transform="rotate(300 50 50) translate(0 -30)"
       >
         {" "}
@@ -232,6 +245,7 @@ export default function Spinner(props: PropTypes) {
         height="20"
         rx="5"
         ry="5"
+        fill={fill}
         transform="rotate(330 50 50) translate(0 -30)"
       >
         {" "}

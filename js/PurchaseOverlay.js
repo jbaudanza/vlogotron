@@ -6,6 +6,7 @@ import * as React from "react";
 import Overlay from "./Overlay";
 import ActionLink from "./ActionLink";
 import Link from "./Link";
+import Spinner from "./Spinner";
 
 import { bindAll } from "lodash";
 import { Observable } from "rxjs/Observable";
@@ -19,7 +20,15 @@ import combineTemplate from "./combineTemplate";
 import createControlledComponent from "./createControlledComponent";
 import { postToAPI } from "./xhr";
 
-const stripe = Stripe("pk_test_DHTDixORQV3rdO8tLqEAU72l");
+function stripePublishableKey() {
+  if ("document.location.host" === "localhost:5000") {
+    return "pk_test_DHTDixORQV3rdO8tLqEAU72l";
+  } else {
+    return "pk_live_jBhgS5lUCQBLo8OXOtUf4YJg";
+  }
+}
+
+const stripe = Stripe(stripePublishableKey());
 
 const NevermindLink = styled(Link)`
   color: #333;
@@ -134,7 +143,10 @@ export class PurchaseOverlay
               enabled={this.props.complete && !this.props.working}
               onClick={this.onClickPurchase}
             >
-              {this.context.messages["purchase-action"]()}
+              {this.props.working
+                ? <StyledSpinner size={20} fill="white" />
+                : this.context.messages["purchase-action"]()}
+
             </ActionLink>
           </div>
         </form>
@@ -142,6 +154,10 @@ export class PurchaseOverlay
     );
   }
 }
+
+const StyledSpinner = styled(Spinner)`
+  margin: 3px 18px 0;
+`;
 
 export default createControlledComponent(controller, PurchaseOverlay, [
   "change",
