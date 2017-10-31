@@ -1,7 +1,7 @@
 /* @flow */
 import { Observable } from "rxjs/Observable";
 
-import { mapKeys, mapValues, omit } from "lodash";
+import { mapKeys, mapValues } from "lodash";
 
 import * as firebase from "firebase";
 
@@ -10,7 +10,7 @@ import { postToAPI } from "./xhr";
 
 import { songs } from "./song";
 
-import { midiNoteToLabel, labelToMidiNote } from "./midi";
+import { midiNoteToLabel, labelToMidiNote, omitNote } from "./midi";
 import type { Song, SongId } from "./song";
 import type { PlaybackParams } from "./AudioPlaybackEngine";
 
@@ -61,7 +61,7 @@ export type SongBoard = {
   customSong: ?Song,
   title: string,
   visibility: string,
-  videoClips: { [string]: VideoClip }
+  videoClips: { [number]: VideoClip }
 };
 
 export type DenormalizedSongBoard = {
@@ -172,7 +172,7 @@ function denormalizeSongBoard(
 
 function updateVideoClip(
   songBoard: SongBoard,
-  note: string,
+  note: number,
   fn: VideoClip => VideoClip
 ): SongBoard {
   if (note in songBoard.videoClips) {
@@ -194,11 +194,25 @@ const defaultPlaybackParams = {
   playbackRate: 1
 };
 
-function normalizeToNoteLabel(maybeMidiNote: string | number): string {
+// // We can't use numbers as keys in firebase
+// function midiNoteToFirebase(note: input): string {
+//   return "midi-" + input;
+// }
+
+// function midiNoteToFirebase(input: string): number {
+//   let match;
+//   if (match = input.match(/midi-(\d+)/)) {
+//     return parseInt(match[1]);
+//   } else {
+//     return 0;
+//   }
+// }
+
+function normalizeToMidiNote(maybeMidiNote: string | number): number {
   if (typeof maybeMidiNote === "number") {
-    return midiNoteToLabel(maybeMidiNote);
-  } else {
     return maybeMidiNote;
+  } else {
+    return labelToMidiNote(maybeMidiNote) || 0;
   }
 }
 
@@ -206,7 +220,7 @@ function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
   switch (event.type) {
     case "add-video": // deprecated
     case "update-video-clip":
-      let noteKey = normalizeToNoteLabel(event.note);
+      let midiNote = normalizeToMidiNote(event.note);
 
       const videoClip: VideoClip = {
         videoClipId: event.videoClipId,
@@ -217,19 +231,19 @@ function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
         ...acc,
         videoClips: {
           ...acc.videoClips,
-          [noteKey]: videoClip
+          [midiNote]: videoClip
         }
       };
     case "remove-video":
       return {
         ...acc,
-        videoClips: omit(acc.videoClips, normalizeToNoteLabel(event.note))
+        videoClips: omitNote(acc.videoClips, normalizeToMidiNote(event.note))
       };
     case "update-playback-params":
       const playbackParams = event.playbackParams;
       return updateVideoClip(
         acc,
-        normalizeToNoteLabel(event.note),
+        normalizeToMidiNote(event.note),
         videoClip => ({
           ...videoClip,
           playbackParams

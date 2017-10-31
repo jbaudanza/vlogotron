@@ -32,10 +32,10 @@ export type PlaybackParams = {
 export type UIPlaybackCommand = {
   when: number,
   duration$: Observable<Object>,
-  noteName: string
+  midiNote: number
 };
 
-export type AudioSourceMap = { [string]: AudioSource };
+export type AudioSourceMap = { [number]: AudioSource };
 
 // This is the minimum amount of time we will try to schedule audio in the
 // future. This is based on the following comment by Chris Wilson:
@@ -44,8 +44,8 @@ export type AudioSourceMap = { [string]: AudioSource };
 const batchTime = audioContext.baseLatency || 2 * 128 / audioContext.sampleRate;
 
 export type LivePlayCommand = {
-  play?: string,
-  pause?: string
+  play?: number,
+  pause?: number
 };
 
 export function startLivePlaybackEngine(
@@ -53,7 +53,7 @@ export function startLivePlaybackEngine(
   playCommands$: Observable<LivePlayCommand>,
   subscription: Subscription
 ) {
-  const active = {};
+  const active: { [number]: Object } = {};
 
   const stream$ = observableWithGainNode(destinationNode =>
     playCommands$
@@ -64,8 +64,8 @@ export function startLivePlaybackEngine(
 
         if (cmd.play) {
           const inputNoteName = cmd.play;
-          const [noteName, node] = buildSourceNode(
-            labelToMidiNote(cmd.play) || 0,
+          const [midiNote, node] = buildSourceNode(
+            cmd.play,
             audioSources,
             destinationNode
           );
@@ -77,7 +77,7 @@ export function startLivePlaybackEngine(
 
             event = {
               when,
-              noteName: inputNoteName,
+              midiNote,
               duration$: subject.asObservable()
             };
           }
@@ -126,14 +126,14 @@ function buildSourceNode(
   requestedMidiNote: number,
   audioSources: AudioSourceMap,
   destinationNode
-) {
+): [number, Object] {
   const requestedNoteName = midiNoteToLabel(requestedMidiNote);
   const sourceNoteName = requestedNoteName.replace("#", "");
 
   //const sourceMidiNote = 62; // D5
   const sourceMidiNote = labelToMidiNote(sourceNoteName) || 0;
 
-  const audioSource = audioSources[sourceNoteName];
+  const audioSource = audioSources[sourceMidiNote];
 
   if (audioSource && audioSource.audioBuffer) {
     const audioBuffer = audioSource.audioBuffer;
@@ -151,7 +151,7 @@ function buildSourceNode(
     });
     source.connect(destinationNode);
 
-    return [sourceNoteName, source];
+    return [sourceMidiNote, source];
   } else {
     const source = audioContext.createOscillator();
     source.type = "square";
@@ -162,7 +162,7 @@ function buildSourceNode(
     gainNode.connect(destinationNode);
     source.connect(gainNode);
 
-    return [sourceNoteName, source];
+    return [sourceMidiNote, source];
   }
 }
 
@@ -232,7 +232,7 @@ export function startScriptedPlayback(
         const events = [];
 
         commands.forEach(command => {
-          const [noteName, source] = buildSourceNode(
+          const [midiNote, source] = buildSourceNode(
             command[0],
             audioSources,
             gainNode
@@ -264,7 +264,7 @@ export function startScriptedPlayback(
             audioContext,
             startAt
           ).map((when): UIPlaybackCommand => ({
-            noteName,
+            midiNote,
             when,
             duration$
           }));

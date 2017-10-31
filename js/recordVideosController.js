@@ -101,14 +101,14 @@ export default function recordVideosController(
     )
     .mergeAll();
 
-  const clearedEvents$ = actions.clearVideoClip$
-    .map(labelToMidiNote)
-    .nonNull()
-    .withLatestFrom(nonNullUser$, (note: number, user: Object) => ({
+  const clearedEvents$ = actions.clearVideoClip$.withLatestFrom(
+    nonNullUser$,
+    (note: number, user: Object) => ({
       type: "remove-video",
       note: note,
       uid: user.uid
-    }));
+    })
+  );
 
   const songBoardEdits$: Observable<SongBoardEvent> = actions.editSong$;
 
@@ -127,7 +127,7 @@ export default function recordVideosController(
     })
   );
 
-  const clearedMedia$ = actions.clearVideoClip$.map((note: string) => ({
+  const clearedMedia$ = actions.clearVideoClip$.map((note: number) => ({
     note,
     cleared: true
   }));
@@ -233,7 +233,7 @@ function getUserMedia() {
   }
 }
 
-function startRecording(note, finish$, abort$) {
+function startRecording(note: number, finish$, abort$) {
   return Observable.fromPromise(getUserMedia())
     .map(mediaStream => runRecordingProcess(mediaStream, note, finish$, abort$))
     .catch(err => {
@@ -254,7 +254,7 @@ function startRecording(note, finish$, abort$) {
 
 // Manages the process of starting a countdown, playing a tone, and capturing
 // audio and video data
-function runRecordingProcess(mediaStream, note, finish$, abort$) {
+function runRecordingProcess(mediaStream, note: number, finish$, abort$) {
   const finishOrAbort$ = Observable.merge(finish$, abort$).take(1);
 
   // TODO: I really wish this was closer to where the MediaStream is opened

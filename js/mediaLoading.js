@@ -14,10 +14,10 @@ import type { Route } from "./router";
 import { findSongBoard, waitForTranscode } from "./database";
 import type { SongBoard, VideoClip, VideoClipId } from "./database";
 import type { AudioSourceMap, PlaybackParams } from "./AudioPlaybackEngine";
+import { omitNote } from "./midi";
 
 import {
   clone,
-  omit,
   forEach,
   values,
   pick,
@@ -40,7 +40,7 @@ export type VideoClipSources = {
 };
 
 export type NoteConfiguration = {
-  [string]: {
+  [number]: {
     sources: VideoClipSources,
     playbackParams: PlaybackParams
   }
@@ -53,13 +53,13 @@ type VideoClipMap = { [string]: VideoClipSources };
 import promiseFromTemplate from "./promiseFromTemplate";
 
 export type CapturedMedia = {
-  note: string,
+  note: number,
   videoBlob: Blob,
   audioBuffer: AudioBuffer
 };
 
 export type ClearedMedia = {
-  note: string,
+  note: number,
   cleared: true
 };
 
@@ -125,6 +125,8 @@ export function subscribeToSongBoardId(
     videoClipIds$
   ).publishReplay();
 
+  //videoClipIds$.switchMap(urlsForBackend).do(outputCurlCommands).subscribe();
+
   subscription.add(remoteAudioBuffersByVideoClipId$.connect());
 
   const remoteAudioBuffersByNote$ = Observable.combineLatest(
@@ -189,6 +191,25 @@ export function subscribeToSongBoardId(
     recordedMedia$,
     loading$
   };
+}
+
+function urlsForBackend(videoClipIds) {
+  return Promise.all(
+    videoClipIds.map(videoClipId =>
+      promiseFromTemplate({
+        videoClipId: videoClipId,
+        audio: urlFor(videoClipId, "-audio.mp4"),
+        video: urlFor(videoClipId, ".mp4")
+      })
+    )
+  );
+}
+
+function outputCurlCommands(urls) {
+  urls.forEach(item => {
+    console.log(`curl "${item.video}" > "video-${item.videoClipId}.mp4"`);
+    console.log(`curl "${item.audio}" > "audio-${item.videoClipId}.mp4"`);
+  });
 }
 
 const defaultPlaybackParams: PlaybackParams = {
@@ -318,7 +339,7 @@ function getAudioBuffer(url: string): Observable<AudioBuffer> {
 
 function reduceToLocalAudioBufferStore(acc, finalMedia) {
   if (finalMedia.cleared) {
-    return omit(acc, finalMedia.note);
+    return omitNote(acc, finalMedia.note);
   } else {
     return {
       ...acc,
@@ -330,7 +351,7 @@ function reduceToLocalAudioBufferStore(acc, finalMedia) {
 // TODO: There should be a corresponding call to URL.revokeObjectURL
 function reduceToLocalVideoClipStore(acc, obj) {
   if (obj.cleared) {
-    return omit(acc, obj.note);
+    return omitNote(acc, obj.note);
   } else {
     return {
       ...acc,

@@ -24,7 +24,7 @@ import ChooseVideoClipOverlay from "./ChooseVideoClipOverlay";
 import NotificationPopup from "./NotificationPopup";
 import SubHeader from "./SubHeader";
 import Message from "./Message";
-import { labelToMidiNote } from "./midi";
+import { labelToMidiNote, midiNoteToLabel } from "./midi";
 
 import { notes } from "./VideoGrid";
 import { noteEditorPath } from "./router";
@@ -47,12 +47,12 @@ type Props = {
   location: Location,
   countdownUntilRecord: number,
   pitchCorrection: number,
-  noteBeingRecorded: string,
+  noteBeingRecorded: number,
   durationRecorded: number,
   mediaStream?: MediaStream,
-  onClearVideoClip: Function,
-  onStartRecording: Function,
-  onStopRecording: Function,
+  onClearVideoClip: number => void,
+  onStartRecording: number => void,
+  onStopRecording: number => void,
   onPause: Function,
   onPlay: Function,
   playbackPositionInSeconds: number,
@@ -61,7 +61,7 @@ type Props = {
   isPlaying: boolean,
   premiumAccountStatus: boolean,
   onDismissError: Function,
-  audioBuffers: { [string]: AudioBuffer },
+  audioBuffers: { [number]: AudioBuffer },
   authorPhotoURL: string,
   origin: string,
   songBoardId: string
@@ -97,8 +97,8 @@ export default class RecordVideosView extends React.Component<Props> {
     });
   }
 
-  onAdjust(note: string) {
-    this.props.onNavigate("#adjust?note=" + note);
+  onAdjust(note: number) {
+    this.props.onNavigate("#adjust?note=" + midiNoteToLabel(note));
   }
 
   onFinishAdjust(note: number, playbackParams: PlaybackParams) {
@@ -148,22 +148,22 @@ export default class RecordVideosView extends React.Component<Props> {
     if ((match = this.props.location.hash.match(/^#adjust\?note=([\w]+)/))) {
       const note = match[1];
       const midiNote = labelToMidiNote(note);
+      if (midiNote != null) {
+        const noteConfiguration = this.props.noteConfiguration[midiNote];
+        const audioBuffer = this.props.audioBuffers[midiNote];
 
-      if (
-        this.props.noteConfiguration[note] &&
-        this.props.audioBuffers[note] &&
-        midiNote != null
-      ) {
-        overlay = (
-          <AdjustClipOverlay
-            onClose={this.props.location.pathname}
-            videoClipSources={this.props.noteConfiguration[note].sources}
-            audioBuffer={this.props.audioBuffers[note]}
-            playbackParams={this.props.noteConfiguration[note].playbackParams}
-            onFinish={this.onFinishAdjust.bind(this, midiNote)}
-            note={midiNote}
-          />
-        );
+        if (noteConfiguration && audioBuffer) {
+          overlay = (
+            <AdjustClipOverlay
+              onClose={this.props.location.pathname}
+              videoClipSources={noteConfiguration.sources}
+              audioBuffer={audioBuffer}
+              playbackParams={noteConfiguration.playbackParams}
+              onFinish={this.onFinishAdjust.bind(this, midiNote)}
+              note={midiNote}
+            />
+          );
+        }
       }
     }
 
@@ -196,7 +196,10 @@ export default class RecordVideosView extends React.Component<Props> {
 
     const emptyCount =
       notes.length -
-      intersection(Object.keys(this.props.noteConfiguration), notes).length;
+      intersection(
+        Object.keys(this.props.noteConfiguration).map(parseInt),
+        notes
+      ).length;
 
     let subHeaderEl;
     let notificationPopupEl;

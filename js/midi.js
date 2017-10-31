@@ -68,9 +68,6 @@ export const playCommands$ = midiMessages$
     const note = message.data[1];
     const velocity = message.data[2];
 
-    // Add the octave to the note
-    const noteString = midiNoteToLabel(note);
-
     // Detect a note ending. See http://stackoverflow.com/a/21636112/667069
     if (
       type === MIDI_NOTE_OFF ||
@@ -78,7 +75,7 @@ export const playCommands$ = midiMessages$
       (type === MIDI_NOTE_ON && velocity === 0)
     ) {
       return {
-        pause: noteString
+        pause: note
       };
       // Detect a note on
       // TODO: Investigate if it's possible to get multiple NOTE_ON messages for
@@ -87,10 +84,26 @@ export const playCommands$ = midiMessages$
       // some state around this.
     } else if (type === MIDI_NOTE_ON && velocity > 0) {
       return {
-        play: noteString
+        play: note
       };
     } else {
       return null;
     }
   })
   .nonNull();
+
+// This is like lodash's omit, except it works with numbers for keys
+export function omitNote<V>(
+  input: { [number]: V },
+  omitKey: number
+): { [number]: V } {
+  const result: { [number]: V } = {};
+  for (let key in input) {
+    if (
+      typeof key === "number" && input.hasOwnProperty(key) && key !== omitKey
+    ) {
+      result[key] = input[key];
+    }
+  }
+  return result;
+}

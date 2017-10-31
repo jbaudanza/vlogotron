@@ -27,10 +27,10 @@ const StyledSpinner = styled(Spinner)`
 `;
 
 type Props = {
-  note: string,
+  note: number,
   label: string,
   octave: number,
-  playbackStartedAt: number,
+  playbackStartedAt: ?number,
   spinner: boolean,
   mediaStream?: MediaStream,
   onStartRecording?: Function,
@@ -212,8 +212,7 @@ export default class VideoCell extends React.Component<Props> {
     return (
       <StyledVideoCell
         className={classNames("video-cell touchable", {
-          playing: this.props.playbackStartedAt != null,
-          sharp: this.props.note.includes("#")
+          playing: this.props.playbackStartedAt != null
         })}
         data-note={this.props.note}
       >

@@ -17,11 +17,24 @@ import type { NoteConfiguration } from "./mediaLoading";
 // $FlowFixMe: Flow doesn't support scss
 import "./VideoGrid.scss";
 
-// prettier-ignore
-export const notes = ["C3", "D3", "E3", "F3",
-               "G3", "A3", "B3", "C4",
-               "D4", "E4", "F4", "G4",
-               "A4", "B4", "C5", "D5"];
+export const notes: Array<number> = [
+  48, // C3
+  50, // D3
+  52, // E3
+  53, // F3
+  55, // G3
+  57, // A3
+  59, // B3
+  60, // C4
+  62, // D4
+  64, // E4
+  65, // F4
+  67, // G4
+  69, // A4
+  71, // B4
+  72, // C5
+  74 // D5
+];
 
 // prettier-ignore
 const noteLabels = ["do", "re", "mi", "fa", "so", "la", "ti"];
@@ -36,16 +49,16 @@ type Props = {
   durationRecorded?: number,
   onStartRecording?: Function,
   onStopRecording?: Function,
-  onAdjust?: string => void,
-  onClear?: string => void,
-  noteBeingRecorded?: string,
+  onAdjust?: number => void,
+  onClear?: number => void,
+  noteBeingRecorded?: number,
   mediaStream?: MediaStream,
   loading: Object,
   pitchCorrection?: number
 };
 
 type State = {
-  playing: Object
+  playing: { [number]: ?number }
 };
 
 export default class VideoGrid extends React.Component<Props, State> {
@@ -81,7 +94,7 @@ export default class VideoGrid extends React.Component<Props, State> {
   }
 
   onPlayCommand(command: UIPlaybackCommand) {
-    const note = command.noteName;
+    const note = command.midiNote;
     this.state.playing[note] = command.when;
     this.forceUpdate();
 
@@ -97,7 +110,7 @@ export default class VideoGrid extends React.Component<Props, State> {
     this.componentWillUnmount$.complete();
   }
 
-  propsForCell(index: number, note: string): VideoCellProps {
+  propsForCell(index: number, note: number): VideoCellProps {
     const props: VideoCellProps = {
       playbackStartedAt: this.state.playing[note],
       note: note,
@@ -149,7 +162,7 @@ export default class VideoGrid extends React.Component<Props, State> {
 
   bindTouchableArea(touchableArea: ?TouchableArea) {
     // Reduces into something like: {'play': 'C', 'pause': 'A'}
-    function reduceToCommands(lastCommand, note) {
+    function reduceToCommands(lastCommand, note: ?number) {
       const nextCommand = {};
 
       if (note != null) {
@@ -168,7 +181,9 @@ export default class VideoGrid extends React.Component<Props, State> {
         touch.movements$
           .map(gesture => gesture.element)
           .startWith(touch.firstEl)
-          .map(x => (x instanceof HTMLElement ? x.dataset.note : null)) // Map to current note
+          .map(
+            x => (x instanceof HTMLElement ? parseInt(x.dataset.note) : null)
+          ) // Map to current note
           .distinctUntilChanged()
           .concatWith(null)
           .scan(reduceToCommands, {})
@@ -182,7 +197,7 @@ export default class VideoGrid extends React.Component<Props, State> {
         ref={this.bindTouchableArea}
         enabled
       >
-        {notes.map((note, index) => (
+        {notes.map((note: number, index) => (
           <VideoCell key={note} {...this.propsForCell(index, note)} />
         ))}
       </TouchableArea>
