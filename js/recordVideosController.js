@@ -23,11 +23,7 @@ import {
 import type { SongBoardEvent } from "./database";
 import { songs } from "./song";
 
-import {
-  frequencyToNote,
-  noteToFrequency,
-  noteLabelsToMidi
-} from "./frequencies";
+import { frequencyToNote, noteToFrequency } from "./frequencies";
 
 import type { Media, CapturedMedia, VideoClipSources } from "./mediaLoading";
 import type { PlaybackParams } from "./AudioPlaybackEngine";
@@ -92,11 +88,7 @@ export default function recordVideosController(
           { note: media.note, sessionId: getSessionId(), songBoardId },
           media.videoBlob
         ).then(videoClipId =>
-          makeUpdateVideoClipEvent(
-            videoClipId,
-            labelToMidiNote(media.note) || 40,
-            uid
-          )
+          makeUpdateVideoClipEvent(videoClipId, media.note, uid)
         )
     )
     .mergeAll();
@@ -283,7 +275,7 @@ function runRecordingProcess(mediaStream, note: number, finish$, abort$) {
       (audioBuffer, videoBlob) => ({ note, videoBlob, audioBuffer })
     );
 
-    const targetMidiNote = normalizeOctave(noteLabelsToMidi[note]);
+    const targetMidiNote = normalizeOctave(note);
     const lowerBound = targetMidiNote - 1;
     const upperBound = targetMidiNote + 1;
 
@@ -340,7 +332,7 @@ function runRecordingProcess(mediaStream, note: number, finish$, abort$) {
   return { viewState$, media$ };
 }
 
-function startTone(note) {
+function startTone(note: number) {
   const ramp = 0.1;
 
   const gainNode = audioContext.createGain();
@@ -350,7 +342,7 @@ function startTone(note) {
 
   const oscillator = audioContext.createOscillator();
   oscillator.type = "square";
-  oscillator.frequency.value = noteToFrequency(noteLabelsToMidi[note]);
+  oscillator.frequency.value = noteToFrequency(note);
   oscillator.connect(gainNode);
   oscillator.start();
 
