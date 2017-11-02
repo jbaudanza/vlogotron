@@ -17,6 +17,18 @@ import type { PlaybackParams } from "./AudioPlaybackEngine";
 type NoteId = number; // MIDI note number
 export type VideoClipId = string; // Looks like firebase id
 
+export function urlFor(clipId: string, suffix: string): Promise<string> {
+  return firebase
+    .storage()
+    .ref("video-clips")
+    .child(clipId + suffix)
+    .getDownloadURL();
+}
+
+export function audioUrlFor(clipId: string) {
+  return urlFor(clipId, "-audio.mp4");
+}
+
 export type VideoClip = {
   videoClipId: string,
   playbackParams: PlaybackParams

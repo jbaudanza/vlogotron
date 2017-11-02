@@ -9,9 +9,17 @@ import audioContext from "./audioContext";
 
 import { getArrayBuffer } from "./xhr";
 
+import { makeFilterGraphString } from "./renderInFfmpeg";
+
 import type { Route } from "./router";
 
-import { findSongBoard, waitForTranscode } from "./database";
+import {
+  findSongBoard,
+  waitForTranscode,
+  audioUrlFor,
+  urlFor
+} from "./database";
+
 import type { SongBoard, VideoClip, VideoClipId } from "./database";
 import type { AudioSourceMap, PlaybackParams } from "./AudioPlaybackEngine";
 import { omitNote } from "./midi";
@@ -90,6 +98,11 @@ export function subscribeToSongBoardId(
     songBoardId
   ).publishReplay();
 
+  // songBoard$
+  //   .map(o => makeFilterGraphString(o.videoClips))
+  //   .debug("ffmpeg")
+  //   .subscribe();
+
   const localAudioBuffers$ = Observable.merge(recordedMedia$, clearedEvents$)
     .scan(reduceToLocalAudioBufferStore, {})
     .startWith({})
@@ -124,8 +137,6 @@ export function subscribeToSongBoardId(
   const remoteAudioBuffersByVideoClipId$ = loadAudioBuffersFromVideoClipIds(
     videoClipIds$
   ).publishReplay();
-
-  //videoClipIds$.switchMap(urlsForBackend).do(outputCurlCommands).subscribe();
 
   subscription.add(remoteAudioBuffersByVideoClipId$.connect());
 
@@ -173,7 +184,9 @@ export function subscribeToSongBoardId(
     (x, y) => merge({}, x, y)
   ).map(o => mapValues(o, addDefaultPlaybackParams));
 
-  const playbackParams$ = songBoard$.map(song =>
+  const playbackParams$: Observable<{
+    [number]: PlaybackParams
+  }> = songBoard$.map(song =>
     mapValues(song.videoClips, (o: VideoClip) => o.playbackParams)
   );
 
@@ -193,25 +206,6 @@ export function subscribeToSongBoardId(
   };
 }
 
-function urlsForBackend(videoClipIds) {
-  return Promise.all(
-    videoClipIds.map(videoClipId =>
-      promiseFromTemplate({
-        videoClipId: videoClipId,
-        audio: urlFor(videoClipId, "-audio.mp4"),
-        video: urlFor(videoClipId, ".mp4")
-      })
-    )
-  );
-}
-
-function outputCurlCommands(urls) {
-  urls.forEach(item => {
-    console.log(`curl "${item.video}" > "video-${item.videoClipId}.mp4"`);
-    console.log(`curl "${item.audio}" > "audio-${item.videoClipId}.mp4"`);
-  });
-}
-
 const defaultPlaybackParams: PlaybackParams = {
   trimStart: 0,
   trimEnd: 1,
@@ -228,8 +222,8 @@ function addDefaultPlaybackParams(obj) {
 }
 
 function buildNoteConfiguration(
-  videoClipSources: { [string]: VideoClipSources },
-  playbackParams: { [string]: PlaybackParams }
+  videoClipSources: { [number]: VideoClipSources },
+  playbackParams: { [number]: PlaybackParams }
 ): NoteConfiguration {
   return mapValues(videoClipSources, (sources, note) => ({
     playbackParams: playbackParams[note] || defaultPlaybackParams,
@@ -276,7 +270,7 @@ type AudioBufferResult = {
 function audioBufferForVideoClipId(
   clipId: VideoClipId
 ): Observable<AudioBufferResult> {
-  const result$ = Observable.defer(() => urlFor(clipId, "-audio.mp4"))
+  const result$ = Observable.defer(() => audioUrlFor(clipId))
     .switchMap(getAudioBuffer)
     .map(value => ({ value, error: null }))
     .catch(error => Observable.of({ value: null, error }));
@@ -306,14 +300,6 @@ export function videoClipSourcesById(
     })
   );
   return waitForTranscode(firebase.database(), clipId).concat(sources$);
-}
-
-function urlFor(clipId, suffix) {
-  return firebase
-    .storage()
-    .ref("video-clips")
-    .child(clipId + suffix)
-    .getDownloadURL();
 }
 
 // simulate a reduce() call because firebase doesn't have one.
