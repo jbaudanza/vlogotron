@@ -42,7 +42,7 @@
   "scripts": {
     "start": "firebase serve",
     "test": "ava",
-    "prettier": "prettier --write \"{js,functions,midi2vlog}/*.js\""
+    "prettier": "prettier --write \"{js,functions,midi2vlog,export}/*.js\""
   },
   "ava": {
     "files": "tests/*.js",

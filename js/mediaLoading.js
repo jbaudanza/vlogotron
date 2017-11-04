@@ -9,8 +9,6 @@ import audioContext from "./audioContext";
 
 import { getArrayBuffer } from "./xhr";
 
-import { makeFilterGraphString } from "./renderInFfmpeg";
-
 import type { Route } from "./router";
 
 import {
@@ -99,8 +97,11 @@ export function subscribeToSongBoardId(
   ).publishReplay();
 
   // songBoard$
-  //   .map(o => makeFilterGraphString(o.videoClips))
-  //   .debug("ffmpeg")
+  //   .map(songBoard => JSON.stringify({
+  //     song: songForSongBoard(songBoard),
+  //     videoClips: songBoard.videoClips
+  //   }))
+  //   .debug('JSON')
   //   .subscribe();
 
   const localAudioBuffers$ = Observable.merge(recordedMedia$, clearedEvents$)
