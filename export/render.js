@@ -110,26 +110,13 @@ function makeFilterGraphString(videoClips, bpm, notes, durations) {
       .map((tuple, i) => (realizedMidiNote(tuple[0]) === midiNote ? i : null))
       .filter(i => i != null);
 
-    const playbackParams = videoClips[midiNote].playbackParams;
-
-    // TODO: Add a filter to adjust the playback rate
-
-    const videoClipId = videoClips[midiNote].videoClipId;
-    const duration = durations[videoClipId];
-    const trimFilter = `trim=start=${playbackParams.trimStart * duration}:end=${playbackParams.trimEnd * duration}`;
-
     if (outputIndexes.length > 0) {
-      const videoOuputs = outputIndexes
+      const outputs = outputIndexes
         .map(i => `[schedulednoteinput:v:${i}]`)
         .join(" ");
 
-      const audioOutputs = outputIndexes
-        .map(i => `[schedulednoteinput:a:${i}]`)
-        .join(" ");
-
-      // Video stream
       filters.push(
-        `[${i}:v] ${scaleFilter}, ${cropFilter}, ${trimFilter}, split=${outputIndexes.length} ${videoOuputs}`
+        `[${i}:v] ${scaleFilter}, ${cropFilter}, split=${outputIndexes.length} ${outputs}`
       );
     }
   });
@@ -140,12 +127,19 @@ function makeFilterGraphString(videoClips, bpm, notes, durations) {
     const videoClipId = videoClips[realizedMidiNote(midiNote)].videoClipId;
     const duration = durations[videoClipId];
 
-    // XXX: include beatDuration somehow
+    // TODO: Add a filter to adjust the playback rate
+
+    const start = playbackParams.trimStart * duration;
+    const endOfBeat = start + beatsToTimestamp(beatDuration, bpm);
+    const endOfTrim = playbackParams.trimEnd * duration;
+    const end = Math.min(endOfBeat, endOfTrim);
+    const trimFilter = `trim=start=${start}:end=${end}`;
+
     const timestamp = beatsToTimestamp(beatStart, bpm);
     const setptsFilter = `setpts=PTS-STARTPTS+(${timestamp})/TB`;
 
     filters.push(
-      `[schedulednoteinput:v:${i}] ${setptsFilter} [schedulednote:v:${i}]`
+      `[schedulednoteinput:v:${i}] ${trimFilter}, ${setptsFilter} [schedulednote:v:${i}]`
     );
 
     // TODO: Ideally we could use PTS to sync the audio instead of adding a delay
@@ -161,7 +155,7 @@ function makeFilterGraphString(videoClips, bpm, notes, durations) {
   // Build video grid
   //
   filters.push(
-    `color=color=red:size=${gridWidth * cellSize}x${gridHeight * cellSize}, trim=duration=15 [base]`
+    `color=color=0x333333:size=${gridWidth * cellSize}x${gridHeight * cellSize}, trim=duration=15 [base]`
   );
 
   notes.forEach(([midiNote, beatStart, duration], i) => {
