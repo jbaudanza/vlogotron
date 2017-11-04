@@ -1,5 +1,5 @@
 const fs = require("fs");
-const { spawnSync } = require("child_process");
+const { execFile } = require("child_process");
 
 const midiNotesInGrid = [
   48, // C3
@@ -56,25 +56,40 @@ function filenameForVideoClip(videoClipId) {
   return `sources/video-${videoClipId}.mp4`;
 }
 
-// TODO: this should probably return a promise
 function queryDuration(videoClipId) {
-  const child = spawnSync("ffprobe", [
-    "-v", "error",
-    "-select_streams", "v:0",
-    "-show_entries", "stream=duration",
-    "-of", "default=noprint_wrappers=1:nokey=1",
-    filenameForVideoClip(videoClipId)
-  ]);
-
-  // TODO: check child.error
-  if (child.status !== 0) {
-    console.log(child.stderr.toString("utf8"));
-  } else {
-    return parseFloat(child.stdout.toString("utf8"));
-  }
+  return new Promise((resolve, reject) => {
+    const child = execFile(
+      "ffprobe",
+      [
+        "-v",
+        "error",
+        "-select_streams",
+        "v:0",
+        "-show_entries",
+        "stream=duration",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        filenameForVideoClip(videoClipId)
+      ],
+      (error, stdout, stderr) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(parseFloat(stdout));
+        }
+      }
+    );
+  });
 }
 
-function makeFilterGraphString(videoClips, bpm, notes) {
+function makeObject(keyValuesList) {
+  return keyValuesList.reduce(
+    (acc, [key, value]) => Object.assign({}, acc, { [key]: value }),
+    {}
+  );
+}
+
+function makeFilterGraphString(videoClips, bpm, notes, durations) {
   const gridWidth = 4;
   const gridHeight = Math.ceil(midiNotesInGrid.length / gridWidth);
   const cellSize = 200;
@@ -98,7 +113,7 @@ function makeFilterGraphString(videoClips, bpm, notes) {
     // TODO: Add a filter to adjust the playback rate
 
     const videoClipId = videoClips[midiNote].videoClipId;
-    const duration = queryDuration(videoClipId);
+    const duration = durations[videoClipId];
     const trimFilter = `trim=start=${playbackParams.trimStart * duration}:end=${playbackParams.trimEnd * duration}`;
 
     if (outputIndexes.length > 0) {
@@ -144,9 +159,28 @@ function makeFilterGraphString(videoClips, bpm, notes) {
   return filters.join("; \n");
 }
 
-readInput().then(input =>
-  fs.writeFile(
-    "filterscript",
-    makeFilterGraphString(input.videoClips, input.song.bpm, input.song.notes)
-  )
-);
+readInput()
+  .then(input => {
+    return Promise.all(
+      Object.keys(input.videoClips).map(key => {
+        const videoClipId = input.videoClips[key].videoClipId;
+        return queryDuration(videoClipId).then(duration => [
+          videoClipId,
+          duration
+        ]);
+      })
+    ).then(result =>
+      Object.assign({}, input, { durations: makeObject(result) })
+    );
+  })
+  .then(input => {
+    fs.writeFile(
+      "filterscript",
+      makeFilterGraphString(
+        input.videoClips,
+        input.song.bpm,
+        input.song.notes,
+        input.durations
+      )
+    );
+  });
