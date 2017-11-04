@@ -58,6 +58,7 @@ function filenameForVideoClip(videoClipId) {
 
 function queryDuration(videoClipId) {
   return new Promise((resolve, reject) => {
+    // Command line from http://trac.ffmpeg.org/wiki/FFprobeTips
     const child = execFile(
       "ffprobe",
       [
@@ -89,7 +90,16 @@ function makeObject(keyValuesList) {
   );
 }
 
+function times(n) {
+  const result = [];
+  for (let i = 0; i < n; i++) {
+    result.push(i);
+  }
+  return result;
+}
+
 function makeFilterGraphString(videoClips, bpm, notes, durations) {
+  notes = notes.splice(0, 32);
   const gridWidth = 4;
   const gridHeight = Math.ceil(midiNotesInGrid.length / gridWidth);
   const cellSize = 200;
@@ -117,29 +127,58 @@ function makeFilterGraphString(videoClips, bpm, notes, durations) {
     const trimFilter = `trim=start=${playbackParams.trimStart * duration}:end=${playbackParams.trimEnd * duration}`;
 
     if (outputIndexes.length > 0) {
-      const outputs = outputIndexes
-        .map(i => `[schedulednoteinput:${i}]`)
+      const videoOuputs = outputIndexes
+        .map(i => `[schedulednoteinput:v:${i}]`)
         .join(" ");
+
+      const audioOutputs = outputIndexes
+        .map(i => `[schedulednoteinput:a:${i}]`)
+        .join(" ");
+
+      // Video stream
       filters.push(
-        `[${i}:v] ${scaleFilter}, ${cropFilter}, ${trimFilter}, split=${outputIndexes.length} ${outputs}`
+        `[${i}:v] ${scaleFilter}, ${cropFilter}, ${trimFilter}, split=${outputIndexes.length} ${videoOuputs}`
+      );
+
+      // Audio stream
+      filters.push(
+        `[${i + midiNotesInGrid.length}:a] a${trimFilter}, asplit=${outputIndexes.length} ${audioOutputs}`
       );
     }
   });
 
   notes.forEach(([midiNote, beatStart, beatDuration], i) => {
+    const playbackParams =
+      videoClips[realizedMidiNote(midiNote)].playbackParams;
+    const videoClipId = videoClips[realizedMidiNote(midiNote)].videoClipId;
+    const duration = durations[videoClipId];
+
     // XXX: include beatDuration somehow
     const timestamp = beatsToTimestamp(beatStart, bpm);
-    const setptsFilter = `setpts=PTS+${timestamp}/TB`;
+    const setptsFilter = `setpts=PTS-STARTPTS+(${timestamp})/TB`;
 
     filters.push(
-      `[schedulednoteinput:${i}] ${setptsFilter} [schedulednote:${i}]`
+      `[schedulednoteinput:v:${i}] ${setptsFilter} [schedulednote:v:${i}]`
+    );
+
+    let audioFilter;
+    if (timestamp === 0) {
+      audioFilter = "volume=1.0"; // No-op
+    } else {
+      audioFilter = `adelay=${timestamp * 1000}`;
+    }
+
+    filters.push(
+      `[schedulednoteinput:a:${i}] ${audioFilter} [schedulednote:a:${i}]`
     );
   });
 
+  //
+  // Build video grid
+  //
   filters.push(
-    `nullsrc=size=${gridWidth * cellSize}x${gridHeight * cellSize} [nullsrc]`
+    `nullsrc=size=${gridWidth * cellSize}x${gridHeight * cellSize}, trim=duration=10 [base]`
   );
-  filters.push(`[nullsrc] trim=duration=5 [base]`);
 
   notes.forEach(([midiNote, beatStart, duration], i) => {
     const lastSource = i === 0 ? "base" : `tmp:${i - 1}`;
@@ -152,9 +191,17 @@ function makeFilterGraphString(videoClips, bpm, notes, durations) {
     const output = i === notes.length - 1 ? "[final]" : `[tmp:${i}]`;
 
     filters.push(
-      `[${lastSource}][schedulednote:${i}] overlay=x=${x}:y=${y} ${output}`
+      `[${lastSource}][schedulednote:v:${i}] overlay=x=${x}:y=${y} ${output}`
     );
   });
+
+  //
+  // Mix the audio
+  //
+  const n = notes.length;
+  const audioInputs = times(n).map(i => `[schedulednote:a:${i}]`).join(" ");
+
+  filters.push(`${audioInputs} amix=inputs=${n}`);
 
   return filters.join("; \n");
 }
