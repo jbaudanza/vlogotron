@@ -16,7 +16,10 @@ import { combine as combinePlayCommands } from "./playCommands";
 import { animationFrame } from "rxjs/scheduler/animationFrame";
 import audioContext from "./audioContext";
 
-import { audioProcessEventsFromNode, audioProcessEventsToWavFile } from "./recording";
+import {
+  audioProcessEventsFromNode,
+  audioProcessEventsToWavFile
+} from "./recording";
 
 import {
   songLengthInSeconds,
@@ -118,6 +121,9 @@ export function playbackControllerHelper(
 
   const scriptedPlaybackContext$$ = actions.play$
     .withLatestFrom(startPosition$, bpm$, (action, startPosition, bpm) => {
+      // TODO:
+      //  - this has clipping issues
+      //  - switch to a OfflineAudioContext so it runs quicker
       // const gainNode = audioContext.createGain();
       // gainNode.gain.value = 0.8;
 
@@ -129,7 +135,7 @@ export function playbackControllerHelper(
         actions.pause$.concatWith({}),
         audioContext.destination
         //gainNode
-      )
+      );
 
       // audioProcessEventsToWavFile(
       //   audioProcessEventsFromNode(gainNode).takeUntil(playbackContext.playCommands$.ignoreElements().concatWith({}))

@@ -53,45 +53,47 @@ export function startLivePlaybackEngine(
 ) {
   const active: { [number]: Object } = {};
 
-  const stream$ = observableWithGainNode(audioContext.destination, destinationNode =>
-    playCommands$
-      .withLatestFrom(audioSources$)
-      .map(([cmd, audioSources]): ?UIPlaybackCommand => {
-        const when = audioContext.currentTime + batchTime;
-        let event = null;
+  const stream$ = observableWithGainNode(
+    audioContext.destination,
+    destinationNode =>
+      playCommands$
+        .withLatestFrom(audioSources$)
+        .map(([cmd, audioSources]): ?UIPlaybackCommand => {
+          const when = audioContext.currentTime + batchTime;
+          let event = null;
 
-        if (cmd.play) {
-          const inputNoteName = cmd.play;
-          const [midiNote, node] = buildSourceNode(
-            cmd.play,
-            audioSources,
-            destinationNode
-          );
+          if (cmd.play) {
+            const inputNoteName = cmd.play;
+            const [midiNote, node] = buildSourceNode(
+              cmd.play,
+              audioSources,
+              destinationNode
+            );
 
-          if (node) {
-            const subject = new Subject();
-            active[inputNoteName] = { node, subject };
-            node.start(when);
+            if (node) {
+              const subject = new Subject();
+              active[inputNoteName] = { node, subject };
+              node.start(when);
 
-            event = {
-              when,
-              midiNote,
-              duration$: subject.asObservable()
-            };
+              event = {
+                when,
+                midiNote,
+                duration$: subject.asObservable()
+              };
+            }
           }
-        }
 
-        if (cmd.pause && active[cmd.pause]) {
-          const inputNoteName = cmd.pause;
-          active[inputNoteName].node.stop(when);
-          active[inputNoteName].subject.next({});
-          active[inputNoteName].subject.complete();
-          delete active[inputNoteName];
-        }
+          if (cmd.pause && active[cmd.pause]) {
+            const inputNoteName = cmd.pause;
+            active[inputNoteName].node.stop(when);
+            active[inputNoteName].subject.next({});
+            active[inputNoteName].subject.complete();
+            delete active[inputNoteName];
+          }
 
-        return event;
-      })
-      .nonNull()
+          return event;
+        })
+        .nonNull()
   ).publish();
 
   subscription.add(stream$.connect());

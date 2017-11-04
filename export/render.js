@@ -90,14 +90,6 @@ function makeObject(keyValuesList) {
   );
 }
 
-function times(n) {
-  const result = [];
-  for (let i = 0; i < n; i++) {
-    result.push(i);
-  }
-  return result;
-}
-
 function makeFilterGraphString(videoClips, bpm, notes, durations) {
   //notes = notes.splice(0, 4);
   const gridWidth = 4;
@@ -139,11 +131,6 @@ function makeFilterGraphString(videoClips, bpm, notes, durations) {
       filters.push(
         `[${i}:v] ${scaleFilter}, ${cropFilter}, ${trimFilter}, split=${outputIndexes.length} ${videoOuputs}`
       );
-
-      // Audio stream
-      // filters.push(
-      //   `[${i + midiNotesInGrid.length}:a] a${trimFilter}, asplit=${outputIndexes.length} ${audioOutputs}`
-      // );
     }
   });
 
@@ -168,17 +155,13 @@ function makeFilterGraphString(videoClips, bpm, notes, durations) {
     } else {
       audioFilter = `adelay=${timestamp * 1000}`;
     }
-
-    // filters.push(
-    //   `[schedulednoteinput:a:${i}] ${audioFilter} [schedulednote:a:${i}]`
-    // );
   });
 
   //
   // Build video grid
   //
   filters.push(
-    `nullsrc=size=${gridWidth * cellSize}x${gridHeight * cellSize}, trim=duration=10 [base]`
+    `color=color=red:size=${gridWidth * cellSize}x${gridHeight * cellSize}, trim=duration=15 [base]`
   );
 
   notes.forEach(([midiNote, beatStart, duration], i) => {
@@ -192,17 +175,11 @@ function makeFilterGraphString(videoClips, bpm, notes, durations) {
     const output = i === notes.length - 1 ? "[final]" : `[tmp:${i}]`;
 
     filters.push(
-      `[${lastSource}][schedulednote:v:${i}] overlay=x=${x}:y=${y} ${output}`
+      `[${lastSource}][schedulednote:v:${i}] overlay=x=${x}:y=${y}:eof_action=pass ${output}`
     );
   });
 
-  //
-  // Mix the audio
-  //
-  const n = notes.length;
-  const audioInputs = times(n).map(i => `[schedulednote:a:${i}]`).join(" ");
-
-  //filters.push(`${audioInputs} amix=inputs=${n}`);
+  filters.push(`[${midiNotesInGrid.length}:a] volume=1.0`);
 
   return filters.join("; \n");
 }

@@ -60,8 +60,9 @@ export function start(
 
   const pitch$ = audioProcessEvent$.switchMap(mapAudioEventToPitch);
 
-  const finishedAudioBuffer$ = audioProcessEventsToWavFile(audioProcessEvent$)
-    .flatMap(decodeAudioData);
+  const finishedAudioBuffer$ = audioProcessEventsToWavFile(
+    audioProcessEvent$
+  ).flatMap(decodeAudioData);
 
   const audioBuffer$ = Observable.race(
     finishedAudioBuffer$,
@@ -71,11 +72,13 @@ export function start(
   return { duration$, audioBuffer$, videoBlob$, pitch$ };
 }
 
-export function audioProcessEventsToWavFile(audioProcessEvents$: Observable<AudioProcessingEvent>): Observable<ArrayBuffer> {
+export function audioProcessEventsToWavFile(
+  audioProcessEvents$: Observable<AudioProcessingEvent>
+): Observable<ArrayBuffer> {
   return audioProcessEvents$
     .map(buffersFromAudioProcessEvent)
     .toArray()
-    .map(batches => encodeWavSync(batches, audioContext.sampleRate))
+    .map(batches => encodeWavSync(batches, audioContext.sampleRate));
 }
 
 function combineBlobs(list) {
@@ -101,7 +104,9 @@ function videoBlobFromMediaRecorder(mediaRecorder) {
   return dataEvents$.map(e => e.data).toArray().map(combineBlobs);
 }
 
-function buffersFromAudioProcessEvent(event: AudioProcessingEvent): Array<Float32Array> {
+function buffersFromAudioProcessEvent(
+  event: AudioProcessingEvent
+): Array<Float32Array> {
   const list = [];
   for (let i = 0; i < event.inputBuffer.numberOfChannels; i++) {
     list.push(new Float32Array(event.inputBuffer.getChannelData(i)));
@@ -117,7 +122,9 @@ function decodeAudioData(arraybuffer) {
   );
 }
 
-export function audioProcessEventsFromNode(audioSource: AudioNode): Observable<AudioProcessingEvent> {
+export function audioProcessEventsFromNode(
+  audioSource: AudioNode
+): Observable<AudioProcessingEvent> {
   const blockSize = 16384;
 
   const recorderNode = audioSource.context.createScriptProcessor(
