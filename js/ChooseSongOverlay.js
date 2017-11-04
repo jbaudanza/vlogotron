@@ -21,6 +21,7 @@ import type { AudioSourceMap } from "./AudioPlaybackEngine";
 
 import ReactActions from "./ReactActions";
 import createControlledComponent from "./createControlledComponent";
+import audioContext from "./audioContext";
 
 const arrowEl = (
   <svg width="8" height="14" viewBox="0 0 8 14">
@@ -207,7 +208,8 @@ function chooseTemplateController(
         songs[songId].bpm,
         0, // startPosition
         props$.map(props => props.audioSources),
-        Observable.merge(actions.pause$, actions.play$, unmount$).take(1)
+        Observable.merge(actions.pause$, actions.play$, unmount$).take(1),
+        audioContext.destination
       );
 
       return Observable.merge(

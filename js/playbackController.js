@@ -16,6 +16,8 @@ import { combine as combinePlayCommands } from "./playCommands";
 import { animationFrame } from "rxjs/scheduler/animationFrame";
 import audioContext from "./audioContext";
 
+import { audioProcessEventsFromNode, audioProcessEventsToWavFile } from "./recording";
+
 import {
   songLengthInSeconds,
   songs,
@@ -115,15 +117,26 @@ export function playbackControllerHelper(
   }
 
   const scriptedPlaybackContext$$ = actions.play$
-    .withLatestFrom(startPosition$, bpm$, (action, startPosition, bpm) =>
-      startScriptedPlayback(
+    .withLatestFrom(startPosition$, bpm$, (action, startPosition, bpm) => {
+      // const gainNode = audioContext.createGain();
+      // gainNode.gain.value = 0.8;
+
+      const playbackContext = startScriptedPlayback(
         notes$,
         bpm,
         startPosition || 0,
         media.audioSources$,
-        actions.pause$.concatWith({})
+        actions.pause$.concatWith({}),
+        audioContext.destination
+        //gainNode
       )
-    )
+
+      // audioProcessEventsToWavFile(
+      //   audioProcessEventsFromNode(gainNode).takeUntil(playbackContext.playCommands$.ignoreElements().concatWith({}))
+      // ).map(ab => URL.createObjectURL(new Blob([ab], {type: 'audio/wav'}))).debug('test').subscribe();
+
+      return playbackContext;
+    })
     .publish();
 
   const scriptedPlayCommands$$ = scriptedPlaybackContext$$.map(

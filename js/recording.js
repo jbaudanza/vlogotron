@@ -49,8 +49,8 @@ export function start(
   //
   // Setup Audio Recording
   //
-  const audioProcessEvent$ = audioProcessEventsFromMediaStream(
-    mediaStream
+  const audioProcessEvent$ = audioProcessEventsFromNode(
+    audioContext.createMediaStreamSource(mediaStream)
   ).takeUntil(takeUntil$);
 
   const duration$ = audioProcessEvent$
@@ -60,10 +60,7 @@ export function start(
 
   const pitch$ = audioProcessEvent$.switchMap(mapAudioEventToPitch);
 
-  const finishedAudioBuffer$ = audioProcessEvent$
-    .map(buffersFromAudioProcessEvent)
-    .toArray()
-    .map(batches => encodeWavSync(batches, audioContext.sampleRate))
+  const finishedAudioBuffer$ = audioProcessEventsToWavFile(audioProcessEvent$)
     .flatMap(decodeAudioData);
 
   const audioBuffer$ = Observable.race(
@@ -72,6 +69,13 @@ export function start(
   );
 
   return { duration$, audioBuffer$, videoBlob$, pitch$ };
+}
+
+export function audioProcessEventsToWavFile(audioProcessEvents$: Observable<AudioProcessingEvent>): Observable<ArrayBuffer> {
+  return audioProcessEvents$
+    .map(buffersFromAudioProcessEvent)
+    .toArray()
+    .map(batches => encodeWavSync(batches, audioContext.sampleRate))
 }
 
 function combineBlobs(list) {
@@ -97,7 +101,7 @@ function videoBlobFromMediaRecorder(mediaRecorder) {
   return dataEvents$.map(e => e.data).toArray().map(combineBlobs);
 }
 
-function buffersFromAudioProcessEvent(event) {
+function buffersFromAudioProcessEvent(event: AudioProcessingEvent): Array<Float32Array> {
   const list = [];
   for (let i = 0; i < event.inputBuffer.numberOfChannels; i++) {
     list.push(new Float32Array(event.inputBuffer.getChannelData(i)));
@@ -113,11 +117,10 @@ function decodeAudioData(arraybuffer) {
   );
 }
 
-function audioProcessEventsFromMediaStream(mediaStream) {
+export function audioProcessEventsFromNode(audioSource: AudioNode): Observable<AudioProcessingEvent> {
   const blockSize = 16384;
-  const audioSource = audioContext.createMediaStreamSource(mediaStream);
 
-  const recorderNode = audioContext.createScriptProcessor(
+  const recorderNode = audioSource.context.createScriptProcessor(
     blockSize, // buffer size
     audioSource.channelCount, // input channels
     audioSource.channelCount // output channels
@@ -127,7 +130,7 @@ function audioProcessEventsFromMediaStream(mediaStream) {
 
   // NOTE: We are not really directing any audio to this destination, however,
   // the audioprocess event doesn't seem to fire unless it's hooked up.
-  recorderNode.connect(audioContext.destination);
+  recorderNode.connect(audioSource.context.destination);
 
   return Observable.fromEvent(recorderNode, "audioprocess");
 }

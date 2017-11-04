@@ -53,7 +53,7 @@ export function startLivePlaybackEngine(
 ) {
   const active: { [number]: Object } = {};
 
-  const stream$ = observableWithGainNode(destinationNode =>
+  const stream$ = observableWithGainNode(audioContext.destination, destinationNode =>
     playCommands$
       .withLatestFrom(audioSources$)
       .map(([cmd, audioSources]): ?UIPlaybackCommand => {
@@ -102,10 +102,9 @@ export function startLivePlaybackEngine(
 class GainNodeResource {
   node: AudioNode;
 
-  constructor() {
+  constructor(destination: AudioNode) {
     this.node = audioContext.createGain();
-    this.node.gain.value = 0.9;
-    this.node.connect(audioContext.destination);
+    this.node.connect(destination);
   }
 
   unsubscribe() {
@@ -113,9 +112,9 @@ class GainNodeResource {
   }
 }
 
-function observableWithGainNode(observableFactory) {
+function observableWithGainNode(destination, observableFactory) {
   return Observable.using(
-    () => new GainNodeResource(),
+    () => new GainNodeResource(destination),
     resource => observableFactory(resource.node)
   );
 }
@@ -182,7 +181,8 @@ export function startScriptedPlayback(
   bpm: number,
   startPosition: number,
   audioSources$: Observable<AudioSourceMap>,
-  playUntil$: Observable<any>
+  playUntil$: Observable<any>,
+  audioDestination: AudioNode
 ) {
   const truncatedNotes$ = notes$.map(notes =>
     notes
@@ -226,7 +226,7 @@ export function startScriptedPlayback(
     .map(([beatWindow, notes]) => pickNotesForBeatWindow(beatWindow, notes))
     .withLatestFrom(audioSources$);
 
-  const stream$ = observableWithGainNode(gainNode =>
+  const stream$ = observableWithGainNode(audioDestination, gainNode =>
     commandsWithAudioSources$
       .flatMap(([commands, audioSources]) => {
         const events = [];

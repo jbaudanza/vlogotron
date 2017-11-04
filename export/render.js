@@ -99,7 +99,7 @@ function times(n) {
 }
 
 function makeFilterGraphString(videoClips, bpm, notes, durations) {
-  notes = notes.splice(0, 32);
+  //notes = notes.splice(0, 4);
   const gridWidth = 4;
   const gridHeight = Math.ceil(midiNotesInGrid.length / gridWidth);
   const cellSize = 200;
@@ -141,9 +141,9 @@ function makeFilterGraphString(videoClips, bpm, notes, durations) {
       );
 
       // Audio stream
-      filters.push(
-        `[${i + midiNotesInGrid.length}:a] a${trimFilter}, asplit=${outputIndexes.length} ${audioOutputs}`
-      );
+      // filters.push(
+      //   `[${i + midiNotesInGrid.length}:a] a${trimFilter}, asplit=${outputIndexes.length} ${audioOutputs}`
+      // );
     }
   });
 
@@ -161,6 +161,7 @@ function makeFilterGraphString(videoClips, bpm, notes, durations) {
       `[schedulednoteinput:v:${i}] ${setptsFilter} [schedulednote:v:${i}]`
     );
 
+    // TODO: Ideally we could use PTS to sync the audio instead of adding a delay
     let audioFilter;
     if (timestamp === 0) {
       audioFilter = "volume=1.0"; // No-op
@@ -168,9 +169,9 @@ function makeFilterGraphString(videoClips, bpm, notes, durations) {
       audioFilter = `adelay=${timestamp * 1000}`;
     }
 
-    filters.push(
-      `[schedulednoteinput:a:${i}] ${audioFilter} [schedulednote:a:${i}]`
-    );
+    // filters.push(
+    //   `[schedulednoteinput:a:${i}] ${audioFilter} [schedulednote:a:${i}]`
+    // );
   });
 
   //
@@ -201,7 +202,7 @@ function makeFilterGraphString(videoClips, bpm, notes, durations) {
   const n = notes.length;
   const audioInputs = times(n).map(i => `[schedulednote:a:${i}]`).join(" ");
 
-  filters.push(`${audioInputs} amix=inputs=${n}`);
+  //filters.push(`${audioInputs} amix=inputs=${n}`);
 
   return filters.join("; \n");
 }

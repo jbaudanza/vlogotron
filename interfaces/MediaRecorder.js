@@ -4,3 +4,9 @@ declare class MediaRecorder {
   stop(): void;
   requestData(): void;
 }
+
+declare class AudioProcessingEvent extends Event {
+  playbackTime: number;
+  inputBuffer: AudioBuffer;
+  outputBuffer: AudioBuffer;
+}
