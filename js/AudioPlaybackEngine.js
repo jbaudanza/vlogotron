@@ -9,8 +9,6 @@ import audioContext from "./audioContext";
 import { playbackSchedule } from "./playbackSchedule";
 import { noteToFrequency, shiftFrequency } from "./frequencies";
 
-import { midiNoteToLabel, labelToMidiNote } from "./midi";
-
 import { songLengthInBeats, beatsToTimestamp, timestampToBeats } from "./song";
 import type { ScheduledNoteList } from "./song";
 
@@ -122,16 +120,18 @@ function observableWithGainNode(observableFactory) {
   );
 }
 
+function isSharp(midiNote: number) {
+  return [1, 3, 6, 8, 10].indexOf(midiNote % 12) != -1;
+}
+
 function buildSourceNode(
   requestedMidiNote: number,
   audioSources: AudioSourceMap,
   destinationNode
 ): [number, Object] {
-  const requestedNoteName = midiNoteToLabel(requestedMidiNote);
-  const sourceNoteName = requestedNoteName.replace("#", "");
-
-  //const sourceMidiNote = 62; // D5
-  const sourceMidiNote = labelToMidiNote(sourceNoteName) || 0;
+  const sourceMidiNote = isSharp(requestedMidiNote)
+    ? requestedMidiNote - 1
+    : requestedMidiNote;
 
   const audioSource = audioSources[sourceMidiNote];
 
