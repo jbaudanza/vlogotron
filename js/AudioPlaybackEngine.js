@@ -10,7 +10,7 @@ import { playbackSchedule } from "./playbackSchedule";
 import { noteToFrequency, shiftFrequency } from "./frequencies";
 
 import { songLengthInBeats, beatsToTimestamp, timestampToBeats } from "./song";
-import type { ScheduledNoteList } from "./song";
+import type { ScheduledNoteList, ScheduledNote } from "./song";
 
 import TrimmedAudioBufferSourceNode from "./TrimmedAudioBufferSourceNode";
 
@@ -64,8 +64,10 @@ export function startLivePlaybackEngine(
 
           if (cmd.play) {
             const inputNoteName = cmd.play;
-            const [midiNote, node] = buildSourceNode(
-              cmd.play,
+            const midiNote = realizedMidiNote(inputNoteName);
+            const node = buildSourceNode(
+              midiNote,
+              inputNoteName,
               audioSources,
               destinationNode
             );
@@ -125,15 +127,16 @@ function isSharp(midiNote: number) {
   return [1, 3, 6, 8, 10].indexOf(midiNote % 12) != -1;
 }
 
+function realizedMidiNote(input: number): number {
+  return isSharp(input) ? input - 1 : input;
+}
+
 function buildSourceNode(
+  sourceMidiNote: number,
   requestedMidiNote: number,
   audioSources: AudioSourceMap,
-  destinationNode
-): [number, Object] {
-  const sourceMidiNote = isSharp(requestedMidiNote)
-    ? requestedMidiNote - 1
-    : requestedMidiNote;
-
+  destinationNode: AudioNode
+): TrimmedAudioBufferSourceNode | OscillatorNode {
   const audioSource = audioSources[sourceMidiNote];
 
   if (audioSource && audioSource.audioBuffer) {
@@ -146,24 +149,28 @@ function buildSourceNode(
     playbackRate =
       playbackRate * shiftFrequency(requestedMidiNote - sourceMidiNote);
 
-    const source = new TrimmedAudioBufferSourceNode(audioContext, audioBuffer, {
-      ...audioSource.playbackParams,
-      playbackRate
-    });
+    const source = new TrimmedAudioBufferSourceNode(
+      destinationNode.context,
+      audioBuffer,
+      {
+        ...audioSource.playbackParams,
+        playbackRate
+      }
+    );
     source.connect(destinationNode);
 
-    return [sourceMidiNote, source];
+    return source;
   } else {
-    const source = audioContext.createOscillator();
+    const source = destinationNode.context.createOscillator();
     source.type = "square";
     source.frequency.value = noteToFrequency(requestedMidiNote);
 
-    const gainNode = audioContext.createGain();
+    const gainNode = destinationNode.context.createGain();
     gainNode.gain.value = 0.05;
     gainNode.connect(destinationNode);
     source.connect(gainNode);
 
-    return [sourceMidiNote, source];
+    return source;
   }
 }
 
@@ -231,50 +238,21 @@ export function startScriptedPlayback(
   const stream$ = observableWithGainNode(audioDestination, gainNode =>
     commandsWithAudioSources$
       .flatMap(([commands, audioSources]) => {
-        const events = [];
+        scheduleNotesForPlayback(
+          playbackStartedAt,
+          gainNode,
+          bpm,
+          commands,
+          audioSources
+        );
 
-        commands.forEach(command => {
-          const [midiNote, source] = buildSourceNode(
-            command[0],
-            audioSources,
-            gainNode
-          );
-
-          let startAt = playbackStartedAt + beatsToTimestamp(command[1], bpm);
-          const duration = beatsToTimestamp(command[2], bpm);
-
-          if (source) {
-            let offset;
-            if (audioContext.currentTime > startAt) {
-              offset = audioContext.currentTime - startAt;
-              startAt = 0;
-              console.warn("scheduling playback late.", offset);
-            } else {
-              offset = 0;
-            }
-            //source.start(startAt, offset, duration);
-            source.start(startAt);
-            source.stop(startAt + duration);
-          }
-
-          const duration$ = syncWithAudio(audioContext, startAt + duration)
-            .ignoreElements()
-            .takeUntil(playUntil$)
-            .concatWith({});
-
-          const event$ = syncWithAudio(
-            audioContext,
-            startAt
-          ).map((when): UIPlaybackCommand => ({
-            midiNote,
-            when,
-            duration$
-          }));
-
-          events.push(event$);
-        });
-
-        return Observable.merge(...events);
+        return uiPlaybackCommandsForNotes(
+          playbackStartedAt,
+          bpm,
+          commands,
+          gainNode.context,
+          playUntil$
+        );
       })
       .takeUntil(playUntil$)
   ).publish();
@@ -289,4 +267,102 @@ export function startScriptedPlayback(
     bpm: bpm,
     playCommands$: stream$
   };
+}
+
+function scheduleNotesForPlayback(
+  startPlaybackAt: number,
+  destination: AudioNode,
+  bpm: number,
+  notes: ScheduledNoteList,
+  audioSources: AudioSourceMap
+) {
+  notes.forEach(note => {
+    const [startAt, offset, duration] = timelineForNoteSchedule(
+      startPlaybackAt,
+      bpm,
+      note,
+      destination.context
+    );
+
+    const source = buildSourceNode(
+      realizedMidiNote(note[0]),
+      note[0],
+      audioSources,
+      destination
+    );
+
+    if (source) {
+      if (offset > 0) {
+        console.warn("scheduling playback late.", offset);
+      }
+
+      if (source instanceof TrimmedAudioBufferSourceNode) {
+        source.start(startAt, offset);
+      } else {
+        source.start(startAt);
+      }
+      source.stop(startAt + duration);
+    }
+  });
+}
+
+function timelineForNoteSchedule(
+  playbackStartedAt: number,
+  bpm: number,
+  note: ScheduledNote,
+  audioContext: AudioContext
+): [number, number, number] {
+  let startAt = playbackStartedAt + beatsToTimestamp(note[1], bpm);
+  const duration = beatsToTimestamp(note[2], bpm);
+
+  // If our scheduler is firing in time, this condition should never be met. If
+  // it does, we try to recover by slicing the buffer up so it still matches
+  // the timeline.
+  if (audioContext.currentTime > startAt) {
+    const offset = audioContext.currentTime - startAt;
+    return [
+      0, // startAt - immediately
+      offset,
+      duration - offset
+    ];
+  } else {
+    return [
+      startAt,
+      0, // offset
+      duration
+    ];
+  }
+}
+
+function uiPlaybackCommandsForNotes(
+  startPlaybackAt: number,
+  bpm: number,
+  notes: ScheduledNoteList,
+  audioContext: audioContext,
+  playUntil$: Observable<any>
+): Observable<UIPlaybackCommand> {
+  const events = notes.map(note => {
+    const [startAt, offset, duration] = timelineForNoteSchedule(
+      startPlaybackAt,
+      bpm,
+      note,
+      audioContext
+    );
+
+    const duration$ = syncWithAudio(audioContext, startAt + duration)
+      .ignoreElements()
+      .takeUntil(playUntil$)
+      .concatWith({});
+
+    return syncWithAudio(
+      audioContext,
+      startAt
+    ).map((when): UIPlaybackCommand => ({
+      midiNote: realizedMidiNote(note[0]),
+      when,
+      duration$
+    }));
+  });
+
+  return Observable.merge(...events);
 }

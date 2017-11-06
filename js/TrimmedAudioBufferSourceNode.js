@@ -38,8 +38,8 @@ export default class TrimmedAudioBufferSourceNode {
     this.gainNode.disconnect();
   }
 
-  start(when: number) {
-    this.sourceNode.start(when, this.offset, this.duration);
+  start(when: number, offset?: number) {
+    this.sourceNode.start(when, this.offset + (offset || 0), this.duration);
   }
 
   stop(when?: number) {
