@@ -1,6 +1,7 @@
 /* @flow */
 
 import { Observable } from "rxjs/Observable";
+import { Subject } from "rxjs/Subject"
 import * as firebase from "firebase";
 
 import { values, pick, sum, mapValues, identity } from "lodash";
@@ -9,7 +10,8 @@ import { playCommands$ as midiPlayCommands$ } from "./midi";
 import { playCommands$ as keyboardPlayCommands$ } from "./keyboard";
 import {
   startLivePlaybackEngine,
-  startScriptedPlayback
+  startScriptedPlayback,
+  renderNotesToAudioBuffer
 } from "./AudioPlaybackEngine";
 import { combine as combinePlayCommands } from "./playCommands";
 
@@ -17,16 +19,13 @@ import { animationFrame } from "rxjs/scheduler/animationFrame";
 import audioContext from "./audioContext";
 
 import {
-  audioProcessEventsFromNode,
-  audioProcessEventsToWavFile
-} from "./recording";
-
-import {
   songLengthInSeconds,
   songs,
   timestampToBeats,
   songLengthInBeats
 } from "./song";
+
+import encodeWavSync from "./encodeWavSync";
 
 import { displayNameForUid, songForSongBoard } from "./database";
 import combineTemplate from "./combineTemplate";
@@ -119,14 +118,30 @@ export function playbackControllerHelper(
     startPosition$ = Observable.of(0);
   }
 
+  // TODO: This will envolve into a worker process for rendering audio files
+  // window.render$ = new Subject();
+  // window.render$.withLatestFrom(
+  //     bpm$,
+  //     notes$,
+  //     media.audioSources$,
+  //     (ignore, bpm, notes, audioSources) => renderNotesToAudioBuffer(bpm, notes, audioSources)
+  // )
+  // .switch()
+  // .map((audioBuffer: AudioBuffer) => {
+  //   const arrayBuffer = encodeWavSync([
+  //     [
+  //     audioBuffer.getChannelData(0),
+  //     audioBuffer.getChannelData(1),
+  //     ]
+  //   ], audioBuffer.sampleRate
+  //   );
+
+  //   return URL.createObjectURL(new Blob([arrayBuffer], { type: "audio/wav" }))
+  // })
+  // .debug('url').subscribe();
+
   const scriptedPlaybackContext$$ = actions.play$
     .withLatestFrom(startPosition$, bpm$, (action, startPosition, bpm) => {
-      // TODO:
-      //  - this has clipping issues
-      //  - switch to a OfflineAudioContext so it runs quicker
-      // const gainNode = audioContext.createGain();
-      // gainNode.gain.value = 0.8;
-
       const playbackContext = startScriptedPlayback(
         notes$,
         bpm,
@@ -134,12 +149,7 @@ export function playbackControllerHelper(
         media.audioSources$,
         actions.pause$.concatWith({}),
         audioContext.destination
-        //gainNode
       );
-
-      // audioProcessEventsToWavFile(
-      //   audioProcessEventsFromNode(gainNode).takeUntil(playbackContext.playCommands$.ignoreElements().concatWith({}))
-      // ).map(ab => URL.createObjectURL(new Blob([ab], {type: 'audio/wav'}))).debug('test').subscribe();
 
       return playbackContext;
     })

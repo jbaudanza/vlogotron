@@ -276,6 +276,14 @@ function scheduleNotesForPlayback(
   notes: ScheduledNoteList,
   audioSources: AudioSourceMap
 ) {
+  const compressor = destination.context.createDynamicsCompressor();
+  compressor.threshold.value = -50;
+  compressor.knee.value = 40;
+  compressor.ratio.value = 12;
+  compressor.attack.value = 0;
+  compressor.release.value = 0.25;
+  compressor.connect(destination);
+
   notes.forEach(note => {
     const [startAt, offset, duration] = timelineForNoteSchedule(
       startPlaybackAt,
@@ -288,7 +296,7 @@ function scheduleNotesForPlayback(
       realizedMidiNote(note[0]),
       note[0],
       audioSources,
-      destination
+      compressor
     );
 
     if (source) {
@@ -365,4 +373,24 @@ function uiPlaybackCommandsForNotes(
   });
 
   return Observable.merge(...events);
+}
+
+export function renderNotesToAudioBuffer(
+  bpm: number,
+  notes: ScheduledNoteList,
+  audioSources: AudioSourceMap
+): Promise<AudioBuffer> {
+  const length = beatsToTimestamp(songLengthInBeats(notes), bpm);
+  const sampleRate = 44100;
+  const audioContext = new OfflineAudioContext(2, sampleRate * length, sampleRate);
+
+  scheduleNotesForPlayback(
+    audioContext.currentTime,
+    audioContext.destination,
+    bpm,
+    notes,
+    audioSources
+  );
+
+  return audioContext.startRendering();
 }
