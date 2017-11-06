@@ -230,7 +230,8 @@ function normalizeToMidiNote(maybeMidiNote: string | number): number {
 
 function reduceSongBoard(acc: SongBoard, event: SongBoardEvent): SongBoard {
   switch (event.type) {
-    case "add-video": // deprecated
+    // $FlowFixMe - add-video is deprecated
+    case "add-video":
     case "update-video-clip":
       let midiNote = normalizeToMidiNote(event.note);
 

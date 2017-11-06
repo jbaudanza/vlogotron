@@ -95,7 +95,7 @@ export default function recordVideosController(
 
   const clearedEvents$ = actions.clearVideoClip$.withLatestFrom(
     nonNullUser$,
-    (note: number, user: Object) => ({
+    (note: number, user: Firebase$User) => ({
       type: "remove-video",
       note: note,
       uid: user.uid

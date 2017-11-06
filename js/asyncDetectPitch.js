@@ -26,13 +26,13 @@ export default function asyncDetectPitch(
 }
 
 function onWorkerMessage(event: MessageEvent & { data: WorkerResponse }) {
-  const response: WorkerResponse = event.data;
+  const messageId = event.data.messageId;
 
-  if (response.error) {
-    workerPromises[response.messageId].reject(response.error);
+  if (event.data.error) {
+    workerPromises[messageId].reject(event.data.error);
   } else {
-    workerPromises[response.messageId].resolve(response.result);
+    workerPromises[messageId].resolve(event.data.result);
   }
 
-  delete workerPromises[response.messageId];
+  delete workerPromises[messageId];
 }

@@ -78,12 +78,18 @@ export default class PianoRollHeader extends React.Component<Props> {
     bindAll(this, "onChangeSelect", "onChangeBpm", "onToggleSelecting");
   }
 
-  onChangeSelect(event: Event & { target: HTMLSelectElement }) {
-    this.props.onChangeCellsPerBeat(parseInt(event.target.value));
+  onChangeSelect(event: Event) {
+    const target = event.target;
+    if (target instanceof HTMLSelectElement) {
+      this.props.onChangeCellsPerBeat(parseInt(target.value));
+    }
   }
 
-  onChangeBpm(event: Event & { target: HTMLSelectElement }) {
-    this.props.onChangeBpm(parseInt(event.target.value));
+  onChangeBpm(event: Event) {
+    const target = event.target;
+    if (target instanceof HTMLSelectElement) {
+      this.props.onChangeBpm(parseInt(target.value));
+    }
   }
 
   onToggleSelecting() {

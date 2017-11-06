@@ -125,7 +125,7 @@ class VideoPlaybackPosition
   extends React.Component<PlaybackPositionAnimationProps> {
   leftBarEl: ?HTMLElement;
   rightBarEl: ?HTMLElement;
-  svgCircleEl: ?HTMLElement;
+  svgCircleEl: ?Element;
 
   animationFrame(progress) {
     if (this.leftBarEl) {
@@ -144,7 +144,11 @@ class VideoPlaybackPosition
       });
     }
 
-    if (this.svgCircleEl) {
+    // TODO: If flow adds support for SVGElement, we can probably remove this
+    // instanceof check
+    if (
+      this.svgCircleEl && this.svgCircleEl.style instanceof CSSStyleDeclaration
+    ) {
       Object.assign(this.svgCircleEl.style, {
         position: "absolute",
         left: percentString(progress),

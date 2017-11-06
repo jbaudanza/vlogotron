@@ -1,7 +1,7 @@
 /* @flow */
 
 import { Observable } from "rxjs/Observable";
-import { Subject } from "rxjs/Subject"
+import { Subject } from "rxjs/Subject";
 import * as firebase from "firebase";
 
 import { values, pick, sum, mapValues, identity } from "lodash";

@@ -382,7 +382,11 @@ export function renderNotesToAudioBuffer(
 ): Promise<AudioBuffer> {
   const length = beatsToTimestamp(songLengthInBeats(notes), bpm);
   const sampleRate = 44100;
-  const audioContext = new OfflineAudioContext(2, sampleRate * length, sampleRate);
+  const audioContext = new OfflineAudioContext(
+    2,
+    sampleRate * length,
+    sampleRate
+  );
 
   scheduleNotesForPlayback(
     audioContext.currentTime,

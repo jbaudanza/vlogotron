@@ -101,7 +101,6 @@ export function routeToViewComponent(route: Route, media: Media): Function {
 
   switch (route.name) {
     case "root":
-    case "view-song":
     case "play-song-board":
       return createControlledComponent(
         migrateController(playbackController),

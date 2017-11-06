@@ -112,7 +112,7 @@ export default function noteSelectionController(
     .map(state => state === "selecting" || state === "menu-prompt")
     .distinctUntilChanged();
 
-  const selection$ = showSelection$
+  const selection$: rxjs$ConnectableObservable<?NoteSelection> = showSelection$
     .switchMap(shouldShow => {
       if (shouldShow) {
         return Observable.of(null).concat(actions.changeSelection$);
@@ -180,7 +180,7 @@ export default function noteSelectionController(
     props.onSongEdit(action);
   });
 
-  const auditioningNotes$ = Observable.merge(
+  const auditioningNotes$: Observable<?AuditionedNotes> = Observable.merge(
     mostRecentAuditionedNotes$,
     Observable.merge(
       actions.stopSelection$.mapTo(null),
