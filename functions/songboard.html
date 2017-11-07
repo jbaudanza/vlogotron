@@ -2,9 +2,11 @@
 <html>
   <head>
     <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, width=device-width">
-    <meta property="og:title" content="Vlogotron: Remix My Face!" />
-    <meta property="og:url" content="https://www.vlogotron.com/" />
-    <meta property="og:image" content="https://www.vlogotron.com/screenshot.png" />
+    <meta property="og:title" content="<%= title %>" />
+    <meta property="og:url" content="<%= url %>" />
+    <% if (image) { %>
+      <meta property="og:image" content="<%= image %>" />
+    <% } %>
     <script src="https://js.stripe.com/v3/"></script>
     <script src="/main.js"></script>
   </head>
