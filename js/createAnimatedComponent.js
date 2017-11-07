@@ -5,7 +5,7 @@ export default function createAnimatedComponent<Props: Object>(
   InnerComponent: React.ComponentType<Props>,
   shouldAnimate: Props => boolean,
   animationFrame: (Props, any) => void
-) {
+): React.ComponentType<Props> {
   return class AnimatedComponent extends React.Component<Props> {
     constructor() {
       super();

@@ -61,3 +61,4 @@ exports.charge = functions.https.onRequest(makeApi(require("./charge")));
 exports.videoClips = functions.https.onRequest(
   makeApi(require("./createVideoClip"))
 );
+exports.serveSongBoard=functions.https.onRequest(require('./serveSongBoard'));

@@ -332,7 +332,7 @@ class AudioPlaybackPositionMarker
 
 function createPlaybackPositionAnimation<Props: PlaybackPositionAnimationProps>(
   Component: React.ComponentType<Props>
-) {
+): React.ComponentType<Props> {
   return createAnimatedComponent(
     Component,
     (props: Props) => props.playbackStartedAt != null,

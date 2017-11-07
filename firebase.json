@@ -9,8 +9,16 @@
     "public": "public",
     "rewrites": [
       {
-        "source": "**",
-        "destination": "/index.html"
+        "source": "/",
+        "function": "serveSongBoard"
+      },
+      {
+        "source": "/songs/*",
+        "function": "serveSongBoard"
+      },
+      {
+        "source": "/song-boards/*",
+        "function": "serveSongBoard"
       }
     ]
   }

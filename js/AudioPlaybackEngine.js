@@ -277,6 +277,8 @@ function scheduleNotesForPlayback(
   audioSources: AudioSourceMap
 ) {
   const compressor = destination.context.createDynamicsCompressor();
+  // TODO: I just copied these values from https://developer.mozilla.org/en-US/docs/Web/API/DynamicsCompressorNode
+  // I have no idea if they are good or not.
   compressor.threshold.value = -50;
   compressor.knee.value = 40;
   compressor.ratio.value = 12;
