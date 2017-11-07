@@ -62,6 +62,10 @@ export default class EditableTitle extends React.Component<Props, State> {
 
   onBlur(event: SyntheticEvent<>) {
     this.setState({ newValue: null });
+
+    if (!isBlank(this.state.newValue) && this.props.onChange) {
+      this.props.onChange(this.state.newValue);
+    }
   }
 
   render() {
