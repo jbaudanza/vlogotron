@@ -2,10 +2,8 @@
 <html>
   <head>
     <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, width=device-width">
-    <meta property="og:title" content="<%= title %>" />
-    <meta property="og:url" content="<%= url %>" />
-    <% if (image) { %>
-      <meta property="og:image" content="<%= image %>" />
+    <% for (key in openGraph) { %>
+      <meta property="<%= key %>" content="<%= openGraph[key] %>" />
     <% } %>
     <script src="https://js.stripe.com/v3/"></script>
     <script src="/main.js"></script>
