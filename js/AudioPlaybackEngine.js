@@ -276,14 +276,9 @@ function scheduleNotesForPlayback(
   notes: ScheduledNoteList,
   audioSources: AudioSourceMap
 ) {
+  // We're just using the default values for the compressor. We just want to
+  // prevent clipping when multiple videos play at once.
   const compressor = destination.context.createDynamicsCompressor();
-  // TODO: I just copied these values from https://developer.mozilla.org/en-US/docs/Web/API/DynamicsCompressorNode
-  // I have no idea if they are good or not.
-  compressor.threshold.value = -50;
-  compressor.knee.value = 40;
-  compressor.ratio.value = 12;
-  compressor.attack.value = 0;
-  compressor.release.value = 0.25;
   compressor.connect(destination);
 
   notes.forEach(note => {
