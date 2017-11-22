@@ -13,11 +13,11 @@
         "function": "serveSongBoard"
       },
       {
-        "source": "/songs/*",
+        "source": "/songs/**",
         "function": "serveSongBoard"
       },
       {
-        "source": "/song-boards/*",
+        "source": "/song-boards/**",
         "function": "serveSongBoard"
       }
     ]
