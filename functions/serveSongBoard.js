@@ -47,7 +47,7 @@ function createVideoClip(
   }
 
   res.writeHead(200, { "Content-Type": "text/html" });
-  res.end(renderTemplate({openGraph}));
+  res.end(renderTemplate({ openGraph }));
 }
 
 module.exports = createVideoClip;

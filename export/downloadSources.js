@@ -3,7 +3,7 @@
 // Run with:
 //
 //   ./node_modules/.bin/babel-node ./downloadSources.js
-// 
+//
 
 import { map } from "lodash";
 import * as firebase from "firebase-admin";
@@ -38,9 +38,7 @@ firebase.initializeApp({
   databaseURL: "https://vlogotron-95daf.firebaseio.com"
 });
 
-
-const DEFAULT_SONG_ID = "-KjtoXV7i2sZ8b_Azl1y"
-
+const DEFAULT_SONG_ID = "-KjtoXV7i2sZ8b_Azl1y";
 
 const songBoard$ = findSongBoard(firebase.database(), DEFAULT_SONG_ID);
 
@@ -50,14 +48,16 @@ function pathForClipId(clipId) {
   return `/video-clips/${clipId}.mp4`;
 }
 
-function downloadClipId(clipId) { 
-  return bucket.file(pathForClipId(clipId)).download({destination: `sources/video-${clipId}.mp4`})
+function downloadClipId(clipId) {
+  return bucket
+    .file(pathForClipId(clipId))
+    .download({ destination: `sources/video-${clipId}.mp4` });
 }
 
 songBoard$
-    .map(i => map(i.videoClips, (j) => j.videoClipId))
-    .switchMap(list => Promise.all(list.map(downloadClipId)))
-    .debug('test')
-    .subscribe()
+  .map(i => map(i.videoClips, j => j.videoClipId))
+  .switchMap(list => Promise.all(list.map(downloadClipId)))
+  .debug("test")
+  .subscribe();
 
 //songBoard$.map(songForSongBoard).debug('test').subscribe()

@@ -41,7 +41,12 @@ function filterNull<T>(input: Array<T>): Array<$NonMaybeType<T>> {
   return input.filter(i => i != null);
 }
 
-export function makeFilterGraphString(videoClips: {[number]: VideoClip}, bpm: number, notes: ScheduledNoteList, durations: {[string]: number}): string {
+export function makeFilterGraphString(
+  videoClips: { [number]: VideoClip },
+  bpm: number,
+  notes: ScheduledNoteList,
+  durations: { [string]: number }
+): string {
   //notes = notes.splice(0, 4);
   const gridWidth = 4;
   const gridHeight = Math.ceil(midiNotesInGrid.length / gridWidth);
@@ -57,8 +62,11 @@ export function makeFilterGraphString(videoClips: {[number]: VideoClip}, bpm: nu
   const cropFilter = `crop=out_w=${cellSize}:out_h=${cellSize}`;
 
   midiNotesInGrid.forEach((midiNote, i) => {
-    const outputIndexes = filterNull(notes
-      .map((tuple, i) => (realizedMidiNote(tuple[0]) === midiNote ? i : null)));
+    const outputIndexes = filterNull(
+      notes.map(
+        (tuple, i) => (realizedMidiNote(tuple[0]) === midiNote ? i : null)
+      )
+    );
 
     if (outputIndexes.length > 0) {
       const outputs = outputIndexes
