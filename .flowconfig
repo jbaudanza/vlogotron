@@ -2,6 +2,7 @@
 .*/test/
 .*/styled-components/src
 <PROJECT_ROOT>/migrations
+<PROJECT_ROOT>/export/node_modules
 
 [include]
 ./js

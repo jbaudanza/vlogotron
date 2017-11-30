@@ -5,6 +5,7 @@ declare class Firebase$Database {
 declare class Firebase$Storage {
   ref(key: string): Object;
   refFromURL(key: string): Object;
+  bucket(key: string): Object;
 }
 
 type Firebase$UserInfo = {
@@ -29,4 +30,16 @@ declare module "firebase" {
   declare export function database(): Firebase$Database;
   declare export function storage(): Firebase$Storage;
   declare export function auth(): Object;
+}
+
+type FirebaseAdmin$Credential = {
+  cert(Object): Object;
+}
+
+declare module "firebase-admin" {
+  declare export function initializeApp(config: Object): void;
+  declare export function database(): Firebase$Database;
+  declare export function storage(): Firebase$Storage;
+  declare export function auth(): Object;
+  declare export var credential: FirebaseAdmin$Credential;
 }

@@ -9,8 +9,6 @@ import { map } from "lodash";
 import * as firebase from "firebase-admin";
 import "../js/rxjs-additions";
 
-import promiseFromTemplate from "../js/promiseFromTemplate";
-
 import type { VideoClip } from "../js/database";
 import { findSongBoard, songForSongBoard } from "../js/database";
 
