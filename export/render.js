@@ -1,7 +1,7 @@
 import fs from "fs";
-import { execFile } from "child_process";
 import { makeFilterGraphString } from "./makeFilterGraphString";
 import { fromPairs } from "lodash";
+import { queryDuration } from "./queryDuration";
 
 function readInput() {
   return new Promise((resolve, reject) => {
@@ -12,37 +12,6 @@ function readInput() {
         resolve(JSON.parse(data));
       }
     });
-  });
-}
-
-function filenameForVideoClip(videoClipId) {
-  return `sources/video-${videoClipId}.mp4`;
-}
-
-function queryDuration(videoClipId) {
-  return new Promise((resolve, reject) => {
-    // Command line from http://trac.ffmpeg.org/wiki/FFprobeTips
-    const child = execFile(
-      "ffprobe",
-      [
-        "-v",
-        "error",
-        "-select_streams",
-        "v:0",
-        "-show_entries",
-        "stream=duration",
-        "-of",
-        "default=noprint_wrappers=1:nokey=1",
-        filenameForVideoClip(videoClipId)
-      ],
-      (error, stdout, stderr) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(parseFloat(stdout));
-        }
-      }
-    );
   });
 }
 

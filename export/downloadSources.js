@@ -8,9 +8,13 @@
 import { map } from "lodash";
 import * as firebase from "firebase-admin";
 import "../js/rxjs-additions";
+import fs from "fs";
+import { Observable } from "rxjs/Observable";
 
 import type { VideoClip } from "../js/database";
 import { findSongBoard, songForSongBoard } from "../js/database";
+import { makeFilterGraphString } from "./makeFilterGraphString";
+import { queryDurations } from "./queryDuration";
 
 // XXX: Duplicated in VideoGrid.js
 export const notes: Array<number> = [
@@ -40,7 +44,9 @@ firebase.initializeApp({
 
 const DEFAULT_SONG_ID = "-KjtoXV7i2sZ8b_Azl1y";
 
-const songBoard$ = findSongBoard(firebase.database(), DEFAULT_SONG_ID);
+//const songBoard$ = findSongBoard(firebase.database(), DEFAULT_SONG_ID);
+// For offline use
+const songBoard$ = Observable.of(require("./songboard.json"));
 
 const bucket = firebase.storage().bucket("vlogotron-95daf.appspot.com");
 
@@ -49,15 +55,36 @@ function pathForClipId(clipId) {
 }
 
 function downloadClipId(clipId) {
-  return bucket
-    .file(pathForClipId(clipId))
-    .download({ destination: `sources/video-${clipId}.mp4` });
+  const filename = `sources/video-${clipId}.mp4`;
+
+  const exists = new Promise((resolve, reject) => {
+    fs.exists(filename, resolve);
+  });
+
+  return exists.then(exists => {
+    if (exists) {
+      console.log(filename + " already exists");
+    } else {
+      console.log("Downloading " + filename);
+      return bucket
+        .file(pathForClipId(clipId))
+        .download({ destination: filename });
+    }
+  });
 }
+
+songBoard$
+  .switchMap(input => {
+    const videoClipIds = Object.keys(input.videoClips).map(
+      key => input.videoClips[key].videoClipId
+    );
+    return queryDurations(videoClipIds).then(durations => ({ durations }));
+  })
+  .debug("durations")
+  .subscribe();
 
 songBoard$
   .map(i => map(i.videoClips, j => j.videoClipId))
   .switchMap(list => Promise.all(list.map(downloadClipId)))
   .debug("test")
   .subscribe();
-
-//songBoard$.map(songForSongBoard).debug('test').subscribe()
