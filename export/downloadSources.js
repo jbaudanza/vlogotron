@@ -5,7 +5,7 @@
 //   ./node_modules/.bin/babel-node ./downloadSources.js
 //
 
-import { map } from "lodash";
+import { map, flatten } from "lodash";
 import * as firebase from "firebase-admin";
 import "../js/rxjs-additions";
 import fs from "fs";
@@ -15,6 +15,7 @@ import type { VideoClip } from "../js/database";
 import { findSongBoard, songForSongBoard } from "../js/database";
 import { makeFilterGraphString } from "./makeFilterGraphString";
 import { queryDurations } from "./queryDuration";
+import { execFile } from "child_process";
 
 // XXX: Duplicated in VideoGrid.js
 export const notes: Array<number> = [
@@ -44,18 +45,22 @@ firebase.initializeApp({
 
 const DEFAULT_SONG_ID = "-KjtoXV7i2sZ8b_Azl1y";
 
-//const songBoard$ = findSongBoard(firebase.database(), DEFAULT_SONG_ID);
+//const songBoard$ = findSongBoard(firebase.database(), DEFAULT_SONG_ID).take(1);
 // For offline use
 const songBoard$ = Observable.of(require("./songboard.json"));
 
 const bucket = firebase.storage().bucket("vlogotron-95daf.appspot.com");
 
-function pathForClipId(clipId) {
+function remotePathForClipId(clipId) {
   return `/video-clips/${clipId}.mp4`;
 }
 
+function localPathForClipId(clipId) {
+  return `sources/video-${clipId}.mp4`;
+}
+
 function downloadClipId(clipId) {
-  const filename = `sources/video-${clipId}.mp4`;
+  const filename = localPathForClipId(clipId);
 
   const exists = new Promise((resolve, reject) => {
     fs.exists(filename, resolve);
@@ -67,24 +72,68 @@ function downloadClipId(clipId) {
     } else {
       console.log("Downloading " + filename);
       return bucket
-        .file(pathForClipId(clipId))
+        .file(remotePathForClipId(clipId))
         .download({ destination: filename });
     }
   });
 }
 
-songBoard$
-  .switchMap(input => {
-    const videoClipIds = Object.keys(input.videoClips).map(
-      key => input.videoClips[key].videoClipId
-    );
-    return queryDurations(videoClipIds).then(durations => ({ durations }));
-  })
-  .debug("durations")
-  .subscribe();
+function downloadAllVideoClips() {
+  return songBoard$
+    .map(i => map(i.videoClips, j => j.videoClipId))
+    .switchMap(list => Promise.all(list.map(downloadClipId)))
+    .toPromise();
+}
 
-songBoard$
-  .map(i => map(i.videoClips, j => j.videoClipId))
-  .switchMap(list => Promise.all(list.map(downloadClipId)))
-  .debug("test")
-  .subscribe();
+function argumentsForFfpmeg(videoClipIds, filterGraph) {
+  return flatten(
+    videoClipIds.map(id => ["-i", localPathForClipId(id)])
+  ).concat([
+    "-i",
+    "sources/audio.wav",
+    "-filter_complex",
+    filterGraph,
+    "-map",
+    "[final]",
+    "out.mp4"
+  ]);
+}
+
+function execFFmpeg(cmdLineArguments: Array<string>): Promise<number> {
+  return new Promise((resolve, reject) => {
+    // Command line from http://trac.ffmpeg.org/wiki/FFprobeTips
+    execFile("ffmpeg", cmdLineArguments, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(parseFloat(stdout));
+      }
+    });
+  });
+}
+
+function renderSongBoardInFfmpeg() {
+  return songBoard$
+    .switchMap(input => {
+      const videoClipIds = Object.keys(input.videoClips).map(
+        key => input.videoClips[key].videoClipId
+      );
+      return queryDurations(videoClipIds).then(durations => {
+        const song = songForSongBoard(input);
+        const filterGraph = makeFilterGraphString(
+          input.videoClips,
+          song.bpm,
+          song.notes,
+          durations
+        );
+
+        return argumentsForFfpmeg(videoClipIds, filterGraph);
+      });
+    })
+    .toPromise()
+    .then(execFFmpeg);
+}
+
+downloadAllVideoClips()
+  .then(renderSongBoardInFfmpeg)
+  .then(() => process.exit());

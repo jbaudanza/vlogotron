@@ -10,7 +10,7 @@ function filenameForVideoClip(videoClipId) {
 export function queryDuration(videoClipId: string): Promise<number> {
   return new Promise((resolve, reject) => {
     // Command line from http://trac.ffmpeg.org/wiki/FFprobeTips
-    const child = execFile(
+    execFile(
       "ffprobe",
       [
         "-v",
