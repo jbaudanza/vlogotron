@@ -1,6 +1,7 @@
 /* @flow */
 import type { VideoClip } from "../js/database";
 import type { ScheduledNoteList } from "../js/song";
+import { songLengthInSeconds } from "../js/song";
 
 const midiNotesInGrid = [
   48, // C3
@@ -99,21 +100,14 @@ export function makeFilterGraphString(
     filters.push(
       `[schedulednoteinput:v:${i}] ${trimFilter}, ${setptsFilter} [schedulednote:v:${i}]`
     );
-
-    // TODO: Ideally we could use PTS to sync the audio instead of adding a delay
-    let audioFilter;
-    if (timestamp === 0) {
-      audioFilter = "volume=1.0"; // No-op
-    } else {
-      audioFilter = `adelay=${timestamp * 1000}`;
-    }
   });
 
   //
   // Build video grid
   //
+  const songDuration = songLengthInSeconds(notes, bpm);
   filters.push(
-    `color=color=0x333333:size=${gridWidth * cellSize}x${gridHeight * cellSize}, trim=duration=15 [base]`
+    `color=color=0x333333:size=${gridWidth * cellSize}x${gridHeight * cellSize}, trim=duration=${songDuration} [base]`
   );
 
   notes.forEach(([midiNote, beatStart, duration], i) => {

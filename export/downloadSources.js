@@ -102,6 +102,7 @@ function argumentsForFfpmeg(videoClipIds, filterGraph) {
 function execFFmpeg(cmdLineArguments: Array<string>): Promise<number> {
   return new Promise((resolve, reject) => {
     // Command line from http://trac.ffmpeg.org/wiki/FFprobeTips
+    console.log("executing ffmpeg");
     execFile("ffmpeg", cmdLineArguments, (error, stdout, stderr) => {
       if (error) {
         reject(error);
