@@ -1,6 +1,6 @@
 /* @flow */
 import type { VideoClip } from "../js/database";
-import type { ScheduledNoteList } from "../js/song";
+import type { ScheduledNoteList, ScheduledNote } from "../js/song";
 import { songLengthInSeconds } from "../js/song";
 
 const midiNotesInGrid = [
@@ -21,6 +21,25 @@ const midiNotesInGrid = [
   72, // C5
   74 // D5
 ];
+
+function compareNotes(noteA: ScheduledNote, noteB: ScheduledNote) {
+  // Sort first by start position
+  if (noteA[1] !== noteB[1]) return noteA[1] - noteB[1];
+
+  // Then by duration, longest first
+  if (noteA[2] !== noteB[2]) return noteB[2] - noteA[2];
+
+  // Then by midi note, lowest first
+  return noteA[0] - noteB[0];
+}
+
+function testIntersection(noteA: ScheduledNote, noteB: ScheduledNote) {
+  if (noteA[1] < noteB[1]) {
+    return noteB[1] < noteA[1] + noteA[2];
+  } else {
+    return noteA[1] < noteB[1] + noteB[2];
+  }
+}
 
 function realizedMidiNote(midiNote) {
   if (isSharp(midiNote)) {
@@ -48,14 +67,14 @@ export function makeFilterGraphString(
   notes: ScheduledNoteList,
   durations: { [string]: number }
 ): string {
-  //notes = notes.splice(0, 4);
   const gridWidth = 4;
   const gridHeight = Math.ceil(midiNotesInGrid.length / gridWidth);
   const cellSize = 200;
 
   let filters = [];
 
-  // TODO: We should probably sort notes by the time when they start
+  const sortedNotes = notes.slice(0); // clone
+  sortedNotes.sort(compareNotes);
 
   // TODO: What about videos that are tall?
   const scaleFilter = `scale=h=${cellSize}:force_original_aspect_ratio=decrease`;
@@ -64,7 +83,7 @@ export function makeFilterGraphString(
 
   midiNotesInGrid.forEach((midiNote, i) => {
     const outputIndexes = filterNull(
-      notes.map(
+      sortedNotes.map(
         (tuple, i) => (realizedMidiNote(tuple[0]) === midiNote ? i : null)
       )
     );
@@ -80,7 +99,7 @@ export function makeFilterGraphString(
     }
   });
 
-  notes.forEach(([midiNote, beatStart, beatDuration], i) => {
+  sortedNotes.forEach(([midiNote, beatStart, beatDuration], i) => {
     const playbackParams =
       videoClips[realizedMidiNote(midiNote)].playbackParams;
     const videoClipId = videoClips[realizedMidiNote(midiNote)].videoClipId;
@@ -105,20 +124,37 @@ export function makeFilterGraphString(
   //
   // Build video grid
   //
-  const songDuration = songLengthInSeconds(notes, bpm);
+  const songDuration = songLengthInSeconds(sortedNotes, bpm);
   filters.push(
     `color=color=0x333333:size=${gridWidth * cellSize}x${gridHeight * cellSize}, trim=duration=${songDuration} [base]`
   );
 
-  notes.forEach(([midiNote, beatStart, duration], i) => {
+  const gridPositions = new Array(sortedNotes.length);
+  sortedNotes.forEach((note, i) => {
+    gridPositions[i] = 0;
+
+    if (i > 0) {
+      for (let j = i - 1; j >= 0; j--) {
+        if (sortedNotes[j][1] + sortedNotes[j][2] > note[1]) {
+          gridPositions[i] = gridPositions[j] + 1;
+          break;
+        }
+      }
+    }
+  });
+
+  sortedNotes.forEach(([midiNote, beatStart, duration], i) => {
     const lastSource = i === 0 ? "base" : `tmp:${i - 1}`;
+
     const gridPosition = midiNotesInGrid.indexOf(realizedMidiNote(midiNote));
+    //const gridPosition = gridPositions[i];
+
     const row = Math.floor(gridPosition / gridWidth);
     const column = gridPosition % gridWidth;
     const x = column * cellSize;
     const y = row * cellSize;
 
-    const output = i === notes.length - 1 ? "[final]" : `[tmp:${i}]`;
+    const output = i === sortedNotes.length - 1 ? "[final]" : `[tmp:${i}]`;
 
     filters.push(
       `[${lastSource}][schedulednote:v:${i}] overlay=x=${x}:y=${y}:eof_action=pass ${output}`
