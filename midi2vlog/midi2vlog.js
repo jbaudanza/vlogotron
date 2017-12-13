@@ -29,21 +29,6 @@ const numTracks = midiFile.header.getTracksCount(); // n
 var event;
 var vlogNotes = [];
 
-const noteNames = [
-  "C",
-  "C#",
-  "D",
-  "D#",
-  "E",
-  "F",
-  "F#",
-  "G",
-  "G#",
-  "A",
-  "A#",
-  "B"
-];
-
 // normalize octave to Vlogotron range
 // C3 ... D#5
 // 48 ... 75
@@ -53,7 +38,7 @@ const midRange = meanNote(minNoteNum, maxNoteNum);
 
 const defaultDuration = 0.0, minDuration = 0.4;
 
-var noteNum, noteName, oct;
+var noteNum;
 
 function meanNote(min, max) {
   return Math.round((max + min) / 2);
@@ -122,15 +107,12 @@ function readEvents(trackNum) {
         noteNum -= 12;
       }
 
-      // map note number to note name
-      noteName = noteNames[noteNum % 12];
-      oct = Math.floor(noteNum / 12) - 1;
       if (event.subtype === MIDIEvents.EVENT_MIDI_NOTE_ON) {
         var note = [];
         //0: note name
         //1: beat offset
         //2: duration (in beats)
-        note[0] = noteName + oct;
+        note[0] = noteNum;
         // map time, dividing by ticks per beat
         note[1] = offset / midiFile.header.getTicksPerBeat();
         // set default duration
@@ -141,7 +123,7 @@ function readEvents(trackNum) {
         // infer duration
         // look backwards on note off event
         for (var i = trackNotes.length - 1; i >= 0; i--) {
-          if (trackNotes[i][0] === noteName + oct) {
+          if (trackNotes[i][0] === noteNum) {
             var dur = event.delta / midiFile.header.getTicksPerBeat();
             if (dur >= minDuration) {
               trackNotes[i][2] = dur;
