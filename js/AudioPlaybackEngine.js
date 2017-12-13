@@ -43,7 +43,8 @@ const batchTime = audioContext.baseLatency || 2 * 128 / audioContext.sampleRate;
 
 export type LivePlayCommand = {
   play?: number,
-  pause?: number
+  pause?: number,
+  velocity: number
 };
 
 export function startLivePlaybackEngine(
@@ -68,6 +69,7 @@ export function startLivePlaybackEngine(
             const node = buildSourceNode(
               midiNote,
               inputNoteName,
+              cmd.velocity,
               audioSources,
               destinationNode
             );
@@ -134,6 +136,7 @@ function realizedMidiNote(input: number): number {
 function buildSourceNode(
   sourceMidiNote: number,
   requestedMidiNote: number,
+  velocity: number,
   audioSources: AudioSourceMap,
   destinationNode: AudioNode
 ): TrimmedAudioBufferSourceNode | OscillatorNode {
@@ -142,19 +145,20 @@ function buildSourceNode(
   if (audioSource && audioSource.audioBuffer) {
     const audioBuffer = audioSource.audioBuffer;
 
-    // alter playback rate for sharp notes,
-    // simply use just intonation for now
-    let playbackRate = audioSource.playbackParams.playbackRate;
+    // alter playback rate to match the requested midi note
+    const playbackRate =
+      audioSource.playbackParams.playbackRate *
+      shiftFrequency(requestedMidiNote - sourceMidiNote);
 
-    playbackRate =
-      playbackRate * shiftFrequency(requestedMidiNote - sourceMidiNote);
+    const gain = audioSource.playbackParams.gain * velocity / 127;
 
     const source = new TrimmedAudioBufferSourceNode(
       destinationNode.context,
       audioBuffer,
       {
         ...audioSource.playbackParams,
-        playbackRate
+        playbackRate,
+        gain
       }
     );
     source.connect(destinationNode);
@@ -166,7 +170,7 @@ function buildSourceNode(
     source.frequency.value = noteToFrequency(requestedMidiNote);
 
     const gainNode = destinationNode.context.createGain();
-    gainNode.gain.value = 0.05;
+    gainNode.gain.value = 0.05 * (velocity / 127);
     gainNode.connect(destinationNode);
     source.connect(gainNode);
 
@@ -185,6 +189,18 @@ function syncWithAudio(audioContext, when) {
   });
 }
 
+function truncateNotes(
+  notes: ScheduledNoteList,
+  startPosition: number
+): ScheduledNoteList {
+  return notes.filter(note => note[1] >= startPosition).map(note => {
+    // const clone: ScheduledNote = note.slice(0);
+    // clone[1] = note[1] - startPosition;
+    // return clone;
+    return [note[0], note[1] - startPosition, note[2], note[3]];
+  });
+}
+
 export function startScriptedPlayback(
   notes$: Observable<ScheduledNoteList>,
   bpm: number,
@@ -194,9 +210,7 @@ export function startScriptedPlayback(
   audioDestination: AudioNode
 ) {
   const truncatedNotes$ = notes$.map(notes =>
-    notes
-      .filter(note => note[1] >= startPosition)
-      .map(note => [note[0], note[1] - startPosition, note[2]])
+    truncateNotes(notes, startPosition)
   );
 
   type BeatWindow = [number, number];
@@ -291,7 +305,8 @@ function scheduleNotesForPlayback(
 
     const source = buildSourceNode(
       realizedMidiNote(note[0]),
-      note[0],
+      note[0], // midi note
+      note[3], // velocity
       audioSources,
       compressor
     );

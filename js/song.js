@@ -17,7 +17,7 @@ import { labelToMidiNote } from "./midi";
 }
 */
 
-export type ScheduledNote = [number, number, number];
+export type ScheduledNote = [number, number, number, number];
 export type ScheduledNoteList = Array<ScheduledNote>;
 export type Song = {
   title: string,
@@ -5431,7 +5431,7 @@ function labelToNonNullMidiNote(label) {
 function migrateNotes(
   input: Array<[string, number, number]>
 ): ScheduledNoteList {
-  return input.map(([a, b, c]) => [labelToNonNullMidiNote(a), b, c]);
+  return input.map(([a, b, c]) => [labelToNonNullMidiNote(a), b, c, 127]);
 }
 
 export const songs: SongMap = {

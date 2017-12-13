@@ -75,7 +75,8 @@ export const playCommands$ = midiMessages$
       (type === MIDI_NOTE_ON && velocity === 0)
     ) {
       return {
-        pause: note
+        pause: note,
+        velocity: velocity
       };
       // Detect a note on
       // TODO: Investigate if it's possible to get multiple NOTE_ON messages for
@@ -84,7 +85,8 @@ export const playCommands$ = midiMessages$
       // some state around this.
     } else if (type === MIDI_NOTE_ON && velocity > 0) {
       return {
-        play: note
+        play: note,
+        velocity: velocity
       };
     } else {
       return null;

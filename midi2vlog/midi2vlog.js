@@ -2,23 +2,9 @@ var MIDIFile = require("MIDIFile");
 var MIDIEvents = require("midievents");
 var fs = require("fs");
 
-// Helper to get an ArrayBuffer from a NodeJS buffer
-// Borrowed here : http://stackoverflow.com/questions/8609289/convert-a-binary-
-// nodejs-buffer-to-javascript-arraybuffer
-function toArrayBuffer(buffer) {
-  var ab = new ArrayBuffer(buffer.length);
-  var view = new Uint8Array(ab);
-  var i;
-
-  for (i = 0; i < buffer.length; ++i) {
-    view[i] = buffer[i];
-  }
-  return ab;
-}
-
 // read midi file
 var filename = process.argv[2];
-var midiFile = new MIDIFile(toArrayBuffer(fs.readFileSync(filename)));
+var midiFile = new MIDIFile(fs.readFileSync(filename).buffer);
 
 // read headers
 //TODO: handle all formats
@@ -73,17 +59,18 @@ var range = findRange();
 var transposition = 0;
 
 // find ideal middle range transposition
-if (range.min < minNoteNum || range.max > maxNoteNum) {
-  transposition = meanNote(range.min, range.max) - midRange;
-}
+// if (range.min < minNoteNum || range.max > maxNoteNum) {
+//   transposition = meanNote(range.min, range.max) - midRange;
+// }
 
 function round(num) {
   return Math.round(num * 100) / 100;
 }
 
-for (var i = 1; i < numTracks; i++) {
+for (var i = 0; i < numTracks; i++) {
   vlogNotes = vlogNotes.concat(readEvents(i));
 }
+//vlogNotes = readEvents(1);
 
 function readEvents(trackNum) {
   var offset = 0;
@@ -98,14 +85,14 @@ function readEvents(trackNum) {
       noteNum = parseInt(event.param1) + transposition;
 
       // if individual notes still out of range,
-      // transpose each by an octave until in range
-      while (noteNum < minNoteNum) {
-        noteNum += 12;
-      }
+      // // transpose each by an octave until in range
+      // while (noteNum < minNoteNum) {
+      //   noteNum += 12;
+      // }
 
-      while (noteNum > maxNoteNum) {
-        noteNum -= 12;
-      }
+      // while (noteNum > maxNoteNum) {
+      //   noteNum -= 12;
+      // }
 
       if (event.subtype === MIDIEvents.EVENT_MIDI_NOTE_ON) {
         var note = [];
@@ -117,6 +104,7 @@ function readEvents(trackNum) {
         note[1] = offset / midiFile.header.getTicksPerBeat();
         // set default duration
         note[2] = defaultDuration;
+        note[3] = event.param2; // Velocity
 
         trackNotes.push(note);
       } else if (event.subtype === MIDIEvents.EVENT_MIDI_NOTE_OFF) {

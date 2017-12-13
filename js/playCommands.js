@@ -12,10 +12,12 @@ function reduceMultipleCommandStreams(last, command) {
 
   if (command.play && !last.refCounts[command.play]) {
     nextCommand.play = command.play;
+    nextCommand.velocity = command.velocity;
   }
 
   if (command.pause && last.refCounts[command.pause] === 1) {
     nextCommand.pause = command.pause;
+    nextCommand.velocity = command.velocity;
   }
 
   let refCounts = last.refCounts;

@@ -167,10 +167,12 @@ export default class VideoGrid extends React.Component<Props, State> {
 
       if (note != null) {
         nextCommand.play = note;
+        nextCommand.velocity = 127;
       }
 
       if (lastCommand.play) {
         nextCommand.pause = lastCommand.play;
+        nextCommand.velocity = 127;
       }
 
       return nextCommand;

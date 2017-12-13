@@ -74,7 +74,7 @@ export const playCommands$ = keys$
 
     if (note) {
       const type = event.type === "keydown" ? "play" : "pause";
-      return { [type]: note };
+      return { [type]: note, velocity: 127 };
     }
   })
   .nonNull();
