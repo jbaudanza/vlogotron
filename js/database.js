@@ -11,7 +11,7 @@ import { postToAPI } from "./xhr";
 import { songs } from "./song";
 
 import { midiNoteToLabel, labelToMidiNote, omitNote } from "./midi";
-import type { Song, SongId } from "./song";
+import type { Song, SongId, ScheduledNoteList, ScheduledNote } from "./song";
 import type { PlaybackParams } from "./AudioPlaybackEngine";
 
 type NoteId = number; // MIDI note number
@@ -83,9 +83,23 @@ export type DenormalizedSongBoard = {
   visibility: string
 };
 
+// Old database entries might be missing velocities
+function addVelocity(input: ScheduledNoteList): ScheduledNoteList {
+  return input.map((i: ScheduledNote) => {
+    if (i[3] == null) {
+      return [i[0], i[1], i[2], 127];
+    } else {
+      return i;
+    }
+  });
+}
+
 export function songForSongBoard(songBoard: SongBoard): Song {
   if (songBoard.customSong && songBoard.songId === "custom") {
-    return songBoard.customSong;
+    return {
+      ...songBoard.customSong,
+      notes: addVelocity(songBoard.customSong.notes)
+    };
   }
 
   if (songBoard.songId) {
