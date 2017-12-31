@@ -37,12 +37,17 @@
     "flow-bin": "^0.58.0",
     "prettier": "^1.0.2",
     "targaryen": "^3.0.1",
-    "webpack-notifier": "^1.5.0"
+    "webpack-notifier": "^1.5.0",
+    "@storybook/react": "^3.3.3",
+    "@storybook/addon-actions": "^3.3.3",
+    "@storybook/addon-links": "^3.3.3"
   },
   "scripts": {
     "start": "firebase serve",
     "test": "ava",
-    "prettier": "prettier --write \"{js,functions,midi2vlog,export}/*.js\""
+    "prettier": "prettier --write \"{js,functions,midi2vlog,export}/*.js\"",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
   },
   "ava": {
     "files": "tests/*.js",
