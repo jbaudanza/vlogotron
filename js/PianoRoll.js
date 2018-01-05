@@ -680,7 +680,8 @@ export default class PianoRoll extends React.Component<Props, State> {
             notes: [
               {
                 ...gesture.first.location,
-                duration: 1.0 / this.props.cellsPerBeat
+                duration: 1.0 / this.props.cellsPerBeat,
+                velocity: 127
               }
             ]
           });

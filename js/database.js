@@ -94,12 +94,11 @@ function addVelocity(input: ScheduledNoteList): ScheduledNoteList {
   });
 }
 
+// TODO: This is exactly the same as localWorkspace.songForSongBoard, which
+// is probably a code smell
 export function songForSongBoard(songBoard: SongBoard): Song {
   if (songBoard.customSong && songBoard.songId === "custom") {
-    return {
-      ...songBoard.customSong,
-      notes: addVelocity(songBoard.customSong.notes)
-    };
+    return songBoard.customSong;
   }
 
   if (songBoard.songId) {
@@ -337,13 +336,27 @@ export function findSongBoard(
     .map(snapshot => songBoardSnapshot(snapshot))
     .first();
 
-  return first$.switchMap(initialSnapshot => {
+  const songBoard$ = first$.switchMap(initialSnapshot => {
     const eventsRef = songBoardRef.child("events");
     return reduceFirebaseCollection(
       eventsRef,
       reduceSongBoard,
       initialSnapshot
     );
+  });
+
+  return songBoard$.map(songBoard => {
+    if (songBoard.customSong && songBoard.songId === "custom") {
+      // Add velocity to legacy database entries
+      const customSong = {
+        ...songBoard.customSong,
+        notes: addVelocity(songBoard.customSong.notes)
+      };
+
+      return { ...songBoard, customSong };
+    } else {
+      return songBoard;
+    }
   });
 }
 

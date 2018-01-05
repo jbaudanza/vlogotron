@@ -60,14 +60,15 @@ export type SelectionState =
 function translateNotesForPasting(
   pasteLocation: NoteLocation,
   selection: AuditionedNotes
-): Array<{ beat: number, note: number, duration: number }> {
+): Array<{ beat: number, note: number, duration: number, velocity: number }> {
   const noteOffset = pasteLocation.note - selection.selection.topLeft.note;
   const beatOffset = pasteLocation.beat - selection.selection.topLeft.beat;
 
   return selection.notes.map(tuple => ({
     note: tuple[0] + noteOffset,
     beat: tuple[1] + beatOffset,
-    duration: tuple[2]
+    duration: tuple[2],
+    velocity: tuple[3]
   }));
 }
 
