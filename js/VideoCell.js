@@ -126,9 +126,7 @@ export default class VideoCell extends React.Component<Props> {
           </Link>
         );
 
-        if (this.props.pitchCorrection != null) {
-          pitchGuideEl = <PitchGuide value={this.props.pitchCorrection} />;
-        }
+        pitchGuideEl = <PitchGuide value={this.props.pitchCorrection} />;
       }
     } else if (this.props.videoClipSources && this.props.playbackParams) {
       videoEl = (

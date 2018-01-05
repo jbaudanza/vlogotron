@@ -21,6 +21,12 @@ class WithUserMedia extends React.Component {
     )
   }
 
+  componentWillUnmount() {
+    if (this.state.mediaStream) {
+      this.state.mediaStream.getTracks().forEach(t => t.stop())
+    }
+  }
+
   render() {
     if (this.state.mediaStream != null) {
       return this.props.render(this.state.mediaStream);
@@ -53,27 +59,29 @@ WithMessages.childContextTypes = {
 };
 
 storiesOf('VideoCell', module)
-  .add('while recording', () => {
-    return (
-      <WithMessages>
-        <WithUserMedia render={(mediaStream) => (
-          <VideoCell
-            onStopRecording={action('stop recording')}
-            durationRecorded={123}
-            mediaStream={mediaStream} />
-        )} />
-      </WithMessages>
-    )
-  })
-  .add('with countdown', () => {
-    return (
-      <WithMessages>
-        <WithUserMedia render={(mediaStream) => (
-          <VideoCell
-            onStopRecording={action('stop recording')}
-            countdown={3}
-            mediaStream={mediaStream} />
-        )} />
-      </WithMessages>
-    )
-  })
+  .add('while recording', () => (
+    <WithMessages>
+      <WithUserMedia render={(mediaStream) => (
+        <VideoCell
+          onStopRecording={action('stop recording')}
+          durationRecorded={123}
+          pitchCorrection={0.75}
+          mediaStream={mediaStream} />
+      )} />
+    </WithMessages>
+  ))
+  .add('with countdown', () => (
+    <WithMessages>
+      <WithUserMedia render={(mediaStream) => (
+        <VideoCell
+          onStopRecording={action('stop recording')}
+          countdown={3}
+          mediaStream={mediaStream} />
+      )} />
+    </WithMessages>
+  ))
+  .add('empty', () => (
+    <WithMessages>
+      <VideoCell onStartRecording={action('start recording')} />
+    </WithMessages>
+  ))

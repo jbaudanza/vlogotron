@@ -4,7 +4,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { times } from "lodash";
 
-function SvgMeter(props: { width: number, value: number }) {
+function SvgMeter(props: { width: number, value: ?number }) {
   const width = props.width;
   const height = 10;
   const dotCount = 18;
@@ -57,14 +57,11 @@ const Label = styled.span`
 `;
 
 type Props = {
-  value: number
+  value: ?number
 };
 
 export default class PitchGuide extends React.Component<Props> {
   render() {
-    const width = 136;
-    const dotCount = 18;
-
     return (
       <div className="pitch-guide">
         <LabelWrapper>
