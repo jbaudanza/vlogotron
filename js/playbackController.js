@@ -189,7 +189,7 @@ export function playbackControllerHelper(
         )
       )
       .filter(beat => beat >= 0)
-      .takeUntil(context.playCommands$.ignoreElements().concatWith(1))
+      .takeUntil(context.playbackFinished$)
       .concatWith(0)
       .map(beat => beat + context.startPosition)
   );

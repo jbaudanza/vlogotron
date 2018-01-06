@@ -226,7 +226,7 @@ export function startScriptedPlayback(
   // TODO: 125ms is a long time, but using batchTime instead leads to late
   // playbacks. Why is this? Probably because it takes too long for the
   // audioScheduler to startup.
-  const playbackStartedAt = audioContext.currentTime + 0.125;
+  const playbackStartedAt = audioDestination.context.currentTime + 0.125;
 
   // Returns the time window (in beats) that need to be scheduled
   function makeBeatWindow(lastWindow, playbackUntilTimestamp): BeatWindow {
@@ -238,7 +238,7 @@ export function startScriptedPlayback(
 
   // TODO: If the song isn't going to change, we don't need the playback
   // scheduler.
-  const commandsWithAudioSources$ = playbackSchedule(audioContext)
+  const commandsWithAudioSources$ = playbackSchedule(audioDestination.context)
     .scan(makeBeatWindow, [0, 0])
     .withLatestFrom(truncatedNotes$)
     // TODO: This really should be takeUntil with a predicate function, but
@@ -249,27 +249,56 @@ export function startScriptedPlayback(
     .map(([beatWindow, notes]) => pickNotesForBeatWindow(beatWindow, notes))
     .withLatestFrom(audioSources$);
 
-  const stream$ = observableWithGainNode(audioDestination, gainNode =>
-    commandsWithAudioSources$
-      .flatMap(([commands, audioSources]) => {
-        scheduleNotesForPlayback(
-          playbackStartedAt,
-          gainNode,
-          bpm,
-          commands,
-          audioSources
-        );
+  // This should fire after the end of the last note has been played.
+  const scriptedPlaybackFinished$ = commandsWithAudioSources$
+    .mergeMap(([commands, audioSources]) => {
+      const timestamps = commands.map(([midi, offset, duration]) =>
+        beatsToTimestamp(offset + duration, bpm)
+      );
 
-        return uiPlaybackCommandsForNotes(
-          playbackStartedAt,
-          bpm,
-          commands,
-          gainNode.context,
-          playUntil$
+      if (timestamps.length > 0) {
+        return syncWithAudio(
+          audioDestination.context,
+          playbackStartedAt + Math.max(...timestamps)
         );
-      })
-      .takeUntil(playUntil$)
-  ).publish();
+      } else {
+        return Observable.empty();
+      }
+    })
+    .last();
+
+  const playbackFinished$ = Observable.merge(
+    scriptedPlaybackFinished$,
+    playUntil$
+  ).first();
+
+  const gainNode = audioDestination.context.createGain();
+  gainNode.connect(audioDestination);
+
+  playbackFinished$.subscribe(() => {
+    gainNode.disconnect();
+  });
+
+  const stream$ = commandsWithAudioSources$
+    .flatMap(([commands, audioSources]) => {
+      scheduleNotesForPlayback(
+        playbackStartedAt,
+        gainNode,
+        bpm,
+        commands,
+        audioSources
+      );
+
+      return uiPlaybackCommandsForNotes(
+        playbackStartedAt,
+        bpm,
+        commands,
+        gainNode.context,
+        playUntil$
+      );
+    })
+    .takeUntil(playUntil$)
+    .publish();
 
   // Make this hot right away. We don't need to worry about unsubscribing,
   // because the stream will end when the song is over or playUntil$ fires.
@@ -279,7 +308,8 @@ export function startScriptedPlayback(
     playbackStartedAt: playbackStartedAt,
     startPosition: startPosition,
     bpm: bpm,
-    playCommands$: stream$
+    playCommands$: stream$,
+    playbackFinished$: playbackFinished$
   };
 }
 
